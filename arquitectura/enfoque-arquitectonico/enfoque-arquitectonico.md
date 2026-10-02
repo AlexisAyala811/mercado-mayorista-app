@@ -5,67 +5,67 @@
 | Elemento | Descripción aplicada al proyecto |
 |---|---|
 | **Patrón / enfoque arquitectónico** | Clean Architecture con enfoque modular, offline-first y API-first. |
-| **Objetivo** | Separar las responsabilidades del sistema y controlar las dependencias hacia el dominio del negocio, facilitando la evolución, el mantenimiento y las pruebas de la aplicación. |
-| **¿Qué problema resuelve?** | Evita el acoplamiento entre la interfaz móvil, las reglas de negocio y las tecnologías externas. Permite modificar procesos como pesaje, flete, estiba, pagos, cobranzas, inventario o sincronización sin afectar innecesariamente otras partes del sistema. |
+| **Objetivo** | Separar responsabilidades y controlar las dependencias hacia el dominio del negocio para facilitar mantenimiento, pruebas y evolución del sistema. |
+| **¿Qué problema resuelve?** | Evita el acoplamiento entre la aplicación móvil, las reglas de negocio y tecnologías externas como almacenamiento local, API REST y PostgreSQL. |
 | **Capas definidas** | Presentación, Aplicación, Dominio e Infraestructura. |
-| **Beneficios** | • Facilita el mantenimiento y las pruebas unitarias. <br> • Permite trabajar con conectividad irregular mediante almacenamiento local y sincronización posterior. <br> • Separa las reglas del negocio de React Native, PostgreSQL y otros componentes técnicos. <br> • Reduce el acoplamiento entre módulos como compras, ventas, inventario, cuentas, flete y estiba. <br> • Facilita la evolución progresiva de la analítica e inteligencia artificial. |
+| **Beneficios** | Facilita el mantenimiento, las pruebas, la operación sin conexión, la modularidad y la evolución progresiva del sistema sin afectar innecesariamente las reglas del negocio. |
 
 ## Diagrama del enfoque arquitectónico
 
 ```mermaid
-flowchart TD
+flowchart TB
 
     %% ACTORES
-    Mayorista["Mayorista"]
-    Encargado["Encargado"]
+    subgraph ACTORES["ACTORES"]
+        Mayorista["Mayorista"]
+        Encargado["Encargado"]
+    end
 
     %% PRESENTACIÓN
-    subgraph PRESENTACION["Presentación"]
-        UI["Aplicación móvil / Tablet Android"]
+    subgraph P["1. PRESENTACIÓN"]
+        Mobile["Aplicación móvil / Tablet Android"]
     end
 
     %% APLICACIÓN
-    subgraph APLICACION["Aplicación"]
-        CasosUso["Casos de uso:
-- Registrar cargamento
-- Registrar pesaje
-- Registrar compra
-- Registrar venta
-- Registrar pago
-- Consultar saldos
-- Consultar reportes"]
+    subgraph A["2. APLICACIÓN"]
+        CasosUso["Casos de uso"]
+        Sync["Coordinación de sincronización"]
     end
 
     %% DOMINIO
-    subgraph DOMINIO["Dominio"]
-        Reglas["Reglas de negocio:
-- Pesaje
-- Flete
-- Estiba
-- Compras
-- Ventas
-- Inventario
-- Cobranzas
-- Pagos
-- Saldos"]
+    subgraph D["3. DOMINIO"]
+        Recepcion["Recepción y pesaje"]
+        Compras["Compras"]
+        Inventario["Inventario"]
+        Ventas["Ventas y despachos"]
+        Cuentas["Pagos y cobranzas"]
+        Flete["Flete y estiba"]
     end
 
     %% INFRAESTRUCTURA
-    subgraph INFRAESTRUCTURA["Infraestructura"]
+    subgraph I["4. INFRAESTRUCTURA"]
         Local["Almacenamiento local"]
-        API["API REST /api/v1"]
+        API["API REST"]
         Backend["Backend modular"]
-        BD["PostgreSQL"]
-        IA["Analítica e IA"]
+        DB["PostgreSQL"]
+        Analytics["Analítica e IA"]
     end
 
-    Mayorista --> UI
-    Encargado --> UI
+    Mayorista --> Mobile
+    Encargado --> Mobile
 
-    UI --> CasosUso
-    CasosUso --> Reglas
-    Reglas --> Local
-    Reglas --> API
+    Mobile --> CasosUso
+    CasosUso --> Recepcion
+    CasosUso --> Compras
+    CasosUso --> Inventario
+    CasosUso --> Ventas
+    CasosUso --> Cuentas
+    CasosUso --> Flete
+
+    CasosUso --> Sync
+    Sync --> Local
+    Sync --> API
+
     API --> Backend
-    Backend --> BD
-    BD --> IA
+    Backend --> DB
+    DB --> Analytics
