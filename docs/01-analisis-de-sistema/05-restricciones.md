@@ -2,8 +2,6 @@
 
 > **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 1.1
 
-Contenido derivado de `build_propuesta.py`, conservando los identificadores de la propuesta vigente. Las reglas detalladas se mantienen en las especificaciones aprobadas del proyecto documental compartido.
-
 | Código | Restricción | Implicación arquitectónica |
 | --- | --- | --- |
 | R 01 | La primera versión operará en tablets Android y debe admitir conectividad irregular. | Interfaz adaptable, almacenamiento local cifrado y sincronización diferida. |

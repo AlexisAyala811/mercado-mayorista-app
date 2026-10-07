@@ -33,3 +33,9 @@ flowchart TD
 ```
 
 La orientación a dominio guía el diseño. La dependencia directa de algunos servicios al ORM es una limitación actual documentada, no evidencia de cumplimiento completo de inversión de dependencias.
+
+## Imágenes del proyecto
+
+![Diagrama enfoque-arquitectonico de gestión mayorista de papa](../../img/enfoque-arquitectonico.png)
+
+Los diagramas representan las responsabilidades descritas en este documento. Los SVG editables están en `img/fuentes-svg`; las secuencias se mantienen también en Mermaid dentro de la documentación.

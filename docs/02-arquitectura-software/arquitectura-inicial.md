@@ -41,3 +41,9 @@ Vistas relacionadas: [contenedores](../04-modelo-c4/Nivel2-DiagramadeContenedore
 6. Consultar el resultado confirmado y generar el comprobante interno según permisos.
 
 Si la conexión falla, la captura autorizada se conserva pendiente. El mismo UUID debe reutilizarse al recuperar respuesta; nunca se presenta un borrador como confirmación central.
+
+## Imágenes del proyecto
+
+![Diagrama arquitectura-inicial de gestión mayorista de papa](../../img/arquitectura-inicial.png)
+
+Los diagramas representan las responsabilidades descritas en este documento. Los SVG editables están en `img/fuentes-svg`; las secuencias se mantienen también en Mermaid dentro de la documentación.

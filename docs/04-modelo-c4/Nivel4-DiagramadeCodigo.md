@@ -98,3 +98,13 @@ La flecha del diagrama de clases indica dependencia/uso; no representa un puerto
 Repository, unidad de trabajo, idempotencia y compensación explican la operación. Responsabilidad única e inversión de dependencias orientan su evolución, pero la dependencia actual a DataSource se conserva explícita.
 
 Anterior: [componentes](Nivel3-Diagrama-de-Componentes.md). Detalle: [diseño interno](../03-diseño-de-software/diseño-interno/diseño-interno-de-modulos.md).
+
+## Imágenes del proyecto
+
+![Diagrama nivel4-clases de gestión mayorista de papa](../../img/nivel4-clases.png)
+
+![Diagrama nivel4-secuencia de gestión mayorista de papa](../../img/nivel4-secuencia.png)
+
+Los diagramas representan las responsabilidades descritas en este documento. Los SVG editables están en `img/fuentes-svg`; las secuencias se mantienen también en Mermaid dentro de la documentación.
+
+La imagen de secuencia ilustra una orden nueva. Si ya existe resultado confirmado para el UUID, se devuelve ese resultado y se omiten el cálculo y las nuevas escrituras, como muestra la alternativa del diagrama Mermaid.

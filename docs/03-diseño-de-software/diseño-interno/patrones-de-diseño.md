@@ -41,3 +41,9 @@ flowchart LR
 Observer podría evaluarse para recordatorios cuando RF23 tenga canal y política definidos. Factory se justifica solo si la construcción de operaciones adquiere variaciones complejas. Facade podría reducir el acoplamiento entre compra y entidades de otros módulos. Son alternativas futuras sujetas a plan; no se afirma que estén implementadas.
 
 No se añade Decorator/Redis por analogía con el ejemplo: no existe una decisión vigente de caché central y los saldos oficiales no deben depender de ella.
+
+## Imágenes del proyecto
+
+![Diagrama patrones-compra de gestión mayorista de papa](../../../img/patrones-compra.png)
+
+Los diagramas representan las responsabilidades descritas en este documento. Los SVG editables están en `img/fuentes-svg`; las secuencias se mantienen también en Mermaid dentro de la documentación.

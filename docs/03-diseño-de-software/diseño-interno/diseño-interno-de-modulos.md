@@ -108,3 +108,15 @@ confirmar transacción y devolver resultado central
 ```
 
 El esquema explica responsabilidades; no reemplaza el código ejecutable ni supone puertos nuevos. Las pruebas deben cubrir rollback, autorización, precisión, cuotas, reintento y concurrencia.
+
+## Imágenes del proyecto
+
+![Diagrama paquetes-modulo-compras de gestión mayorista de papa](../../../img/paquetes-modulo-compras.png)
+
+![Diagrama nivel4-clases de gestión mayorista de papa](../../../img/nivel4-clases.png)
+
+![Diagrama nivel4-secuencia de gestión mayorista de papa](../../../img/nivel4-secuencia.png)
+
+Los diagramas representan las responsabilidades descritas en este documento. Los SVG editables están en `img/fuentes-svg`; las secuencias se mantienen también en Mermaid dentro de la documentación.
+
+La imagen de secuencia ilustra una orden nueva. Si ya existe resultado confirmado para el UUID, se devuelve ese resultado y se omiten el cálculo y las nuevas escrituras, como muestra la alternativa del diagrama Mermaid.

@@ -47,3 +47,9 @@ Almacén local y PDF describen responsabilidades de almacenamiento; no se afirma
 El servidor es el único que determina resultados comerciales confirmados. La operación offline queda pendiente hasta revalidación central. No se incorpora JWT, Redis ni conexiones desde la tablet a PostgreSQL por copiarlos del ejemplo.
 
 Anterior: [contexto](Nivel1-DiagramadeContextodelSistema.md). Siguiente: [componentes](Nivel3-Diagrama-de-Componentes.md).
+
+## Imágenes del proyecto
+
+![Diagrama nivel2-contenedores de gestión mayorista de papa](../../img/nivel2-contenedores.png)
+
+Los diagramas representan las responsabilidades descritas en este documento. Los SVG editables están en `img/fuentes-svg`; las secuencias se mantienen también en Mermaid dentro de la documentación.

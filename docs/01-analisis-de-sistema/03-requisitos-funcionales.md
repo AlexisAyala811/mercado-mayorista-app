@@ -2,8 +2,6 @@
 
 > **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 1.1
 
-Contenido derivado de `build_propuesta.py`, conservando los identificadores de la propuesta vigente. Las reglas detalladas se mantienen en las especificaciones aprobadas del proyecto documental compartido.
-
 | Proceso | Código | Requisito |
 | --- | --- | --- |
 | Usuarios y acceso | RF 01 | Permitir el acceso seguro del mayorista y del encargado mediante credenciales individuales. |

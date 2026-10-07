@@ -2,8 +2,6 @@
 
 > **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 1.1
 
-Contenido derivado de `build_propuesta.py`, conservando los identificadores de la propuesta vigente. Las reglas detalladas se mantienen en las especificaciones aprobadas del proyecto documental compartido.
-
 | Código y atributo | Escenario y medida propuesta |
 | --- | --- |
 | AC01 Rendimiento | Durante la descarga, guardar cada peso localmente en menos de 1 segundo; consultas centrales en menos de 3 segundos para el 95 % de solicitudes con 20 usuarios concurrentes en el piloto. |

@@ -34,3 +34,9 @@ flowchart TD
 | Costo operativo | Mantener infraestructura ajustada a R07 |
 
 Microservicios solo se evaluarían con una necesidad acreditada de escala, aislamiento o despliegue independiente y una decisión SDD; no forman parte de la arquitectura inicial.
+
+## Imágenes del proyecto
+
+![Diagrama estilo-arquitectonico de gestión mayorista de papa](../../img/estilo-arquitectonico.png)
+
+Los diagramas representan las responsabilidades descritas en este documento. Los SVG editables están en `img/fuentes-svg`; las secuencias se mantienen también en Mermaid dentro de la documentación.

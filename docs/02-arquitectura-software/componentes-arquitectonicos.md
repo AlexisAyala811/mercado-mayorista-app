@@ -50,3 +50,9 @@ flowchart LR
   I --> O[Reportes y comprobantes]
   F --> O
 ```
+
+## Imágenes del proyecto
+
+![Diagrama nivel3-componentes de gestión mayorista de papa](../../img/nivel3-componentes.png)
+
+Los diagramas representan las responsabilidades descritas en este documento. Los SVG editables están en `img/fuentes-svg`; las secuencias se mantienen también en Mermaid dentro de la documentación.

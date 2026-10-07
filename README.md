@@ -33,7 +33,7 @@ Documentación de la aplicación móvil de gestión comercial para mayoristas de
 - [Nivel 3: componentes](docs/04-modelo-c4/Nivel3-Diagrama-de-Componentes.md)
 - [Nivel 4: código](docs/04-modelo-c4/Nivel4-DiagramadeCodigo.md)
 
-Las carpetas `img` y `tecnologia` quedan reservadas para sus recursos. Los diagramas actuales están integrados en los documentos correspondientes mediante Mermaid.
+La carpeta `img` contiene 11 diagramas PNG propios del proyecto y sus fuentes SVG disponibles en `img/fuentes-svg`. Los documentos incluyen las imágenes y conservan los diagramas Mermaid. `tecnologia` queda reservada para recursos técnicos del entregable.
 
 Fuente funcional: `build_propuesta.py` y `Propuesta_Aplicacion_Movil_Gestion_Comercial_Papa.docx`, mantenidos en el proyecto documental compartido. Las especificaciones y evidencias SDD continúan en ese proyecto, fuera de este primer entregable. La predicción requiere resolver CL-08 y la convergencia visual y operativa conserva los pendientes indicados en los documentos.
 

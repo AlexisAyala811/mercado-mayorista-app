@@ -35,3 +35,9 @@ Mostrar el sistema como una unidad y explicar quién opera el negocio y dónde t
 No se presupone contrato con un proveedor de mensajería. Los participantes comerciales se registran sin convertirlos en actores de autenticación. Canal de recordatorios RF23 y analítica CL-08 conservan sus pendientes.
 
 Siguiente vista: [contenedores](Nivel2-DiagramadeContenedores.md).
+
+## Imágenes del proyecto
+
+![Diagrama nivel1-contexto de gestión mayorista de papa](../../img/nivel1-contexto.png)
+
+Los diagramas representan las responsabilidades descritas en este documento. Los SVG editables están en `img/fuentes-svg`; las secuencias se mantienen también en Mermaid dentro de la documentación.

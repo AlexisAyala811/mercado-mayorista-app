@@ -41,3 +41,9 @@ flowchart TD
 ```
 
 La relación entre SOLID y patrones se verifica en dependencias y comportamiento: usar inyección o repositorios no acredita automáticamente todos los principios.
+
+## Imágenes del proyecto
+
+![Diagrama solid-modulo-compras de gestión mayorista de papa](../../../img/solid-modulo-compras.png)
+
+Los diagramas representan las responsabilidades descritas en este documento. Los SVG editables están en `img/fuentes-svg`; las secuencias se mantienen también en Mermaid dentro de la documentación.

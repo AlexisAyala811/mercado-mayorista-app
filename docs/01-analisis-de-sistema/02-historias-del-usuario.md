@@ -2,8 +2,6 @@
 
 > **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 1.1
 
-Contenido derivado de `build_propuesta.py`, conservando los identificadores de la propuesta vigente. Las reglas detalladas se mantienen en las especificaciones aprobadas del proyecto documental compartido.
-
 | Historia y RF | Historia de usuario | Criterio principal de aceptación |
 | --- | --- | --- |
 | HU 01<br>RF05, RF06, RF06A, RF06B | Como mayorista o encargado que lo reemplaza, quiero registrar al proveedor, las variedades y el peso de cada saco durante la descarga. | El sistema agrupa los pesos por variedad, acumula totales parciales y generales y permite cerrar el cargamento. |

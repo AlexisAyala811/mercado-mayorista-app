@@ -2,8 +2,6 @@
 
 > **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 1.1
 
-Contenido derivado de `build_propuesta.py`, conservando los identificadores de la propuesta vigente. Las reglas detalladas se mantienen en las especificaciones aprobadas del proyecto documental compartido.
-
 | Driver y origen | Decisión e influencia arquitectónica |
 | --- | --- |
 | DA01 Continuidad — RF21, AC02, R01 | Persistencia local y cola de sincronización: la captura de pesos debe continuar aunque falle Internet. |
