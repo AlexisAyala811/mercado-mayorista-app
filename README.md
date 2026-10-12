@@ -62,3 +62,5 @@ mercado-mayorista-app/
 ├── tecnologia/
 └── README.md
 ```
+## ppt para defender el proyecto
+https://canva.link/jtfbfs9g04mrf7f
