@@ -33,9 +33,9 @@ Documentación de la aplicación móvil de gestión comercial para mayoristas de
 - [Nivel 3: componentes](docs/04-modelo-c4/Nivel3-Diagrama-de-Componentes.md)
 - [Nivel 4: código](docs/04-modelo-c4/Nivel4-DiagramadeCodigo.md)
 
-La carpeta `img` contiene 11 diagramas PNG propios del proyecto y sus fuentes SVG disponibles en `img/fuentes-svg`. Los documentos incluyen las imágenes y conservan los diagramas Mermaid. `tecnologia` queda reservada para recursos técnicos del entregable.
+La carpeta `img` contiene 11 diagramas PNG propios del proyecto y sus fuentes SVG disponibles en `img/fuentes-svg`. Los documentos incluyen las imágenes y sus fuentes SVG editables. `tecnologia` queda reservada para recursos técnicos del entregable.
 
-Fuente funcional: `build_propuesta.py` y `Propuesta_Aplicacion_Movil_Gestion_Comercial_Papa.docx`, mantenidos en el proyecto documental compartido. Las especificaciones y evidencias SDD continúan en ese proyecto, fuera de este primer entregable. La predicción requiere resolver CL-08 y la convergencia visual y operativa conserva los pendientes indicados en los documentos.
+Fuente funcional: `build_propuesta.py` y `Propuesta_Aplicacion_Movil_Gestion_Comercial_Papa.docx`, mantenidos en el proyecto documental compartido. Las especificaciones y evidencias SDD continúan en ese proyecto, fuera de este primer entregable. La predicción requiere cumplir los criterios CL-08 aprobados y validar la implementación y la convergencia visual y operativa conserva los pendientes indicados en los documentos.
 
 ## Criterio de adaptación del ejemplo
 
@@ -43,9 +43,9 @@ Cada documento desarrolla propósito, responsabilidades, relaciones y verificaci
 
 ## Descripción y usuarios
 
-El sistema centraliza recepción, pesaje saco por saco, compras, ventas y despachos, inventario, pagos, cobranzas, cuentas por pagar y cobrar, flete, estiba y reportes, reemplazando registros manuales dispersos. Está orientado a tablets Android y conserva operaciones temporales sin conexión para sincronizarlas posteriormente.
+El sistema centraliza recepción, pesaje saco por saco, compras, ventas y despachos, pagos, cobranzas, cuentas por pagar y cobrar, flete, estiba y reportes, reemplazando registros manuales dispersos. Está orientado a tablets Android y conserva operaciones temporales sin conexión para sincronizarlas posteriormente.
 
-El Mayorista supervisa su negocio y tiene acceso completo a sus módulos autorizados. El Encargado solo registra pesajes, compras y ventas durante un reemplazo autorizado y vigente, sin acceso a inventario, cuentas, caja, reportes o administración.
+El Mayorista supervisa su negocio y tiene acceso completo a sus módulos autorizados. El Encargado solo registra pesajes, compras y ventas durante un reemplazo autorizado y vigente, sin acceso a cuentas, caja, reportes o administración.
 
 La arquitectura aprobada es un monolito modular organizado en capas, con API REST y separación de responsabilidades. La independencia completa del dominio respecto de infraestructura es un objetivo de evolución; las limitaciones actuales se explican en los documentos. Analítica y predicción avanzan según disponibilidad de historial y decisiones aprobadas.
 
@@ -62,5 +62,15 @@ mercado-mayorista-app/
 ├── tecnologia/
 └── README.md
 ```
-## ppt para defender el proyecto
-https://canva.link/jtfbfs9g04mrf7f
+
+## Alcance comercial vigente
+
+Compras, pesajes, ventas y despachos se conservan como historial. No existe control de inventario ni saldo de mercadería; sí se mantienen cuentas, pagos y saldos de dinero. Decisión del usuario del 7 de octubre de 2026. Las implementaciones anteriores requieren adaptación a este alcance.
+
+## Historias del primer entregable
+
+La tabla incorpora HU01–HU14: seis historias comerciales y ocho necesidades complementarias sin duplicar consulta, registro, búsqueda o auditoría. La relación con RF y los criterios de aceptación están en requisitos funcionales. No cambia el alcance sin existencias ni las condiciones de habilitación de predicción y la decisión pendiente sobre el canal externo.
+
+## Presentación para defender el proyecto
+
+[Presentación en Canva](https://canva.link/jtfbfs9g04mrf7f)

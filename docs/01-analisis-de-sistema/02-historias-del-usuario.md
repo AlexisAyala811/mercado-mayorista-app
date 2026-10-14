@@ -1,27 +1,18 @@
-# Historias de usuario y aceptación
+# Historias de usuario
 
-> **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 1.1
-
-| Historia y RF | Historia de usuario | Criterio principal de aceptación |
-| --- | --- | --- |
-| HU 01<br>RF05, RF06, RF06A, RF06B | Como mayorista o encargado que lo reemplaza, quiero registrar al proveedor, las variedades y el peso de cada saco durante la descarga. | El sistema agrupa los pesos por variedad, acumula totales parciales y generales y permite cerrar el cargamento. |
-| HU 02<br>RF07, RF14 | Como encargado, quiero registrar el precio acordado, el flete, los adelantos y la forma de pago para calcular el monto líquido del proveedor. | El sistema resta flete y adelantos, registra pago al contado o cuotas y mantiene el saldo pendiente. |
-| HU 03<br>RF08, RF10, RF13, RF15 | Como encargado, quiero registrar un despacho mayorista a otro departamento con sacos, variedades y flete acordados. | La venta identifica comprador, destino, vehículo, cantidades y flete; descuenta existencias y genera cobro o saldo. |
-| HU 04<br>RF13, RF14, RF15 | Como mayorista, quiero consultar obligaciones y cobranzas por vencimiento para priorizar pagos y seguimiento. | La consulta muestra origen, vencimiento, abonos y saldo actualizado. |
-| HU 05<br>RF04, RF08, RF17 | Como mayorista, quiero revisar existencias por variedad y lote para decidir qué mercadería vender o reponer. | El tablero muestra saldo, antigüedad y movimientos trazables. |
-| HU 06<br>RF21, RF22 | Como encargado que reemplaza al mayorista, quiero pesar e ingresar compras y ventas cuando se interrumpa Internet. | La operación autorizada queda pendiente y se sincroniza una sola vez al recuperar conexión. |
-| HU 07<br>RF19, RF17 | Como mayorista, quiero que la IA analice la información acumulada para descubrir tendencias y patrones y, cuando sea posible, estimar el precio semanal. | El tablero diferencia resultados descriptivos de predicciones e indica periodo, rango, confianza y comparación con el valor real. |
-
-## Recorridos representativos
-
-| Recorrido | Inicio | Resultado observable | Excepción a contemplar |
-| --- | --- | --- | --- |
-| HU01 Recepción/pesaje | Camión identificado y variedades seleccionadas | Sacos y pesos individuales conservados, totales por variedad y cierre | Peso inválido, corrección, conflicto de versión |
-| HU02 Liquidación | Pesaje cerrado y condiciones negociadas | Bruto, flete, descuentos, líquido y pago o cuotas confirmados | Orden duplicada, saldo inconsistente, autorización vencida |
-| HU03 Venta/despacho | Comprador y lotes disponibles | Movimiento de stock y cobro o cuenta trazables | Stock insuficiente o modificación concurrente |
-| HU04 Obligaciones | Mayorista consulta cuentas | Vencimientos, abonos y saldo por origen | Pago superior al saldo |
-| HU05 Existencias | Mayorista consulta variedad/lote | Disponibilidad y movimientos identificables | Lote pendiente de liquidación |
-| HU06 Continuidad | Se interrumpe Internet | Órdenes pendientes recuperadas sin duplicar efectos | Reemplazo revocado o conflicto al reconectar |
-| HU07 Analítica | Historial validado y acceso del Mayorista | Descriptivos diferenciados de estimaciones | Datos insuficientes; CL-08 pendiente |
-
-Los criterios de la tabla inicial conservan la propuesta. Estos recorridos explican su verificación; no sustituyen las especificaciones detalladas ni autorizan funciones nuevas.
+| ID | Historia de usuario |
+| --- | --- |
+| HU01 | Como mayorista o encargado con reemplazo autorizado, quiero registrar el proveedor, las variedades y el peso de cada saco durante la descarga, para conocer la cantidad y el peso total del cargamento de papa. |
+| HU02 | Como mayorista o encargado con reemplazo autorizado, quiero registrar el precio acordado, el flete, los adelantos y la forma de pago de una compra, para conocer el monto líquido por pagar al proveedor y el saldo pendiente. |
+| HU03 | Como mayorista o encargado con reemplazo autorizado, quiero registrar ventas y despachos de papa indicando comprador, destino, variedades, sacos y flete, para mantener el registro de la mercadería enviada y su cobro o saldo pendiente. |
+| HU04 | Como mayorista, quiero consultar las cuentas por pagar y por cobrar con sus vencimientos, abonos y saldos, para priorizar los pagos y el seguimiento de las cobranzas. |
+| HU05 | Como mayorista o encargado con reemplazo autorizado, quiero registrar pesajes, compras y ventas cuando no haya conexión a Internet, para continuar las operaciones y sincronizarlas sin duplicaciones al recuperar la conexión. |
+| HU06 | Como mayorista, quiero consultar tendencias y patrones del historial comercial y estimaciones semanales de precios cuando exista información suficiente, para apoyar mis decisiones de compra y venta de papa. |
+| HU07 | Como mayorista o encargado, quiero iniciar y cerrar sesión con mis credenciales individuales, para proteger la información del negocio y acceder a las funciones autorizadas. |
+| HU08 | Como mayorista, quiero registrar pagos a proveedores y cobros a compradores, para mantener actualizados los abonos y saldos pendientes. |
+| HU09 | Como mayorista, quiero registrar y liquidar los costos de estiba por grupo de trabajadores, para controlar los gastos de carga y descarga de papa. |
+| HU10 | Como mayorista, quiero generar y compartir comprobantes internos de compras y ventas, para entregar una constancia de las operaciones realizadas. |
+| HU11 | Como mayorista, quiero buscar y consultar el historial de compras, pesajes, ventas y despachos por fecha o participante comercial, para localizar rápidamente una operación. |
+| HU12 | Como mayorista, quiero autorizar y revocar el reemplazo temporal de un encargado, para mantener la continuidad del negocio con acceso controlado. |
+| HU13 | Como mayorista, quiero consultar quién registró, corrigió o anuló una operación y su motivo, para conocer la responsabilidad de cada cambio. |
+| HU14 | Como mayorista, quiero recibir avisos de pagos y cobranzas próximos a vencer, para atender oportunamente los compromisos del negocio. |

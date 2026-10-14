@@ -1,6 +1,6 @@
 # Patrones de diseño aplicados
 
-> **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 1.1
+> **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 1.2
 
 | Patrón o mecanismo | Aplicación y evidencia | Límite |
 | --- | --- | --- |
@@ -9,7 +9,7 @@
 | Repositorio | Acceso mediante repositorios de entidades | Algunos servicios acceden a varios módulos |
 | Transacción / unidad de trabajo | `PurchaseService.settle` usa `DataSource.transaction` | Mantener efectos comerciales atómicos |
 | Orden idempotente | `clientOperationId`, bloqueo y recuperación de resultado | UUID no reemplaza autorización ni versión |
-| Concurrencia optimista y bloqueo | Versión de agregado y bloqueo de lotes | Conflictos no se resuelven sobrescribiendo |
+| Concurrencia optimista y bloqueo | Versión de agregado y control de versión de la operación | Conflictos no se resuelven sobrescribiendo |
 | Cola persistente en cliente | Pendientes cifrados y reintento dependiente | No se afirma un broker ni outbox de servidor |
 | Adaptadores de integración | Servicios de API, sesión y compartición del cliente | Revisar límites al cambiar integración |
 | Compensación | Reversos y devoluciones referencian hechos | No se afirma Event Sourcing ni saga distribuida |
@@ -22,19 +22,9 @@ La selección responde a AC03, AC04 y AC07. Son mecanismos constatados o políti
 | --- | --- | --- | --- |
 | Adapter | Servicio móvil traduce una orden y la respuesta REST | La pantalla no procesa detalles del transporte | Mantener modelos y errores explícitos |
 | Repository | Servicio central busca liquidación y persiste entidades | Agrupar el acceso a datos | El ORM actual no garantiza independencia tecnológica completa |
-| Unidad de trabajo | Liquidación confirma stock y cuenta/caja | Evita operaciones parcialmente aplicadas | Todas las escrituras críticas comparten transacción |
-| Idempotencia | Reenvío tras respuesta perdida devuelve la compra existente | Evita duplicar lotes y deudas | Misma clave por orden y negocio |
+| Unidad de trabajo | Liquidación confirma compra y cuenta/caja | Evita operaciones parcialmente aplicadas | Todas las escrituras críticas comparten transacción |
+| Idempotencia | Reenvío tras respuesta perdida devuelve la compra existente | Evita duplicar compras y deudas | Misma clave por orden y negocio |
 | Compensación | Anulación registra reverso vinculado | Conserva trazabilidad histórica | Motivo y permiso aprobados |
-
-```mermaid
-flowchart LR
-  UI[Pantalla de liquidación] --> AD[Servicio API o cola]
-  AD --> CTRL[Controlador de compras]
-  CTRL --> SVC[PurchaseService]
-  SVC --> CALC[Cálculo de dominio]
-  SVC --> TX[Transacción y repositorios]
-  TX --> DB[(PostgreSQL)]
-```
 
 ## Patrones de evolución
 
@@ -46,4 +36,4 @@ No se añade Decorator/Redis por analogía con el ejemplo: no existe una decisi�
 
 ![Diagrama patrones-compra de gestión mayorista de papa](../../../img/patrones-compra.png)
 
-Los diagramas representan las responsabilidades descritas en este documento. Los SVG editables están en `img/fuentes-svg`; las secuencias se mantienen también en Mermaid dentro de la documentación.
+Los diagramas representan las responsabilidades descritas en este documento. Cada imagen dispone de una fuente SVG editable en `img/fuentes-svg`, incluida la secuencia. Las fuentes SVG permiten editar los diagramas.

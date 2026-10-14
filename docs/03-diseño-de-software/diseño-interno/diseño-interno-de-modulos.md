@@ -1,29 +1,27 @@
 # Diseño interno de módulos
 
-> **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 1.1
+> **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 1.2
 
 | Componente | Responsabilidad | Corte / requisitos |
 | --- | --- | --- |
 | Identidad | Sesiones, roles, negocio y reemplazos | 001; RF01–02 |
-| Catálogos y logística | Relaciones comerciales, variedades, vehículos y transportistas | 002/004; RF03–05 |
-| Recepción y pesaje | Sacos, bruto/tara/neto, corrección y cierre | 002; RF05–06B |
+| Recepción y pesaje | Proveedor, variedades, transporte, sacos, bruto/tara/neto, corrección y cierre | 002; RF03–06B |
 | Compras | Precio, flete, descuentos y liquidación | 002; RF07, RF14 |
 | Ventas y devoluciones | Despacho y compensación comercial | 003; RF10–12 |
-| Inventario | Lotes, disponibilidad y movimientos | 003; RF08–09 |
 | Cuentas y caja | Cuotas, pagos, cobros y reversos | 004; RF13–15 |
 | Flete y estiba | Costos y liquidación de grupos | 004; RF15 |
 | Cola y sincronización | Órdenes locales, dependencias y conflictos | 005; RF21 |
 | Auditoría | Hechos anexables y consulta protegida | 005; RF22 |
-| Reportes y comprobantes | Resumen, margen, precios y PDF interno | 006; RF12, RF16–18 |
+| Reportes y comprobantes | Resumen de importes, costos, precios y PDF interno | 006; RF12, RF16–18 |
 | Analítica predictiva | Estimaciones condicionadas a CL-08 | 007; RF19–20 |
 
 ## Límites y datos
 
-Toda consulta central recibe el negocio desde identidad autenticada. Las órdenes llevan UUID y, cuando corresponda, versión del agregado. Recepción conserva saco/variedad/bruto/tara/neto y estados; compras producen liquidación, cuenta o caja, lotes y movimientos; ventas bloquean lotes para validar disponibilidad y generan cuenta o cobro. Las operaciones financieras y de inventario se confirman juntas.
+Toda consulta central recibe el negocio desde identidad autenticada. Las órdenes llevan UUID y, cuando corresponda, versión del agregado. Recepción conserva saco/variedad/bruto/tara/neto y estados; compras producen liquidación y cuenta o caja; ventas conservan las cantidades despachadas y generan cuenta o cobro. Las operaciones comerciales y financieras se confirman juntas. No se calcula mercadería restante ni se valida una venta contra compras previas.
 
 Las anulaciones y devoluciones conservan el origen y generan compensaciones. No borrar hechos confirmados. Pagos superiores al saldo se rechazan; las cuotas y saldos se calculan en dominio y se revalidan en servidor. Peso usa tres decimales y dinero unidades menores, con redondeo mitad hacia arriba.
 
-El cliente organiza `app`, `features`, `domain`, `data`, `services`, `ui`. La API tiene módulos `identity`, `reception`, `purchase`, `sales`, `inventory`, `accounts`, `freight`, `stowage`, `audit`, `reports` y persistencia con migraciones. El estado de pantalla no sustituye el resultado central.
+El cliente organiza `app`, `features`, `domain`, `data`, `services`, `ui`. La API tiene módulos `identity`, `reception`, `purchase`, `sales`, `accounts`, `freight`, `stowage`, `audit`, `reports` y persistencia con migraciones. El estado de pantalla no sustituye el resultado central.
 
 Errores: sesión inválida bloquea acceso; permiso denegado conserva sesión válida; conflicto 409 pide revisión; falla de red mantiene pendiente. La recuperación no envía operaciones de otro usuario o negocio.
 
@@ -31,7 +29,7 @@ Para contratos y aceptación completos consultar los planes 001–006 en fuentes
 
 ## Módulo de referencia: liquidación de compra
 
-Se selecciona Compras porque relaciona pesaje, inventario, flete y obligaciones. Es la operación donde una diferencia de cálculo o un reintento duplicado puede afectar simultáneamente mercadería y dinero.
+Se selecciona Compras porque relaciona pesaje, flete y obligaciones. Es la operación donde una diferencia de cálculo o un reintento duplicado puede alterar la liquidación y los saldos financieros.
 
 ### Estructura constatada en el proyecto técnico
 
@@ -49,7 +47,6 @@ mercado-api/src/
 │   ├── fixed-decimal.ts
 │   └── proportional-allocation.ts
 ├── reception/
-├── inventory/
 ├── accounts/
 ├── freight/
 └── audit/
@@ -81,7 +78,6 @@ mercado-api/src/
 | Precisión | Peso con tres decimales y dinero en unidades menores; redondeo aprobado |
 | Flete | Base por kg o por saco según acuerdo |
 | Liquidación | Importe bruto menos flete, adelantos y descuentos |
-| Disponibilidad | Un lote pendiente no puede ofrecerse como disponible antes de liquidar |
 | Pago | Contado o cuotas con saldo y vencimiento trazables |
 | Reintento | UUID repetido devuelve resultado previo sin nuevos efectos |
 | Concurrencia | Versión desactualizada produce conflicto y revisión |
@@ -102,7 +98,7 @@ iniciar transacción
   si existe resultado de la orden: devolver resultado previo
   validar versión y estado de recepción
   calcular bruto, flete, descuentos y líquido con precisión aprobada
-  guardar liquidación y efectos de inventario/cuentas/caja/flete
+  guardar liquidación y efectos de operaciones/cuentas/caja/flete
   registrar auditoría
 confirmar transacción y devolver resultado central
 ```
@@ -117,6 +113,20 @@ El esquema explica responsabilidades; no reemplaza el código ejecutable ni supo
 
 ![Diagrama nivel4-secuencia de gestión mayorista de papa](../../../img/nivel4-secuencia.png)
 
-Los diagramas representan las responsabilidades descritas en este documento. Los SVG editables están en `img/fuentes-svg`; las secuencias se mantienen también en Mermaid dentro de la documentación.
+Los diagramas representan las responsabilidades descritas en este documento. Cada imagen dispone de una fuente SVG editable en `img/fuentes-svg`, incluida la secuencia. Las fuentes SVG permiten editar los diagramas.
 
-La imagen de secuencia ilustra una orden nueva. Si ya existe resultado confirmado para el UUID, se devuelve ese resultado y se omiten el cálculo y las nuevas escrituras, como muestra la alternativa del diagrama Mermaid.
+La secuencia muestra dos alternativas: recuperar una liquidación ya confirmada para el UUID, o validar y persistir una orden nueva. La primera omite el cálculo y las nuevas escrituras.
+
+## Estado de convergencia técnica
+
+Esta vista representa el alcance decidido el 7 de octubre de 2026. La implementación requiere verificaciones de convergencia contra el alcance vigente; no se incluye un módulo de existencias o valoración por lote en esta arquitectura. Las clases y rutas existentes son referencias técnicas, no evidencia de que esa adaptación ya esté implementada. Los reportes no calcularán un margen por existencias o valoración de lotes; mostrarán importes y costos comerciales registrados.
+
+## Flujos complementarios y límites
+
+HU07 valida credenciales y restaura o revoca sesión. HU12 autoriza/revoca un reemplazo de máximo 24 horas, con revalidación central al operar. HU08 registra un pago/cobro idempotente y actualiza la cuenta/caja; no confundir con la consulta HU04. HU09 liquida trabajo de estiba por grupo. HU10 comparte un PDF interno confirmado; no incluye facturación electrónica. HU11 filtra historial de operaciones; HU13 consulta acciones auditadas con usuario y motivo. HU14 presenta vencimientos y conserva como pendiente cualquier canal externo sin definir.
+
+Validaciones: dinero positivo y no superior al saldo; vencimientos asociados a la cuenta; filtros y archivos aislados por negocio; auditoría de correcciones inmutable; solo el Mayorista accede a las historias complementarias HU08–HU14. Definir canal, frecuencia y política de recordatorios antes de añadir una integración externa.
+
+## Organización vigente de los datos comerciales
+
+Proveedores, compradores, variedades, vehículos y transportistas son datos de recepción, compras y ventas. No constituyen módulos independientes. Recepción conserva proveedor, variedad, vehículo y conductor del cargamento; compras utiliza esos datos para la liquidación; ventas conserva comprador, destino y transporte del despacho. RF03–RF05 mantienen su trazabilidad dentro de esas operaciones. Esta organización es el diseño vigente; no afirma una reorganización ya implementada del código.

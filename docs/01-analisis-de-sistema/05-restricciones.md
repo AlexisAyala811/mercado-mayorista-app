@@ -1,6 +1,6 @@
 # Restricciones
 
-> **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 1.1
+> **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 1.2
 
 | Código | Restricción | Implicación arquitectónica |
 | --- | --- | --- |

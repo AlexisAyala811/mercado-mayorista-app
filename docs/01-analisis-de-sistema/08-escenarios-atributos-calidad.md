@@ -1,6 +1,6 @@
 # Escenarios verificables de calidad
 
-> **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 1.1
+> **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 1.2
 
 Los objetivos provienen de la propuesta. La existencia de mecanismos o pruebas previas no acredita por sí sola el cumplimiento operativo.
 
@@ -8,7 +8,7 @@ Los objetivos provienen de la propuesta. La existencia de mecanismos o pruebas p
 | --- | --- | --- | --- | --- |
 | AC01 | Operador ingresa peso; usuarios consultan | Descarga y piloto, tablet/API | Guardar localmente y responder consultas | Peso <1 s; p95 central <3 s con 20 usuarios; medir en dispositivo y carga |
 | AC02 | Red se interrumpe 2 h | Tablet sin Internet | Mantener captura y recuperar pendientes | Continuidad 2 h; servicio 99,5 % mensual por monitoreo; validación prolongada pendiente |
-| AC03 | Cliente reenvía cinco veces | API y PostgreSQL | Devolver resultado previo | Un registro y un efecto financiero/stock; prueba idempotente y concurrente |
+| AC03 | Cliente reenvía cinco veces | API y PostgreSQL | Devolver resultado previo | Un registro y un efecto financiero y comercial; prueba idempotente y concurrente |
 | AC04 | Usuario consulta otro negocio | Endpoint protegido/archivo | Denegar y auditar | Cero datos expuestos en todos los endpoints; pruebas de autorización |
 | AC05 | Usuario capacitado registra cargamento | Tablet 1280 × 800 | Captura y cierre claros | ≥90 % sin asistencia ni pérdida; evaluación con usuarios pendiente |
 | AC06 | Carga aumenta de 20 a 40 usuarios | Despliegue central | Añadir instancia backend | Conservar AC01; ensayo de carga y despliegue pendiente |
@@ -44,7 +44,7 @@ Evidencia histórica: backend (documentación compartida del proyecto) y fronten
 | Fuente y estímulo | Cliente reenvía cinco veces |
 | Condición y artefacto | API y PostgreSQL |
 | Respuesta esperada | Devolver resultado previo |
-| Medida y verificación | Un registro y un efecto financiero/stock; prueba idempotente y concurrente |
+| Medida y verificación | Un registro y un efecto financiero y comercial; prueba idempotente y concurrente |
 | Estado | Objetivo de la propuesta vigente; cumplimiento integral pendiente de evidencia en el entorno acordado. |
 
 ## EQ-04 · AC04
@@ -96,3 +96,14 @@ Evidencia histórica: backend (documentación compartida del proyecto) y fronten
 | Respuesta esperada | Recuperar operación |
 | Medida y verificación | RPO 24 h / RTO 4 h; simulacro medido; respaldo restaurado previamente, SLA no acreditado |
 | Estado | Objetivo de la propuesta vigente; cumplimiento integral pendiente de evidencia en el entorno acordado. |
+
+## Verificación de las historias complementarias
+
+| Calidad | Historias | Comprobación requerida |
+| --- | --- | --- |
+| Seguridad | HU07, HU10–HU13 | Cierre invalida acceso; Encargado no obtiene archivos, historial ni administración exclusivos; aislamiento por negocio |
+| Integridad | HU08, HU09 | Repetir orden no duplica abono, asiento ni liquidación de estiba |
+| Trazabilidad | HU11, HU13 | Operación y acción auditada muestran origen, responsable y fecha coherentes |
+| Usabilidad | HU10, HU11, HU14 | Mostrar vacío, error, reintento y estados de PDF/filtros/avisos en tablet |
+
+La evaluación de un canal externo de recordatorios no se declara aprobada sin definición e implementación verificables.
