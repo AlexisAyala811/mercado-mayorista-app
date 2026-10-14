@@ -1,6 +1,6 @@
 # Estilo arquitectónico
 
-> **Proyecto:** Gestión mayorista de papa · **Versión:** 1.3 · **Actualización:** 8 de octubre de 2026
+> **Proyecto:** Gestión mayorista de papa · **Versión:** 1.3 · **Actualización:** 13 de octubre de 2026
 
 ## Estilo seleccionado
 
@@ -33,7 +33,7 @@ Sesión, aislamiento por negocio, auditoría, errores y trazas son responsabilid
 | Ventas y cuentas | Despachos, cuotas, abonos, caja y costos de estiba | HU03, HU04, HU08, HU09 |
 | Reportes y auditoría | Historial, comprobantes, responsables, avisos y analítica | HU06, HU10, HU11, HU13, HU14 |
 
-Los grupos de la imagen resumen responsabilidades para facilitar lectura; no son cinco módulos nuevos que sustituyen las carpetas actuales. La cola offline HU05 pertenece al cliente Android y reenvía órdenes idempotentes a los mismos contratos centrales.
+Las agrupaciones de la tabla resumen responsabilidades para facilitar lectura; son agrupaciones de responsabilidades y no sustituyen las carpetas actuales. La cola offline HU05 pertenece al cliente Android y reenvía órdenes idempotentes a los mismos contratos centrales.
 
 ## Reglas de interacción
 

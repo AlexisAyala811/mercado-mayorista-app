@@ -15,7 +15,7 @@ Los objetivos provienen de la propuesta. La existencia de mecanismos o pruebas p
 | AC07 | Equipo modifica regla de estiba | Módulo costos y regresión | Cambio localizado | No alterar pesaje ni cuentas; revisión de dependencias y pruebas |
 | AC08 | Falla la base central | Respaldo y restauración | Recuperar operación | RPO 24 h / RTO 4 h; simulacro medido; respaldo restaurado previamente, SLA no acreditado |
 
-Evidencia histórica: backend (documentación compartida del proyecto) y frontend (documentación compartida del proyecto).
+La tabla detalla el método de verificación, pero este repositorio no adjunta los informes de ejecución. Estado de esta entrega: objetivos definidos, evidencia operativa no incluida. No atribuir cumplimiento al enlace de un documento compartido.
 
 ## EQ-01 · AC01
 

@@ -13,7 +13,7 @@ El negocio compra cargamentos de papa, pesa saco por saco durante la descarga, n
 
 | Participante comercial | Relación con el proceso | Acceso a la aplicación |
 | --- | --- | --- |
-| Proveedor/Cliente | Entrega cargamentos y recibe la liquidación o saldo | No se define cuenta de acceso |
+| Proveedor | Entrega cargamentos y recibe la liquidación o saldo | No se define cuenta de acceso |
 | Comprador | Recibe la venta y mantiene compromisos de pago | No se define cuenta de acceso |
 | Transportista/conductor | Traslada mercadería y participa en el acuerdo de flete | No se define cuenta de acceso |
 | Grupo de estibadores | Realiza carga/descarga y recibe liquidación | No se define cuenta de acceso |

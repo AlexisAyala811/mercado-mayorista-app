@@ -24,7 +24,7 @@ Fuente editable: [nivel3-componentes.svg](../../img/fuentes-svg/nivel3-component
 | Cuentas y caja | `accounts` | Cuotas, abonos, pagos, cobros y saldo financiero; HU04/HU08 |
 | Flete y estiba | `freight`, `stowage` | Costos y liquidación trazable por grupo; HU09/RF15 |
 | Historial comercial | Consultas de `reception`, `purchase`, `sales` y `operations` | Búsqueda y detalle comercial por negocio; HU11; responsabilidad lógica sin módulo nuevo supuesto |
-| Reportes y PDF | `reports`, `receipts` | Consultas, generación y descarga autorizada de comprobantes; HU10/RF17 |
+| Reportes y PDF | `reports`, `receipts` | Consultas, generación y descarga autorizada de comprobantes; HU10/RF12; reportes RF17 |
 | Auditoría | `audit` | Registro y consulta de usuario, fecha, acción y motivo; HU13 |
 | Analítica | `analytics` | Historial validado, tendencias y estimaciones condicionadas; HU06 |
 
@@ -54,7 +54,7 @@ El contenido PDF se conserva en PostgreSQL: `receipts/receipt-document.entity.ts
 
 ## Colores de la vista
 
-Azul índigo identifica acceso; azul claro, entrada de la aplicación; verde, operaciones comerciales; ámbar, finanzas y datos; violeta, consultas y analítica; gris, auditoría y sistema externo. Las etiquetas permiten interpretar cada elemento sin depender del color.
+Azul identifica Android y entrada REST; índigo, identidad; verde, pesaje/compra/venta; ámbar, cuentas/costos y persistencia; violeta, historial/reportes/analítica; gris, auditoría. Cada elemento mantiene su etiqueta. Avisos de vencimiento pertenece a Cuentas y caja.
 
 ## Reglas del monolito y del alcance
 
@@ -75,3 +75,20 @@ Anterior: [Nivel 2 Contenedores](Nivel2-DiagramadeContenedores.md). Siguiente: [
 ## Organización vigente de los datos comerciales
 
 Proveedores, compradores, variedades, vehículos y transportistas son datos de recepción, compras y ventas. No constituyen módulos independientes. Recepción conserva proveedor, variedad, vehículo y conductor del cargamento; compras utiliza esos datos para la liquidación; ventas conserva comprador, destino y transporte del despacho. RF03–RF05 mantienen su trazabilidad dentro de esas operaciones. Esta organización es el diseño vigente; no afirma una reorganización ya implementada del código.
+
+## Correspondencia de responsabilidades
+
+| Responsabilidad backend | Función | Historias y requisitos |
+| --- | --- | --- |
+| Identidad y reemplazos | Sesiones, permisos y reemplazos | HU07, HU12; RF01–02 |
+| Recepción y pesaje | Proveedor, variedades, transporte, sacos, bruto/tara/neto y cierre | HU01; RF03–06B |
+| Compras | Proveedor, precio, flete, adelantos, descuentos y liquidación | HU02; RF03, RF07, RF14 |
+| Ventas y despachos | Comprador, variedades, destino, transporte y compensaciones | HU03; RF03–04, RF10–11, RF13 |
+| Cuentas y caja | Pagos, cobros, cuotas, saldos y avisos de vencimiento | HU04, HU08, HU14; RF13–16, RF23 |
+| Flete y estiba | Costos de transporte y liquidación de grupos | HU09; RF15 |
+| Historial comercial | Búsqueda y detalle por fecha o participante | HU11; RF24 |
+| Reportes y comprobantes | Consultas comerciales y generación/compartición PDF | HU10; RF12, RF17–18 |
+| Auditoría | Usuario, fecha, acción, motivo y origen | HU13; RF22 |
+| Analítica | Tendencias y estimaciones condicionadas a CL-08 | HU06; RF18–20 |
+
+Los nombres son responsabilidades del backend, no servicios desplegados por separado. **Cola y sincronización** pertenece al cliente Android (HU05; RF21): conserva órdenes cifradas y las reenvía a los contratos centrales. Los avisos financieros pertenecen a Cuentas y caja; Analítica analiza el historial. Las devoluciones y anulaciones son operaciones compensatorias dentro de Ventas y despachos o Compras, no módulos nuevos.

@@ -1,6 +1,6 @@
 # Enfoque arquitectónico
 
-> **Proyecto:** Gestión mayorista de papa · **Versión:** 1.3 · **Actualización:** 8 de octubre de 2026
+> **Proyecto:** Gestión mayorista de papa · **Versión:** 1.3 · **Actualización:** 13 de octubre de 2026
 
 ## Enfoque seleccionado
 

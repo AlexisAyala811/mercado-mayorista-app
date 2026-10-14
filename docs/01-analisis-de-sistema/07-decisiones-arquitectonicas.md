@@ -49,3 +49,13 @@ Impacto de implementación: retirar navegación y contratos de existencias; adap
 El usuario aprueba añadir HU07–HU14 a las seis historias vigentes el 7 de octubre de 2026. Las nuevas historias reutilizan identidad, cuentas/caja, estiba, comprobantes, historial y auditoría; no crean inventario ni amplían permisos del Encargado. RF24 explicita búsqueda comercial. Canal externo de HU14 permanece por aclarar. La renumeración anterior se documenta en la fuente compartida para evitar que HU07 siga significando analítica.
 
 Actualización de evidencia compartida: la propuesta analítica fue aprobada íntegramente el 6 de octubre de 2026. CL-08 tiene criterios aprobados; la suficiencia real del historial, evaluación, implementación y convergencia no se acreditan por esa aprobación. El canal externo de recordatorios continúa por definir.
+
+## Organización documental aprobada el 13 de octubre
+
+Los nombres son responsabilidades del backend, no servicios desplegados por separado. **Cola y sincronización** pertenece al cliente Android (HU05; RF21): conserva órdenes cifradas y las reenvía a los contratos centrales. Los avisos financieros pertenecen a Cuentas y caja; Analítica analiza el historial. Las devoluciones y anulaciones son operaciones compensatorias dentro de Ventas y despachos o Compras, no módulos nuevos. Los datos de participantes, variedades y transporte se registran dentro de las operaciones comerciales; RF03/RF04 conservan sus campos aprobados. Esta decisión documental no certifica reorganización del código.
+
+## Condiciones de habilitación analítica CL-08
+
+La política aprobada exige 26 semanas completas consecutivas por negocio y variedad, con al menos cinco ventas confirmadas válidas por semana. El objetivo es precio semanal de venta por kilogramo ponderado por peso. No se imputan fechas, pesos ni precios y se identifican operaciones excluidas.
+
+Las ocho semanas finales se evalúan progresivamente, sin utilizar datos futuros. El error absoluto medio debe ser al menos 10 % menor que la referencia del precio de la semana anterior, y el rango debe contener al menos siete de los ocho valores reales. La cobertura objetivo del 80 % no es una garantía estadística ni acredita estacionalidad anual. El Mayorista accede a las estimaciones solo cuando hay datos suficientes y evaluación aprobada. La aprobación de criterios no prueba su cumplimiento.

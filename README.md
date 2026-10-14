@@ -35,7 +35,7 @@ Documentación de la aplicación móvil de gestión comercial para mayoristas de
 
 La carpeta `img` contiene 11 diagramas PNG propios del proyecto y sus fuentes SVG disponibles en `img/fuentes-svg`. Los documentos incluyen las imágenes y sus fuentes SVG editables. `tecnologia` queda reservada para recursos técnicos del entregable.
 
-Fuente funcional: `build_propuesta.py` y `Propuesta_Aplicacion_Movil_Gestion_Comercial_Papa.docx`, mantenidos en el proyecto documental compartido. Las especificaciones y evidencias SDD continúan en ese proyecto, fuera de este primer entregable. La predicción requiere cumplir los criterios CL-08 aprobados y validar la implementación y la convergencia visual y operativa conserva los pendientes indicados en los documentos.
+Fuente funcional: `build_propuesta.py` y `Propuesta_Aplicacion_Movil_Gestion_Comercial_Papa.docx`, mantenidos en el proyecto documental compartido. Las especificaciones y evidencias SDD continúan en ese proyecto, fuera de este primer entregable. La predicción requiere cumplir los criterios CL-08 descritos en decisiones arquitectónicas y validar su implementación. Los documentos distinguen objetivos de evidencia operativa pendiente.
 
 ## Criterio de adaptación del ejemplo
 

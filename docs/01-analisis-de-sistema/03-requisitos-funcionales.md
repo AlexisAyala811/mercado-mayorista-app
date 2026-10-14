@@ -4,10 +4,10 @@
 
 | Proceso | Código | Requisito |
 | --- | --- | --- |
-| Recepción y compras | RF 03 | Conservar proveedores y compradores como datos asociados a las operaciones comerciales. |
-| Recepción y ventas | RF 04 | Conservar variedad, calidad, procedencia, presentación y unidad de medida en cada operación. |
 | Usuarios y acceso | RF 01 | Permitir iniciar y cerrar sesión con credenciales individuales, proteger rutas y revocar el acceso de la sesión cerrada. |
 | Usuarios y acceso | RF 02 | Permitir al Mayorista autorizar y revocar reemplazos de máximo 24 horas; restringir al Encargado al pesaje, compras y ventas durante su vigencia. |
+| Recepción, compras y ventas | RF 03 | Registrar y consultar proveedores y compradores dentro de recepción, compras y ventas, conservando contacto, ubicación, límite de crédito y estado. |
+| Recepción y ventas | RF 04 | Registrar y consultar los datos de papa dentro de recepción y ventas: variedad, calidad, procedencia, presentación, unidad de medida y precio referencial. |
 | Recepción | RF 05 | Permitir al mayorista o al encargado que lo reemplaza registrar fecha, proveedor, teléfono, vehículo, conductor y variedades antes de la descarga. |
 | Recepción | RF 06 | Permitir al mayorista o al encargado que lo reemplaza registrar consecutivamente cada saco y asociarlo con la variedad correspondiente. |
 | Recepción | RF 06A | Mostrar en tiempo real sacos, peso y promedio por variedad y del cargamento completo, y permitir correcciones autorizadas antes del cierre. |
@@ -18,15 +18,15 @@
 | Ventas | RF 12 | Generar y compartir comprobantes internos de compras y ventas confirmadas por medios digitales. |
 | Cuentas por cobrar | RF 13 | Registrar condiciones de crédito de clientes, vencimientos, abonos, saldos y compromisos de pago. |
 | Cuentas por pagar | RF 14 | Generar el saldo del proveedor cuando el pago sea en cuotas y registrar vencimientos, abonos, adelantos descontados y cancelación. |
-| Caja | RF 15 | Registrar pagos de proveedores, cobros de ventas y liquidación diaria de flete y estiba para uno o varios grupos de trabajadores. |
+| Caja | RF 15 | Registrar pagos a proveedores, cobros de ventas y liquidación diaria de flete y estiba para uno o varios grupos de trabajadores. |
 | Alertas | RF 16 | Mostrar cuentas vencidas o próximas a vencer, operaciones pendientes. |
-| Reportes | RF 17 | Consultar compras, ventas, importes registrados, costos de estiba y transporte y estado de cuentas. |
+| Reportes | RF 17 | Consultar compras, ventas, cantidades, pesos, importes registrados, costos de estiba y transporte y estado de cuentas. |
 | Analítica | RF 18 | Comparar la evolución de precios por variedad, calidad, procedencia, proveedor, cliente y periodo. |
 | Inteligencia artificial | RF 19 | Analizar progresivamente el historial validado para detectar tendencias y patrones; al alcanzar datos suficientes, generar una estimación semanal con rango, confianza y seguimiento del error. |
 | Inteligencia artificial | RF 20 | Mostrar cada estimación con rango, fecha, variables utilizadas y nivel de confianza, y comparar luego el valor previsto con el real. |
 | Operación móvil | RF 21 | Guardar temporalmente operaciones cuando no exista conexión y sincronizarlas al recuperarla. |
 | Auditoría | RF 22 | Registrar usuario, fecha, acción y motivo cuando corresponda; permitir al Mayorista consultar la auditoría de su negocio. |
-| Notificaciones | RF 23 | Enviar recordatorios configurables de pagos, cobranzas, pedidos pendientes. |
+| Notificaciones | RF 23 | Enviar recordatorios configurables de pagos, cobranzas y operaciones pendientes. |
 | Historial | RF 24 | Permitir al Mayorista buscar compras, pesajes, ventas y despachos por fecha o participante comercial y consultar su detalle. |
 
 ## Relación con los cortes de implementación
@@ -73,3 +73,18 @@ La asociación entre una venta y un cargamento de compra no se vuelve obligatori
 | HU14 | RF16, RF23 | Mostrar aviso vinculado a una cuenta y vencimiento; evitar duplicados. Canal externo pendiente de definir. |
 
 HU04 consulta cuentas; HU08 registra abonos. HU03 registra ventas; HU11 localiza registros anteriores. HU11 muestra operaciones comerciales; HU13 muestra acciones y responsables. HU14 agrega avisos de vencimiento y no una segunda consulta de saldos. RF24 explicita búsqueda e historial ya contemplados en el alcance; no reutiliza RF08/RF09 retirados. Los recordatorios externos requieren definir canal y política antes de implementarlos.
+
+## Ejemplos de saldos y excepciones
+
+| Operación ilustrativa | Importe inicial | Abono | Saldo financiero |
+| --- | --- | --- | --- |
+| Compra a crédito del proveedor | S/1.000,00 | S/600,00 pagados | S/400,00 por pagar |
+| Venta a crédito al comprador | S/800,00 | S/300,00 cobrados | S/500,00 por cobrar |
+
+En la compra el importe inicial representa la obligación final después de los descuentos acordados. Cada abono conserva fecha, responsable, origen y UUID. Reenviar el abono no modifica el saldo por segunda vez. Un abono mayor al saldo se rechaza sin escrituras parciales. El comprobante y la consulta de cuenta deben mostrar los mismos importes confirmados.
+
+Los sacos y pesos permanecen en el detalle de cada operación. Una compra de 100 sacos y una venta de 30 no producen un saldo de 70 sacos disponibles.
+
+Una anulación después de abonos no borra compra, venta ni pagos: conserva el origen y registra las compensaciones autorizadas. La comprobación debe contrastar cuenta, caja, abonos y auditoría antes/después. Anular una operación no demuestra por sí solo una devolución real de dinero; no se inventa un reembolso automático. La política del caso concreto debe estar especificada antes de implementarlo.
+
+Si el reemplazo vence antes de sincronizar, la API rechaza la confirmación y no aplica efectos. La interfaz conserva la orden como pendiente de revisión y muestra el motivo; no elimina el registro ni promete confirmación automática. El tratamiento posterior requiere una acción autorizada conforme a la especificación.

@@ -2,18 +2,18 @@
 
 > **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 1.2
 
-| Componente | Responsabilidad | Corte / requisitos |
+| Responsabilidad backend | Función | Historias y requisitos |
 | --- | --- | --- |
-| Identidad | Sesiones, roles, negocio y reemplazos | 001; RF01–02 |
-| Recepción y pesaje | Proveedor, variedades, transporte, sacos, bruto/tara/neto, corrección y cierre | 002; RF03–06B |
-| Compras | Precio, flete, descuentos y liquidación | 002; RF07, RF14 |
-| Ventas y devoluciones | Despacho y compensación comercial | 003; RF10–12 |
-| Cuentas y caja | Cuotas, pagos, cobros y reversos | 004; RF13–15 |
-| Flete y estiba | Costos y liquidación de grupos | 004; RF15 |
-| Cola y sincronización | Órdenes locales, dependencias y conflictos | 005; RF21 |
-| Auditoría | Hechos anexables y consulta protegida | 005; RF22 |
-| Reportes y comprobantes | Resumen de importes, costos, precios y PDF interno | 006; RF12, RF16–18 |
-| Analítica predictiva | Estimaciones condicionadas a CL-08 | 007; RF19–20 |
+| Identidad y reemplazos | Sesiones, permisos y reemplazos | HU07, HU12; RF01–02 |
+| Recepción y pesaje | Proveedor, variedades, transporte, sacos, bruto/tara/neto y cierre | HU01; RF03–06B |
+| Compras | Proveedor, precio, flete, adelantos, descuentos y liquidación | HU02; RF03, RF07, RF14 |
+| Ventas y despachos | Comprador, variedades, destino, transporte y compensaciones | HU03; RF03–04, RF10–11, RF13 |
+| Cuentas y caja | Pagos, cobros, cuotas, saldos y avisos de vencimiento | HU04, HU08, HU14; RF13–16, RF23 |
+| Flete y estiba | Costos de transporte y liquidación de grupos | HU09; RF15 |
+| Historial comercial | Búsqueda y detalle por fecha o participante | HU11; RF24 |
+| Reportes y comprobantes | Consultas comerciales y generación/compartición PDF | HU10; RF12, RF17–18 |
+| Auditoría | Usuario, fecha, acción, motivo y origen | HU13; RF22 |
+| Analítica | Tendencias y estimaciones condicionadas a CL-08 | HU06; RF18–20 |
 
 ## Límites y datos
 
@@ -130,3 +130,22 @@ Validaciones: dinero positivo y no superior al saldo; vencimientos asociados a l
 ## Organización vigente de los datos comerciales
 
 Proveedores, compradores, variedades, vehículos y transportistas son datos de recepción, compras y ventas. No constituyen módulos independientes. Recepción conserva proveedor, variedad, vehículo y conductor del cargamento; compras utiliza esos datos para la liquidación; ventas conserva comprador, destino y transporte del despacho. RF03–RF05 mantienen su trazabilidad dentro de esas operaciones. Esta organización es el diseño vigente; no afirma una reorganización ya implementada del código.
+
+## Responsabilidad del cliente y agrupaciones
+
+Los nombres son responsabilidades del backend, no servicios desplegados por separado. **Cola y sincronización** pertenece al cliente Android (HU05; RF21): conserva órdenes cifradas y las reenvía a los contratos centrales. Los avisos financieros pertenecen a Cuentas y caja; Analítica analiza el historial. Las devoluciones y anulaciones son operaciones compensatorias dentro de Ventas y despachos o Compras, no módulos nuevos.
+
+## Ejemplos de saldos y excepciones
+
+| Operación ilustrativa | Importe inicial | Abono | Saldo financiero |
+| --- | --- | --- | --- |
+| Compra a crédito del proveedor | S/1.000,00 | S/600,00 pagados | S/400,00 por pagar |
+| Venta a crédito al comprador | S/800,00 | S/300,00 cobrados | S/500,00 por cobrar |
+
+En la compra el importe inicial representa la obligación final después de los descuentos acordados. Cada abono conserva fecha, responsable, origen y UUID. Reenviar el abono no modifica el saldo por segunda vez. Un abono mayor al saldo se rechaza sin escrituras parciales. El comprobante y la consulta de cuenta deben mostrar los mismos importes confirmados.
+
+Los sacos y pesos permanecen en el detalle de cada operación. Una compra de 100 sacos y una venta de 30 no producen un saldo de 70 sacos disponibles.
+
+Una anulación después de abonos no borra compra, venta ni pagos: conserva el origen y registra las compensaciones autorizadas. La comprobación debe contrastar cuenta, caja, abonos y auditoría antes/después. Anular una operación no demuestra por sí solo una devolución real de dinero; no se inventa un reembolso automático. La política del caso concreto debe estar especificada antes de implementarlo.
+
+Si el reemplazo vence antes de sincronizar, la API rechaza la confirmación y no aplica efectos. La interfaz conserva la orden como pendiente de revisión y muestra el motivo; no elimina el registro ni promete confirmación automática. El tratamiento posterior requiere una acción autorizada conforme a la especificación.

@@ -2,18 +2,18 @@
 
 > **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 1.3
 
-| Componente | Responsabilidad | Corte / requisitos |
+| Responsabilidad backend | Función | Historias y requisitos |
 | --- | --- | --- |
-| Identidad | Sesiones, roles, negocio y reemplazos | 001; RF01–02 |
-| Recepción y pesaje | Proveedor, variedades, transporte, sacos, bruto/tara/neto, corrección y cierre | 002; RF03–06B |
-| Compras | Precio, flete, descuentos y liquidación | 002; RF07, RF14 |
-| Ventas y devoluciones | Despacho y compensación comercial | 003; RF10–12 |
-| Cuentas y caja | Cuotas, pagos, cobros y reversos | 004; RF13–15 |
-| Flete y estiba | Costos y liquidación de grupos | 004; RF15 |
-| Cola y sincronización | Órdenes locales, dependencias y conflictos | 005; RF21 |
-| Auditoría | Hechos anexables y consulta protegida | 005; RF22 |
-| Reportes y comprobantes | Resumen de importes, costos, precios y PDF interno | 006; RF12, RF16–18 |
-| Analítica predictiva | Estimaciones condicionadas a CL-08 | 007; RF19–20 |
+| Identidad y reemplazos | Sesiones, permisos y reemplazos | HU07, HU12; RF01–02 |
+| Recepción y pesaje | Proveedor, variedades, transporte, sacos, bruto/tara/neto y cierre | HU01; RF03–06B |
+| Compras | Proveedor, precio, flete, adelantos, descuentos y liquidación | HU02; RF03, RF07, RF14 |
+| Ventas y despachos | Comprador, variedades, destino, transporte y compensaciones | HU03; RF03–04, RF10–11, RF13 |
+| Cuentas y caja | Pagos, cobros, cuotas, saldos y avisos de vencimiento | HU04, HU08, HU14; RF13–16, RF23 |
+| Flete y estiba | Costos de transporte y liquidación de grupos | HU09; RF15 |
+| Historial comercial | Búsqueda y detalle por fecha o participante | HU11; RF24 |
+| Reportes y comprobantes | Consultas comerciales y generación/compartición PDF | HU10; RF12, RF17–18 |
+| Auditoría | Usuario, fecha, acción, motivo y origen | HU13; RF22 |
+| Analítica | Tendencias y estimaciones condicionadas a CL-08 | HU06; RF18–20 |
 
 Los nombres representan responsabilidades; la cola pertenece al cliente y la predicción aún no es un contenedor desplegado. RF23 permanece requisito documental: no se acredita aquí un canal de notificaciones configurables implementado.
 
@@ -63,3 +63,7 @@ La vista de componentes utiliza colores por responsabilidad y se mantiene alinea
 ## Organización vigente de los datos comerciales
 
 Proveedores, compradores, variedades, vehículos y transportistas son datos de recepción, compras y ventas. No constituyen módulos independientes. Recepción conserva proveedor, variedad, vehículo y conductor del cargamento; compras utiliza esos datos para la liquidación; ventas conserva comprador, destino y transporte del despacho. RF03–RF05 mantienen su trazabilidad dentro de esas operaciones. Esta organización es el diseño vigente; no afirma una reorganización ya implementada del código.
+
+## Responsabilidad del cliente y agrupaciones
+
+Los nombres son responsabilidades del backend, no servicios desplegados por separado. **Cola y sincronización** pertenece al cliente Android (HU05; RF21): conserva órdenes cifradas y las reenvía a los contratos centrales. Los avisos financieros pertenecen a Cuentas y caja; Analítica analiza el historial. Las devoluciones y anulaciones son operaciones compensatorias dentro de Ventas y despachos o Compras, no módulos nuevos.

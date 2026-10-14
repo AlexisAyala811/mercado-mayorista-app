@@ -1,6 +1,6 @@
 # Arquitectura inicial
 
-> **Proyecto:** Gestión mayorista de papa · **Entregable:** 1 · **Versión:** 1.3 · **Actualización:** 8 de octubre de 2026
+> **Proyecto:** Gestión mayorista de papa · **Entregable:** 1 · **Versión:** 1.3 · **Actualización:** 13 de octubre de 2026
 
 ## Visión de la solución
 
@@ -26,18 +26,22 @@ Fuente editable: [arquitectura-inicial.svg](../../img/fuentes-svg/arquitectura-i
 
 El color facilita lectura, pero cada responsabilidad tiene etiqueta. La agrupación de presentación y entrada API es conceptual: Android y NestJS son aplicaciones distintas. No significa que se desplieguen juntas ni que sus datos se compartan directamente.
 
-## Módulos del negocio
+## Responsabilidades del negocio
 
-- Identidad y reemplazos: acceso individual, sesión, rol, negocio y autorización temporal.
-- Recepción y pesaje: detalle saco por saco, tara, neto, totales y cierre trazable.
-- Compras: precio negociado, flete, adelantos, descuentos y monto líquido.
-- Ventas y despachos: registro de cantidades enviadas, destino y condiciones comerciales, sin validar existencias.
-- Cuentas y caja: cuotas, abonos, pagos, cobros, vencimientos y saldos de dinero.
-- Flete y estiba: registro y liquidación de costos de transporte y grupos de trabajadores.
-- Historial y comprobantes: búsqueda, consultas comerciales, reportes y PDF interno.
-- Auditoría y analítica: responsables, acciones y análisis del historial validado; estimaciones condicionadas a criterios y evaluación aprobados.
+| Responsabilidad backend | Función | Historias y requisitos |
+| --- | --- | --- |
+| Identidad y reemplazos | Sesiones, permisos y reemplazos | HU07, HU12; RF01–02 |
+| Recepción y pesaje | Proveedor, variedades, transporte, sacos, bruto/tara/neto y cierre | HU01; RF03–06B |
+| Compras | Proveedor, precio, flete, adelantos, descuentos y liquidación | HU02; RF03, RF07, RF14 |
+| Ventas y despachos | Comprador, variedades, destino, transporte y compensaciones | HU03; RF03–04, RF10–11, RF13 |
+| Cuentas y caja | Pagos, cobros, cuotas, saldos y avisos de vencimiento | HU04, HU08, HU14; RF13–16, RF23 |
+| Flete y estiba | Costos de transporte y liquidación de grupos | HU09; RF15 |
+| Historial comercial | Búsqueda y detalle por fecha o participante | HU11; RF24 |
+| Reportes y comprobantes | Consultas comerciales y generación/compartición PDF | HU10; RF12, RF17–18 |
+| Auditoría | Usuario, fecha, acción, motivo y origen | HU13; RF22 |
+| Analítica | Tendencias y estimaciones condicionadas a CL-08 | HU06; RF18–20 |
 
-Estas agrupaciones resumen responsabilidades, no crean servicios independientes ni sustituyen la organización actual del código.
+Los nombres son responsabilidades del backend, no servicios desplegados por separado. **Cola y sincronización** pertenece al cliente Android (HU05; RF21): conserva órdenes cifradas y las reenvía a los contratos centrales. Los avisos financieros pertenecen a Cuentas y caja; Analítica analiza el historial. Las devoluciones y anulaciones son operaciones compensatorias dentro de Ventas y despachos o Compras, no módulos nuevos.
 
 ## Persistencia y continuidad
 

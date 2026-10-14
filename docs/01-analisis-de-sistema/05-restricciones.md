@@ -23,3 +23,9 @@
 | Git y repositorio GitHub | Versionar requisitos, diagramas y decisiones junto con sus cambios |
 
 Estas decisiones complementan R01–R07 sin renumerarlas. El ejemplo académico usa un marketplace web; aquí no se incorporan carrito, sellers, ERP, courier ni pasarela de pagos porque no forman parte del alcance aprobado.
+
+## Condiciones de habilitación analítica CL-08
+
+La política aprobada exige 26 semanas completas consecutivas por negocio y variedad, con al menos cinco ventas confirmadas válidas por semana. El objetivo es precio semanal de venta por kilogramo ponderado por peso. No se imputan fechas, pesos ni precios y se identifican operaciones excluidas.
+
+Las ocho semanas finales se evalúan progresivamente, sin utilizar datos futuros. El error absoluto medio debe ser al menos 10 % menor que la referencia del precio de la semana anterior, y el rango debe contener al menos siete de los ocho valores reales. La cobertura objetivo del 80 % no es una garantía estadística ni acredita estacionalidad anual. El Mayorista accede a las estimaciones solo cuando hay datos suficientes y evaluación aprobada. La aprobación de criterios no prueba su cumplimiento.
