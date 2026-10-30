@@ -132,4 +132,4 @@ La especificación 008 incorpora HU15/RF25–26 y centraliza avisos HU14. Cuenta
 
 - [x] Añadir el estado `voided` de cuota; la anulación de compra y venta a crédito lo aplica con saldo cero, sin movimiento de caja. Migración `InstallmentVoidedState1793232000027` (recrea el enum y reclasifica cuotas de cuentas anuladas). Prueba unitaria de anulación de compra a crédito y e2e con la migración aplicada. Evidencia: [verificación del backend](../../docs/sdd/verificacion-backend-2026-10-29.md).
 - [ ] Mostrar las cuotas `voided` como «Anulada» en el detalle de cuenta de Android y verificar que no aparezcan como cobradas o pagadas.
-- [ ] Prueba e2e específica de anulación de venta a crédito sobre PostgreSQL que compruebe el estado de las cuotas.
+- [x] Prueba e2e específica de anulación de venta a crédito sobre PostgreSQL que compruebe el estado de las cuotas. `backend/test/voided-credit-and-isolation.e2e-spec.ts`. Evidencia: [verificación de pendientes](../../docs/sdd/verificacion-backend-pendientes-2026-10-30.md).
