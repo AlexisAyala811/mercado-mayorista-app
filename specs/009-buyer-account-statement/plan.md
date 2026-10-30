@@ -1,6 +1,6 @@
 # Plan 009: Estado de cuenta del comprador
 
-**Estado:** propuesto · fase `plan` · **Fecha:** 30 de octubre de 2026
+**Estado:** aprobado por el usuario el 30 de octubre de 2026 («Sí, apruebo») · **Fecha:** 30 de octubre de 2026
 **Especificación:** [spec.md](spec.md) · **Aclaraciones:** [registro](../../docs/sdd/aclaraciones-estado-de-cuenta-2026-10-30.md)
 
 ## Resumen técnico

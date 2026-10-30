@@ -12,4 +12,4 @@
 
 ## Artefactos
 
-[Especificación](../spec.md) y [plan](../plan.md).
+[Especificación](../spec.md), [plan](../plan.md) y [tareas](../tasks.md).

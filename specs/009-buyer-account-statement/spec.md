@@ -1,6 +1,6 @@
 # Especificación 009: Estado de cuenta del comprador
 
-**Estado:** especificada, aclarada y planificada · lista para `tasks` (Figma pendiente, CL-EC07)
+**Estado:** especificada, aclarada, planificada y con tareas · lista para `implement` (Figma pendiente, CL-EC07)
 **Fecha:** 30 de octubre de 2026 · **Decisión de origen:** [módulos y estado de cuenta](../../docs/sdd/decision-modulos-y-estado-de-cuenta-2026-10-29.md)
 
 ## Objetivo
@@ -132,4 +132,4 @@ Resueltas por el usuario el 30 de octubre de 2026 ([registro](../../docs/sdd/acl
 
 ## Artefactos SDD relacionados
 
-[Plan](plan.md) y [checklist de requisitos](checklists/requirements.md). Siguiente fase: tareas.
+[Plan](plan.md), [tareas](tasks.md) y [checklist de requisitos](checklists/requirements.md). Siguiente fase: implementación.
