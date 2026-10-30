@@ -1,0 +1,117 @@
+# Entrega y despliegue continuos del backend.
+# - Entrega continua: cada commit en main que pasa la CI publica una imagen
+#   versionada en GitHub Container Registry, lista para desplegar.
+# - Despliegue continuo: si el entorno de producción está configurado
+#   (variable DEPLOY_ENABLED=true), esa imagen se despliega sin intervención,
+#   se migran los datos, se comprueba la salud y se revierte si falla.
+name: Backend · CD
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-*.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-cd
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    name: Integración continua
+    uses: ./.github/workflows/backend-ci.yml
+
+  publicar:
+    name: Publicar imagen
+    needs: ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+      image: ${{ steps.version.outputs.image }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Nombre y versión de la imagen
+        id: version
+        run: |
+          image="ghcr.io/${GITHUB_REPOSITORY,,}/backend"
+          echo "image=$image" >> "$GITHUB_OUTPUT"
+          echo "tag=sha-${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: backend
+          push: true
+          tags: |
+            ${{ steps.version.outputs.image }}:${{ steps.version.outputs.tag }}
+            ${{ steps.version.outputs.image }}:latest
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.title=mercado-api
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Resumen
+        run: |
+          {
+            echo "### Imagen publicada"
+            echo ""
+            echo "\`${{ steps.version.outputs.image }}:${{ steps.version.outputs.tag }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  desplegar:
+    name: Desplegar en producción
+    needs: publicar
+    if: vars.DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: production
+      url: ${{ vars.API_PUBLIC_URL }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: backend/deploy
+      - name: Preparar acceso SSH
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+      - name: Copiar archivos de despliegue
+        env:
+          TARGET: ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_HOST }}
+          DIR: ${{ vars.DEPLOY_PATH }}
+        run: |
+          ssh -i ~/.ssh/deploy_key "$TARGET" "mkdir -p '$DIR'"
+          scp -i ~/.ssh/deploy_key backend/deploy/compose.prod.yaml backend/deploy/deploy.sh "$TARGET:$DIR/"
+      - name: Desplegar, migrar y comprobar salud
+        env:
+          TARGET: ${{ vars.DEPLOY_USER }}@${{ vars.DEPLOY_HOST }}
+          DIR: ${{ vars.DEPLOY_PATH }}
+          IMAGE: ${{ needs.publicar.outputs.image }}
+          TAG: ${{ needs.publicar.outputs.tag }}
+          REGISTRY_USER: ${{ github.actor }}
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # El token viaja por stdin, no en la línea de comandos del servidor.
+          printf '%s' "$REGISTRY_TOKEN" | ssh -i ~/.ssh/deploy_key "$TARGET" \
+            "docker login ghcr.io -u '$REGISTRY_USER' --password-stdin"
+          ssh -i ~/.ssh/deploy_key "$TARGET" \
+            "cd '$DIR' && chmod +x deploy.sh && API_IMAGE='$IMAGE' ./deploy.sh '$TAG'"

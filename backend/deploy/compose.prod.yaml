@@ -1,0 +1,62 @@
+# Producción: usa la imagen publicada por backend-cd.yml en lugar de construirla.
+# Variables en .env junto a este archivo (ver .env.example del backend) más
+# API_IMAGE y API_TAG, que define deploy.sh.
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-mercado}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD in .env}
+      POSTGRES_USER: ${DATABASE_USER:-mercado}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-mercado} -d ${DATABASE_NAME:-mercado}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - mercado-postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  migrate:
+    image: ${API_IMAGE:?}:${API_TAG:?}
+    command: ["npm", "run", "migration:run:prod"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment: &api-environment
+      NODE_ENV: production
+      PORT: 3000
+      CORS_ORIGINS: ${CORS_ORIGINS:?Set CORS_ORIGINS in .env}
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_USER: ${DATABASE_USER:-mercado}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD in .env}
+      DATABASE_NAME: ${DATABASE_NAME:-mercado}
+      DATABASE_SSL: "false"
+      DATABASE_SSL_REJECT_UNAUTHORIZED: "true"
+      DATABASE_POOL_SIZE: ${DATABASE_POOL_SIZE:-10}
+      DATABASE_CONNECT_TIMEOUT_MS: ${DATABASE_CONNECT_TIMEOUT_MS:-5000}
+      SESSION_TTL_MINUTES: ${SESSION_TTL_MINUTES:-480}
+      EVIDENCE_RETENTION_YEARS: ${EVIDENCE_RETENTION_YEARS:-5}
+      OPENAPI_ENABLED: ${OPENAPI_ENABLED:-false}
+    restart: "no"
+
+  api:
+    image: ${API_IMAGE:?}:${API_TAG:?}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment: *api-environment
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:3000/api/v1/health/ready >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    # Solo accesible desde el propio servidor; HTTPS lo termina un proxy inverso.
+    ports:
+      - "127.0.0.1:${PORT:-3000}:3000"
+    restart: unless-stopped
+
+volumes:
+  mercado-postgres-data:

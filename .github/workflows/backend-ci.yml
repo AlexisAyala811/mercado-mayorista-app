@@ -1,0 +1,93 @@
+# Integración continua del backend: cada PR debe dejar el código verificado
+# (tipos, lint, pruebas, build, PostgreSQL e imagen). En main la ejecuta
+# backend-cd.yml antes de publicar, para no repetirla.
+name: Backend · CI
+
+on:
+  pull_request:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-*.yml'
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    working-directory: backend
+
+jobs:
+  verificar:
+    name: Tipos, lint, pruebas y build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+      - name: Sin vulnerabilidades altas en producción
+        run: npm audit --omit=dev --audit-level=high
+
+  postgres:
+    name: Migraciones y pruebas e2e en PostgreSQL 17
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: mercado_test
+          POSTGRES_PASSWORD: ci-ephemeral-password
+          POSTGRES_DB: mercado_test_ci
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U mercado_test -d mercado_test_ci"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      RUN_DATABASE_E2E: 'true'
+      NODE_ENV: test
+      DATABASE_HOST: 127.0.0.1
+      DATABASE_PORT: '5432'
+      DATABASE_USER: mercado_test
+      DATABASE_PASSWORD: ci-ephemeral-password
+      DATABASE_NAME: mercado_test_ci
+      DATABASE_SSL: 'false'
+      SESSION_TTL_MINUTES: '60'
+      EVIDENCE_RETENTION_YEARS: '5'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npm run test:e2e
+
+  imagen:
+    name: Imagen Docker
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Construir sin publicar
+        uses: docker/build-push-action@v6
+        with:
+          context: backend
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
