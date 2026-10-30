@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { Messaging1792972800026 } from './migrations/202610260026-messaging.js';
+import { InstallmentVoidedState1793232000027 } from './migrations/202610290027-installment-voided-state.js';
 import { ShareAttemptEntity } from '../messaging/share-attempt.entity.js';
 
 import { DataSource } from 'typeorm';
@@ -143,6 +144,7 @@ export default new DataSource({
     CommercialCharacteristics1791936000024,
     OperationCharacteristics1791936000025,
     Messaging1792972800026,
+    InstallmentVoidedState1793232000027,
   ],
 });
 

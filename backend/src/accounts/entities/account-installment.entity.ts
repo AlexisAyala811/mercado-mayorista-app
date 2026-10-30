@@ -3,6 +3,7 @@ import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
 export enum InstallmentState {
   Open = 'open',
   Paid = 'paid',
+  Voided = 'voided',
 }
 
 @Entity({ name: 'account_installments' })

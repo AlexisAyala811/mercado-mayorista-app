@@ -9,6 +9,9 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+import { AuditService } from '../audit/audit.service.js';
+import { auditForeignAccess } from '../audit/foreign-access.js';
+import { ReceptionEntity } from '../reception/entities/reception.entity.js';
 import type { SessionIdentity } from '../identity/application/ports/session-identity-reader.js';
 import { UserRole } from '../identity/entities/user.entity.js';
 import { CurrentIdentity } from '../identity/http/current-identity.decorator.js';
@@ -27,14 +30,24 @@ import { PurchaseService } from './purchase.service.js';
 @UseGuards(SessionAuthGuard, RolesGuard)
 @Roles(UserRole.Wholesaler, UserRole.Assistant)
 export class PurchaseController {
-  constructor(private readonly purchases: PurchaseService) {}
+  constructor(
+    private readonly purchases: PurchaseService,
+    private readonly audit: AuditService,
+  ) {}
 
   @Get('receptions/:receptionId/settlement')
   get(
     @CurrentIdentity() identity: SessionIdentity,
     @Param('receptionId', ParseUUIDPipe) receptionId: string,
   ) {
-    return this.purchases.getByReception(identity.businessId, receptionId);
+    return auditForeignAccess(
+      this.audit,
+      identity,
+      ReceptionEntity,
+      receptionId,
+      'reception',
+      () => this.purchases.getByReception(identity.businessId, receptionId),
+    );
   }
 
   @Post('receptions/:receptionId/settlement')

@@ -393,7 +393,7 @@ export class SalesService {
         });
         for (const installment of accountInstallments) {
           installment.balanceCents = '0';
-          installment.state = InstallmentState.Paid;
+          installment.state = InstallmentState.Voided;
           await installmentRepository.save(installment);
         }
       }
