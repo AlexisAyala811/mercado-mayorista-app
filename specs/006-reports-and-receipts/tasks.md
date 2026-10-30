@@ -115,4 +115,4 @@ Decisión: [módulos y estado de cuenta](../../docs/sdd/decision-modulos-y-estad
 - [x] `clarify`: CL-EC01 a CL-EC06 resueltas el 30 de octubre de 2026 ([registro](../../docs/sdd/aclaraciones-estado-de-cuenta-2026-10-30.md)); Figma (CL-EC07) pendiente.
 - [x] `plan`: [plan 009](../009-buyer-account-statement/plan.md) con contrato de la API, origen de los datos, conservación, imagen SVG → PNG en el servidor, permisos y pruebas (30 de octubre de 2026).
 - [x] `tasks`: [tareas 009](../009-buyer-account-statement/tasks.md) T900–T951 (30 de octubre de 2026).
-- [ ] `implement` y `converge` en backend y Android, con envío por Mensajería (spec 008).
+- [ ] `implement` y `converge` en backend y Android, con envío por Mensajería (spec 008). Backend completo y fusionado en `main` el 30 de octubre de 2026 (T910–T934, [verificación](../../docs/sdd/verificacion-estado-de-cuenta-backend-2026-10-30.md)); faltan Android (T940–T944) y Figma (T950–T951).
