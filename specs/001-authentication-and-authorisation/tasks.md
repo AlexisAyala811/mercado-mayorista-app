@@ -86,5 +86,6 @@ La especificación 008 incorpora HU15/RF25–26 y centraliza avisos HU14. Cuenta
 
 - [x] Registrar `authorization.cross-business-denied` en consultas de detalle de venta, cuenta, recepción, liquidación de compra y comprobantes PDF cuando el recurso pertenece a otro negocio; mantener la respuesta `404`. `backend/src/audit/foreign-access.ts`; 3 pruebas unitarias. Evidencia: [verificación del backend](../../docs/sdd/verificacion-backend-2026-10-29.md).
 - [x] Configurar `TRUST_PROXY` para el límite de inicio de sesión y desactivar OpenAPI por defecto en producción. 7 pruebas del esquema de configuración.
-- [ ] Prueba e2e HTTP con dos negocios que compruebe el evento de auditoría y la ausencia de datos del otro negocio.
+- [x] Prueba e2e HTTP con dos negocios que compruebe el evento de auditoría y la ausencia de datos del otro negocio. `backend/test/voided-credit-and-isolation.e2e-spec.ts`. Evidencia: [verificación de pendientes](../../docs/sdd/verificacion-backend-pendientes-2026-10-30.md).
 - [ ] Verificar el límite de 5 intentos por cliente detrás del proxy HTTPS de producción, cuando exista el entorno.
+- [x] Registrar en desarrollo solo el SQL de cada consulta, sin parámetros enlazados (hash de contraseña, tokens, datos personales), respetando la opción `logging`. `backend/src/database/query-logger.ts`; 3 pruebas unitarias. Evidencia: [verificación de pendientes](../../docs/sdd/verificacion-backend-pendientes-2026-10-30.md).
