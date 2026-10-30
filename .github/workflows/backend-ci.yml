@@ -1,9 +1,14 @@
-# Integración continua del backend: cada PR debe dejar el código verificado
-# (tipos, lint, pruebas, build, PostgreSQL e imagen). En main la ejecuta
-# backend-cd.yml antes de publicar, para no repetirla.
+# Integración continua del backend: cada push a una rama de trabajo y cada PR
+# deben dejar el código verificado (tipos, lint, pruebas, build, PostgreSQL e
+# imagen). En main la ejecuta backend-cd.yml antes de publicar, para no repetirla.
 name: Backend · CI
 
 on:
+  push:
+    branches-ignore: [main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-*.yml'
   pull_request:
     paths:
       - 'backend/**'
