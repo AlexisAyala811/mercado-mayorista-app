@@ -10,6 +10,9 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+import { AuditService } from '../audit/audit.service.js';
+import { auditForeignAccess } from '../audit/foreign-access.js';
+import { SaleEntity } from './entities/sale.entity.js';
 import { SalesHistoryQueryDto } from './http/sales-history-query.dto.js';
 import type { SessionIdentity } from '../identity/application/ports/session-identity-reader.js';
 import { UserRole } from '../identity/entities/user.entity.js';
@@ -34,6 +37,7 @@ export class SalesController {
   constructor(
     private readonly sales: SalesService,
     private readonly saleReturns: SaleReturnsService,
+    private readonly audit: AuditService,
   ) {}
 
   @Get()
@@ -49,7 +53,14 @@ export class SalesController {
     @CurrentIdentity() identity: SessionIdentity,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    return this.sales.get(identity.businessId, id);
+    return auditForeignAccess(
+      this.audit,
+      identity,
+      SaleEntity,
+      id,
+      'sale',
+      () => this.sales.get(identity.businessId, id),
+    );
   }
 
   @Post()

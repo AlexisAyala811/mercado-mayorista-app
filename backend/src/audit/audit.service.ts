@@ -1,8 +1,9 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import type { EntityManager, Repository } from 'typeorm';
+import type { EntityManager, EntityTarget, Repository } from 'typeorm';
 
+import type { SessionIdentity } from '../identity/application/ports/session-identity-reader.js';
 import { AuditEventEntity } from './audit-event.entity.js';
 import type { AuditQueryDto } from './audit-query.dto.js';
 import { toPage } from '../common/http/page-query.dto.js';
@@ -37,9 +38,34 @@ export class AuditService {
     );
   }
 
+  // A lookup scoped to the caller's business found nothing. If the resource
+  // exists in another business, the attempt is recorded in the caller's own
+  // audit trail; the response stays a plain 404 so nothing leaks.
+  async recordIfForeign(
+    identity: Pick<SessionIdentity, 'businessId' | 'userId'>,
+    target: EntityTarget<{ id: string }>,
+    id: string,
+    resourceType: string,
+  ) {
+    const exists = await this.events.manager
+      .getRepository(target)
+      .exists({ where: { id } });
+    if (!exists) return false;
+    await this.recordDirect({
+      action: 'authorization.cross-business-denied',
+      actorUserId: identity.userId,
+      businessId: identity.businessId,
+      resourceId: id,
+      resourceType,
+    });
+    return true;
+  }
+
   async list(businessId: string, query: AuditQueryDto) {
     if (query.fromDay && query.toDay && query.fromDay > query.toDay) {
-      throw new BadRequestException('La fecha inicial no puede ser posterior a la final.');
+      throw new BadRequestException(
+        'La fecha inicial no puede ser posterior a la final.',
+      );
     }
     const builder = this.events
       .createQueryBuilder('event')
@@ -61,9 +87,15 @@ export class AuditService {
     if (query.to)
       builder.andWhere('event.occurredAt <= :to', { to: new Date(query.to) });
     if (query.fromDay)
-      builder.andWhere("event.occurredAt >= (CAST(:fromDay AS date)::timestamp AT TIME ZONE 'America/Lima')", { fromDay: query.fromDay });
+      builder.andWhere(
+        "event.occurredAt >= (CAST(:fromDay AS date)::timestamp AT TIME ZONE 'America/Lima')",
+        { fromDay: query.fromDay },
+      );
     if (query.toDay)
-      builder.andWhere("event.occurredAt < ((CAST(:toDay AS date) + 1)::timestamp AT TIME ZONE 'America/Lima')", { toDay: query.toDay });
+      builder.andWhere(
+        "event.occurredAt < ((CAST(:toDay AS date) + 1)::timestamp AT TIME ZONE 'America/Lima')",
+        { toDay: query.toDay },
+      );
     const [items, total] = await builder.getManyAndCount();
     return toPage(
       items.map((event) => ({

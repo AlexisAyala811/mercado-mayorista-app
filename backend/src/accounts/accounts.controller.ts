@@ -10,6 +10,9 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+import { AuditService } from '../audit/audit.service.js';
+import { auditForeignAccess } from '../audit/foreign-access.js';
+import { AccountEntity } from './entities/account.entity.js';
 import { PageQueryDto } from '../common/http/page-query.dto.js';
 import type { SessionIdentity } from '../identity/application/ports/session-identity-reader.js';
 import { UserRole } from '../identity/entities/user.entity.js';
@@ -26,7 +29,10 @@ import { RegisterPaymentDto, ReversePaymentDto } from './http/account.dto.js';
 @UseGuards(SessionAuthGuard, RolesGuard)
 @Roles(UserRole.Wholesaler)
 export class AccountsController {
-  constructor(private readonly accounts: AccountsService) {}
+  constructor(
+    private readonly accounts: AccountsService,
+    private readonly audit: AuditService,
+  ) {}
 
   @Get()
   list(
@@ -49,7 +55,14 @@ export class AccountsController {
     @CurrentIdentity() identity: SessionIdentity,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    return this.accounts.get(identity.businessId, id);
+    return auditForeignAccess(
+      this.audit,
+      identity,
+      AccountEntity,
+      id,
+      'account',
+      () => this.accounts.get(identity.businessId, id),
+    );
   }
 
   @Post(':id/payments')
