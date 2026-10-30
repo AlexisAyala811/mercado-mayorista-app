@@ -89,5 +89,17 @@ jobs:
         with:
           context: backend
           push: false
+          load: true
+          tags: mercado-api:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - name: Render de imagen dentro del contenedor
+        # Spec 009: the PNG statement needs resvg's musl binary and the bundled fonts.
+        run: |
+          docker run --rm mercado-api:ci node -e "
+            const { Resvg } = require('@resvg/resvg-js');
+            const svg = '<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"200\" height=\"60\"><text x=\"10\" y=\"40\" font-size=\"28\">S/ 400.00</text></svg>';
+            const png = new Resvg(svg, { font: { fontFiles: ['assets/fonts/NotoSans-Regular.ttf'], loadSystemFonts: false, defaultFontFamily: 'Noto Sans' } }).render().asPng();
+            if (png.readUInt32BE(16) !== 200) throw new Error('PNG inesperado');
+            console.log('PNG', png.length, 'bytes');
+          "

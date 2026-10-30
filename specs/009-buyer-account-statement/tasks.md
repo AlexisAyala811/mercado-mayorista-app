@@ -20,9 +20,9 @@ Cada tarea se marca `[x]` solo con evidencia enlazable (pruebas, ejecución de C
 
 ## Fase 2 · Documentos (backend)
 
-- [ ] **T920** Render PDF con PDFKit: encabezado, resumen, ventas con cuotas, marcas de vencida y aviso de documento interno. *Verificación:* prueba de extracción de texto con número, comprador, totales y aviso legal; sin límite de crédito.
-- [ ] **T921** Añadir `@resvg/resvg-js` y la fuente Noto Sans con su licencia OFL en `backend/assets/fonts/`; incluirla en la imagen Docker. *Verificación:* `npm audit` sin vulnerabilidades altas; la CI construye la imagen.
-- [ ] **T922** Render imagen: SVG de 1080 px de ancho con texto de al menos 28 px, convertido a PNG. *Verificación:* PNG válido de 1080 px de ancho; el alto crece con las ventas; prueba de humo del render dentro del contenedor Docker en la CI.
+- [x] **T920** Render PDF con PDFKit: encabezado, resumen, ventas con cuotas, marcas de vencida y aviso de documento interno. *Verificación:* prueba de extracción de texto con número, comprador, totales y aviso legal; sin límite de crédito. **Evidencia:** `buyer-statement.view.ts` y `buyer-statement.pdf.ts`; `buyer-statement.documents.spec.ts` verifica número, comprador, totales, cuotas vencidas, aviso legal y ausencia de límite de crédito sobre la vista que comparten PDF e imagen, y que el PDF es válido; muestra revisada con extracción de texto (30 de octubre de 2026).
+- [ ] **T921** Añadir `@resvg/resvg-js` y la fuente Noto Sans con su licencia OFL en `backend/assets/fonts/`; incluirla en la imagen Docker. *Verificación:* `npm audit` sin vulnerabilidades altas; la CI construye la imagen. *Avance:* `@resvg/resvg-js` 2.6.2 (incluye binario musl), Noto Sans Regular y Bold con `OFL.txt` en `backend/assets/fonts/`, copiadas en la etapa final del `Dockerfile`; `npm audit --audit-level=high` sin vulnerabilidades. Falta la construcción de la imagen en la CI.
+- [ ] **T922** Render imagen: SVG de 1080 px de ancho con texto de al menos 28 px, convertido a PNG. *Verificación:* PNG válido de 1080 px de ancho; el alto crece con las ventas; prueba de humo del render dentro del contenedor Docker en la CI. *Avance:* SVG de 1080 px con texto de 28 a 40 px renderizado a PNG; pruebas de ancho, crecimiento del alto y escape de texto, y muestra revisada a ojo. Prueba de humo añadida al trabajo «Imagen Docker»; falta su ejecución en la CI.
 
 ## Fase 3 · API (backend)
 
