@@ -1,0 +1,1431 @@
+// HISTORICAL: stock-based scenarios superseded by approved scope on 2026-10-07. Not current acceptance evidence.
+import { createHash, randomUUID } from 'node:crypto';
+import {
+  ConflictException,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import type { DataSource } from 'typeorm';
+
+import { CashMovementEntity } from '../src/accounts/entities/cash-movement.entity.js';
+import { AccountPaymentEntity } from '../src/accounts/entities/account-payment.entity.js';
+import { AccountsService } from '../src/accounts/accounts.service.js';
+import { AccountInstallmentEntity } from '../src/accounts/entities/account-installment.entity.js';
+import {
+  AccountEntity,
+  AccountKind,
+  AccountState,
+} from '../src/accounts/entities/account.entity.js';
+import { AuditEventEntity } from '../src/audit/audit-event.entity.js';
+import { AuditService } from '../src/audit/audit.service.js';
+import { BuyerEntity } from '../src/catalog/entities/buyer.entity.js';
+import { PotatoVarietyEntity } from '../src/catalog/entities/potato-variety.entity.js';
+import { ProviderEntity } from '../src/catalog/entities/provider.entity.js';
+import {
+  FreightEntryEntity,
+  FreightEntryState,
+} from '../src/freight/entities/freight-entry.entity.js';
+import { FreightSettlementEntity } from '../src/freight/entities/freight-settlement.entity.js';
+import { FreightService } from '../src/freight/freight.service.js';
+import type { SessionIdentity } from '../src/identity/application/ports/session-identity-reader.js';
+import { BusinessEntity } from '../src/identity/entities/business.entity.js';
+import { UserEntity, UserRole } from '../src/identity/entities/user.entity.js';
+import { PasswordHasher } from '../src/identity/security/password-hasher.js';
+import {
+  InventoryLotEntity,
+  InventoryLotState,
+} from '../src/inventory/entities/inventory-lot.entity.js';
+import {
+  InventoryMovementEntity,
+  InventoryMovementType,
+} from '../src/inventory/entities/inventory-movement.entity.js';
+import { InventoryAdjustmentKind } from '../src/inventory/http/adjust-inventory.dto.js';
+import { InventoryService } from '../src/inventory/inventory.service.js';
+import {
+  CalculationBasis,
+  PaymentMode,
+  PurchaseSettlementEntity,
+} from '../src/purchase/entities/purchase-settlement.entity.js';
+import { PurchaseService } from '../src/purchase/purchase.service.js';
+import { ReceptionEntity } from '../src/reception/entities/reception.entity.js';
+import { ReceptionSackEntity } from '../src/reception/entities/reception-sack.entity.js';
+import { ReceptionService } from '../src/reception/reception.service.js';
+import { WeighingService } from '../src/reception/weighing.service.js';
+import { ReceiptDocumentEntity } from '../src/receipts/receipt-document.entity.js';
+import { ReceiptsService } from '../src/receipts/receipts.service.js';
+import { ReportsService } from '../src/reports/reports.service.js';
+import { SaleEntity } from '../src/sales/entities/sale.entity.js';
+import { SaleLineEntity } from '../src/sales/entities/sale-line.entity.js';
+import { SaleReturnEntity } from '../src/sales/entities/sale-return.entity.js';
+import { SaleReturnLineEntity } from '../src/sales/entities/sale-return-line.entity.js';
+import { SalesService } from '../src/sales/sales.service.js';
+import { SaleReturnsService } from '../src/sales/sale-returns.service.js';
+import {
+  StowageActivity,
+  StowageEntryEntity,
+  StowageEntryState,
+  StowageOperationType,
+} from '../src/stowage/entities/stowage-entry.entity.js';
+import { StowageSettlementEntity } from '../src/stowage/entities/stowage-settlement.entity.js';
+import { WorkGroupEntity } from '../src/stowage/entities/work-group.entity.js';
+import { StowageService } from '../src/stowage/stowage.service.js';
+
+export function registerCommercialDatabaseScenarios(
+  getDataSource: () => DataSource,
+) {
+  async function fixture() {
+    const dataSource = getDataSource();
+    const businesses = dataSource.getRepository(BusinessEntity);
+    const users = dataSource.getRepository(UserEntity);
+    const providers = dataSource.getRepository(ProviderEntity);
+    const varieties = dataSource.getRepository(PotatoVarietyEntity);
+    const buyers = dataSource.getRepository(BuyerEntity);
+    const business = await businesses.save(
+      businesses.create({ displayName: `Comercial E2E ${randomUUID()}` }),
+    );
+    const username = `commercial-${randomUUID()}`;
+    const user = await users.save(
+      users.create({
+        businessId: business.id,
+        isActive: true,
+        passwordHash: await new PasswordHasher().hash(randomUUID()),
+        role: UserRole.Wholesaler,
+        username,
+      }),
+    );
+    const provider = await providers.save(
+      providers.create({
+        businessId: business.id,
+        isActive: true,
+        name: `Proveedor ${randomUUID()}`,
+        phone: null,
+      }),
+    );
+    const variety = await varieties.save(
+      varieties.create({
+        businessId: business.id,
+        isActive: true,
+        name: `Variedad ${randomUUID()}`,
+      }),
+    );
+    const buyer = await buyers.save(
+      buyers.create({
+        businessId: business.id,
+        creditLimitCents: null,
+        destinationDepartment: 'Lima',
+        isActive: true,
+        name: `Comprador ${randomUUID()}`,
+        phone: null,
+      }),
+    );
+    const auditRepository = dataSource.getRepository(AuditEventEntity);
+    const audit = new AuditService(
+      auditRepository,
+      new ConfigService({ EVIDENCE_RETENTION_YEARS: 5 }),
+    );
+    const receptions = dataSource.getRepository(ReceptionEntity);
+    const receptionService = new ReceptionService(
+      dataSource,
+      audit,
+      receptions,
+    );
+    const weighingService = new WeighingService(dataSource, audit);
+    const purchaseService = new PurchaseService(dataSource, audit);
+    const sales = dataSource.getRepository(SaleEntity);
+    const saleLines = dataSource.getRepository(SaleLineEntity);
+    const salesService = new SalesService(dataSource, audit, sales, saleLines);
+    const inventoryLots = dataSource.getRepository(InventoryLotEntity);
+    const inventoryMovements = dataSource.getRepository(
+      InventoryMovementEntity,
+    );
+    const inventoryService = new InventoryService(
+      dataSource,
+      audit,
+      inventoryLots,
+      inventoryMovements,
+    );
+    const receiptDocuments = dataSource.getRepository(ReceiptDocumentEntity);
+    const receiptsService = new ReceiptsService(
+      dataSource,
+      audit,
+      new ConfigService({ EVIDENCE_RETENTION_YEARS: 5 }),
+      businesses,
+      dataSource.getRepository(PurchaseSettlementEntity),
+      receptions,
+      dataSource.getRepository(ReceptionSackEntity),
+      providers,
+      varieties,
+      sales,
+      saleLines,
+      dataSource.getRepository(SaleReturnEntity),
+      dataSource.getRepository(SaleReturnLineEntity),
+      dataSource.getRepository(InventoryLotEntity),
+      dataSource.getRepository(InventoryMovementEntity),
+      buyers,
+      receiptDocuments,
+    );
+    const saleReturnsService = new SaleReturnsService(
+      dataSource,
+      audit,
+      receiptsService,
+    );
+    const reportsService = new ReportsService(dataSource);
+    const accountsService = new AccountsService(
+      dataSource,
+      audit,
+      dataSource.getRepository(AccountEntity),
+      dataSource.getRepository(AccountInstallmentEntity),
+      dataSource.getRepository(AccountPaymentEntity),
+    );
+    const freightEntries = dataSource.getRepository(FreightEntryEntity);
+    const freightSettlements = dataSource.getRepository(
+      FreightSettlementEntity,
+    );
+    const freightService = new FreightService(
+      dataSource,
+      audit,
+      freightEntries,
+      freightSettlements,
+    );
+    const workGroups = dataSource.getRepository(WorkGroupEntity);
+    const stowageEntries = dataSource.getRepository(StowageEntryEntity);
+    const stowageService = new StowageService(
+      dataSource,
+      audit,
+      workGroups,
+      stowageEntries,
+    );
+    const identity: SessionIdentity = {
+      businessId: business.id,
+      businessName: business.displayName,
+      expiresAt: new Date('2099-01-01T00:00:00Z'),
+      role: UserRole.Wholesaler,
+      sessionId: randomUUID(),
+      userId: user.id,
+      username,
+    };
+    return {
+      auditRepository,
+      accountsService,
+      buyer,
+      dataSource,
+      freightEntries,
+      freightService,
+      freightSettlements,
+      identity,
+      inventoryService,
+      provider,
+      purchaseService,
+      receptionService,
+      receptions,
+      receiptDocuments,
+      receiptsService,
+      reportsService,
+      sales,
+      salesService,
+      saleReturnsService,
+      stowageEntries,
+      stowageService,
+      variety,
+      weighingService,
+      workGroups,
+    };
+  }
+
+  async function prepareAvailableLot(options?: {
+    installments?: Array<{ amountCents: number; dueOn: string }>;
+    paymentMode?: PaymentMode;
+  }) {
+    const f = await fixture();
+    const receptionOperationId = randomUUID();
+    const reception = await f.receptionService.create(f.identity, {
+      clientOperationId: receptionOperationId,
+      driverName: 'Conductor E2E',
+      expectedVarietyIds: [f.variety.id],
+      providerId: f.provider.id,
+      receivedOn: '2026-09-28',
+    });
+    await f.weighingService.add(f.identity, reception.id, {
+      clientOperationId: randomUUID(),
+      expectedReceptionVersion: 0,
+      grossWeightKg: '50.500',
+      tareKg: '0.500',
+      varietyId: f.variety.id,
+    });
+    await f.weighingService.add(f.identity, reception.id, {
+      clientOperationId: randomUUID(),
+      expectedReceptionVersion: 1,
+      grossWeightKg: '49.750',
+      tareKg: '0.250',
+      varietyId: f.variety.id,
+    });
+    const closeOperationId = randomUUID();
+    await f.weighingService.close(f.identity, reception.id, {
+      clientOperationId: closeOperationId,
+      expectedReceptionVersion: 2,
+    });
+    const purchaseOperationId = randomUUID();
+    const purchase = await f.purchaseService.settle(f.identity, reception.id, {
+      advancesCents: 500,
+      clientOperationId: purchaseOperationId,
+      discountsCents: 50,
+      expectedReceptionVersion: 3,
+      freightBasis: CalculationBasis.Sack,
+      freightRateCents: 50,
+      installments: options?.installments ?? [],
+      paymentMode: options?.paymentMode ?? PaymentMode.Cash,
+      priceBasis: CalculationBasis.Kilogram,
+      unitPriceCents: 100,
+    });
+    const lot = await f.dataSource
+      .getRepository(InventoryLotEntity)
+      .findOneByOrFail({
+        businessId: f.identity.businessId,
+        receptionId: reception.id,
+        varietyId: f.variety.id,
+      });
+    return {
+      ...f,
+      closeOperationId,
+      lot,
+      purchase,
+      purchaseOperationId,
+      reception,
+      receptionOperationId,
+    };
+  }
+
+  it('executes reception, weighing, purchase and cash sale with exact persisted effects', async () => {
+    const f = await prepareAvailableLot();
+    expect(f.purchase).toMatchObject({
+      freightAmountCents: '100',
+      grossAmountCents: '9950',
+      liquidAmountCents: '9300',
+    });
+    expect(f.lot).toMatchObject({
+      availableSacks: 2,
+      availableWeightKg: '99.500',
+      initialSacks: 2,
+      initialWeightKg: '99.500',
+      state: InventoryLotState.Available,
+      version: 1,
+    });
+
+    const saleOperationId = randomUUID();
+    const sale = await f.salesService.create(f.identity, {
+      buyerId: f.buyer.id,
+      clientOperationId: saleOperationId,
+      destinationDepartment: 'Lima',
+      discountsCents: 100,
+      freightIncludedInTotal: false,
+      installments: [],
+      lines: [
+        {
+          expectedLotVersion: 1,
+          lotId: f.lot.id,
+          priceBasis: CalculationBasis.Kilogram,
+          sacks: 1,
+          unitPriceCents: 150,
+          weightKg: '40.000',
+        },
+      ],
+      paymentMode: PaymentMode.Cash,
+    });
+    expect(sale).toMatchObject({
+      grossAmountCents: '6000',
+      totalAmountCents: '5900',
+    });
+    expect(
+      await f.dataSource.getRepository(InventoryLotEntity).findOneByOrFail({
+        id: f.lot.id,
+      }),
+    ).toMatchObject({
+      availableSacks: 1,
+      availableWeightKg: '59.500',
+      state: InventoryLotState.Available,
+      version: 2,
+    });
+    const cash = await f.dataSource
+      .getRepository(CashMovementEntity)
+      .findBy({ businessId: f.identity.businessId });
+    expect(
+      cash.map((movement) => ({
+        amount: movement.amountCents,
+        category: movement.category,
+        direction: movement.direction,
+      })),
+    ).toEqual(
+      expect.arrayContaining([
+        { amount: '9300', category: 'purchase-payment', direction: 'out' },
+        { amount: '5900', category: 'sale-collection', direction: 'in' },
+      ]),
+    );
+    const movements = await f.dataSource
+      .getRepository(InventoryMovementEntity)
+      .findBy({ businessId: f.identity.businessId, lotId: f.lot.id });
+    expect(movements).toHaveLength(2);
+    expect(movements.map((movement) => movement.type).sort()).toEqual([
+      'purchase_in',
+      'sale_out',
+    ]);
+    expect(
+      await f.auditRepository.countBy({ businessId: f.identity.businessId }),
+    ).toBe(6);
+  });
+
+  it('returns prior results after lost responses without repeating commercial effects', async () => {
+    const f = await prepareAvailableLot();
+    const repeatedReception = await f.receptionService.create(f.identity, {
+      clientOperationId: f.receptionOperationId,
+      driverName: 'Valor ignorado en reintento',
+      expectedVarietyIds: [f.variety.id],
+      providerId: f.provider.id,
+      receivedOn: '2026-09-28',
+    });
+    const repeatedClose = await f.weighingService.close(
+      f.identity,
+      f.reception.id,
+      {
+        clientOperationId: f.closeOperationId,
+        expectedReceptionVersion: 0,
+      },
+    );
+    const repeatedPurchase = await f.purchaseService.settle(
+      f.identity,
+      f.reception.id,
+      {
+        advancesCents: 0,
+        clientOperationId: f.purchaseOperationId,
+        discountsCents: 0,
+        expectedReceptionVersion: 0,
+        installments: [],
+        paymentMode: PaymentMode.Cash,
+        priceBasis: CalculationBasis.Sack,
+        unitPriceCents: 1,
+      },
+    );
+    expect(repeatedReception.id).toBe(f.reception.id);
+    expect(repeatedClose.id).toBe(f.reception.id);
+    expect(repeatedPurchase.id).toBe(f.purchase.id);
+    expect(
+      await f.dataSource.getRepository(PurchaseSettlementEntity).countBy({
+        businessId: f.identity.businessId,
+      }),
+    ).toBe(1);
+    expect(
+      await f.dataSource.getRepository(InventoryMovementEntity).countBy({
+        businessId: f.identity.businessId,
+      }),
+    ).toBe(1);
+    expect(
+      await f.dataSource.getRepository(CashMovementEntity).countBy({
+        businessId: f.identity.businessId,
+      }),
+    ).toBe(1);
+  });
+
+  it('rolls back a stale sale without changing lot, sale, cash or movement counts', async () => {
+    const f = await prepareAvailableLot();
+    const beforeAudit = await f.auditRepository.countBy({
+      businessId: f.identity.businessId,
+    });
+    await expect(
+      f.salesService.create(f.identity, {
+        buyerId: f.buyer.id,
+        clientOperationId: randomUUID(),
+        destinationDepartment: 'Lima',
+        discountsCents: 0,
+        freightIncludedInTotal: false,
+        installments: [],
+        lines: [
+          {
+            expectedLotVersion: 0,
+            lotId: f.lot.id,
+            priceBasis: CalculationBasis.Sack,
+            sacks: 1,
+            unitPriceCents: 3000,
+            weightKg: '40.000',
+          },
+        ],
+        paymentMode: PaymentMode.Cash,
+      }),
+    ).rejects.toThrow(ConflictException);
+    expect(
+      await f.dataSource.getRepository(InventoryLotEntity).findOneByOrFail({
+        id: f.lot.id,
+      }),
+    ).toMatchObject({
+      availableSacks: 2,
+      availableWeightKg: '99.500',
+      version: 1,
+    });
+    expect(await f.sales.countBy({ businessId: f.identity.businessId })).toBe(
+      0,
+    );
+    expect(
+      await f.dataSource.getRepository(CashMovementEntity).countBy({
+        businessId: f.identity.businessId,
+      }),
+    ).toBe(1);
+    expect(
+      await f.dataSource.getRepository(InventoryMovementEntity).countBy({
+        businessId: f.identity.businessId,
+      }),
+    ).toBe(1);
+    expect(
+      await f.auditRepository.countBy({ businessId: f.identity.businessId }),
+    ).toBe(beforeAudit);
+  });
+
+  it('settles freight and stowage once with exact cash and audit effects', async () => {
+    const f = await prepareAvailableLot();
+    const freightEntry = await f.freightEntries.findOneByOrFail({
+      businessId: f.identity.businessId,
+      operationId: f.purchase.id,
+    });
+    expect(freightEntry).toMatchObject({
+      amountCents: '100',
+      state: FreightEntryState.Pending,
+    });
+
+    const freightOperationId = randomUUID();
+    const [freightFirst, freightRetry] = await Promise.all([
+      f.freightService.settle(f.identity, {
+        clientOperationId: freightOperationId,
+        entryIds: [freightEntry.id],
+        settledOn: '2026-09-28',
+      }),
+      f.freightService.settle(f.identity, {
+        clientOperationId: freightOperationId,
+        entryIds: [freightEntry.id],
+        settledOn: '2026-09-28',
+      }),
+    ]);
+    expect(freightRetry.id).toBe(freightFirst.id);
+    expect(freightFirst.totalAmountCents).toBe('100');
+    expect(
+      await f.freightSettlements.countBy({
+        businessId: f.identity.businessId,
+      }),
+    ).toBe(1);
+
+    const group = await f.stowageService.createGroup(f.identity, {
+      name: `Cuadrilla ${randomUUID()}`,
+    });
+    const stowageEntryOperationId = randomUUID();
+    const stowageEntry = await f.stowageService.createEntry(f.identity, {
+      activity: StowageActivity.Unload,
+      amountCents: 275,
+      clientOperationId: stowageEntryOperationId,
+      occurredOn: '2026-09-28',
+      operationId: f.purchase.id,
+      operationType: StowageOperationType.Purchase,
+      workGroupId: group.id,
+    });
+    const repeatedEntry = await f.stowageService.createEntry(f.identity, {
+      activity: StowageActivity.Load,
+      amountCents: 1,
+      clientOperationId: stowageEntryOperationId,
+      occurredOn: '2026-09-29',
+      operationId: f.purchase.id,
+      operationType: StowageOperationType.Purchase,
+      workGroupId: group.id,
+    });
+    expect(repeatedEntry.id).toBe(stowageEntry.id);
+
+    const stowageOperationId = randomUUID();
+    const stowageFirst = await f.stowageService.settle(f.identity, {
+      clientOperationId: stowageOperationId,
+      entryIds: [stowageEntry.id],
+      settledOn: '2026-09-28',
+    });
+    const stowageRetry = await f.stowageService.settle(f.identity, {
+      clientOperationId: stowageOperationId,
+      entryIds: [stowageEntry.id],
+      settledOn: '2026-09-28',
+    });
+    expect(stowageRetry.id).toBe(stowageFirst.id);
+    expect(stowageFirst.totalAmountCents).toBe('275');
+    expect(
+      await f.dataSource.getRepository(StowageSettlementEntity).countBy({
+        businessId: f.identity.businessId,
+      }),
+    ).toBe(1);
+    expect(
+      await f.stowageEntries.findOneByOrFail({ id: stowageEntry.id }),
+    ).toMatchObject({
+      settlementId: stowageFirst.id,
+      state: StowageEntryState.Settled,
+    });
+
+    const financialEffects = await f.dataSource
+      .getRepository(CashMovementEntity)
+      .findBy({ businessId: f.identity.businessId });
+    expect(
+      financialEffects.map(({ amountCents, category, direction }) => ({
+        amountCents,
+        category,
+        direction,
+      })),
+    ).toEqual(
+      expect.arrayContaining([
+        {
+          amountCents: '100',
+          category: 'freight-settlement',
+          direction: 'out',
+        },
+        {
+          amountCents: '275',
+          category: 'stowage-settlement',
+          direction: 'out',
+        },
+      ]),
+    );
+    expect(
+      await f.auditRepository.countBy({
+        action: 'freight.settled',
+        businessId: f.identity.businessId,
+      }),
+    ).toBe(1);
+    expect(
+      await f.auditRepository.countBy({
+        action: 'stowage.settled',
+        businessId: f.identity.businessId,
+      }),
+    ).toBe(1);
+  });
+
+  it('persists, reuses and invalidates versioned purchase PDF receipts', async () => {
+    const f = await prepareAvailableLot();
+    const firstPdf = await f.receiptsService.purchase(
+      f.identity,
+      f.purchase.id,
+    );
+    const repeatedPdf = await f.receiptsService.purchase(
+      f.identity,
+      f.purchase.id,
+    );
+    expect(firstPdf.subarray(0, 5).toString()).toBe('%PDF-');
+    expect(repeatedPdf.equals(firstPdf)).toBe(true);
+
+    const firstDocument = await f.receiptDocuments.findOneByOrFail({
+      businessId: f.identity.businessId,
+      sourceId: f.purchase.id,
+      sourceType: 'purchase',
+      sourceVersion: `${f.purchase.state}:v${f.purchase.version}`,
+    });
+    expect(firstDocument).toMatchObject({
+      invalidatedAt: null,
+      mimeType: 'application/pdf',
+      sha256: createHash('sha256').update(firstPdf).digest('hex'),
+    });
+    expect(firstDocument.retentionUntil.getTime()).toBeGreaterThan(
+      Date.now() + 5 * 365 * 24 * 60 * 60_000,
+    );
+    expect(
+      await f.receiptDocuments.countBy({
+        businessId: f.identity.businessId,
+        sourceId: f.purchase.id,
+        sourceType: 'purchase',
+      }),
+    ).toBe(1);
+
+    const currentReception = await f.receptions.findOneByOrFail({
+      id: f.reception.id,
+    });
+    const voidedPurchase = await f.purchaseService.void(
+      f.identity,
+      f.purchase.id,
+      {
+        clientOperationId: randomUUID(),
+        expectedPurchaseVersion: f.purchase.version,
+        expectedReceptionVersion: currentReception.version,
+        reason: 'Anulación E2E para versionar comprobante',
+      },
+    );
+    const voidedPdf = await f.receiptsService.purchase(
+      f.identity,
+      f.purchase.id,
+    );
+    expect(voidedPdf.subarray(0, 5).toString()).toBe('%PDF-');
+    expect(voidedPurchase.version).toBe(f.purchase.version + 1);
+
+    const documents = await f.receiptDocuments.find({
+      order: { createdAt: 'ASC' },
+      where: {
+        businessId: f.identity.businessId,
+        sourceId: f.purchase.id,
+        sourceType: 'purchase',
+      },
+    });
+    expect(documents).toHaveLength(2);
+    expect(documents[0]?.invalidatedAt).toBeInstanceOf(Date);
+    expect(documents[1]).toMatchObject({
+      invalidatedAt: null,
+      sourceVersion: `voided:v${voidedPurchase.version}`,
+    });
+    expect(voidedPdf.equals(firstPdf)).toBe(false);
+
+    await expect(
+      f.receiptsService.purchase(
+        { ...f.identity, businessId: randomUUID() },
+        f.purchase.id,
+      ),
+    ).rejects.toThrow(NotFoundException);
+  });
+
+  it('serializes competing sales so only one stale version can commit', async () => {
+    const f = await prepareAvailableLot();
+    const saleInput = () => ({
+      buyerId: f.buyer.id,
+      clientOperationId: randomUUID(),
+      destinationDepartment: 'Lima',
+      discountsCents: 0,
+      freightIncludedInTotal: false,
+      installments: [],
+      lines: [
+        {
+          expectedLotVersion: 1,
+          lotId: f.lot.id,
+          priceBasis: CalculationBasis.Kilogram,
+          sacks: 1,
+          unitPriceCents: 150,
+          weightKg: '40.000',
+        },
+      ],
+      paymentMode: PaymentMode.Cash,
+    });
+
+    const attempts = await Promise.allSettled([
+      f.salesService.create(f.identity, saleInput()),
+      f.salesService.create(f.identity, saleInput()),
+    ]);
+    expect(
+      attempts.filter(({ status }) => status === 'fulfilled'),
+    ).toHaveLength(1);
+    expect(attempts.filter(({ status }) => status === 'rejected')).toHaveLength(
+      1,
+    );
+    expect(await f.sales.countBy({ businessId: f.identity.businessId })).toBe(
+      1,
+    );
+    expect(
+      await f.dataSource.getRepository(InventoryLotEntity).findOneByOrFail({
+        id: f.lot.id,
+      }),
+    ).toMatchObject({
+      availableSacks: 1,
+      availableWeightKg: '59.500',
+      version: 2,
+    });
+    expect(
+      await f.dataSource.getRepository(CashMovementEntity).countBy({
+        businessId: f.identity.businessId,
+        category: 'sale-collection',
+      }),
+    ).toBe(1);
+    expect(
+      await f.dataSource.getRepository(InventoryMovementEntity).countBy({
+        businessId: f.identity.businessId,
+        type: InventoryMovementType.SaleOut,
+      }),
+    ).toBe(1);
+  });
+
+  it('creates an exact receivable and installments from a credit sale', async () => {
+    const f = await prepareAvailableLot();
+    const sale = await f.salesService.create(f.identity, {
+      buyerId: f.buyer.id,
+      clientOperationId: randomUUID(),
+      destinationDepartment: 'Lima',
+      discountsCents: 0,
+      freightIncludedInTotal: false,
+      installments: [
+        { amountCents: 2500, dueOn: '2026-10-15' },
+        { amountCents: 3500, dueOn: '2026-11-15' },
+      ],
+      lines: [
+        {
+          expectedLotVersion: 1,
+          lotId: f.lot.id,
+          priceBasis: CalculationBasis.Kilogram,
+          sacks: 1,
+          unitPriceCents: 150,
+          weightKg: '40.000',
+        },
+      ],
+      paymentMode: PaymentMode.Credit,
+    });
+    const account = await f.dataSource
+      .getRepository(AccountEntity)
+      .findOneByOrFail({
+        businessId: f.identity.businessId,
+        sourceId: sale.id,
+        sourceType: 'sale',
+      });
+    expect(account).toMatchObject({
+      balanceCents: '6000',
+      counterpartyId: f.buyer.id,
+      initialAmountCents: '6000',
+      kind: AccountKind.Receivable,
+      state: AccountState.Open,
+    });
+    const installments = await f.dataSource
+      .getRepository(AccountInstallmentEntity)
+      .find({ order: { dueOn: 'ASC' }, where: { accountId: account.id } });
+    expect(
+      installments.map(({ balanceCents, dueOn }) => ({ balanceCents, dueOn })),
+    ).toEqual([
+      { balanceCents: '2500', dueOn: '2026-10-15' },
+      { balanceCents: '3500', dueOn: '2026-11-15' },
+    ]);
+    expect(
+      await f.dataSource.getRepository(CashMovementEntity).countBy({
+        businessId: f.identity.businessId,
+        category: 'sale-collection',
+      }),
+    ).toBe(0);
+  });
+
+  it('versions the sale PDF and compensates a cash sale void exactly once', async () => {
+    const f = await prepareAvailableLot();
+    const sale = await f.salesService.create(f.identity, {
+      buyerId: f.buyer.id,
+      clientOperationId: randomUUID(),
+      destinationDepartment: 'Lima',
+      discountsCents: 100,
+      freightIncludedInTotal: false,
+      installments: [],
+      lines: [
+        {
+          expectedLotVersion: 1,
+          lotId: f.lot.id,
+          priceBasis: CalculationBasis.Kilogram,
+          sacks: 1,
+          unitPriceCents: 150,
+          weightKg: '40.000',
+        },
+      ],
+      paymentMode: PaymentMode.Cash,
+    });
+    const confirmedPdf = await f.receiptsService.sale(f.identity, sale.id);
+    const repeatedPdf = await f.receiptsService.sale(f.identity, sale.id);
+    expect(confirmedPdf.subarray(0, 5).toString()).toBe('%PDF-');
+    expect(repeatedPdf.equals(confirmedPdf)).toBe(true);
+
+    const voidOperationId = randomUUID();
+    const voided = await f.salesService.void(f.identity, sale.id, {
+      clientOperationId: voidOperationId,
+      expectedSaleVersion: sale.version,
+      reason: 'Anulación E2E de venta al contado',
+    });
+    const repeatedVoid = await f.salesService.void(f.identity, sale.id, {
+      clientOperationId: voidOperationId,
+      expectedSaleVersion: sale.version,
+      reason: 'Valor ignorado en reintento',
+    });
+    expect(repeatedVoid.id).toBe(voided.id);
+    expect(voided.version).toBe(sale.version + 1);
+
+    const voidedPdf = await f.receiptsService.sale(f.identity, sale.id);
+    expect(voidedPdf.subarray(0, 5).toString()).toBe('%PDF-');
+    expect(voidedPdf.equals(confirmedPdf)).toBe(false);
+    const documents = await f.receiptDocuments.find({
+      order: { createdAt: 'ASC' },
+      where: {
+        businessId: f.identity.businessId,
+        sourceId: sale.id,
+        sourceType: 'sale',
+      },
+    });
+    expect(documents).toHaveLength(2);
+    expect(documents[0]?.invalidatedAt).toBeInstanceOf(Date);
+    expect(documents[1]).toMatchObject({
+      invalidatedAt: null,
+      sourceVersion: `voided:v${voided.version}`,
+    });
+    expect(
+      await f.dataSource.getRepository(InventoryLotEntity).findOneByOrFail({
+        id: f.lot.id,
+      }),
+    ).toMatchObject({
+      availableSacks: 2,
+      availableWeightKg: '99.500',
+      version: 3,
+    });
+    expect(
+      await f.dataSource.getRepository(CashMovementEntity).countBy({
+        businessId: f.identity.businessId,
+        category: 'sale-void',
+      }),
+    ).toBe(1);
+    expect(
+      await f.dataSource.getRepository(InventoryMovementEntity).countBy({
+        businessId: f.identity.businessId,
+        type: InventoryMovementType.Reversal,
+      }),
+    ).toBe(1);
+  });
+
+  it('creates an exact payable and installments from a credit purchase', async () => {
+    const f = await prepareAvailableLot({
+      installments: [
+        { amountCents: 4000, dueOn: '2026-10-10' },
+        { amountCents: 5300, dueOn: '2026-11-10' },
+      ],
+      paymentMode: PaymentMode.Credit,
+    });
+    const account = await f.dataSource
+      .getRepository(AccountEntity)
+      .findOneByOrFail({
+        businessId: f.identity.businessId,
+        sourceId: f.purchase.id,
+        sourceType: 'purchase-settlement',
+      });
+    expect(account).toMatchObject({
+      balanceCents: '9300',
+      counterpartyId: f.provider.id,
+      counterpartyType: 'provider',
+      initialAmountCents: '9300',
+      kind: AccountKind.Payable,
+      state: AccountState.Open,
+    });
+    const installments = await f.dataSource
+      .getRepository(AccountInstallmentEntity)
+      .find({ order: { dueOn: 'ASC' }, where: { accountId: account.id } });
+    expect(
+      installments.map(({ balanceCents, dueOn }) => ({ balanceCents, dueOn })),
+    ).toEqual([
+      { balanceCents: '4000', dueOn: '2026-10-10' },
+      { balanceCents: '5300', dueOn: '2026-11-10' },
+    ]);
+    expect(
+      await f.dataSource.getRepository(CashMovementEntity).countBy({
+        businessId: f.identity.businessId,
+        category: 'purchase-payment',
+      }),
+    ).toBe(0);
+  });
+
+  it('reports filtered commercial facts without leaking another business', async () => {
+    const f = await prepareAvailableLot({
+      installments: [{ amountCents: 9300, dueOn: '2026-09-01' }],
+      paymentMode: PaymentMode.Credit,
+    });
+    await f.salesService.create(f.identity, {
+      buyerId: f.buyer.id,
+      clientOperationId: randomUUID(),
+      destinationDepartment: 'Lima',
+      discountsCents: 0,
+      freightIncludedInTotal: false,
+      installments: [{ amountCents: 6000, dueOn: '2026-10-15' }],
+      lines: [
+        {
+          expectedLotVersion: 1,
+          lotId: f.lot.id,
+          priceBasis: CalculationBasis.Kilogram,
+          sacks: 1,
+          unitPriceCents: 150,
+          weightKg: '40.000',
+        },
+      ],
+      paymentMode: PaymentMode.Credit,
+    });
+    const today = new Date().toISOString().slice(0, 10);
+    const summary = await f.reportsService.commercialSummary(
+      f.identity.businessId,
+      { from: today, to: today },
+    );
+    expect(summary).toMatchObject({
+      accounts: {
+        payableBalanceCents: '9300',
+        receivableBalanceCents: '6000',
+      },
+      purchases: { count: 1, liquidAmountCents: '9300' },
+      sales: { count: 1, totalAmountCents: '6000' },
+    });
+    const history = await f.reportsService.priceHistory(f.identity.businessId, {
+      from: today,
+      to: today,
+      varietyId: f.variety.id,
+    });
+    expect(history.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ operationType: 'purchase' }),
+        expect.objectContaining({ operationType: 'sale' }),
+      ]),
+    );
+    const alerts = await f.reportsService.alerts(f.identity.businessId, {
+      asOf: '2026-09-28',
+      through: '2026-10-31',
+    });
+    expect(alerts.accountAlerts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: AccountKind.Payable,
+          status: 'overdue',
+        }),
+        expect.objectContaining({
+          kind: AccountKind.Receivable,
+          status: 'due_soon',
+        }),
+      ]),
+    );
+    expect(alerts).not.toHaveProperty('lowStockAlerts');
+
+    const isolated = await f.reportsService.commercialSummary(randomUUID(), {
+      from: today,
+      to: today,
+    });
+    expect(isolated).toMatchObject({
+      accounts: { payableBalanceCents: '0', receivableBalanceCents: '0' },
+      purchases: { count: 0, liquidAmountCents: '0' },
+      sales: { count: 0, totalAmountCents: '0' },
+    });
+  });
+
+  it('serializes sack corrections and updates the pending lot after closure', async () => {
+    const f = await fixture();
+    const reception = await f.receptionService.create(f.identity, {
+      clientOperationId: randomUUID(),
+      driverName: 'Conductor de corrección E2E',
+      expectedVarietyIds: [f.variety.id],
+      providerId: f.provider.id,
+      receivedOn: '2026-09-28',
+    });
+    const original = await f.weighingService.add(f.identity, reception.id, {
+      clientOperationId: randomUUID(),
+      expectedReceptionVersion: 0,
+      grossWeightKg: '50.000',
+      tareKg: '1.000',
+      varietyId: f.variety.id,
+    });
+    const corrections = await Promise.allSettled([
+      f.weighingService.correct(f.identity, reception.id, original.id, {
+        clientOperationId: randomUUID(),
+        expectedReceptionVersion: 1,
+        grossWeightKg: '55.000',
+        tareKg: '1.000',
+        varietyId: f.variety.id,
+      }),
+      f.weighingService.correct(f.identity, reception.id, original.id, {
+        clientOperationId: randomUUID(),
+        expectedReceptionVersion: 1,
+        grossWeightKg: '56.000',
+        tareKg: '1.000',
+        varietyId: f.variety.id,
+      }),
+    ]);
+    expect(
+      corrections.filter(({ status }) => status === 'fulfilled'),
+    ).toHaveLength(1);
+    expect(
+      corrections.filter(({ status }) => status === 'rejected'),
+    ).toHaveLength(1);
+    const activeBeforeClose = (
+      await f.dataSource.getRepository(ReceptionSackEntity).findBy({
+        businessId: f.identity.businessId,
+        receptionId: reception.id,
+      })
+    ).filter((sack) => sack.voidedAt === null);
+    expect(activeBeforeClose).toHaveLength(1);
+    expect(activeBeforeClose[0]?.correctedFromSackId).toBe(original.id);
+
+    await f.weighingService.close(f.identity, reception.id, {
+      clientOperationId: randomUUID(),
+      expectedReceptionVersion: 2,
+    });
+    const correctedAfterClose = await f.weighingService.correctClosed(
+      f.identity,
+      reception.id,
+      activeBeforeClose[0]!.id,
+      {
+        clientOperationId: randomUUID(),
+        expectedReceptionVersion: 3,
+        grossWeightKg: '70.000',
+        reason: 'Corrección E2E posterior al cierre',
+        tareKg: '1.000',
+        varietyId: f.variety.id,
+      },
+    );
+    expect(correctedAfterClose).toMatchObject({
+      correctedFromSackId: activeBeforeClose[0]!.id,
+      netWeightKg: '69.000',
+      sequence: 1,
+    });
+    expect(
+      await f.dataSource.getRepository(InventoryLotEntity).findOneByOrFail({
+        businessId: f.identity.businessId,
+        receptionId: reception.id,
+        varietyId: f.variety.id,
+      }),
+    ).toMatchObject({
+      initialSacks: 1,
+      initialWeightKg: '69.000',
+      state: InventoryLotState.Pending,
+      version: 1,
+    });
+    expect(
+      await f.receptions.findOneByOrFail({ id: reception.id }),
+    ).toMatchObject({ version: 4 });
+  });
+
+  it('confirms an idempotent cash commercial return, generates its receipt and reverses margin', async () => {
+    const f = await prepareAvailableLot();
+    const sale = await f.salesService.create(f.identity, {
+      buyerId: f.buyer.id,
+      clientOperationId: randomUUID(),
+      destinationDepartment: 'Lima',
+      discountsCents: 100,
+      freightIncludedInTotal: false,
+      installments: [],
+      lines: [
+        {
+          expectedLotVersion: 1,
+          lotId: f.lot.id,
+          priceBasis: CalculationBasis.Kilogram,
+          sacks: 1,
+          unitPriceCents: 150,
+          weightKg: '40.000',
+        },
+      ],
+      paymentMode: PaymentMode.Cash,
+    });
+    const sourceLine = await f.dataSource
+      .getRepository(SaleLineEntity)
+      .findOneByOrFail({ saleId: sale.id });
+    await expect(
+      f.saleReturnsService.create(f.identity, sale.id, {
+        clientOperationId: randomUUID(),
+        expectedSaleVersion: 0,
+        freightAdjustmentCents: 0,
+        lines: [
+          {
+            authorizedGrossCents: 6000,
+            sacks: 1,
+            saleLineId: sourceLine.id,
+            weightKg: '40.000',
+          },
+        ],
+        reason: 'No existe devolución física',
+      }),
+    ).rejects.toThrow(UnprocessableEntityException);
+    await f.inventoryService.adjust(f.identity, f.lot.id, {
+      clientOperationId: randomUUID(),
+      expectedVersion: 2,
+      kind: InventoryAdjustmentKind.Return,
+      reason: 'Devolución física previa a autorización comercial',
+      sackDelta: 1,
+      sourceSaleId: sale.id,
+      weightDeltaKg: '40.000',
+    });
+    const salePdf = await f.receiptsService.sale(f.identity, sale.id);
+    expect(salePdf.subarray(0, 5).toString()).toBe('%PDF-');
+    await expect(
+      f.saleReturnsService.create(f.identity, sale.id, {
+        clientOperationId: randomUUID(),
+        expectedSaleVersion: 1,
+        freightAdjustmentCents: 1,
+        lines: [
+          {
+            authorizedGrossCents: 6000,
+            sacks: 1,
+            saleLineId: sourceLine.id,
+            weightKg: '40.000',
+          },
+        ],
+        reason: 'Flete no cobrado',
+      }),
+    ).rejects.toThrow(UnprocessableEntityException);
+
+    const operationId = randomUUID();
+    const result = await f.saleReturnsService.create(f.identity, sale.id, {
+      clientOperationId: operationId,
+      expectedSaleVersion: 1,
+      freightAdjustmentCents: 0,
+      lines: [
+        {
+          authorizedGrossCents: 6000,
+          sacks: 1,
+          saleLineId: sourceLine.id,
+          weightKg: '40.000',
+        },
+      ],
+      reason: 'Devolución comercial completa E2E',
+    });
+    const repeated = await f.saleReturnsService.create(f.identity, sale.id, {
+      clientOperationId: operationId,
+      expectedSaleVersion: 0,
+      freightAdjustmentCents: 0,
+      lines: [
+        {
+          authorizedGrossCents: 1,
+          sacks: 0,
+          saleLineId: sourceLine.id,
+          weightKg: '0',
+        },
+      ],
+      reason: 'Contenido ignorado al reintentar',
+    });
+    expect(repeated.saleReturn.id).toBe(result.saleReturn.id);
+    expect(result.saleReturn).toMatchObject({
+      accountCreditCents: '0',
+      allocatedSaleDiscountCents: '100',
+      cashRefundCents: '5900',
+      merchandiseGrossCents: '6000',
+      netMerchandiseRefundCents: '5900',
+      saleVersionAfter: 2,
+      saleVersionBefore: 1,
+      totalRefundCents: '5900',
+    });
+    expect(result.lines[0]).toMatchObject({
+      grossCostReductionCents: '4000',
+      netCostReductionCents: '3980',
+      purchaseDiscountReductionCents: '20',
+    });
+    expect(
+      await f.dataSource.getRepository(CashMovementEntity).countBy({
+        businessId: f.identity.businessId,
+        category: 'sale-return-refund',
+      }),
+    ).toBe(1);
+    expect(
+      await f.receiptDocuments.findOneByOrFail({
+        businessId: f.identity.businessId,
+        sourceId: result.saleReturn.id,
+        sourceType: 'sale-return',
+      }),
+    ).toMatchObject({ invalidatedAt: null, mimeType: 'application/pdf' });
+    const saleDocument = await f.receiptDocuments.findOneByOrFail({
+      businessId: f.identity.businessId,
+      sourceId: sale.id,
+      sourceType: 'sale',
+    });
+    expect(saleDocument.invalidatedAt).toBeInstanceOf(Date);
+    const today = new Date().toISOString().slice(0, 10);
+    const margin = await f.reportsService.commercialMargin(
+      f.identity.businessId,
+      { from: today, to: today },
+    );
+    expect(margin).toMatchObject({
+      components: {
+        costOfGoodsSoldCents: '0',
+        grossMerchandiseRevenueCents: '5900',
+        merchandiseReturnReductionCents: '5900',
+        netMerchandiseRevenueCents: '0',
+        purchaseFreightShownSeparatelyCents: '100',
+      },
+      estimatedCommercialMarginCents: '0',
+      indicatorName: 'margen comercial estimado',
+      undeterminedCostOperations: [],
+    });
+  });
+
+  it('credits distant installments first and refunds only a credit excess in cash', async () => {
+    const f = await prepareAvailableLot();
+    const sale = await f.salesService.create(f.identity, {
+      buyerId: f.buyer.id,
+      clientOperationId: randomUUID(),
+      destinationDepartment: 'Lima',
+      discountsCents: 0,
+      freightIncludedInTotal: false,
+      installments: [
+        { amountCents: 2500, dueOn: '2026-10-15' },
+        { amountCents: 3500, dueOn: '2026-11-15' },
+      ],
+      lines: [
+        {
+          expectedLotVersion: 1,
+          lotId: f.lot.id,
+          priceBasis: CalculationBasis.Kilogram,
+          sacks: 1,
+          unitPriceCents: 150,
+          weightKg: '40.000',
+        },
+      ],
+      paymentMode: PaymentMode.Credit,
+    });
+    const sourceLine = await f.dataSource
+      .getRepository(SaleLineEntity)
+      .findOneByOrFail({ saleId: sale.id });
+    const accountBefore = await f.dataSource
+      .getRepository(AccountEntity)
+      .findOneByOrFail({ sourceId: sale.id, sourceType: 'sale' });
+    await f.accountsService.registerPayment(f.identity, accountBefore.id, {
+      amountCents: 1000,
+      clientOperationId: randomUUID(),
+      expectedAccountVersion: 0,
+    });
+    await f.inventoryService.adjust(f.identity, f.lot.id, {
+      clientOperationId: randomUUID(),
+      expectedVersion: 2,
+      kind: InventoryAdjustmentKind.Return,
+      reason: 'Devolución física completa',
+      sackDelta: 1,
+      sourceSaleId: sale.id,
+      weightDeltaKg: '40.000',
+    });
+    const first = await f.saleReturnsService.create(f.identity, sale.id, {
+      clientOperationId: randomUUID(),
+      expectedSaleVersion: 1,
+      freightAdjustmentCents: 0,
+      lines: [
+        {
+          authorizedGrossCents: 3000,
+          sacks: 0,
+          saleLineId: sourceLine.id,
+          weightKg: '20.000',
+        },
+      ],
+      reason: 'Crédito parcial de venta',
+    });
+    expect(first.saleReturn).toMatchObject({
+      accountCreditCents: '3000',
+      cashRefundCents: '0',
+      totalRefundCents: '3000',
+    });
+    const account = await f.dataSource
+      .getRepository(AccountEntity)
+      .findOneByOrFail({ sourceId: sale.id, sourceType: 'sale' });
+    expect(account).toMatchObject({ balanceCents: '2000', version: 2 });
+    const installments = await f.dataSource
+      .getRepository(AccountInstallmentEntity)
+      .find({ order: { dueOn: 'ASC' }, where: { accountId: account.id } });
+    expect(
+      installments.map(({ balanceCents, dueOn }) => ({ balanceCents, dueOn })),
+    ).toEqual([
+      { balanceCents: '1500', dueOn: '2026-10-15' },
+      { balanceCents: '500', dueOn: '2026-11-15' },
+    ]);
+
+    const second = await f.saleReturnsService.create(f.identity, sale.id, {
+      clientOperationId: randomUUID(),
+      expectedSaleVersion: 2,
+      freightAdjustmentCents: 0,
+      lines: [
+        {
+          authorizedGrossCents: 3000,
+          sacks: 1,
+          saleLineId: sourceLine.id,
+          weightKg: '20.000',
+        },
+      ],
+      reason: 'Crédito final con excedente de caja',
+    });
+    expect(second.saleReturn).toMatchObject({
+      accountCreditCents: '2000',
+      cashRefundCents: '1000',
+      totalRefundCents: '3000',
+    });
+    expect(
+      await f.dataSource.getRepository(AccountEntity).findOneByOrFail({
+        id: account.id,
+      }),
+    ).toMatchObject({ balanceCents: '0', state: AccountState.Paid, version: 3 });
+    expect(
+      await f.dataSource.getRepository(CashMovementEntity).findOneByOrFail({
+        businessId: f.identity.businessId,
+        category: 'sale-return-refund',
+        sourceId: second.saleReturn.id,
+      }),
+    ).toMatchObject({ amountCents: '1000', direction: 'out' });
+  });
+
+  it('applies idempotent loss, physical return and correction movements', async () => {
+    const f = await prepareAvailableLot();
+    const sale = await f.salesService.create(f.identity, {
+      buyerId: f.buyer.id,
+      clientOperationId: randomUUID(),
+      destinationDepartment: 'Lima',
+      discountsCents: 0,
+      freightIncludedInTotal: false,
+      installments: [],
+      lines: [
+        {
+          expectedLotVersion: 1,
+          lotId: f.lot.id,
+          priceBasis: CalculationBasis.Kilogram,
+          sacks: 1,
+          unitPriceCents: 150,
+          weightKg: '40.000',
+        },
+      ],
+      paymentMode: PaymentMode.Cash,
+    });
+
+    const lossOperationId = randomUUID();
+    const loss = await f.inventoryService.adjust(f.identity, f.lot.id, {
+      clientOperationId: lossOperationId,
+      expectedVersion: 2,
+      kind: InventoryAdjustmentKind.Loss,
+      reason: 'Merma E2E verificada',
+      sackDelta: 0,
+      weightDeltaKg: '-0.500',
+    });
+    const repeatedLoss = await f.inventoryService.adjust(f.identity, f.lot.id, {
+      clientOperationId: lossOperationId,
+      expectedVersion: 0,
+      kind: InventoryAdjustmentKind.Loss,
+      reason: 'Valor ignorado en reintento',
+      sackDelta: 0,
+      weightDeltaKg: '-1.000',
+    });
+    expect(repeatedLoss.id).toBe(loss.id);
+
+    const returned = await f.inventoryService.adjust(f.identity, f.lot.id, {
+      clientOperationId: randomUUID(),
+      expectedVersion: 3,
+      kind: InventoryAdjustmentKind.Return,
+      reason: 'Devolución física E2E sin efecto financiero',
+      sackDelta: 1,
+      sourceSaleId: sale.id,
+      weightDeltaKg: '40.000',
+    });
+    expect(returned).toMatchObject({
+      sourceId: sale.id,
+      sourceType: 'sale-return',
+      type: InventoryMovementType.ReturnIn,
+    });
+    await f.inventoryService.adjust(f.identity, f.lot.id, {
+      clientOperationId: randomUUID(),
+      expectedVersion: 4,
+      kind: InventoryAdjustmentKind.Correction,
+      reason: 'Corrección física E2E',
+      sackDelta: 0,
+      weightDeltaKg: '0.500',
+    });
+
+    expect(
+      await f.dataSource.getRepository(InventoryLotEntity).findOneByOrFail({
+        id: f.lot.id,
+      }),
+    ).toMatchObject({
+      availableSacks: 2,
+      availableWeightKg: '99.500',
+      state: InventoryLotState.Available,
+      version: 5,
+    });
+    expect(await f.sales.findOneByOrFail({ id: sale.id })).toMatchObject({
+      version: 1,
+    });
+    expect(
+      await f.dataSource.getRepository(InventoryMovementEntity).countBy({
+        businessId: f.identity.businessId,
+        lotId: f.lot.id,
+      }),
+    ).toBe(5);
+
+    await expect(
+      f.inventoryService.adjust(f.identity, f.lot.id, {
+        clientOperationId: randomUUID(),
+        expectedVersion: 5,
+        kind: InventoryAdjustmentKind.Return,
+        reason: 'No debe exceder lo vendido',
+        sackDelta: 1,
+        sourceSaleId: sale.id,
+        weightDeltaKg: '1.000',
+      }),
+    ).rejects.toThrow(UnprocessableEntityException);
+  });
+}
