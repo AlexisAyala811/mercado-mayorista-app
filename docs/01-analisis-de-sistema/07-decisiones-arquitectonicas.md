@@ -1,61 +1,72 @@
 # Decisiones arquitectónicas
 
-> **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 1.2
+> **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 2.0 · **Actualización:** 29 de octubre de 2026
 
-Las decisiones adoptadas se consolidan desde el registro SDD; las versiones son las registradas en el proyecto, no una recomendación de actualización.
+## Registro de decisiones
 
-| Decisión | Estado y justificación | Trazabilidad |
+Los códigos CL (clarificación) identifican las decisiones aprobadas durante la especificación del proyecto. Se citan en el resto de la documentación.
+
+| Código | Decisión | Fecha | Trazabilidad |
+| --- | --- | --- | --- |
+| CL-03 | Tablet Android con Expo, React Native, TypeScript estricto y Expo Router | Sep. 2026 | R01, DA01 |
+| — | Monolito modular con NestJS, PostgreSQL y REST `/api/v1`; migraciones explícitas | Sep. 2026 | R03, R07, DA02, DA06 |
+| CL-04 | Cada operación lleva un UUID de cliente; un reintento devuelve el resultado original; la versión del registro detecta cambios concurrentes y responde `409` sin sobrescribir. Reutilizar un UUID con datos distintos responde `409` (`operation-id-conflict`). | Sep. 2026; ampliada 29 oct. 2026 | RF21, AC03, DA02 |
+| CL-05 | El Encargado opera solo con un reemplazo autorizado por el Mayorista, de máximo 24 horas, revocable y revalidado en el servidor | Sep. 2026 | RF02, AC04 |
+| CL-06 | Sesión en almacenamiento seguro y pendientes cifrados por usuario y negocio, bloqueados al cerrar sesión | Sep. 2026 | RF01, RF21, R05 |
+| CL-07 | Peso en kilogramos con tres decimales y dinero en céntimos, con redondeo mitad hacia arriba; correcciones por compensación | Sep. 2026 | RF06B, RF07, AC03 |
+| CL-08 | Criterios de habilitación de la predicción (ver sección siguiente) | 6 oct. 2026 | RF19, RF20, R04, DA05 |
+| CL-09 | Tablet de 10″ a 1280 × 800 horizontal; revisión en 360 × 800 y 1440 × 1024 | Sep. 2026 | AC01, AC05 |
+| CL-10 | Auditoría inmutable, consulta exclusiva del Mayorista y conservación mínima de 5 años | Sep. 2026 | RF22, AC04 |
+| CL-12 | Devolución comercial idempotente, con efecto compensatorio en cuenta o caja y nuevo comprobante; no modifica la venta original | 28 sep. 2026 | RF10, RF12 |
+| CL-13 | Calidad y procedencia por saco de compra y línea de venta; listas administradas por el Mayorista y opción «No informada» | 14 oct. 2026 | RF04, RF18 |
+| — | Sin control de existencias (ver ADR) | 7 oct. 2026 | RF08–RF09 retirados |
+| — | Referencias comerciales dentro de cada operación (ver ADR) | 14 oct. 2026 | RF03, RF04 |
+| CL-MN | Envío manual de documentos por WhatsApp o correo (ver ADR) | 26 oct. 2026 | RF23, RF25, RF26 |
+| — | Organización en ocho módulos de negocio y estado de cuenta del comprador (ver ADR) | 29 oct. 2026 | RF27 |
+
+CL-11 (margen por valoración de lotes) quedó sin efecto con el retiro del control de existencias.
+
+## Alternativas consideradas
+
+| Elección | Alternativa | Motivo y costo asumido |
 | --- | --- | --- |
-| Tablet Android; Expo, React Native, TypeScript estricto y Expo Router | Aprobada CL-03; captura táctil y separación de interfaz y dominio | R01, DA01; decisión móvil 001 |
-| Monolito modular; NestJS y PostgreSQL; REST `/api/v1` | Aprobada plataforma backend; transacciones y menor costo operativo inicial | R03, R07, DA02, DA06; decisión backend 002 |
-| Migraciones explícitas y `synchronize: false` | Aprobada; cambios de esquema revisables | AC03, AC08 |
-| UUID por orden, resultado idempotente, versión y conflicto 409 | Aprobada CL-04; reintentos sin duplicación ni sobrescritura silenciosa | RF21, AC03, DA02 |
-| Encargado con reemplazo autorizado, revocable y máximo 24 h | Aprobada CL-05; se revalida cada orden central | RF02, AC04 |
-| Sesión segura y pendientes cifrados por usuario y negocio | Aprobada CL-06; pendientes bloqueados al cerrar sesión | RF01, RF21, R05 |
-| Peso con tres decimales y dinero en céntimos | Aprobada CL-07; redondeo y cálculos verificables | RF06B, RF07, AC03 |
-| Tablet 1280 × 800 horizontal; revisión 360 × 800 y 1440 × 1024 | Aprobada CL-09; recorridos nativos todavía pendientes de cierre | AC01, AC05 |
-| Auditoría inmutable y conservación comercial mínima de 5 años | Aprobada CL-10; aislamiento también en archivos | RF22, AC04 |
-| Predicción de precios | Criterios CL-08 aprobados el 6 de octubre de 2026; habilitar solo tras cumplirlos y validar implementación | RF19, RF20, R04, DA05 |
+| Monolito modular | Microservicios | Equipo y operación acotados; hay que vigilar el acoplamiento entre módulos. |
+| Persistencia local temporal | Cliente siempre conectado | La descarga debe continuar sin red; agrega cifrado, reintentos y revisión de conflictos. |
+| PostgreSQL transaccional único | Un almacén por módulo | Operación, cuenta y caja deben confirmarse en una sola transacción. |
+| Token opaco y sesión central | Permisos solo en el menú | La revocación y los reemplazos exigen autoridad central en cada operación. |
+| Aritmética decimal exacta | Números de punto flotante | Evita diferencias de redondeo en pesos e importes. |
+| REST versionada | Acceso SQL desde el dispositivo | Autorización y reglas en una frontera controlada. |
+| Envío manual por WhatsApp | WhatsApp Business API | Sin costo por mensaje ni verificación ante Meta; a cambio, no hay confirmación de entrega ni envío programado. |
 
-Consecuencias: un despliegue central simplifica operación, pero exige módulos bien delimitados; la cola local agrega estados y resolución de conflictos; el escalamiento horizontal requiere medir concurrencia y mantener la autoridad transaccional central.
+Consecuencias: un único despliegue simplifica la operación pero exige módulos bien delimitados; la cola local agrega estados y conflictos; escalar horizontalmente requiere medir concurrencia y mantener la autoridad transaccional central.
 
-Registro completo: decisiones y aprobaciones (documentación compartida del proyecto).
+## ADR-01 · Retiro del control de existencias
 
-## Alternativas y consecuencias
+**Estado:** aprobado el 7 de octubre de 2026.
 
-| Elección | Alternativa considerada | Motivo y costo asumido |
-| --- | --- | --- |
-| Monolito modular | Microservicios | Equipo y operación inicial acotados; despliegue conjunto y acoplamientos deben vigilarse |
-| Persistencia local temporal | Cliente dependiente permanentemente de Internet | La descarga debe continuar; agrega cifrado, reintentos y revisión de conflictos |
-| PostgreSQL transaccional | Almacenes separados por cada dominio | Registros comerciales, cuentas y caja necesitan confirmar efectos coordinados |
-| Token opaco y sesión central | Dar permisos solo desde el menú | Revocación y reemplazos exigen autoridad central por operación |
-| Cálculo decimal determinista | Aritmética monetaria binaria en la pantalla | Evitar diferencias de redondeo y resultados no reproducibles |
-| REST versionada | Acceso SQL desde dispositivo | Mantener autorización y reglas en una frontera controlada |
+Se conserva el historial de cargamentos, sacos, pesos, compras, ventas y despachos, sin inventario, remanentes, disponibilidad, descuentos de stock ni alertas de mercadería. RF08 y RF09 salen del alcance. Deja sin efecto los aspectos de CL-07 y CL-11 basados en disponibilidad y valoración por lote; se mantienen precisión, cuentas, caja, auditoría e idempotencia. Las migraciones y datos históricos se conservan.
 
-No se declara Clean Architecture completa: el backend actual tiene servicios que utilizan el ORM y entidades de varios dominios. La evolución hacia puertos más aislados requiere plan y verificación de atomicidad, sin alterar reglas comerciales aprobadas.
+## ADR-02 · Referencias comerciales dentro de cada operación
 
-## ADR · Retiro del control de existencias
+**Estado:** aprobado el 14 de octubre de 2026.
 
-**Estado:** aprobado expresamente por el usuario el 7 de octubre de 2026.
+Proveedores, compradores, variedades, calidades, procedencias, transportistas y vehículos no tienen una sección propia en la aplicación: el Mayorista los crea y edita desde el formulario de la operación que está registrando, sin perder el borrador. El Encargado solo selecciona referencias existentes. En el backend estas referencias forman un módulo transversal con su API y sus reglas (por ejemplo, desactivar sin borrar para conservar el historial).
 
-Se mantiene historial de cargamentos, sacos, pesos, compras, ventas y despachos, sin inventario, cálculo de remanentes, disponibilidad, descuentos de stock ni alertas de mercadería. Los módulos y restricciones asociados a RF08/RF09 dejan de formar parte del objetivo funcional.
+## ADR-03 · Envío manual por WhatsApp o correo
 
-La decisión sustituye los aspectos de CL-07 y CL-11 basados en disponibilidad y valoración por lote. Mantiene precisión monetaria, cuentas, caja, auditoría e idempotencia. El margen calculado por valoración de existencias deja de estar aprobado en este alcance: definir una nueva fórmula requiere aclaración SDD y no se inventa en esta entrega.
+**Estado:** aprobado el 26 de octubre de 2026 y confirmado el 29 de octubre.
 
-Impacto de implementación: retirar navegación y contratos de existencias; adaptar cierre de pesaje, compra, venta y devoluciones; ajustar informes y pruebas; preservar hechos y datos históricos. No eliminar bases ni migraciones históricas para aplicar el cambio documental.
+La aplicación Android prepara el archivo (comprobante, estado de cuenta, imagen o documento Word), abre WhatsApp o el correo con el archivo adjunto y el Mayorista elige el contacto y confirma. La API autoriza la operación y registra el intento (preparado, compartición solicitada o fallido) sin recibir el contenido del archivo. No hay chat, envío automático ni notificaciones push, y el Encargado no usa la mensajería. La integración con WhatsApp Business API queda como posible evolución.
 
-## Decisión de cobertura de historias complementarias
+## ADR-04 · Ocho módulos de negocio y estado de cuenta
 
-El usuario aprueba añadir HU07–HU14 a las seis historias vigentes el 7 de octubre de 2026. Las nuevas historias reutilizan identidad, cuentas/caja, estiba, comprobantes, historial y auditoría; no crean inventario ni amplían permisos del Encargado. RF24 explicita búsqueda comercial. Canal externo de HU14 permanece por aclarar. La renumeración anterior se documenta en la fuente compartida para evitar que HU07 siga significando analítica.
+**Estado:** aprobado el 29 de octubre de 2026.
 
-Actualización de evidencia compartida: la propuesta analítica fue aprobada íntegramente el 6 de octubre de 2026. CL-08 tiene criterios aprobados; la suficiencia real del historial, evaluación, implementación y convergencia no se acreditan por esa aprobación. El canal externo de recordatorios continúa por definir.
+El sistema se organiza por proceso de negocio en ocho módulos (Identidad y acceso; Recepción y compras; Ventas y despachos; Cuentas y caja; Costos logísticos; Documentos; Mensajería; Reportes y analítica) más responsabilidades transversales (auditoría, referencias comerciales y sincronización). Documentos genera los archivos y Mensajería los envía. Se agrega HU16/RF27: estado de cuenta del comprador en PDF e imagen. El detalle está en [componentes arquitectónicos](../02-arquitectura-software/componentes-arquitectonicos.md).
 
-## Organización documental aprobada el 13 de octubre
+## Condiciones de habilitación de la predicción (CL-08)
 
-Los nombres son responsabilidades del backend, no servicios desplegados por separado. **Cola y sincronización** pertenece al cliente Android (HU05; RF21): conserva órdenes cifradas y las reenvía a los contratos centrales. Los avisos financieros pertenecen a Cuentas y caja; Analítica analiza el historial. Las devoluciones y anulaciones son operaciones compensatorias dentro de Ventas y despachos o Compras, no módulos nuevos. Los datos de participantes, variedades y transporte se registran dentro de las operaciones comerciales; RF03/RF04 conservan sus campos aprobados. Esta decisión documental no certifica reorganización del código.
-
-## Condiciones de habilitación analítica CL-08
-
-La política aprobada exige 26 semanas completas consecutivas por negocio y variedad, con al menos cinco ventas confirmadas válidas por semana. El objetivo es precio semanal de venta por kilogramo ponderado por peso. No se imputan fechas, pesos ni precios y se identifican operaciones excluidas.
-
-Las ocho semanas finales se evalúan progresivamente, sin utilizar datos futuros. El error absoluto medio debe ser al menos 10 % menor que la referencia del precio de la semana anterior, y el rango debe contener al menos siete de los ocho valores reales. La cobertura objetivo del 80 % no es una garantía estadística ni acredita estacionalidad anual. El Mayorista accede a las estimaciones solo cuando hay datos suficientes y evaluación aprobada. La aprobación de criterios no prueba su cumplimiento.
+- **Historial mínimo:** 26 semanas completas consecutivas por negocio y variedad, con al menos cinco ventas confirmadas válidas por semana.
+- **Objetivo:** precio semanal de venta por kilogramo, ponderado por peso. No se imputan fechas, pesos ni precios; las operaciones excluidas se identifican.
+- **Evaluación:** las ocho semanas finales se evalúan progresivamente, sin usar datos futuros. El error absoluto medio debe ser al menos 10 % menor que el de la referencia (precio de la semana anterior) y el rango debe contener al menos siete de los ocho valores reales.
+- **Acceso:** el Mayorista ve estimaciones solo cuando hay datos suficientes y la evaluación está aprobada. La cobertura objetivo del 80 % no es una garantía estadística.

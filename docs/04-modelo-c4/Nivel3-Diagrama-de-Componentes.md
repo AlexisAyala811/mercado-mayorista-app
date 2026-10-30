@@ -1,94 +1,57 @@
-# Nivel 3 Diagrama de componentes
+# Nivel 3 · Diagrama de componentes
 
-> **Proyecto:** Gestión mayorista de papa · **Modelo:** C4 · **Contenedor:** API Mercado · **Versión:** 1.4
+> **Proyecto:** Gestión comercial mayorista de papa · **Modelo:** C4 · **Contenedor:** API Mercado · **Versión:** 2.0 · **Actualización:** 29 de octubre de 2026
 
 ## Objetivo
 
-Abrir el contenedor API Mercado del nivel 2 para mostrar sus componentes comerciales y relaciones. La aplicación Android está fuera del límite de la API; los componentes de negocio se ejecutan dentro del mismo monolito modular NestJS. No hay un servicio desplegado por cada historia o módulo.
+Abrir el contenedor API Mercado y mostrar sus componentes y relaciones. Todos se ejecutan dentro del mismo proceso NestJS.
 
-## Diagrama de componentes
+## Diagrama
 
-![Componentes de la API Mercado con colores por responsabilidad](../../img/nivel3-componentes.png)
+![Componentes de la API Mercado](../../img/nivel3-componentes.png)
 
 Fuente editable: [nivel3-componentes.svg](../../img/fuentes-svg/nivel3-componentes.svg).
 
-## Componentes y correspondencia con el proyecto
+## Componentes
 
-| Componente o responsabilidad | Código de referencia en `mercado-api/src` | Función y trazabilidad |
-| --- | --- | --- |
-| API REST | Controladores, DTO y guardas de los módulos | `/api/v1`, sesión, rol, negocio y validación; entrada a los servicios |
-| Identidad y reemplazos | `identity` | Sesión, usuarios y reemplazo autorizado; HU07/HU12 |
-| Recepción y pesaje | `reception` | Detalle de sacos, tara, neto, totales y cierre; HU01 |
-| Compras | `purchase` | Precio, flete, adelantos, líquido y resultado financiero; HU02 |
-| Ventas y despachos | `sales` | Operación comercial y cobro o saldo, sin descontar existencias; HU03 |
-| Cuentas y caja | `accounts` | Cuotas, abonos, pagos, cobros y saldo financiero; HU04/HU08 |
-| Flete y estiba | `freight`, `stowage` | Costos y liquidación trazable por grupo; HU09/RF15 |
-| Historial comercial | Consultas de `reception`, `purchase`, `sales` y `operations` | Búsqueda y detalle comercial por negocio; HU11; responsabilidad lógica sin módulo nuevo supuesto |
-| Reportes y PDF | `reports`, `receipts` | Consultas, generación y descarga autorizada de comprobantes; HU10/RF12; reportes RF17 |
-| Auditoría | `audit` | Registro y consulta de usuario, fecha, acción y motivo; HU13 |
-| Analítica | `analytics` | Historial validado, tendencias y estimaciones condicionadas; HU06 |
+| Componente | Código en `mercado-api/src` | Función | Historias |
+| --- | --- | --- | --- |
+| API REST | Controladores, DTO, guardas, filtro de errores | Entrada `/api/v1`: sesión, rol, negocio y validación | — |
+| 1 · Identidad y acceso | `identity` | Sesiones, Encargados y reemplazos | HU07, HU12 |
+| 2 · Recepción y compras | `reception`, `purchase` | Sacos, tara, neto, cierre y liquidación al proveedor | HU01, HU02 |
+| 3 · Ventas y despachos | `sales` | Venta, anulación y devoluciones comerciales | HU03 |
+| 4 · Cuentas y caja | `accounts` | Cuotas, abonos, reversos, caja y vencimientos | HU04, HU08, HU14 |
+| 5 · Costos logísticos | `freight`, `stowage` | Registro y liquidación de flete y estiba | HU09 |
+| 6 · Documentos | `receipts` | Comprobantes PDF y estado de cuenta | HU10, HU16 |
+| 7 · Mensajería | `messaging` | Destinatarios, avisos e intentos de envío | HU14, HU15, HU16 |
+| 8 · Reportes y analítica | `reports`, `analytics` | Reportes, historial, tendencias y predicción | HU06, HU11 |
+| Auditoría | `audit` | Registro y consulta de eventos | HU13 |
+| Referencias comerciales | `catalog`, `logistics` | Proveedores, compradores, variedades, calidades, procedencias, transportistas y vehículos | HU01, HU03 |
+| Sincronización | `operations` | Consultar el resultado de una operación por su UUID | HU05 |
 
-Los avisos HU14 se basan en vencimientos de cuentas. Su canal externo sigue por definir; no se afirma un módulo de mensajería desplegado. HU05 corresponde a la cola cifrada en Android, que reenvía órdenes a los mismos contratos centrales.
-
-## Relaciones comerciales principales
+## Relaciones principales
 
 | Origen | Destino | Relación | Mecanismo |
 | --- | --- | --- | --- |
-| Android | API REST | Envía órdenes y consulta resultados/archivos | HTTPS/JSON en despliegue |
-| API REST | Servicios de los módulos | Valida y delega la operación solicitada | Invocación dentro del proceso |
-| Recepción y pesaje | Compras | Conserva detalle de pesaje para liquidar | Colaboración lógica central |
-| Compras | Cuentas/caja | Genera obligación o pago según condiciones | Transacción PostgreSQL |
-| Ventas | Cuentas/caja | Genera cobro o deuda según condiciones | Transacción PostgreSQL |
-| Flete/estiba | Caja | Registra liquidación de costos | Coordinación transaccional |
-| Módulos operativos | Auditoría | Conservan el hecho y su responsable | Persistencia coordinada |
-| Consultas/reportes | PostgreSQL | Recuperan datos confirmados del negocio | Lectura SQL autorizada |
-| Android | Aplicación externa elegida | Comparte el PDF descargado | Panel de compartición del dispositivo |
+| Android | API REST | Operaciones, consultas y descargas | HTTPS/JSON |
+| API REST | Identidad | Verifica sesión, rol y reemplazo | Guardas en el proceso |
+| Recepción y compras | Cuentas y caja, Costos logísticos | Cuenta por pagar o salida de caja; flete pendiente | Misma transacción |
+| Ventas | Cuentas y caja, Costos logísticos | Cuenta por cobrar o ingreso de caja; flete pendiente; devoluciones | Misma transacción |
+| Costos logísticos | Cuentas y caja | Salida de caja de la liquidación | Misma transacción |
+| Documentos | Compras, Ventas, Cuentas | Lee importes confirmados | Lectura en el proceso |
+| Mensajería | Referencias, Cuentas y caja | Destinatarios y vencimientos | Lectura en el proceso |
+| Módulos operativos | Auditoría | Registran cada hecho | Misma transacción |
+| Reportes y analítica | PostgreSQL | Consultas de hechos confirmados por negocio | SQL de lectura |
 
-Las conexiones entre módulos describen responsabilidades y efectos comerciales. El código actual también accede a entidades de dominios relacionados dentro de una transacción; no todas las flechas equivalen a llamadas entre servicios públicos aislados.
+## Colores
 
-## Persistencia y comprobantes
+Azul: entrada REST. Índigo: identidad. Verde: módulos operativos (2, 3). Ámbar: módulos financieros (4, 5). Violeta: información y documentos (6, 7, 8). Gris: transversales.
 
-Los módulos utilizan PostgreSQL mediante repositorios, DataSource y transacciones. Se mantienen migraciones explícitas y restricciones centrales. No se afirma propiedad exclusiva de tablas por módulo: los límites y la reducción de acoplamiento requieren evolución y verificación.
+## Reglas
 
-El contenido PDF se conserva en PostgreSQL: `receipts/receipt-document.entity.ts` usa un campo `bytea`, y el servicio de comprobantes conserva hash, versión y estado. Por eso esta vista no introduce un almacén de archivos separado ni un proveedor externo. La API autoriza la descarga y Android realiza la compartición por decisión del Mayorista.
+1. Los módulos se despliegan juntos; una colaboración interna no es una llamada de red.
+2. La API controla sesión, rol, reemplazo, negocio y recurso en cada solicitud.
+3. UUID, versión y transacción evitan duplicados y cambios parciales.
+4. Auditoría y compensaciones conservan hechos, origen y motivo; los reportes no modifican operaciones.
 
-## Colores de la vista
-
-Azul identifica Android y entrada REST; índigo, identidad; verde, pesaje/compra/venta; ámbar, cuentas/costos y persistencia; violeta, historial/reportes/analítica; gris, auditoría. Cada elemento mantiene su etiqueta. Avisos de vencimiento pertenece a Cuentas y caja.
-
-## Reglas del monolito y del alcance
-
-1. Los módulos se despliegan juntos dentro de la API; una colaboración interna no es una llamada de red entre microservicios.
-2. La API controla sesión, rol, reemplazo, negocio y recurso; la navegación no sustituye autorización.
-3. UUID, versión y transacción evitan duplicación y cambios parciales; los conflictos requieren revisión.
-4. Pesos y cantidades son detalles comerciales, sin inventario, saldo de mercadería o bloqueo de ventas por disponibilidad.
-5. Auditoría y compensaciones conservan hechos, origen y motivo. Los reportes no alteran operaciones.
-6. Analítica conserva criterios aprobados, suficiencia de datos y evaluación verificable; dibujar el módulo no acredita precisión ni cierre funcional.
-7. No se incorporan Redis, ERP, pasarela de pagos, courier, GPS o balanzas a partir del ejemplo.
-
-## Convergencia
-
-La imagen resume el alcance objetivo y los módulos constatados en el código; no certifica que todos los contratos hayan convergido al retiro de existencias. Las dependencias directas entre entidades y la separación de casos de uso/puertos deben verificarse mediante SDD y pruebas, conservando datos y migraciones históricas.
-
-Anterior: [Nivel 2 Contenedores](Nivel2-DiagramadeContenedores.md). Siguiente: [Nivel 4 Código](Nivel4-DiagramadeCodigo.md).
-
-## Organización vigente de los datos comerciales
-
-Proveedores, compradores, variedades, vehículos y transportistas son datos de recepción, compras y ventas. No constituyen módulos independientes. Recepción conserva proveedor, variedad, vehículo y conductor del cargamento; compras utiliza esos datos para la liquidación; ventas conserva comprador, destino y transporte del despacho. RF03–RF05 mantienen su trazabilidad dentro de esas operaciones. Esta organización es el diseño vigente; no afirma una reorganización ya implementada del código.
-
-## Correspondencia de responsabilidades
-
-| Responsabilidad backend | Función | Historias y requisitos |
-| --- | --- | --- |
-| Identidad y reemplazos | Sesiones, permisos y reemplazos | HU07, HU12; RF01–02 |
-| Recepción y pesaje | Proveedor, variedades, transporte, sacos, bruto/tara/neto y cierre | HU01; RF03–06B |
-| Compras | Proveedor, precio, flete, adelantos, descuentos y liquidación | HU02; RF03, RF07, RF14 |
-| Ventas y despachos | Comprador, variedades, destino, transporte y compensaciones | HU03; RF03–04, RF10–11, RF13 |
-| Cuentas y caja | Pagos, cobros, cuotas, saldos y avisos de vencimiento | HU04, HU08, HU14; RF13–16, RF23 |
-| Flete y estiba | Costos de transporte y liquidación de grupos | HU09; RF15 |
-| Historial comercial | Búsqueda y detalle por fecha o participante | HU11; RF24 |
-| Reportes y comprobantes | Consultas comerciales y generación/compartición PDF | HU10; RF12, RF17–18 |
-| Auditoría | Usuario, fecha, acción, motivo y origen | HU13; RF22 |
-| Analítica | Tendencias y estimaciones condicionadas a CL-08 | HU06; RF18–20 |
-
-Los nombres son responsabilidades del backend, no servicios desplegados por separado. **Cola y sincronización** pertenece al cliente Android (HU05; RF21): conserva órdenes cifradas y las reenvía a los contratos centrales. Los avisos financieros pertenecen a Cuentas y caja; Analítica analiza el historial. Las devoluciones y anulaciones son operaciones compensatorias dentro de Ventas y despachos o Compras, no módulos nuevos.
+Anterior: [Nivel 2](Nivel2-DiagramadeContenedores.md) · Siguiente: [Nivel 4](Nivel4-DiagramadeCodigo.md).

@@ -1,77 +1,60 @@
 # Arquitectura inicial
 
-> **Proyecto:** Gestión mayorista de papa · **Entregable:** 1 · **Versión:** 1.3 · **Actualización:** 13 de octubre de 2026
+> **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 2.0 · **Actualización:** 29 de octubre de 2026
 
 ## Visión de la solución
 
-Mercado registra recepción y pesaje de cargamentos, compras, ventas y despachos, costos y obligaciones comerciales desde una tablet Android. Separa captura e interacción, entrada de API, lógica de negocio y persistencia central. El backend es un monolito modular en capas; el cliente Android conserva órdenes temporales cuando falla la conexión.
+Mercado registra la recepción y el pesaje de cargamentos de papa, las compras, ventas y despachos, los costos de flete y estiba, y las cuentas por pagar y por cobrar, desde una tablet Android. La solución tiene tres piezas:
 
-Las cantidades y pesos se guardan por operación, sin inventario, saldo de mercadería, descuento de stock o bloqueo de ventas por disponibilidad. Sí se calculan importes y saldos financieros de pagos, cobros y deudas.
+- **Aplicación Android** (Expo / React Native): captura, consulta y envío de documentos. Conserva las operaciones pendientes cuando no hay conexión.
+- **API Mercado** (NestJS): monolito modular en capas que valida permisos y aplica las reglas de negocio.
+- **PostgreSQL**: fuente oficial de operaciones, saldos, auditoría y documentos.
 
-## Diagrama de arquitectura inicial
+Las cantidades y pesos se guardan por operación, sin inventario. Sí se calculan importes y saldos de dinero.
 
-![Arquitectura inicial de Mercado con colores por responsabilidad](../../img/arquitectura-inicial.png)
+## Diagrama
+
+![Arquitectura inicial de Mercado](../../img/arquitectura-inicial.png)
 
 Fuente editable: [arquitectura-inicial.svg](../../img/fuentes-svg/arquitectura-inicial.svg).
 
-## Capas y colores
-
 | Grupo | Color | Responsabilidad |
 | --- | --- | --- |
-| Actores | Azul índigo | Mayorista y Encargado con reemplazo autorizado |
-| Presentación y entrada API | Azul | Android captura y presenta resultados; REST valida identidad, permisos y entrada |
-| Lógica de negocio | Verde | Reglas de pesaje, compra, venta, cuentas, costos, historial, auditoría y analítica |
-| Datos locales y centrales | Ámbar | Pendientes cifrados en el dispositivo; hechos confirmados y comprobantes en PostgreSQL |
-| Sistema externo | Violeta | Aplicación de comunicación elegida para compartir un PDF |
+| Actores | Índigo | Mayorista y Encargado con reemplazo autorizado |
+| Presentación y entrada API | Azul | Android captura y muestra resultados; la API REST valida identidad, permisos y datos |
+| Lógica de negocio | Verde | Los ocho módulos de negocio |
+| Datos | Ámbar | Pendientes cifrados en la tablet; hechos confirmados y documentos en PostgreSQL |
+| Sistema externo | Violeta | WhatsApp o correo, elegidos por el Mayorista para enviar documentos |
 
-El color facilita lectura, pero cada responsabilidad tiene etiqueta. La agrupación de presentación y entrada API es conceptual: Android y NestJS son aplicaciones distintas. No significa que se desplieguen juntas ni que sus datos se compartan directamente.
+Android y la API son aplicaciones distintas; aparecen juntas en la capa de presentación solo como agrupación conceptual.
 
-## Responsabilidades del negocio
+## Módulos
 
-| Responsabilidad backend | Función | Historias y requisitos |
-| --- | --- | --- |
-| Identidad y reemplazos | Sesiones, permisos y reemplazos | HU07, HU12; RF01–02 |
-| Recepción y pesaje | Proveedor, variedades, transporte, sacos, bruto/tara/neto y cierre | HU01; RF03–06B |
-| Compras | Proveedor, precio, flete, adelantos, descuentos y liquidación | HU02; RF03, RF07, RF14 |
-| Ventas y despachos | Comprador, variedades, destino, transporte y compensaciones | HU03; RF03–04, RF10–11, RF13 |
-| Cuentas y caja | Pagos, cobros, cuotas, saldos y avisos de vencimiento | HU04, HU08, HU14; RF13–16, RF23 |
-| Flete y estiba | Costos de transporte y liquidación de grupos | HU09; RF15 |
-| Historial comercial | Búsqueda y detalle por fecha o participante | HU11; RF24 |
-| Reportes y comprobantes | Consultas comerciales y generación/compartición PDF | HU10; RF12, RF17–18 |
-| Auditoría | Usuario, fecha, acción, motivo y origen | HU13; RF22 |
-| Analítica | Tendencias y estimaciones condicionadas a CL-08 | HU06; RF18–20 |
-
-Los nombres son responsabilidades del backend, no servicios desplegados por separado. **Cola y sincronización** pertenece al cliente Android (HU05; RF21): conserva órdenes cifradas y las reenvía a los contratos centrales. Los avisos financieros pertenecen a Cuentas y caja; Analítica analiza el historial. Las devoluciones y anulaciones son operaciones compensatorias dentro de Ventas y despachos o Compras, no módulos nuevos.
+El sistema se organiza en ocho módulos de negocio y tres responsabilidades transversales. La lista completa, con historias, requisitos y carpetas de código, está en [componentes arquitectónicos](componentes-arquitectonicos.md).
 
 ## Persistencia y continuidad
 
-Android conserva sesión y pendientes cifrados por usuario/negocio. La API es la autoridad para confirmar operaciones, permisos y saldos; PostgreSQL conserva operaciones, pesajes, cuentas, costos y auditoría. El contenido PDF también se persiste en PostgreSQL con sus metadatos, hash, versión y estado.
+Android conserva la sesión y las operaciones pendientes cifradas por usuario y negocio. Una operación pendiente no está confirmada: al recuperar la conexión, el cliente la reenvía con el mismo UUID y la API revalida sesión, reemplazo, negocio y versión. Los reintentos devuelven el resultado original sin duplicar sacos ni efectos financieros; los conflictos se revisan sin sobrescritura. La tablet nunca accede a PostgreSQL directamente.
 
-Una orden pendiente no equivale a confirmación central. Al recuperar conexión, el cliente reenvía por REST usando el mismo UUID; el servidor revalida sesión, reemplazo, negocio y versión. Los reintentos recuperan el resultado sin duplicar sacos o efectos financieros. Los conflictos se revisan sin sobrescritura silenciosa. La tablet nunca accede a PostgreSQL por SQL.
+PostgreSQL conserva operaciones, pesajes, cuentas, costos, auditoría y el contenido de los PDF con su hash, versión y estado.
 
 ## Recorrido de recepción y compra
 
-1. Registrar proveedor, fecha, vehículo, conductor y variedades.
-2. Ingresar cada saco con peso bruto y tara cuando corresponda; revisar neto y totales.
-3. Cerrar el pesaje y conservar el detalle individual del cargamento, sin crear existencias.
-4. Registrar precio, modalidad de flete, adelantos, descuentos y pago al contado o cuotas.
-5. Confirmar liquidación, cuenta/caja, costos y auditoría en la transacción central correspondiente.
-6. Consultar el resultado y generar el comprobante interno; el Mayorista puede compartirlo desde Android.
+1. Registrar proveedor, fecha, vehículo, conductor y variedades esperadas.
+2. Ingresar cada saco con variedad, calidad, procedencia, peso bruto y tara; revisar neto y totales.
+3. Cerrar el pesaje.
+4. Registrar precio, flete, adelantos, descuentos y forma de pago (contado o cuotas).
+5. Confirmar la liquidación: en una sola transacción se guardan compra, cuenta o caja, flete pendiente y auditoría.
+6. Generar el comprobante y, si el Mayorista lo decide, enviarlo al proveedor por WhatsApp.
 
-## Integración externa y límites
+## Integraciones externas
 
-La compartición PDF usa la aplicación que el usuario elige en su dispositivo. No se presupone integración automática de mensajería desde el backend. El canal externo de avisos de vencimiento HU14 sigue por definir. La solución inicial no incorpora pasarela de pagos, ERP, courier, facturación electrónica, GPS ni balanzas integradas.
-
-La analítica tiene criterios aprobados, pero su habilitación requiere datos suficientes, implementación y evaluación verificables. La ilustración no acredita despliegue productivo, precisión predictiva o cierre funcional. La evolución de interfaces y adaptación del código debe verificarse mediante SDD, conservando datos históricos.
+El envío por WhatsApp o correo es manual desde el dispositivo (ADR-03); el backend no envía mensajes. El MVP no incluye pasarela de pagos, ERP, courier, facturación electrónica, GPS ni balanzas integradas.
 
 ## Vistas relacionadas
 
-- [Componentes arquitectónicos](componentes-arquitectonicos.md).
-- [Enfoque arquitectónico](enfoque-aquitectonico.md).
-- [Estilo arquitectónico](estilo-arquitectonico.md).
-- [C4 nivel 1 Contexto](../04-modelo-c4/Nivel1-DiagramadeContextodelSistema.md).
-- [C4 nivel 2 Contenedores](../04-modelo-c4/Nivel2-DiagramadeContenedores.md).
-
-## Organización vigente de los datos comerciales
-
-Proveedores, compradores, variedades, vehículos y transportistas son datos de recepción, compras y ventas. No constituyen módulos independientes. Recepción conserva proveedor, variedad, vehículo y conductor del cargamento; compras utiliza esos datos para la liquidación; ventas conserva comprador, destino y transporte del despacho. RF03–RF05 mantienen su trazabilidad dentro de esas operaciones. Esta organización es el diseño vigente; no afirma una reorganización ya implementada del código.
+- [Componentes arquitectónicos](componentes-arquitectonicos.md)
+- [Enfoque arquitectónico](enfoque-arquitectonico.md)
+- [Estilo arquitectónico](estilo-arquitectonico.md)
+- [Modelo de datos](../03-diseño-de-software/modelo-de-datos.md)
+- [C4 nivel 1](../04-modelo-c4/Nivel1-DiagramadeContextodelSistema.md) y [nivel 2](../04-modelo-c4/Nivel2-DiagramadeContenedores.md)

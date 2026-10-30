@@ -1,6 +1,6 @@
 # Principios de diseño
 
-> **Proyecto:** Gestión mayorista de papa · **Módulo de referencia:** Recepción e ingreso de pesos · **Versión:** 1.3
+> **Proyecto:** Gestión comercial mayorista de papa · **Módulo de referencia:** Recepción y compras (ingreso de pesos) · **Versión:** 2.0 · **Actualización:** 29 de octubre de 2026
 
 ## Objetivo
 
@@ -12,7 +12,7 @@ Aplicar SOLID al registro del peso de cada saco de papa, separando captura, regl
 
 Fuente editable: [solid-modulo-pesaje.svg](../../../img/fuentes-svg/solid-modulo-pesaje.svg).
 
-El diagrama combina un controlador constatado con una propuesta de extracción de casos de uso, reglas y contratos. Los nombres de puertos y adaptadores expresan el diseño objetivo; no son clases completas que ya existan en el repositorio técnico.
+El diagrama combina el código actual (controlador, servicio y regla de pesos) con la extracción propuesta de un caso de uso, un modelo de saco y contratos. Los puertos y adaptadores son el diseño objetivo.
 
 | Principio | Aplicación al ingreso de pesos | Elementos y estado |
 | --- | --- | --- |
@@ -24,7 +24,7 @@ El diagrama combina un controlador constatado con una propuesta de extracción d
 
 ## Recorrido del registro
 
-1. Mayorista o Encargado con reemplazo vigente selecciona la variedad e ingresa el peso bruto y la tara cuando corresponde.
+1. Mayorista o Encargado con reemplazo vigente selecciona variedad, calidad y procedencia, e ingresa el peso bruto y la tara cuando corresponde.
 2. La aplicación valida la captura y conserva la orden pendiente si falla la conexión; ese estado no equivale a confirmación central.
 3. El controlador central valida identidad, permisos, negocio y estructura de entrada; delega la operación de pesaje.
 4. La unidad de trabajo central recupera un resultado existente por UUID o valida recepción, estado, variedad y versión antes de registrar un saco nuevo.
@@ -57,12 +57,12 @@ Ejemplo: bruto **52,500 kg** y tara **0,500 kg** producen **52,000 kg netos**. U
 | `mercado-app/src/domain/reception/reception.ts` | Modelo del saco y representación de resultados para la interfaz |
 | `mercado-app/src/services/api/reception-api.ts` | Envío de `addSack` al contrato central |
 
-Las reglas `calculateWeights` permanecen dentro del servicio actual. Separarlas sin cambiar comportamiento es una mejora propuesta, que debe conservar transacción e idempotencia. No copiar un repositorio en memoria en producción ni sustituir el bloqueo central por validación de pantalla.
+`calculateWeights` vive hoy dentro de `weighing.service.ts`. Extraerla a `common/domain`, sin cambiar su comportamiento, es la primera mejora propuesta; debe conservar la transacción y la idempotencia. El repositorio en memoria es solo para pruebas.
 
 ## Verificación de principios y contratos
 
 - Probar bruto positivo, tara cero/omitida, tara igual o mayor que bruto, formato inválido y precisión de tres decimales.
-- Reenviar la misma orden cinco veces y comprobar un único saco y una sola auditoría de creación.
+- Reenviar la misma orden cinco veces y comprobar un único saco y una sola auditoría de creación; reutilizar su UUID con otro peso debe responder `409`.
 - Rechazar variedad ajena, recepción cerrada, versión antigua o reemplazo revocado sin escrituras parciales.
 - Comprobar rollback si falla auditoría/persistencia; mantener detalle y evento en una unidad de trabajo.
 - Ejecutar pruebas de contrato al sustituir adaptadores y pruebas PostgreSQL para concurrencia e integridad real.
@@ -70,4 +70,4 @@ Las reglas `calculateWeights` permanecen dentro del servicio actual. Separarlas 
 
 ## Principios transversales
 
-Conservar separación por usuario/negocio, registros trazables, estados accesibles y componentes visuales consistentes con Figma. No introducir interfaces o patrones solo para decorar el diagrama: cada extracción requiere una necesidad, contrato y pruebas mediante SDD antes de implementarse. El backend sigue siendo un monolito modular en capas.
+Conservar la separación por usuario y negocio, registros trazables, estados accesibles y componentes visuales coherentes con Figma. Cada interfaz o patrón nuevo responde a una necesidad concreta y llega con su contrato y sus pruebas. El backend sigue siendo un monolito modular en capas.
