@@ -84,8 +84,10 @@ try {
     throw
   }
   if ($LASTEXITCODE -ne 0) { throw 'Backup restore verification failed.' }
+  $sourceMigrations = & (Join-Path $binaryRoot 'psql.exe') -h 127.0.0.1 -p $Port -U mercado_test -d $databaseName -tA -c 'SELECT count(*) FROM migrations'
+  if ($LASTEXITCODE -ne 0) { throw 'Could not count the migrations of the source database.' }
   $restoredMigrations = & (Join-Path $binaryRoot 'psql.exe') -h 127.0.0.1 -p $Port -U mercado_test -d $restoreDatabase -tA -c 'SELECT count(*) FROM migrations'
-  if ($LASTEXITCODE -ne 0 -or [int]$restoredMigrations -ne 19) { throw 'Restored database does not contain all migrations.' }
+  if ($LASTEXITCODE -ne 0 -or [int]$restoredMigrations -ne [int]$sourceMigrations) { throw 'Restored database does not contain all migrations.' }
   $restoredAuditEvents = & (Join-Path $binaryRoot 'psql.exe') -h 127.0.0.1 -p $Port -U mercado_test -d $restoreDatabase -tA -c 'SELECT count(*) FROM audit_events'
   if ($LASTEXITCODE -ne 0 -or [int]$restoredAuditEvents -lt 1) { throw 'Restored database does not contain the expected audit evidence.' }
   Write-Output "Backup restored and verified in $restoreDatabase from $archivePath"

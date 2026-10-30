@@ -6,6 +6,8 @@ export default defineConfig({
     globals: true,
     root: './',
     include: ['**/*.e2e-spec.ts'],
+    // Suites share one database and each runs the migrations; in parallel they race.
+    fileParallelism: false,
     setupFiles: ['./test/database-setup.ts'],
   },
 });

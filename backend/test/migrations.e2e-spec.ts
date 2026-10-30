@@ -25,10 +25,10 @@ describe('PostgreSQL migrations (e2e)', () => {
     const migrations = (await dataSource.query(
       'SELECT name FROM migrations ORDER BY id',
     )) as Array<{ name: string }>;
-    expect(migrations).toHaveLength(20);
-    expect(migrations.at(-1)?.name).toBe(
-      'SalesWithoutInventory1791331200020',
-    );
+    // Compare with the registered list so a new migration does not need a test edit.
+    const registered = dataSource.migrations.map((migration) => migration.name);
+    expect(migrations.map((migration) => migration.name)).toEqual(registered);
+    expect(registered.at(-1)).toBe('Messaging1792972800026');
 
     const tables = (await dataSource.query(
       `SELECT table_name AS name FROM information_schema.tables
