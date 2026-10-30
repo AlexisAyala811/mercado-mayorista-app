@@ -24,5 +24,22 @@ export const environmentSchema = Joi.object({
     .default(5000),
   SESSION_TTL_MINUTES: Joi.number().integer().min(5).max(10080).required(),
   EVIDENCE_RETENTION_YEARS: Joi.number().integer().min(5).max(50).default(5),
-  OPENAPI_ENABLED: Joi.boolean().truthy('true').falsy('false').default(true),
+  OPENAPI_ENABLED: Joi.boolean()
+    .truthy('true')
+    .falsy('false')
+    .when('NODE_ENV', { is: 'production', then: Joi.boolean().default(false) })
+    .default(true),
+  // Express "trust proxy": false, true, a hop count or a comma-separated list
+  // of addresses/subnets. Needed so login throttling sees each client's IP.
+  TRUST_PROXY: Joi.string()
+    .pattern(/^(false|true|\d{1,2}|[\w.:/,\s-]+)$/)
+    .default('false'),
 });
+
+export function parseTrustProxy(value: string): boolean | number | string {
+  const normalized = value.trim();
+  if (normalized === 'false') return false;
+  if (normalized === 'true') return true;
+  if (/^\d+$/.test(normalized)) return Number(normalized);
+  return normalized;
+}

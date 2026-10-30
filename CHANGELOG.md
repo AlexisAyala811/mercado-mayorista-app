@@ -1,5 +1,18 @@
 # Historial de cambios
 
+## 2.2 · 29 de octubre de 2026
+
+### Backend
+
+- **Cuotas anuladas:** al anular una compra o venta a crédito, sus cuotas pasan al nuevo estado `voided` en lugar de `paid`, que daba a entender un cobro o pago. La migración `InstallmentVoidedState1793232000027` reclasifica las cuotas de cuentas ya anuladas.
+- **Accesos a otro negocio (AC04):** las consultas de ventas, cuentas, recepciones, liquidaciones y comprobantes PDF registran en auditoría (`authorization.cross-business-denied`) el intento sobre un recurso de otro negocio; la respuesta sigue siendo un `404`.
+- **Configuración:** nueva variable `TRUST_PROXY` para que el límite de intentos de inicio de sesión use la IP real detrás de un proxy; OpenAPI se desactiva por defecto en producción.
+
+### SDD en el repositorio
+
+- Se incorporan la constitución (`.specify/memory/`), las especificaciones 001–008 (`specs/`) y las decisiones y evidencias (`docs/sdd/`); sus enlaces internos vuelven a funcionar y la CI de documentación los verifica.
+- Los cambios del backend del 29 de octubre quedan registrados como decisión, secciones fechadas en las specs 001, 004 y 005, tareas con evidencia y [verificación](docs/sdd/verificacion-backend-2026-10-29.md). HU16 queda pendiente de especificar en la spec 006.
+
 ## 2.1 · 29 de octubre de 2026
 
 ### Monorepo

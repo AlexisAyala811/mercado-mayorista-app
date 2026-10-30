@@ -384,7 +384,7 @@ export class PurchaseService {
         });
         for (const item of items) {
           item.balanceCents = '0';
-          item.state = InstallmentState.Paid;
+          item.state = InstallmentState.Voided;
           await installments.save(item);
         }
       } else if (

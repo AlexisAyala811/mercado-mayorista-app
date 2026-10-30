@@ -32,7 +32,7 @@ flowchart LR
 
 ## Configuración
 
-Variables principales (ver `.env.example`): conexión a PostgreSQL (`DATABASE_*`, contraseña de al menos 12 caracteres), `CORS_ORIGINS`, `SESSION_TTL_MINUTES`, `EVIDENCE_RETENTION_YEARS` (mínimo 5) y `OPENAPI_ENABLED`. La configuración se valida al arrancar; si falta un valor obligatorio, la API no inicia.
+Variables principales (ver `.env.example`): conexión a PostgreSQL (`DATABASE_*`, contraseña de al menos 12 caracteres), `CORS_ORIGINS`, `SESSION_TTL_MINUTES`, `EVIDENCE_RETENTION_YEARS` (mínimo 5), `OPENAPI_ENABLED` (desactivado por defecto con `NODE_ENV=production`) y `TRUST_PROXY` (saltos o direcciones del proxy inverso, para que el límite de intentos de inicio de sesión vea la IP real de cada cliente). La configuración se valida al arrancar; si falta un valor obligatorio, la API no inicia.
 
 ## Operación
 
@@ -50,6 +50,6 @@ En producción la API no se construye en el servidor: se usa la imagen que publi
 ## Pendiente para producción
 
 - Contratar el servidor y configurar el entorno `production` en GitHub.
-- Terminación HTTPS (proxy inverso) y configuración de `trust proxy` para el límite de intentos de inicio de sesión.
+- Terminación HTTPS con un proxy inverso; el compose de producción ya define `TRUST_PROXY=1` para un proxy delante de la API.
 - Respaldos programados y simulacro de restauración con RPO/RTO medidos (AC08).
 - Monitoreo de disponibilidad (AC02).

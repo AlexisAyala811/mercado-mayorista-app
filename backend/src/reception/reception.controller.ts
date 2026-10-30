@@ -11,6 +11,9 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+import { AuditService } from '../audit/audit.service.js';
+import { auditForeignAccess } from '../audit/foreign-access.js';
+import { ReceptionEntity } from './entities/reception.entity.js';
 import { ReceptionsHistoryQueryDto } from './http/receptions-history-query.dto.js';
 import type { SessionIdentity } from '../identity/application/ports/session-identity-reader.js';
 import { UserRole } from '../identity/entities/user.entity.js';
@@ -39,6 +42,7 @@ export class ReceptionController {
   constructor(
     private readonly receptions: ReceptionService,
     private readonly weighing: WeighingService,
+    private readonly audit: AuditService,
   ) {}
 
   @Get()
@@ -54,7 +58,14 @@ export class ReceptionController {
     @CurrentIdentity() identity: SessionIdentity,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    return this.receptions.get(identity.businessId, id);
+    return auditForeignAccess(
+      this.audit,
+      identity,
+      ReceptionEntity,
+      id,
+      'reception',
+      () => this.receptions.get(identity.businessId, id),
+    );
   }
 
   @Post()

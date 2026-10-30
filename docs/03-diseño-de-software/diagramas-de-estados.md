@@ -58,7 +58,7 @@ stateDiagram-v2
 | Pagada | `paid` | Cero; admite el reverso de un abono |
 | Anulada | `voided` | Cero; no admite movimientos |
 
-Las cuotas tienen dos estados, `open` y `paid`, según su saldo. Para anular la operación de origen, primero hay que revertir los abonos vigentes.
+Las cuotas tienen tres estados: `open` (con saldo), `paid` (saldo cobrado o pagado) y `voided` (la operación de origen se anuló; saldo cero sin que haya entrado ni salido dinero). Para anular la operación de origen, primero hay que revertir los abonos vigentes.
 
 ## Registro de flete y estiba (Costos logísticos)
 

@@ -73,6 +73,10 @@ Detalle y correspondencia con el código: [componentes arquitectónicos](docs/02
 
 - [Glosario](docs/glosario.md): términos del negocio, términos técnicos y códigos CL.
 
+## Metodología SDD
+
+El proyecto se desarrolla con Spec-Driven Development: `specify` → `clarify` → `plan` → `tasks` → `implement` → `converge`. Los principios están en la [constitución](.specify/memory/constitution.md); cada funcionalidad tiene su especificación, plan y tareas en [`specs/`](specs/README.md), y las decisiones y evidencias de verificación en [`docs/sdd/`](docs/sdd/). Una tarea solo se marca como terminada con evidencia enlazable, según la [lista de convergencia](specs/convergence-checklist.md).
+
 ## Alcance
 
 - **Sin control de existencias** (desde el 7 de octubre de 2026): compras y ventas se registran por separado; no se calcula mercadería disponible. Sí se calculan los saldos de dinero.
@@ -85,6 +89,8 @@ Detalle y correspondencia con el código: [componentes arquitectónicos](docs/02
 ```text
 mercado-mayorista-app/
 ├── .github/workflows/   # CI/CD: backend-ci, backend-cd, docs-ci
+├── .specify/memory/     # Constitución SDD
+├── specs/               # Especificaciones SDD 001–008: spec, plan y tareas
 ├── backend/             # API NestJS (mercado-api)
 │   ├── src/
 │   ├── test/
@@ -95,6 +101,7 @@ mercado-mayorista-app/
 │   ├── 03-diseño-de-software/
 │   │   └── diseño-interno/
 │   ├── 04-modelo-c4/
+│   ├── sdd/             # Decisiones, aclaraciones y evidencias de verificación
 │   └── glosario.md
 ├── img/                 # Diagramas PNG
 │   └── fuentes-svg/     # Fuentes editables

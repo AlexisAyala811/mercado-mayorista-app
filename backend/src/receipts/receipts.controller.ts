@@ -10,6 +10,11 @@ import {
 import { ApiBearerAuth, ApiProduces, ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
 
+import { AuditService } from '../audit/audit.service.js';
+import { auditForeignAccess } from '../audit/foreign-access.js';
+import { PurchaseSettlementEntity } from '../purchase/entities/purchase-settlement.entity.js';
+import { SaleReturnEntity } from '../sales/entities/sale-return.entity.js';
+import { SaleEntity } from '../sales/entities/sale.entity.js';
 import type { SessionIdentity } from '../identity/application/ports/session-identity-reader.js';
 import { UserRole } from '../identity/entities/user.entity.js';
 import { CurrentIdentity } from '../identity/http/current-identity.decorator.js';
@@ -25,7 +30,10 @@ import { ReceiptsService } from './receipts.service.js';
 @UseGuards(SessionAuthGuard, RolesGuard)
 @Roles(UserRole.Wholesaler, UserRole.Assistant)
 export class ReceiptsController {
-  constructor(private readonly receipts: ReceiptsService) {}
+  constructor(
+    private readonly receipts: ReceiptsService,
+    private readonly audit: AuditService,
+  ) {}
 
   @Get('purchases/:id.pdf')
   async purchase(
@@ -33,7 +41,14 @@ export class ReceiptsController {
     @Param('id', ParseUUIDPipe) id: string,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const pdf = await this.receipts.purchase(identity, id);
+    const pdf = await auditForeignAccess(
+      this.audit,
+      identity,
+      PurchaseSettlementEntity,
+      id,
+      'purchase-settlement',
+      () => this.receipts.purchase(identity, id),
+    );
     setPdfHeaders(response, `compra-${id}.pdf`);
     return new StreamableFile(pdf);
   }
@@ -44,7 +59,14 @@ export class ReceiptsController {
     @Param('id', ParseUUIDPipe) id: string,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const pdf = await this.receipts.sale(identity, id);
+    const pdf = await auditForeignAccess(
+      this.audit,
+      identity,
+      SaleEntity,
+      id,
+      'sale',
+      () => this.receipts.sale(identity, id),
+    );
     setPdfHeaders(response, `venta-${id}.pdf`);
     return new StreamableFile(pdf);
   }
@@ -55,7 +77,14 @@ export class ReceiptsController {
     @Param('id', ParseUUIDPipe) id: string,
     @Res({ passthrough: true }) response: Response,
   ) {
-    const pdf = await this.receipts.saleReturn(identity, id);
+    const pdf = await auditForeignAccess(
+      this.audit,
+      identity,
+      SaleReturnEntity,
+      id,
+      'sale-return',
+      () => this.receipts.saleReturn(identity, id),
+    );
     setPdfHeaders(response, `devolucion-venta-${id}.pdf`);
     return new StreamableFile(pdf);
   }
