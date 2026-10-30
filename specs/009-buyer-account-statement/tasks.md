@@ -30,6 +30,7 @@ Cada tarea se marca `[x]` solo con evidencia enlazable (pruebas, ejecución de C
 - [x] **T931** Controlador con las tres rutas, rol Mayorista, `Cache-Control: private, no-store`, `auditForeignAccess` sobre el comprador y `422 statement-image-too-long`. *Verificación:* pruebas de `403` para Encargado, `422` con 11 ventas y cabeceras. **Evidencia:** `buyer-statement.controller.ts` con rol Mayorista, auditForeignAccess sobre el comprador y cabeceras sin caché; pruebas de 403 auditado, cabeceras y resumen sin sourceVersion; descarga real desde la API local. [verificación del backend del estado de cuenta](../../docs/sdd/verificacion-estado-de-cuenta-backend-2026-10-30.md).
 - [x] **T932** E2E en PostgreSQL: venta a crédito + abono + devolución con los valores exactos de la spec; reutilización del documento el mismo día; comprador de otro negocio → `404` con evento `authorization.cross-business-denied`; Encargado → `403`. *Verificación:* suite e2e local y en la CI. **Evidencia:** `backend/test/buyer-statement.e2e-spec.ts`: 4 escenarios por HTTP sobre PostgreSQL 17, suite e2e 39/39; corrigió la restricción de tipo de archivo con la migración 028. [verificación del backend del estado de cuenta](../../docs/sdd/verificacion-estado-de-cuenta-backend-2026-10-30.md).
 - [x] **T933** Documentar el contrato en OpenAPI y en la documentación de componentes (Documentos) y del modelo de datos si cambia. *Verificación:* CI de documentación en verde. **Evidencia:** rutas documentadas en OpenAPI por los decoradores de Nest (`@ApiTags`, `@ApiProduces`); modelo de datos actualizado (tipos de documento y migración 028); cambios de implementación registrados en el plan. [verificación del backend del estado de cuenta](../../docs/sdd/verificacion-estado-de-cuenta-backend-2026-10-30.md).
+- [x] **T934** Medir la respuesta con 50 ventas abiertas (requisito de calidad: menos de 3 segundos, AC01). *Verificación:* e2e en PostgreSQL con aserción de tiempo. **Evidencia:** escenario «answers in under 3 seconds for a buyer with 50 open sales» de `backend/test/buyer-statement.e2e-spec.ts`; tres ejecuciones locales: resumen 12–22 ms, primer PDF 63–80 ms. [verificación del backend del estado de cuenta](../../docs/sdd/verificacion-estado-de-cuenta-backend-2026-10-30.md).
 
 ## Fase 4 · Android
 
@@ -50,7 +51,7 @@ Cada tarea se marca `[x]` solo con evidencia enlazable (pruebas, ejecución de C
 T900 → T901 ─────────────────────────────┐
 T910 → T911 → T912 → T913 → T914         │
    └→ T920, T921 → T922                  │
-          └→ T930 → T931 → T932 → T933   │
+          └→ T930 → T931 → T932 → T933 → T934   │
                          └──────→ T940 → T941 → T942 → T943 → T944
                                                          └→ T950 → T951
 ```

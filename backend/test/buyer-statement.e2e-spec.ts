@@ -223,7 +223,9 @@ describe('Buyer account statement (PostgreSQL)', () => {
         where: { businessId: ownerBusinessId, sourceId: buyerId },
       });
     expect(
-      documents.map((item) => [item.sourceType, item.mimeType]).sort(),
+      documents
+        .map((item) => [item.sourceType, item.mimeType])
+        .sort(([a], [b]) => a!.localeCompare(b!)),
     ).toEqual([
       ['buyer-statement', 'application/pdf'],
       ['buyer-statement-image', 'image/png'],
@@ -244,6 +246,64 @@ describe('Buyer account statement (PostgreSQL)', () => {
       outsiderBusinessId,
     ]);
   });
+
+  it('answers in under 3 seconds for a buyer with 50 open sales (AC01)', async () => {
+    const post = (path: string, body: object) =>
+      http().post(path).set('Authorization', `Bearer ${owner}`).send(body);
+    const busyBuyerId = (
+      await post('/api/v1/catalog/buyers', {
+        name: 'Comprador con 50 ventas E2E',
+      }).expect(201)
+    ).body.id;
+    const varietyId = (
+      await post('/api/v1/catalog/varieties', {
+        name: `Yungay ${prefix}`,
+      }).expect(201)
+    ).body.id;
+    for (let index = 0; index < 50; index += 1)
+      await post('/api/v1/sales', {
+        clientOperationId: randomUUID(),
+        buyerId: busyBuyerId,
+        destinationDepartment: 'Lima',
+        discountsCents: 0,
+        freightIncludedInTotal: false,
+        paymentMode: 'credit',
+        installments: [
+          { dueOn: overdueOn, amountCents: 10000 },
+          { dueOn: upcomingOn, amountCents: 10000 },
+        ],
+        lines: [
+          {
+            varietyId,
+            sacks: 2,
+            weightKg: '100',
+            priceBasis: 'sack',
+            unitPriceCents: 10000,
+          },
+        ],
+      }).expect(201);
+
+    const timed = async (path: string) => {
+      const started = performance.now();
+      const response = await as(owner)(path).expect(200);
+      return { ms: Math.round(performance.now() - started), response };
+    };
+    const view = await timed(
+      `/api/v1/receipts/buyer-statements/${busyBuyerId}`,
+    );
+    const pdf = await timed(
+      `/api/v1/receipts/buyer-statements/${busyBuyerId}.pdf`,
+    );
+    console.info(
+      `buyer statement with 50 open sales: view ${view.ms} ms, first PDF ${pdf.ms} ms`,
+    );
+
+    expect(view.response.body.sales).toHaveLength(50);
+    expect(view.response.body.totals.outstandingCents).toBe('1000000');
+    expect(pdf.response.headers['content-type']).toBe('application/pdf');
+    expect(view.ms).toBeLessThan(3000);
+    expect(pdf.ms).toBeLessThan(3000);
+  }, 120_000);
 
   it('denies the Assistant', async () => {
     await as(assistant)(

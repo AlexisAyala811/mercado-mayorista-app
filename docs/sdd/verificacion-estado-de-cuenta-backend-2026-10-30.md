@@ -4,7 +4,7 @@
 
 ## Alcance
 
-Tareas T910–T914 (cálculo), T920–T922 (PDF e imagen) y T930–T933 (servicio, API, e2e y documentación). La parte Android (T940–T944) y la convergencia con Figma (T950–T951) no forman parte de esta verificación.
+Tareas T910–T914 (cálculo), T920–T922 (PDF e imagen) y T930–T934 (servicio, API, e2e, documentación y tiempo de respuesta). La parte Android (T940–T944) y la convergencia con Figma (T950–T951) no forman parte de esta verificación.
 
 ## Pruebas
 
@@ -15,7 +15,7 @@ Tareas T910–T914 (cálculo), T920–T922 (PDF e imagen) y T930–T933 (servici
 | Servicio y controlador | `backend/src/receipts/buyer-statement/buyer-statement.api.spec.ts` | 8 aprobadas |
 | Suite unitaria completa | `npm test` | 287/287 en 67 archivos |
 | Tipos, lint y build | `tsc`, `oxlint`, `nest build` | Sin errores |
-| E2E en PostgreSQL 17 portable | `backend/test/buyer-statement.e2e-spec.ts` y el resto de la suite | 39/39 en 4 archivos |
+| E2E en PostgreSQL 17 portable | `backend/test/buyer-statement.e2e-spec.ts` y el resto de la suite | 39/39 en 4 archivos; 40/40 con la medición de T934 |
 | CI de la rama (push) | Backend · CI, run 41119590109, commit `22fa228` | Tipos/lint/pruebas/build, e2e e imagen Docker aprobados; render PNG dentro del contenedor Alpine aprobado |
 
 La e2e reproduce por HTTP el ejemplo de la spec: venta a crédito de S/ 800,00 en dos cuotas, abono de S/ 300,00 y devolución comercial de S/ 100,00. Comprueba:
@@ -43,7 +43,18 @@ Base PostgreSQL de demostración, Mayorista de prueba creado con `bootstrap:whol
 
 - Envío por WhatsApp o correo desde Android (T943–T944).
 - Diseño en Figma (CL-EC07).
-- Tiempo de respuesta con 50 ventas abiertas (requisito de calidad de la spec); no se midió.
+
+## Tiempo de respuesta con 50 ventas abiertas (T934)
+
+Un comprador con 50 ventas a crédito, cada una con una cuota vencida y otra por vencer, en PostgreSQL 17 portable y por HTTP. El escenario falla si cualquiera de las dos respuestas tarda 3 segundos o más.
+
+| Ejecución | Resumen (`GET …/buyer-statements/{id}`) | Primer PDF (`.pdf`, generado y conservado) |
+| --- | --- | --- |
+| 1 | 22 ms | 63 ms |
+| 2 | 17 ms | 80 ms |
+| 3 | 12 ms | 78 ms |
+
+La imagen no se mide con 50 ventas: por diseño solo se genera hasta el límite de ventas de la imagen (`422 statement-image-too-long`). Medido en el equipo de desarrollo, no en el servidor de producción.
 
 ## Observación ajena a este cambio
 
