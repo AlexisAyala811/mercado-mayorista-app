@@ -1,0 +1,63 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-mercado}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD in .env}
+      POSTGRES_USER: ${DATABASE_USER:-mercado}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-mercado} -d ${DATABASE_NAME:-mercado}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    ports:
+      - "${DATABASE_PORT:-5432}:5432"
+    volumes:
+      - mercado-postgres-data:/var/lib/postgresql/data
+
+  migrate:
+    build:
+      context: .
+      target: runtime
+    command: ["npm", "run", "migration:run:prod"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment: &api-environment
+      NODE_ENV: production
+      PORT: 3000
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8081}
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_USER: ${DATABASE_USER:-mercado}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD in .env}
+      DATABASE_NAME: ${DATABASE_NAME:-mercado}
+      DATABASE_SSL: "false"
+      DATABASE_SSL_REJECT_UNAUTHORIZED: "true"
+      DATABASE_POOL_SIZE: ${DATABASE_POOL_SIZE:-10}
+      DATABASE_CONNECT_TIMEOUT_MS: ${DATABASE_CONNECT_TIMEOUT_MS:-5000}
+      SESSION_TTL_MINUTES: ${SESSION_TTL_MINUTES:-480}
+      EVIDENCE_RETENTION_YEARS: ${EVIDENCE_RETENTION_YEARS:-5}
+      OPENAPI_ENABLED: ${OPENAPI_ENABLED:-true}
+    restart: "no"
+
+  api:
+    build:
+      context: .
+      target: runtime
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment: *api-environment
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:3000/api/v1/health/live >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    ports:
+      - "${PORT:-3000}:3000"
+    restart: unless-stopped
+
+volumes:
+  mercado-postgres-data:
