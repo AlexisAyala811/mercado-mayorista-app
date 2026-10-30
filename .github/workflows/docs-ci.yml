@@ -1,0 +1,30 @@
+# Integración continua de la documentación: ningún PR puede dejar enlaces rotos.
+name: Documentación · CI
+
+on:
+  pull_request:
+    paths:
+      - '**/*.md'
+      - 'img/**'
+      - '.github/scripts/check-links.mjs'
+      - '.github/workflows/docs-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - '**/*.md'
+      - 'img/**'
+
+permissions:
+  contents: read
+
+jobs:
+  enlaces:
+    name: Enlaces e imágenes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: node .github/scripts/check-links.mjs

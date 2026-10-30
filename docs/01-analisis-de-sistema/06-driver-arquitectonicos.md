@@ -1,27 +1,15 @@
 # Drivers arquitectónicos
 
-> **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 1.2
+> **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 2.0 · **Actualización:** 29 de octubre de 2026
 
-| Driver y origen | Decisión e influencia arquitectónica |
-| --- | --- |
-| DA01 Continuidad — RF21, AC02, R01 | Persistencia local y cola de sincronización: la captura de pesos debe continuar aunque falle Internet. |
-| DA02 Integridad — RF06, RF06B, AC03 | Identificadores únicos, transacciones e idempotencia: repetir un envío no puede duplicar pesos ni modificar dos veces el saldo. |
-| DA03 Aislamiento — RF01, RF22, AC04, R05 | Autenticación, autorización por negocio y auditoría en el backend; la interfaz no es el único control de acceso. |
-| DA04 Crecimiento — AC01, AC06, R07 | Backend sin estado y balanceo al crecer la carga; caché opcional para consultas de operaciones, nunca como fuente oficial de saldos. |
-| DA05 IA progresiva — RF19, R04 | Proceso analítico separado de las transacciones: acumular y validar datos, descubrir tendencias y patrones, y habilitar predicciones solo al superar criterios mínimos de calidad e historial. |
-| DA06 Evolución — AC07, R06 | Monolito modular inicial, API versionada y adaptadores de integración; los servicios externos futuros no acceden directamente a la base. |
-| DA07 Recuperación — AC08, R03 | Respaldos automáticos y restauración probada. Una réplica o caché no sustituye la copia de seguridad. |
-
-## Relación driver → decisión → verificación
-
-| Driver | Decisiones que orienta | Evidencia requerida |
+| Driver y origen | Decisión que orienta | Evidencia requerida |
 | --- | --- | --- |
-| DA01 Continuidad | Cola cifrada y sincronización diferida | Captura 2 h sin red y recuperación por usuario/negocio |
-| DA02 Integridad | UUID, versiones, transacciones y compensaciones | Cinco reintentos y concurrencia sin duplicar registros comerciales y dinero |
-| DA03 Aislamiento | Sesión, guardas, autorización y auditoría | Intentos entre negocios y rol restringido denegados |
-| DA04 Crecimiento | Backend escalable y medición de carga | Objetivo AC01 con 20 y 40 usuarios |
-| DA05 IA progresiva | Separar análisis de confirmación comercial | CL-08 aprobada y evaluación antes de predicción |
-| DA06 Evolución | Capas, módulos y contratos versionados | Cambio de regla localizado y regresión aprobada |
-| DA07 Recuperación | Respaldo y simulacro de restauración | RPO/RTO medidos y recuperación íntegra |
+| DA01 Continuidad — RF21, AC02, R01 | Persistencia local cifrada y cola de sincronización: la captura de pesos continúa aunque falle Internet. | Captura de 2 h sin red y recuperación aislada por usuario y negocio. |
+| DA02 Integridad — RF06, RF06B, AC03 | Identificador único por operación, versión del registro, transacciones y compensaciones: repetir un envío no duplica pesos ni modifica dos veces un saldo. | Cinco reintentos y escrituras concurrentes sin duplicar registros ni dinero. |
+| DA03 Aislamiento — RF01, RF22, AC04, R05 | Autenticación, autorización por rol y negocio y auditoría en el backend; la interfaz no es el único control. | Intentos entre negocios y de rol restringido denegados. |
+| DA04 Crecimiento — AC01, AC06, R07 | Backend sin estado que admite varias instancias; ninguna caché es fuente oficial de saldos. | Objetivo de AC01 con 20 y 40 usuarios. |
+| DA05 IA progresiva — RF19, R04 | Analítica separada de la confirmación de operaciones; la predicción solo se habilita al cumplir CL-08. | Evaluación aprobada antes de mostrar estimaciones. |
+| DA06 Evolución — AC07, R06 | Monolito modular, API versionada y adaptadores de integración; los servicios externos futuros no acceden a la base. | Cambio de regla localizado en un módulo y regresión aprobada. |
+| DA07 Recuperación — AC08, R03 | Respaldos automáticos y restauración probada; una réplica no sustituye la copia de seguridad. | RPO y RTO medidos en simulacro. |
 
-Una tecnología se justifica por estos drivers; no se incorpora por aparecer en el repositorio de ejemplo.
+Cada tecnología del proyecto se justifica por al menos uno de estos drivers.

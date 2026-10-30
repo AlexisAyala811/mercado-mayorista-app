@@ -1,109 +1,23 @@
 # Escenarios verificables de calidad
 
-> **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 1.2
+> **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 2.1 · **Actualización:** 29 de octubre de 2026
 
-Los objetivos provienen de la propuesta. La existencia de mecanismos o pruebas previas no acredita por sí sola el cumplimiento operativo.
+| ID | Fuente y estímulo | Entorno y artefacto | Respuesta | Medida | Estado de la evidencia |
+| --- | --- | --- | --- | --- | --- |
+| AC01 | El operador ingresa un peso; los usuarios consultan | Descarga en piloto; tablet y API | Guardar localmente y responder consultas | Peso < 1 s; p95 central < 3 s con 20 usuarios | Pendiente: medición en dispositivo y prueba de carga |
+| AC02 | La red se interrumpe 2 h | Tablet sin Internet | Mantener la captura y recuperar pendientes | Continuidad de 2 h; servicio 99,5 % mensual | Cola cifrada implementada; falta validación prolongada y monitoreo |
+| AC03 | El cliente reenvía la misma operación cinco veces o reutiliza su UUID con otros datos | API y PostgreSQL | Devolver el resultado previo; rechazar el UUID reutilizado con `409` | Un registro y un efecto financiero | Pruebas unitarias de idempotencia en compras, ventas, cuentas, pesaje, flete y estiba, y 35 pruebas e2e en PostgreSQL 17 (reintentos, concurrencia y respuesta perdida), ejecutadas en cada PR por la CI |
+| AC04 | Un usuario consulta datos de otro negocio | Endpoints protegidos y archivos | Denegar y registrar el intento | Cero datos expuestos | Todas las consultas filtran por negocio y se audita la denegación por rol; falta registrar en auditoría el intento entre negocios |
+| AC05 | Un usuario capacitado registra un cargamento | Tablet 1280 × 800 | Captura y cierre claros | ≥ 90 % sin asistencia ni pérdida | Pendiente: evaluación con usuarios |
+| AC06 | La carga sube de 20 a 40 usuarios | Despliegue central | Añadir una instancia del backend | Mantener AC01 | Pendiente: prueba de carga |
+| AC07 | El equipo modifica una regla de estiba | Módulo Costos logísticos y regresión | Cambio localizado | Sin cambios en pesaje ni cuentas | Verificable por revisión de dependencias y pruebas del módulo |
+| AC08 | Falla la base central | Respaldo y restauración | Recuperar la operación | RPO 24 h / RTO 4 h | Respaldo y restauración verificados sobre base de prueba (29 oct. 2026); cada versión queda publicada y se puede redesplegar por su etiqueta; falta simulacro con tiempos medidos |
 
-| ID | Fuente y estímulo | Entorno y artefacto | Respuesta | Medida y verificación |
-| --- | --- | --- | --- | --- |
-| AC01 | Operador ingresa peso; usuarios consultan | Descarga y piloto, tablet/API | Guardar localmente y responder consultas | Peso <1 s; p95 central <3 s con 20 usuarios; medir en dispositivo y carga |
-| AC02 | Red se interrumpe 2 h | Tablet sin Internet | Mantener captura y recuperar pendientes | Continuidad 2 h; servicio 99,5 % mensual por monitoreo; validación prolongada pendiente |
-| AC03 | Cliente reenvía cinco veces | API y PostgreSQL | Devolver resultado previo | Un registro y un efecto financiero y comercial; prueba idempotente y concurrente |
-| AC04 | Usuario consulta otro negocio | Endpoint protegido/archivo | Denegar y auditar | Cero datos expuestos en todos los endpoints; pruebas de autorización |
-| AC05 | Usuario capacitado registra cargamento | Tablet 1280 × 800 | Captura y cierre claros | ≥90 % sin asistencia ni pérdida; evaluación con usuarios pendiente |
-| AC06 | Carga aumenta de 20 a 40 usuarios | Despliegue central | Añadir instancia backend | Conservar AC01; ensayo de carga y despliegue pendiente |
-| AC07 | Equipo modifica regla de estiba | Módulo costos y regresión | Cambio localizado | No alterar pesaje ni cuentas; revisión de dependencias y pruebas |
-| AC08 | Falla la base central | Respaldo y restauración | Recuperar operación | RPO 24 h / RTO 4 h; simulacro medido; respaldo restaurado previamente, SLA no acreditado |
+## Verificación de historias complementarias
 
-La tabla detalla el método de verificación, pero este repositorio no adjunta los informes de ejecución. Estado de esta entrega: objetivos definidos, evidencia operativa no incluida. No atribuir cumplimiento al enlace de un documento compartido.
-
-## EQ-01 · AC01
-
-| Elemento | Descripción |
-| --- | --- |
-| Fuente y estímulo | Operador ingresa peso; usuarios consultan |
-| Condición y artefacto | Descarga y piloto, tablet/API |
-| Respuesta esperada | Guardar localmente y responder consultas |
-| Medida y verificación | Peso <1 s; p95 central <3 s con 20 usuarios; medir en dispositivo y carga |
-| Estado | Objetivo de la propuesta vigente; cumplimiento integral pendiente de evidencia en el entorno acordado. |
-
-## EQ-02 · AC02
-
-| Elemento | Descripción |
-| --- | --- |
-| Fuente y estímulo | Red se interrumpe 2 h |
-| Condición y artefacto | Tablet sin Internet |
-| Respuesta esperada | Mantener captura y recuperar pendientes |
-| Medida y verificación | Continuidad 2 h; servicio 99,5 % mensual por monitoreo; validación prolongada pendiente |
-| Estado | Objetivo de la propuesta vigente; cumplimiento integral pendiente de evidencia en el entorno acordado. |
-
-## EQ-03 · AC03
-
-| Elemento | Descripción |
-| --- | --- |
-| Fuente y estímulo | Cliente reenvía cinco veces |
-| Condición y artefacto | API y PostgreSQL |
-| Respuesta esperada | Devolver resultado previo |
-| Medida y verificación | Un registro y un efecto financiero y comercial; prueba idempotente y concurrente |
-| Estado | Objetivo de la propuesta vigente; cumplimiento integral pendiente de evidencia en el entorno acordado. |
-
-## EQ-04 · AC04
-
-| Elemento | Descripción |
-| --- | --- |
-| Fuente y estímulo | Usuario consulta otro negocio |
-| Condición y artefacto | Endpoint protegido/archivo |
-| Respuesta esperada | Denegar y auditar |
-| Medida y verificación | Cero datos expuestos en todos los endpoints; pruebas de autorización |
-| Estado | Objetivo de la propuesta vigente; cumplimiento integral pendiente de evidencia en el entorno acordado. |
-
-## EQ-05 · AC05
-
-| Elemento | Descripción |
-| --- | --- |
-| Fuente y estímulo | Usuario capacitado registra cargamento |
-| Condición y artefacto | Tablet 1280 × 800 |
-| Respuesta esperada | Captura y cierre claros |
-| Medida y verificación | ≥90 % sin asistencia ni pérdida; evaluación con usuarios pendiente |
-| Estado | Objetivo de la propuesta vigente; cumplimiento integral pendiente de evidencia en el entorno acordado. |
-
-## EQ-06 · AC06
-
-| Elemento | Descripción |
-| --- | --- |
-| Fuente y estímulo | Carga aumenta de 20 a 40 usuarios |
-| Condición y artefacto | Despliegue central |
-| Respuesta esperada | Añadir instancia backend |
-| Medida y verificación | Conservar AC01; ensayo de carga y despliegue pendiente |
-| Estado | Objetivo de la propuesta vigente; cumplimiento integral pendiente de evidencia en el entorno acordado. |
-
-## EQ-07 · AC07
-
-| Elemento | Descripción |
-| --- | --- |
-| Fuente y estímulo | Equipo modifica regla de estiba |
-| Condición y artefacto | Módulo costos y regresión |
-| Respuesta esperada | Cambio localizado |
-| Medida y verificación | No alterar pesaje ni cuentas; revisión de dependencias y pruebas |
-| Estado | Objetivo de la propuesta vigente; cumplimiento integral pendiente de evidencia en el entorno acordado. |
-
-## EQ-08 · AC08
-
-| Elemento | Descripción |
-| --- | --- |
-| Fuente y estímulo | Falla la base central |
-| Condición y artefacto | Respaldo y restauración |
-| Respuesta esperada | Recuperar operación |
-| Medida y verificación | RPO 24 h / RTO 4 h; simulacro medido; respaldo restaurado previamente, SLA no acreditado |
-| Estado | Objetivo de la propuesta vigente; cumplimiento integral pendiente de evidencia en el entorno acordado. |
-
-## Verificación de las historias complementarias
-
-| Calidad | Historias | Comprobación requerida |
+| Calidad | Historias | Comprobación |
 | --- | --- | --- |
-| Seguridad | HU07, HU10–HU13 | Cierre invalida acceso; Encargado no obtiene archivos, historial ni administración exclusivos; aislamiento por negocio |
-| Integridad | HU08, HU09 | Repetir orden no duplica abono, asiento ni liquidación de estiba |
-| Trazabilidad | HU11, HU13 | Operación y acción auditada muestran origen, responsable y fecha coherentes |
-| Usabilidad | HU10, HU11, HU14 | Mostrar vacío, error, reintento y estados de PDF/filtros/avisos en tablet |
-
-La evaluación de un canal externo de recordatorios no se declara aprobada sin definición e implementación verificables.
+| Seguridad | HU07, HU10–HU16 | Cerrar sesión invalida el acceso; el Encargado no obtiene documentos, mensajería, historial ni administración; aislamiento por negocio. |
+| Integridad | HU08, HU09, HU15 | Repetir una orden no duplica abonos, liquidaciones ni intentos de envío. |
+| Trazabilidad | HU11, HU13, HU16 | Operación, acción auditada y documento enviado muestran origen, responsable y fecha coherentes. |
+| Usabilidad | HU10, HU11, HU14–HU16 | Estados vacío, error, reintento y de generación de PDF visibles en tablet. |

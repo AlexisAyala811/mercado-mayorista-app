@@ -1,90 +1,93 @@
 # Requisitos funcionales
 
-> **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 1.2
+> **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 2.0 · **Actualización:** 29 de octubre de 2026
 
-| Proceso | Código | Requisito |
+| Módulo | Código | Requisito |
 | --- | --- | --- |
-| Usuarios y acceso | RF 01 | Permitir iniciar y cerrar sesión con credenciales individuales, proteger rutas y revocar el acceso de la sesión cerrada. |
-| Usuarios y acceso | RF 02 | Permitir al Mayorista autorizar y revocar reemplazos de máximo 24 horas; restringir al Encargado al pesaje, compras y ventas durante su vigencia. |
-| Recepción, compras y ventas | RF 03 | Registrar y consultar proveedores y compradores dentro de recepción, compras y ventas, conservando contacto, ubicación, límite de crédito y estado. |
-| Recepción y ventas | RF 04 | Registrar y consultar los datos de papa dentro de recepción y ventas: variedad, calidad, procedencia, presentación, unidad de medida y precio referencial. |
-| Recepción | RF 05 | Permitir al mayorista o al encargado que lo reemplaza registrar fecha, proveedor, teléfono, vehículo, conductor y variedades antes de la descarga. |
-| Recepción | RF 06 | Permitir al mayorista o al encargado que lo reemplaza registrar consecutivamente cada saco y asociarlo con la variedad correspondiente. |
-| Recepción | RF 06A | Mostrar en tiempo real sacos, peso y promedio por variedad y del cargamento completo, y permitir correcciones autorizadas antes del cierre. |
-| Recepción | RF 06B | Cerrar el pesaje, calcular tara y peso neto cuando corresponda, conservar el detalle individual del cargamento para su historial comercial. |
-| Compras | RF 07 | Registrar el precio negociado y calcular importe bruto, flete por kilos o sacos, adelantos, otros descuentos y monto líquido por pagar al proveedor. |
-| Ventas | RF 10 | Registrar ventas y despachos a compradores mayoristas de otros departamentos con variedades, sacos, peso, precio, vehículo, destino, flete y forma de pago. |
-| Ventas | RF 11 | Aplicar precios negociados y descuentos dentro de límites configurables. |
-| Ventas | RF 12 | Generar y compartir comprobantes internos de compras y ventas confirmadas por medios digitales. |
-| Cuentas por cobrar | RF 13 | Registrar condiciones de crédito de clientes, vencimientos, abonos, saldos y compromisos de pago. |
-| Cuentas por pagar | RF 14 | Generar el saldo del proveedor cuando el pago sea en cuotas y registrar vencimientos, abonos, adelantos descontados y cancelación. |
-| Caja | RF 15 | Registrar pagos a proveedores, cobros de ventas y liquidación diaria de flete y estiba para uno o varios grupos de trabajadores. |
-| Alertas | RF 16 | Mostrar cuentas vencidas o próximas a vencer, operaciones pendientes. |
-| Reportes | RF 17 | Consultar compras, ventas, cantidades, pesos, importes registrados, costos de estiba y transporte y estado de cuentas. |
-| Analítica | RF 18 | Comparar la evolución de precios por variedad, calidad, procedencia, proveedor, cliente y periodo. |
-| Inteligencia artificial | RF 19 | Analizar progresivamente el historial validado para detectar tendencias y patrones; al alcanzar datos suficientes, generar una estimación semanal con rango, confianza y seguimiento del error. |
-| Inteligencia artificial | RF 20 | Mostrar cada estimación con rango, fecha, variables utilizadas y nivel de confianza, y comparar luego el valor previsto con el real. |
-| Operación móvil | RF 21 | Guardar temporalmente operaciones cuando no exista conexión y sincronizarlas al recuperarla. |
-| Auditoría | RF 22 | Registrar usuario, fecha, acción y motivo cuando corresponda; permitir al Mayorista consultar la auditoría de su negocio. |
-| Notificaciones | RF 23 | Enviar recordatorios configurables de pagos, cobranzas y operaciones pendientes. |
-| Historial | RF 24 | Permitir al Mayorista buscar compras, pesajes, ventas y despachos por fecha o participante comercial y consultar su detalle. |
+| Identidad y acceso | RF01 | Permitir iniciar y cerrar sesión con credenciales individuales, proteger las rutas y revocar el acceso de la sesión cerrada. |
+| Identidad y acceso | RF02 | Permitir al Mayorista autorizar y revocar reemplazos de máximo 24 horas; restringir al Encargado al pesaje, compras y ventas durante su vigencia. |
+| Transversal: referencias | RF03 | Registrar y consultar proveedores y compradores desde los formularios de recepción, compras y ventas, conservando contacto, ubicación, límite de crédito y estado. |
+| Transversal: referencias | RF04 | Registrar y consultar los datos de la papa desde recepción y ventas: variedad, calidad, procedencia, presentación, unidad de medida y precio referencial. Calidad y procedencia se eligen por saco y por línea de venta, con la opción «No informada». |
+| Recepción y compras | RF05 | Registrar fecha, proveedor, teléfono, vehículo, conductor y variedades esperadas antes de la descarga. |
+| Recepción y compras | RF06 | Registrar consecutivamente cada saco y asociarlo con su variedad, calidad y procedencia. |
+| Recepción y compras | RF06A | Mostrar en tiempo real sacos, peso y promedio por variedad y del cargamento completo, y permitir correcciones autorizadas antes del cierre. |
+| Recepción y compras | RF06B | Cerrar el pesaje, calcular tara y peso neto cuando corresponda y conservar el detalle individual del cargamento. |
+| Recepción y compras | RF07 | Registrar el precio negociado y calcular importe bruto, flete por kilos o sacos, adelantos, otros descuentos y monto líquido por pagar al proveedor. |
+| Ventas y despachos | RF10 | Registrar ventas y despachos a compradores mayoristas de otros departamentos con variedades, calidad, procedencia, sacos, peso, precio, vehículo, destino, flete y forma de pago. |
+| Ventas y despachos | RF11 | Aplicar precios negociados y descuentos dentro de límites configurables. |
+| Documentos | RF12 | Generar comprobantes internos en PDF de compras, ventas y devoluciones confirmadas. |
+| Cuentas y caja | RF13 | Registrar condiciones de crédito de compradores, vencimientos, abonos, saldos y compromisos de pago. |
+| Cuentas y caja | RF14 | Generar el saldo del proveedor cuando el pago sea en cuotas y registrar vencimientos, abonos, adelantos descontados y cancelación. |
+| Cuentas y caja / Costos logísticos | RF15 | Registrar pagos a proveedores, cobros de ventas y liquidación de flete y estiba para uno o varios grupos de trabajadores. |
+| Cuentas y caja | RF16 | Mostrar cuentas vencidas o próximas a vencer y operaciones pendientes de sincronizar. |
+| Reportes y analítica | RF17 | Consultar compras, ventas, cantidades, pesos, importes, costos de estiba y transporte y estado de cuentas. |
+| Reportes y analítica | RF18 | Comparar la evolución de precios por variedad, calidad, procedencia, proveedor, comprador y periodo. |
+| Reportes y analítica | RF19 | Analizar progresivamente el historial validado para detectar tendencias y patrones; al alcanzar datos suficientes, generar una estimación semanal con rango, confianza y seguimiento del error. |
+| Reportes y analítica | RF20 | Mostrar cada estimación con rango, fecha, variables utilizadas y nivel de confianza, y comparar luego el valor previsto con el real. |
+| Transversal: sincronización | RF21 | Guardar temporalmente operaciones cuando no exista conexión y sincronizarlas al recuperarla. |
+| Transversal: auditoría | RF22 | Registrar usuario, fecha, acción y motivo cuando corresponda; permitir al Mayorista consultar la auditoría de su negocio. |
+| Mensajería | RF23 | Permitir enviar recordatorios de pagos y cobranzas a proveedores y compradores mediante envío manual por WhatsApp o correo. |
+| Reportes y analítica | RF24 | Buscar compras, pesajes, ventas y despachos por fecha o participante comercial y consultar su detalle. |
+| Mensajería | RF25 | Seleccionar un archivo PDF, DOC, DOCX o imagen y un comprador o proveedor del negocio, revisar el archivo y solicitar su envío manual por WhatsApp o correo. |
+| Mensajería | RF26 | Registrar cada intento de envío (usuario, destinatario, archivo, tipo, tamaño, canal y estado: preparado, compartición solicitada o fallido), sin subir el contenido del archivo al servidor. |
+| Documentos | RF27 | Generar, a una fecha de corte, el estado de cuenta de un comprador con sus cuentas por cobrar: venta de origen, importe inicial, abonos, devoluciones aplicadas, saldo, cuotas, próximo vencimiento y total adeudado, en PDF e imagen. |
 
-## Relación con los cortes de implementación
+RF08 y RF09 (control de existencias) se retiraron del alcance el 7 de octubre de 2026 y sus códigos no se reutilizan.
 
-| Corte SDD | Requisitos principales | Resultado de negocio |
-| --- | --- | --- |
-| 001 Identidad y autorización | RF01, RF02, RF22 | Acceso individual y aislamiento por negocio |
-| 002 Recepción, pesaje y compra | RF03–07, RF06A, RF06B, RF14 | Cargamento trazable y liquidación del proveedor |
-| 003 Ventas y despacho | RF10–11, RF13 | Despachos y resultado comercial trazables |
-| 004 Cuentas, caja y costos | RF13–15 | Saldos, cuotas, pagos, flete y estiba |
-| 005 Sincronización y auditoría | RF21–22 | Continuidad local y efectos centrales únicos |
-| 006 Reportes y comprobantes | RF12, RF16–18 | Información comercial y PDF interno |
-| 007 Analítica progresiva | RF19–20 | Predicción condicionada por criterios aprobados |
-
-RF23 conserva el alcance documental de recordatorios configurables. Esta revisión no acredita un canal externo implementado. Las alertas internas RF16 no demuestran por sí mismas el cumplimiento de RF23.
-
-Las historias conservan el formato ID y necesidad del usuario; la trazabilidad de requisitos se mantiene en las especificaciones compartidas. RF06A y RF06B son extensiones vigentes del pesaje; no deben eliminarse para ajustar la numeración del ejemplo.
-
-## Alcance vigente: registro comercial sin control de existencias
-
-Decisión del usuario, 7 de octubre de 2026: conservar compras, pesajes, ventas y despachos sin calcular mercadería restante. RF08 y RF09 se retiran del alcance; sus identificadores no se reutilizan. RF06B conserva el pesaje cerrado sin generar existencias; RF16, RF17 y RF23 conservan alertas, reportes y recordatorios comerciales sin indicadores de stock.
-
-Una compra de 100 sacos y una venta de 30 sacos quedan como registros independientes; el sistema no presenta 70 sacos disponibles, no descuenta mercadería y no bloquea ventas por falta de existencias. Los saldos por pagar/cobrar siguen calculándose. Las correcciones y devoluciones comerciales conservan su efecto financiero y su historial.
-
-La asociación entre una venta y un cargamento de compra no se vuelve obligatoria por esta decisión; no se incorpora una regla nueva de conciliación de cantidades.
-
-## Trazabilidad de historias y aceptación
+## Trazabilidad de historias y criterios de aceptación
 
 | Historia | Requisitos | Criterio de aceptación |
 | --- | --- | --- |
-| HU01 | RF05, RF06, RF06A, RF06B | Conservar cada saco por variedad y mostrar totales por cargamento; cerrar pesaje sin crear existencias. |
-| HU02 | RF07, RF14 | Calcular bruto, flete, adelantos, descuentos y líquido; conservar pago o cuotas y saldo financiero. |
-| HU03 | RF10, RF11, RF13, RF15 | Conservar comprador, destino, pesos, sacos y flete; registrar cobro o deuda sin descontar mercadería. |
-| HU04 | RF13, RF14 | Mostrar origen, vencimiento, abonos y saldo de cuentas del negocio del Mayorista. |
-| HU05 | RF21, RF22 | Conservar órdenes autorizadas y reintentar sin duplicar registros ni efectos financieros; revalidar permisos. |
-| HU06 | RF18, RF19, RF20 | Diferenciar tendencias de predicción; esta última requiere CL-08 y datos suficientes antes de habilitarse. |
-| HU07 | RF01, RF02 | Autenticar credenciales individuales; mostrar rutas autorizadas y revocar la sesión al salir. |
-| HU08 | RF13, RF14, RF15 | Guardar abono con origen y actualizar saldo una sola vez; rechazar importes superiores al saldo. |
-| HU09 | RF15 | Conservar grupo, operación y costo; liquidar estiba con origen y registro de caja trazables. |
-| HU10 | RF12 | Generar PDF interno de compra o venta confirmada y permitir compartirlo con autorización. |
-| HU11 | RF24 | Filtrar por fecha o participante y mostrar el detalle de la operación, sin saldo de mercadería. |
-| HU12 | RF02 | Crear reemplazo de máximo 24 horas y revocarlo; servidor revalida su vigencia en cada orden. |
-| HU13 | RF22 | Mostrar usuario, fecha, acción y motivo cuando corresponda; impedir cambios de hechos auditados. |
-| HU14 | RF16, RF23 | Mostrar aviso vinculado a una cuenta y vencimiento; evitar duplicados. Canal externo pendiente de definir. |
+| HU01 | RF04–RF06B | Cada saco conserva variedad, calidad, procedencia, bruto, tara y neto; los totales por variedad y cargamento coinciden con el detalle; cerrar el pesaje no crea existencias. |
+| HU02 | RF07, RF14 | Bruto, flete, adelantos, descuentos y líquido se calculan en céntimos; el pago al contado genera una salida de caja y el crédito, una cuenta por pagar con cuotas que suman el líquido. |
+| HU03 | RF10, RF11, RF13 | La venta conserva comprador, destino, líneas, pesos, sacos y flete; al contado genera ingreso de caja y a crédito una cuenta por cobrar; no descuenta mercadería. |
+| HU04 | RF13, RF14 | Cada cuenta muestra origen, contraparte, vencimientos, abonos y saldo, solo del negocio del Mayorista. |
+| HU05 | RF21, RF22 | Una orden reintentada cinco veces produce un único registro y un único efecto financiero; si el reemplazo venció, se rechaza y queda pendiente de revisión. |
+| HU06 | RF18–RF20 | Las tendencias se muestran con el historial disponible; la estimación solo se habilita al cumplir CL-08. |
+| HU07 | RF01, RF02 | Credenciales válidas abren sesión; cerrar sesión revoca el token en el servidor. |
+| HU08 | RF13–RF15 | El abono actualiza el saldo una sola vez y genera su movimiento de caja; se rechaza un importe mayor al saldo. |
+| HU09 | RF15 | Cada registro de flete o estiba conserva su operación de origen; la liquidación agrupa registros pendientes y genera una salida de caja. |
+| HU10 | RF12 | El PDF de una operación confirmada muestra los mismos importes que la consulta; se conserva con hash y versión. |
+| HU11 | RF24 | Los filtros por fecha y participante devuelven solo operaciones del negocio, paginadas. |
+| HU12 | RF02 | Un reemplazo supera 24 horas o se superpone con otro: se rechaza; al revocarlo se cierran las sesiones del Encargado. |
+| HU13 | RF22 | Cada alta, corrección o anulación muestra usuario, fecha, acción y motivo; los eventos no se modifican. |
+| HU14 | RF16, RF23 | Se avisa de cuentas vencidas o por vencer; el Mayorista puede enviar un recordatorio manual desde el aviso. |
+| HU15 | RF25, RF26 | Solo se aceptan formatos permitidos de hasta 20 MiB; cada intento queda registrado; el sistema no afirma entrega ni lectura. |
+| HU16 | RF27, RF25, RF26 | El estado de cuenta coincide con los saldos de Cuentas y caja a la fecha de corte; un comprador sin deuda obtiene saldo cero; el documento enviado se conserva. |
 
-HU04 consulta cuentas; HU08 registra abonos. HU03 registra ventas; HU11 localiza registros anteriores. HU11 muestra operaciones comerciales; HU13 muestra acciones y responsables. HU14 agrega avisos de vencimiento y no una segunda consulta de saldos. RF24 explicita búsqueda e historial ya contemplados en el alcance; no reutiliza RF08/RF09 retirados. Los recordatorios externos requieren definir canal y política antes de implementarlos.
+## Relación con las especificaciones de implementación
 
-## Ejemplos de saldos y excepciones
+| Especificación | Módulo | Requisitos |
+| --- | --- | --- |
+| 001 Identidad y autorización | Identidad y acceso | RF01, RF02, RF22 |
+| 002 Recepción, pesaje y compra | Recepción y compras | RF03–RF07, RF06A, RF06B, RF14 |
+| 003 Ventas y despacho | Ventas y despachos | RF10, RF11, RF13 |
+| 004 Cuentas, caja, flete y estiba | Cuentas y caja; Costos logísticos | RF13–RF15 |
+| 005 Sincronización y auditoría | Transversal | RF21, RF22 |
+| 006 Reportes y comprobantes | Documentos; Reportes y analítica | RF12, RF16–RF18, RF24, RF27 |
+| 007 Analítica progresiva | Reportes y analítica | RF19, RF20 |
+| 008 Mensajería y notificaciones | Mensajería | RF16, RF23, RF25, RF26 |
 
-| Operación ilustrativa | Importe inicial | Abono | Saldo financiero |
+## Alcance: registro comercial sin control de existencias
+
+Desde el 7 de octubre de 2026 el sistema conserva compras, pesajes, ventas y despachos como registros independientes, sin calcular mercadería disponible. Una compra de 100 sacos y una venta de 30 no producen un saldo de 70 sacos, y una venta nunca se bloquea por falta de existencias. Los saldos de dinero (cuentas por pagar y por cobrar, caja) sí se calculan.
+
+## Ejemplos de saldos
+
+| Operación | Importe inicial | Abono | Saldo |
 | --- | --- | --- | --- |
-| Compra a crédito del proveedor | S/1.000,00 | S/600,00 pagados | S/400,00 por pagar |
-| Venta a crédito al comprador | S/800,00 | S/300,00 cobrados | S/500,00 por cobrar |
+| Compra a crédito al proveedor | S/ 1 000,00 | S/ 600,00 pagados | S/ 400,00 por pagar |
+| Venta a crédito al comprador | S/ 800,00 | S/ 300,00 cobrados | S/ 500,00 por cobrar |
 
-En la compra el importe inicial representa la obligación final después de los descuentos acordados. Cada abono conserva fecha, responsable, origen y UUID. Reenviar el abono no modifica el saldo por segunda vez. Un abono mayor al saldo se rechaza sin escrituras parciales. El comprobante y la consulta de cuenta deben mostrar los mismos importes confirmados.
+- Reenviar el mismo abono no modifica el saldo por segunda vez.
+- Un abono mayor al saldo se rechaza sin escrituras parciales.
+- Anular una operación no borra la compra, la venta ni los pagos: registra la compensación con su motivo. Una venta o compra con abonos vigentes no se anula hasta revertirlos.
+- El comprobante, el estado de cuenta y la consulta de la cuenta muestran los mismos importes confirmados.
 
-Los sacos y pesos permanecen en el detalle de cada operación. Una compra de 100 sacos y una venta de 30 no producen un saldo de 70 sacos disponibles.
+## Brechas conocidas
 
-Una anulación después de abonos no borra compra, venta ni pagos: conserva el origen y registra las compensaciones autorizadas. La comprobación debe contrastar cuenta, caja, abonos y auditoría antes/después. Anular una operación no demuestra por sí solo una devolución real de dinero; no se inventa un reembolso automático. La política del caso concreto debe estar especificada antes de implementarlo.
-
-Si el reemplazo vence antes de sincronizar, la API rechaza la confirmación y no aplica efectos. La interfaz conserva la orden como pendiente de revisión y muestra el motivo; no elimina el registro ni promete confirmación automática. El tratamiento posterior requiere una acción autorizada conforme a la especificación.
+| Requisito | Situación |
+| --- | --- |
+| RF11 | El backend valida que los descuentos no superen el importe y aplica un límite de crédito por comprador; no existe un límite de descuento configurable. |
+| RF27 | Requisito nuevo, pendiente de especificar e implementar. |
+| RF16 | Las operaciones pendientes de sincronizar se muestran en la aplicación Android; los avisos de vencimiento los entrega la API. |

@@ -1,36 +1,43 @@
 # Actores y permisos
 
-> **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 1.2
+> **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 2.0 · **Actualización:** 29 de octubre de 2026
+
+## Usuarios del sistema
 
 | Actor | Necesidad principal | Responsabilidades en el sistema |
 | --- | --- | --- |
-| Mayorista | Gestionar y supervisar integralmente el negocio | Tiene acceso completo a todas las secciones y acciones: recepción y pesaje, compras, ventas, cuentas, caja, reportes, tendencias, patrones, pronósticos, configuración y administración de usuarios. |
-| Encargado | Reemplazar operativamente al mayorista cuando esté ausente | Durante la ausencia del mayorista solo puede registrar el pesaje saco por saco e ingresar datos de compras y ventas. No accede a cuentas, caja, reportes, IA, configuración ni administración; el sistema aplica automáticamente los cálculos y efectos autorizados. |
+| Mayorista | Gestionar y supervisar todo el negocio | Acceso completo: recepción y pesaje, compras, ventas, cuentas, caja, costos logísticos, documentos, mensajería, reportes, analítica, auditoría y administración de Encargados. |
+| Encargado | Mantener la operación cuando el Mayorista está ausente | Con credenciales propias y un reemplazo vigente, registra pesajes, compras y ventas. No accede a cuentas, caja, documentos, mensajería, reportes, analítica ni administración. Los efectos automáticos de sus operaciones (deuda, caja, flete) se aplican sin darle acceso a esos módulos. |
 
-## Contexto de interacción
+## Participantes comerciales
 
-El negocio compra cargamentos de papa, pesa saco por saco durante la descarga, negocia precios y liquida obligaciones con proveedores. Luego vende y despacha a compradores, conserva el historial y registra cobros, pagos y costos.
+El negocio compra cargamentos de papa, pesa saco por saco durante la descarga, liquida al proveedor, vende y despacha a compradores de otros departamentos, y registra cobros, pagos y costos. Los participantes comerciales se registran como datos de cada operación; ninguno tiene cuenta de acceso.
 
-| Participante comercial | Relación con el proceso | Acceso a la aplicación |
+| Participante | Relación con el proceso | Interacción con el sistema |
 | --- | --- | --- |
-| Proveedor | Entrega cargamentos y recibe la liquidación o saldo | No se define cuenta de acceso |
-| Comprador | Recibe la venta y mantiene compromisos de pago | No se define cuenta de acceso |
-| Transportista/conductor | Traslada mercadería y participa en el acuerdo de flete | No se define cuenta de acceso |
-| Grupo de estibadores | Realiza carga/descarga y recibe liquidación | No se define cuenta de acceso |
+| Proveedor | Entrega cargamentos y recibe su liquidación o saldo | Puede recibir comprobantes por WhatsApp o correo |
+| Comprador | Recibe la venta y mantiene compromisos de pago | Puede recibir comprobantes y su estado de cuenta por WhatsApp o correo |
+| Transportista / conductor | Traslada la mercadería; participa en el acuerdo de flete | Solo como dato de la operación |
+| Grupo de estibadores | Carga y descarga; recibe su liquidación | Solo como dato de la operación |
 
 ## Matriz de autorización
 
 | Acción | Mayorista | Encargado |
 | --- | --- | --- |
-| Iniciar/cerrar su sesión | Sí | Sí |
+| Iniciar y cerrar su sesión | Sí | Sí |
 | Registrar pesaje, compra y venta | Sí | Solo con reemplazo autorizado, vigente y no revocado |
-| Consultar cuentas, caja y reportes | Sí | No |
-| Administrar usuarios y reemplazos | Sí | No |
-| Consultar auditoría y configurar el negocio | Sí | No |
-| Consultar predicciones | Según disponibilidad aprobada del módulo | No |
+| Seleccionar proveedores, compradores, variedades, calidades y procedencias existentes | Sí | Solo durante el reemplazo |
+| Crear, editar o desactivar esas referencias | Sí | No |
+| Anular compras y ventas; registrar devoluciones comerciales | Sí | No |
+| Consultar cuentas y caja; registrar pagos y cobros | Sí | No |
+| Registrar y liquidar flete y estiba | Sí | No |
+| Generar comprobantes y estados de cuenta | Sí | No |
+| Enviar documentos por WhatsApp o correo | Sí | No |
+| Consultar reportes, historial, analítica y auditoría | Sí | No |
+| Administrar Encargados y reemplazos | Sí | No |
 
-El reemplazo dura como máximo 24 horas. El backend revalida permisos y negocio en cada operación central, incluso al sincronizar órdenes capturadas offline. Los efectos automáticos de una compra o venta no conceden acceso al Encargado a los módulos afectados.
+El reemplazo dura como máximo 24 horas y el Mayorista puede revocarlo en cualquier momento. La API revalida sesión, rol, negocio y reemplazo en cada operación, incluidas las órdenes capturadas sin conexión que se sincronizan después. Iniciar sesión no concede por sí mismo permisos comerciales al Encargado.
 
-## Permisos de las historias ampliadas
+## Relación con las historias
 
-HU07 admite acceso y cierre para ambos actores; iniciar sesión no concede permiso de reemplazo. HU08–HU14 corresponden al Mayorista: abonos, estiba, comprobantes, búsqueda, reemplazos, auditoría y avisos. No amplían los permisos comerciales del Encargado. Los efectos automáticos de HU01–HU03 conservan la autorización vigente.
+HU07 aplica a ambos actores. HU01–HU03 y HU05 aplican al Encargado solo durante un reemplazo vigente. HU04, HU06 y HU08–HU16 corresponden únicamente al Mayorista. Ver [historias de usuario](02-historias-del-usuario.md).

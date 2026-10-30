@@ -1,0 +1,62 @@
+import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
+import {writeFile} from 'node:fs/promises';
+import {DataSource} from 'typeorm';
+import {CommercialCharacteristicEntity} from '../dist/catalog/entities/commercial-characteristic.entity.js';
+import {CharacteristicsService} from '../dist/catalog/characteristics.service.js';
+import {AuditService} from '../dist/audit/audit.service.js';
+import {AuditEventEntity} from '../dist/audit/audit-event.entity.js';
+import {CommercialCharacteristics1791936000024} from '../dist/database/migrations/202610140024-commercial-characteristics.js';
+import {AuditEvents1790208000004} from '../dist/database/migrations/202609240004-audit-events.js';
+
+const database=process.env.DATABASE_NAME;
+if(!/^mercado_ui_test_[a-f0-9]{32}$/.test(database??''))throw new Error('Expected named isolated QA database.');
+const schema=`qa_characteristics_${randomUUID().replaceAll('-','')}`;
+const dataSource=new DataSource({type:'postgres',host:'127.0.0.1',port:55437,username:'mercado_test',password:process.env.DATABASE_PASSWORD,database,schema,entities:[CommercialCharacteristicEntity,AuditEventEntity],synchronize:false,logging:false});
+await dataSource.initialize();const runner=dataSource.createQueryRunner();await runner.connect();await runner.startTransaction();
+const checks=[];
+try{
+  await runner.query(`CREATE SCHEMA "${schema}"`);
+  await runner.query(`SET LOCAL search_path TO "${schema}"`);
+  await runner.query('CREATE TABLE businesses(id uuid PRIMARY KEY)');await runner.query('CREATE TABLE users(id uuid PRIMARY KEY)');
+  await new AuditEvents1790208000004().up(runner);
+  const migration=new CommercialCharacteristics1791936000024();await migration.up(runner);
+  const [businessId,otherBusiness,userId]=[randomUUID(),randomUUID(),randomUUID()];
+  await runner.query('INSERT INTO businesses(id) VALUES($1),($2)',[businessId,otherBusiness]);await runner.query('INSERT INTO users(id) VALUES($1)',[userId]);
+  const identity={businessId,businessName:'QA',userId,username:'QA',role:'wholesaler',sessionId:randomUUID(),expiresAt:new Date('2099-01-01')};
+  const audit=new AuditService(runner.manager.getRepository(AuditEventEntity),{});
+  // Root rollback covers every fixture; production service keeps its real
+  // TypeORM repository and nested transaction/savepoints on this runner.
+  const adapter={transaction:work=>runner.manager.transaction(work)};
+  const service=new CharacteristicsService(adapter,audit,runner.manager.getRepository(CommercialCharacteristicEntity));
+  const quality=await service.save(identity,'quality','  Calidad QA  ');
+  assert.equal(quality.name,'Calidad QA');
+  await assert.rejects(service.save(identity,'quality','CALIDAD QA'),error=>error.status===409);
+  const origin=await service.save(identity,'origin','Calidad QA');
+  await service.save({...identity,businessId:otherBusiness},'quality','Calidad QA');
+  checks.push('active-name uniqueness scoped to business and dimension');
+  await assert.rejects(service.save(identity,'origin','Otra',quality.id),error=>error.status===404);
+  await assert.rejects(service.deactivate({...identity,businessId:otherBusiness},'quality',quality.id),error=>error.status===404);
+  assert.equal((await service.list(businessId,'quality',{limit:20,offset:0})).total,1);
+  checks.push('cross-business and cross-dimension writes rejected');
+  const renamed=await service.save(identity,'origin','Origen renombrado',origin.id);assert.equal(renamed.name,'Origen renombrado');
+  await service.deactivate(identity,'quality',quality.id);
+  assert.equal((await service.list(businessId,'quality',{limit:20,offset:0})).total,0);
+  assert.equal((await runner.manager.getRepository(CommercialCharacteristicEntity).findOneByOrFail({id:quality.id})).isActive,false);
+  await service.save(identity,'quality','Calidad QA');
+  checks.push('rename and soft deactivation preserve old identity; name reusable');
+  const before=(await runner.query('SELECT count(*)::int AS n FROM audit_events'))[0].n;
+  const brokenAudit={record:async()=>{throw new Error('QA audit unavailable');}};
+  const broken=new CharacteristicsService(adapter,brokenAudit,runner.manager.getRepository(CommercialCharacteristicEntity));
+  await assert.rejects(broken.save(identity,'quality','No debe persistir'),/QA audit unavailable/);
+  assert.equal(await runner.manager.getRepository(CommercialCharacteristicEntity).countBy({name:'No debe persistir'}),0);
+  assert.equal((await runner.query('SELECT count(*)::int AS n FROM audit_events'))[0].n,before);
+  checks.push('audit failure rolls back catalog write');
+  await assert.rejects(migration.down(runner),/existen características/);
+  checks.push('down migration refuses retained options');
+  assert.equal((await runner.query('SELECT count(*)::int AS n FROM audit_events'))[0].n,6);
+  await runner.rollbackTransaction();
+  const remains=await dataSource.query('SELECT 1 FROM pg_namespace WHERE nspname=$1',[schema]);assert.equal(remains.length,0);
+  const evidence={checkedAt:new Date().toISOString(),scope:'isolated schema on guarded QA database; complete root rollback',checks,historyBackfilled:false,commercialOperationsExecuted:false};
+  await writeFile(new URL('../../tmp/commercial-characteristics-pg-20261014.json',import.meta.url),JSON.stringify(evidence,null,2));console.log(JSON.stringify(evidence));
+}finally{if(runner.isTransactionActive)await runner.rollbackTransaction();await runner.release();await dataSource.destroy();}
