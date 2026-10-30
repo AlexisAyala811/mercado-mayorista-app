@@ -14,7 +14,7 @@ Fuente editable: [nivel3-componentes.svg](../../img/fuentes-svg/nivel3-component
 
 ## Componentes
 
-| Componente | Código en `mercado-api/src` | Función | Historias |
+| Componente | Código en `backend/src` | Función | Historias |
 | --- | --- | --- | --- |
 | API REST | Controladores, DTO, guardas, filtro de errores | Entrada `/api/v1`: sesión, rol, negocio y validación | — |
 | 1 · Identidad y acceso | `identity` | Sesiones, Encargados y reemplazos | HU07, HU12 |

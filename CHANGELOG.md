@@ -1,5 +1,25 @@
 # Historial de cambios
 
+## 2.1 · 29 de octubre de 2026
+
+### Monorepo
+
+- El backend (`mercado-api`) se incorpora en `backend/` conservando su historial. La documentación enlaza a `backend/src`.
+
+### Entrega y despliegue continuos (ADR-05)
+
+- `backend-ci.yml`: en cada PR, tipos, lint, pruebas unitarias, build, `npm audit` sin vulnerabilidades altas, migraciones y pruebas e2e en PostgreSQL 17 e imagen Docker.
+- `backend-cd.yml`: en cada push a `main`, CI completa, publicación de la imagen en GitHub Container Registry y despliegue automático con migración, comprobación de salud y reversión cuando el entorno `production` está configurado.
+- `docs-ci.yml`: verificación de enlaces y anclas de la documentación.
+- `backend/deploy/`: compose de producción (API solo en `127.0.0.1`, OpenAPI desactivado) y script de despliegue.
+- Nuevo documento [entrega y despliegue continuos](docs/03-diseño-de-software/entrega-y-despliegue-continuos.md).
+
+### Backend
+
+- Las pruebas e2e se ejecutan de forma secuencial (las suites compartían la base y migraban en paralelo).
+- La prueba de migraciones y el script de respaldo comparan con las migraciones registradas en lugar de un número fijo.
+- Dependencias: corregidas las vulnerabilidades altas de `body-parser` y `multer`.
+
 ## 2.0 · 29 de octubre de 2026
 
 ### Organización en módulos

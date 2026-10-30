@@ -30,7 +30,7 @@ El diagrama tiene cuatro columnas: presentación (azul), servicios (verde), regl
 | DataSource / EntityManager | Ejecutar transacciones y acceder a repositorios | Dependencias TypeORM de ambos servicios |
 | AuditService | Registrar hechos en la transacción correspondiente | `src/audit/audit.service.ts` |
 
-Las rutas son relativas a `mercado-api`. La vista es selectiva y omite campos y métodos secundarios. Recepción y saco se asocian mediante `receptionId`.
+Las rutas son relativas a `backend/`. La vista es selectiva y omite campos y métodos secundarios. Recepción y saco se asocian mediante `receptionId`.
 
 ## Recorrido de ingreso de pesos
 

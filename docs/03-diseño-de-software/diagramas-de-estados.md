@@ -1,6 +1,6 @@
 # Diagramas de estados
 
-> **Proyecto:** Gestión comercial mayorista de papa · **Versión:** 2.0 · **Actualización:** 29 de octubre de 2026 · **Fuente:** enumeraciones y servicios de `mercado-api`
+> **Proyecto:** Gestión comercial mayorista de papa · **Versión:** 2.0 · **Actualización:** 29 de octubre de 2026 · **Fuente:** enumeraciones y servicios de `backend/`
 
 Cada cambio de estado incrementa la `version` del registro y queda en auditoría. Ningún estado final borra datos: las anulaciones conservan la operación con su motivo.
 

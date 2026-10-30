@@ -29,7 +29,7 @@ Se elige porque une pesaje, flete y obligaciones con el proveedor: una diferenci
 ### Estructura
 
 ```text
-mercado-api/src/
+backend/src/
 ├── purchase/
 │   ├── purchase.module.ts
 │   ├── purchase.controller.ts

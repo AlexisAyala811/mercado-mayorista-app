@@ -1,6 +1,6 @@
 # Vista de despliegue
 
-> **Proyecto:** Gestión comercial mayorista de papa · **Versión:** 2.0 · **Actualización:** 29 de octubre de 2026 · **Fuente:** `Dockerfile` y `compose.yaml` de `mercado-api`
+> **Proyecto:** Gestión comercial mayorista de papa · **Versión:** 2.0 · **Actualización:** 29 de octubre de 2026 · **Fuente:** `Dockerfile` y `compose.yaml` de `backend/`
 
 ```mermaid
 flowchart LR
@@ -43,9 +43,13 @@ Variables principales (ver `.env.example`): conexión a PostgreSQL (`DATABASE_*`
 | Restauración | `scripts/restore-postgres.ps1` |
 | Escalado | Varias instancias de `api` detrás de un balanceador; el estado vive en PostgreSQL |
 
+## Producción
+
+En producción la API no se construye en el servidor: se usa la imagen que publica el pipeline de entrega continua, con `backend/deploy/compose.prod.yaml` (API solo en `127.0.0.1` y OpenAPI desactivado por defecto) y `backend/deploy/deploy.sh` (migrar, arrancar, comprobar salud y revertir). El proceso completo está en [entrega y despliegue continuos](entrega-y-despliegue-continuos.md).
+
 ## Pendiente para producción
 
+- Contratar el servidor y configurar el entorno `production` en GitHub.
 - Terminación HTTPS (proxy inverso) y configuración de `trust proxy` para el límite de intentos de inicio de sesión.
-- Desactivar la documentación OpenAPI (`OPENAPI_ENABLED=false`).
 - Respaldos programados y simulacro de restauración con RPO/RTO medidos (AC08).
 - Monitoreo de disponibilidad (AC02).

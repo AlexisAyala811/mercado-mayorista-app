@@ -50,10 +50,10 @@ Ejemplo: bruto **52,500 kg** y tara **0,500 kg** producen **52,000 kg netos**. U
 
 | Archivo del proyecto técnico | Responsabilidad constatada |
 | --- | --- |
-| `mercado-api/src/reception/reception.controller.ts` | Entrada `addSack` y delegación de la operación |
-| `mercado-api/src/reception/http/weighing.dto.ts` | UUID, versión, variedad, peso bruto y tara; validación de formato |
-| `mercado-api/src/reception/weighing.service.ts` | `add`, transacción, bloqueo por negocio/UUID, estado, variedad, versión y `calculateWeights` |
-| `mercado-api/src/common/domain/fixed-decimal.ts` | Conversión decimal determinista usada por las reglas |
+| `backend/src/reception/reception.controller.ts` | Entrada `addSack` y delegación de la operación |
+| `backend/src/reception/http/weighing.dto.ts` | UUID, versión, variedad, peso bruto y tara; validación de formato |
+| `backend/src/reception/weighing.service.ts` | `add`, transacción, bloqueo por negocio/UUID, estado, variedad, versión y `calculateWeights` |
+| `backend/src/common/domain/fixed-decimal.ts` | Conversión decimal determinista usada por las reglas |
 | `mercado-app/src/domain/reception/reception.ts` | Modelo del saco y representación de resultados para la interfaz |
 | `mercado-app/src/services/api/reception-api.ts` | Envío de `addSack` al contrato central |
 

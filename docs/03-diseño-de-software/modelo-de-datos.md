@@ -1,6 +1,6 @@
 # Modelo de datos
 
-> **Proyecto:** Gestión comercial mayorista de papa · **Versión:** 2.0 · **Actualización:** 29 de octubre de 2026 · **Fuente:** entidades y migraciones de `mercado-api`
+> **Proyecto:** Gestión comercial mayorista de papa · **Versión:** 2.0 · **Actualización:** 29 de octubre de 2026 · **Fuente:** entidades y migraciones de `backend/`
 
 PostgreSQL es la fuente oficial. Todas las tablas de negocio llevan `business_id` y cada consulta filtra por él. Los importes se guardan en céntimos (`bigint`) y los pesos en kilogramos con tres decimales (`numeric(…, 3)`). Las operaciones que llegan desde la tablet tienen `client_operation_id` único por negocio para la idempotencia.
 

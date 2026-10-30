@@ -1,17 +1,17 @@
 # Escenarios verificables de calidad
 
-> **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 2.0 · **Actualización:** 29 de octubre de 2026
+> **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 2.1 · **Actualización:** 29 de octubre de 2026
 
 | ID | Fuente y estímulo | Entorno y artefacto | Respuesta | Medida | Estado de la evidencia |
 | --- | --- | --- | --- | --- | --- |
 | AC01 | El operador ingresa un peso; los usuarios consultan | Descarga en piloto; tablet y API | Guardar localmente y responder consultas | Peso < 1 s; p95 central < 3 s con 20 usuarios | Pendiente: medición en dispositivo y prueba de carga |
 | AC02 | La red se interrumpe 2 h | Tablet sin Internet | Mantener la captura y recuperar pendientes | Continuidad de 2 h; servicio 99,5 % mensual | Cola cifrada implementada; falta validación prolongada y monitoreo |
-| AC03 | El cliente reenvía la misma operación cinco veces o reutiliza su UUID con otros datos | API y PostgreSQL | Devolver el resultado previo; rechazar el UUID reutilizado con `409` | Un registro y un efecto financiero | Pruebas unitarias de idempotencia en compras, ventas, cuentas, pesaje, flete y estiba; falta prueba concurrente sobre PostgreSQL |
+| AC03 | El cliente reenvía la misma operación cinco veces o reutiliza su UUID con otros datos | API y PostgreSQL | Devolver el resultado previo; rechazar el UUID reutilizado con `409` | Un registro y un efecto financiero | Pruebas unitarias de idempotencia en compras, ventas, cuentas, pesaje, flete y estiba, y 35 pruebas e2e en PostgreSQL 17 (reintentos, concurrencia y respuesta perdida), ejecutadas en cada PR por la CI |
 | AC04 | Un usuario consulta datos de otro negocio | Endpoints protegidos y archivos | Denegar y registrar el intento | Cero datos expuestos | Todas las consultas filtran por negocio y se audita la denegación por rol; falta registrar en auditoría el intento entre negocios |
 | AC05 | Un usuario capacitado registra un cargamento | Tablet 1280 × 800 | Captura y cierre claros | ≥ 90 % sin asistencia ni pérdida | Pendiente: evaluación con usuarios |
 | AC06 | La carga sube de 20 a 40 usuarios | Despliegue central | Añadir una instancia del backend | Mantener AC01 | Pendiente: prueba de carga |
 | AC07 | El equipo modifica una regla de estiba | Módulo Costos logísticos y regresión | Cambio localizado | Sin cambios en pesaje ni cuentas | Verificable por revisión de dependencias y pruebas del módulo |
-| AC08 | Falla la base central | Respaldo y restauración | Recuperar la operación | RPO 24 h / RTO 4 h | Scripts de respaldo y restauración probados sobre base de prueba; falta simulacro con tiempos medidos |
+| AC08 | Falla la base central | Respaldo y restauración | Recuperar la operación | RPO 24 h / RTO 4 h | Respaldo y restauración verificados sobre base de prueba (29 oct. 2026); cada versión queda publicada y se puede redesplegar por su etiqueta; falta simulacro con tiempos medidos |
 
 ## Verificación de historias complementarias
 

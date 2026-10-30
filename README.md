@@ -2,7 +2,10 @@
 
 Documentación de la aplicación móvil de gestión comercial para mayoristas de papa: análisis del sistema, arquitectura, diseño interno y modelo C4.
 
-**Versión 2.0 · 29 de octubre de 2026** · Cambios en el [CHANGELOG](CHANGELOG.md).
+**Versión 2.1 · 29 de octubre de 2026** · Cambios en el [CHANGELOG](CHANGELOG.md).
+
+[![Backend · CD](https://github.com/AlexisAyala811/mercado-mayorista-app/actions/workflows/backend-cd.yml/badge.svg)](https://github.com/AlexisAyala811/mercado-mayorista-app/actions/workflows/backend-cd.yml)
+[![Documentación · CI](https://github.com/AlexisAyala811/mercado-mayorista-app/actions/workflows/docs-ci.yml/badge.svg)](https://github.com/AlexisAyala811/mercado-mayorista-app/actions/workflows/docs-ci.yml)
 
 ## Descripción
 
@@ -57,6 +60,7 @@ Detalle y correspondencia con el código: [componentes arquitectónicos](docs/02
 - [Modelo de datos](docs/03-diseño-de-software/modelo-de-datos.md)
 - [Diagramas de estados](docs/03-diseño-de-software/diagramas-de-estados.md)
 - [Vista de despliegue](docs/03-diseño-de-software/vista-de-despliegue.md)
+- [Entrega y despliegue continuos](docs/03-diseño-de-software/entrega-y-despliegue-continuos.md)
 
 ### 4. Modelo C4
 
@@ -80,6 +84,11 @@ Detalle y correspondencia con el código: [componentes arquitectónicos](docs/02
 
 ```text
 mercado-mayorista-app/
+├── .github/workflows/   # CI/CD: backend-ci, backend-cd, docs-ci
+├── backend/             # API NestJS (mercado-api)
+│   ├── src/
+│   ├── test/
+│   └── deploy/          # compose de producción y script de despliegue
 ├── docs/
 │   ├── 01-analisis-de-sistema/
 │   ├── 02-arquitectura-software/
@@ -87,14 +96,26 @@ mercado-mayorista-app/
 │   │   └── diseño-interno/
 │   ├── 04-modelo-c4/
 │   └── glosario.md
-├── img/              # Diagramas PNG
-│   └── fuentes-svg/  # Fuentes editables
+├── img/                 # Diagramas PNG
+│   └── fuentes-svg/     # Fuentes editables
 ├── tecnologia/
 ├── CHANGELOG.md
 └── README.md
 ```
 
 Los diagramas de modelo de datos, estados y despliegue están escritos en Mermaid dentro de cada documento y GitHub los muestra directamente.
+
+## Código
+
+El backend está en [`backend/`](backend/README.md). Para ejecutarlo en local:
+
+```bash
+cd backend
+cp .env.example .env   # completar la contraseña de la base de datos
+docker compose up --build
+```
+
+La API queda en `http://localhost:3000/api/v1`. Todo cambio entra por pull request: la integración continua verifica tipos, lint, pruebas unitarias y e2e en PostgreSQL, build e imagen, y cada commit en `main` publica y despliega una nueva versión. Ver [entrega y despliegue continuos](docs/03-diseño-de-software/entrega-y-despliegue-continuos.md).
 
 ## Presentación
 

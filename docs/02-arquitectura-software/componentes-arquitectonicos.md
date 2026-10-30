@@ -6,7 +6,7 @@ Este documento es la referencia única de los módulos del sistema (ADR-04). Las
 
 ## Módulos de negocio
 
-| # | Módulo | Responsabilidad | Historias | Requisitos | Carpetas en `mercado-api/src` |
+| # | Módulo | Responsabilidad | Historias | Requisitos | Carpetas en `backend/src` |
 | --- | --- | --- | --- | --- | --- |
 | 1 | Identidad y acceso | Sesión, Encargados y reemplazos | HU07, HU12 | RF01, RF02 | `identity` |
 | 2 | Recepción y compras | Pesaje saco por saco, cierre y liquidación al proveedor | HU01, HU02 | RF05–RF07, RF06A, RF06B, RF14 | `reception`, `purchase` |

@@ -23,6 +23,7 @@ Los códigos CL (clarificación) identifican las decisiones aprobadas durante la
 | — | Referencias comerciales dentro de cada operación (ver ADR) | 14 oct. 2026 | RF03, RF04 |
 | CL-MN | Envío manual de documentos por WhatsApp o correo (ver ADR) | 26 oct. 2026 | RF23, RF25, RF26 |
 | — | Organización en ocho módulos de negocio y estado de cuenta del comprador (ver ADR) | 29 oct. 2026 | RF27 |
+| — | Monorepo con entrega y despliegue continuos (ver ADR) | 29 oct. 2026 | AC03, AC07, AC08, DA06, DA07 |
 
 CL-11 (margen por valoración de lotes) quedó sin efecto con el retiro del control de existencias.
 
@@ -63,6 +64,16 @@ La aplicación Android prepara el archivo (comprobante, estado de cuenta, imagen
 **Estado:** aprobado el 29 de octubre de 2026.
 
 El sistema se organiza por proceso de negocio en ocho módulos (Identidad y acceso; Recepción y compras; Ventas y despachos; Cuentas y caja; Costos logísticos; Documentos; Mensajería; Reportes y analítica) más responsabilidades transversales (auditoría, referencias comerciales y sincronización). Documentos genera los archivos y Mensajería los envía. Se agrega HU16/RF27: estado de cuenta del comprador en PDF e imagen. El detalle está en [componentes arquitectónicos](../02-arquitectura-software/componentes-arquitectonicos.md).
+
+## ADR-05 · Monorepo con entrega y despliegue continuos
+
+**Estado:** aprobado el 29 de octubre de 2026.
+
+La documentación y el código conviven en un único repositorio: `docs/` e `img/` para la documentación, `backend/` para la API y, más adelante, `app/` para el cliente Android. Una funcionalidad puede cambiar su documento y su código en el mismo pull request.
+
+`main` es la única rama de entrega y todo cambio llega por pull request. Cada PR pasa la integración continua (tipos, lint, pruebas unitarias y e2e en PostgreSQL, build, auditoría de dependencias e imagen Docker). Cada commit en `main` publica una imagen versionada (entrega continua) y, con el entorno de producción configurado, la despliega, migra, comprueba la salud y revierte si falla (despliegue continuo).
+
+Consecuencias: las migraciones deben ser compatibles con la versión anterior (expandir y luego contraer); las credenciales viven solo en GitHub y en el servidor. Detalle en [entrega y despliegue continuos](../03-diseño-de-software/entrega-y-despliegue-continuos.md).
 
 ## Condiciones de habilitación de la predicción (CL-08)
 
