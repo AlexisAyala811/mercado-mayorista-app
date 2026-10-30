@@ -124,7 +124,7 @@ Algunas tablas apuntan a operaciones de distinto tipo mediante un par tipo + ide
 | `cash_movements` | `source_type`, `source_id` | compra, venta, abono, devolución, flete, estiba |
 | `freight_entries` | `operation_type`, `operation_id` | `purchase`, `sale` |
 | `stowage_entries` | `operation_type`, `operation_id` | `purchase`, `sale` |
-| `receipt_documents` | `source_type`, `source_id` | `purchase`, `sale`, `sale-return` |
+| `receipt_documents` | `source_type`, `source_id` | `purchase`, `sale`, `sale-return` (comprobantes PDF); `buyer-statement` (PDF) y `buyer-statement-image` (PNG) del estado de cuenta, con `source_id` del comprador |
 | `audit_events` | `resource_type`, `resource_id` | cualquier recurso auditado |
 
 La integridad de estas referencias la garantiza el servicio dentro de la transacción.
@@ -135,4 +135,5 @@ La integridad de estas referencias la garantiza el servicio dentro de la transac
 - `lower(username)` único en `users`.
 - `token_hash` único en `sessions`; el token en claro nunca se guarda.
 - Una cuenta por operación de origen: `(business_id, source_type, source_id)` único en `accounts`.
+- `receipt_documents` admite `application/pdf` e `image/png` (migración 028) y conserva cada versión durante el periodo de retención; un trigger impide borrarlas antes.
 - Las migraciones se aplican de forma explícita (`npm run migration:run`); `synchronize` está desactivado.

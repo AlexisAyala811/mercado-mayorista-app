@@ -28,7 +28,7 @@ describe('PostgreSQL migrations (e2e)', () => {
     // Compare with the registered list so a new migration does not need a test edit.
     const registered = dataSource.migrations.map((migration) => migration.name);
     expect(migrations.map((migration) => migration.name)).toEqual(registered);
-    expect(registered.at(-1)).toBe('InstallmentVoidedState1793232000027');
+    expect(registered.at(-1)).toBe('ReceiptDocumentsPng1793318400028');
 
     const tables = (await dataSource.query(
       `SELECT table_name AS name FROM information_schema.tables

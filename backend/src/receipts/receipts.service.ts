@@ -295,12 +295,17 @@ export class ReceiptsService {
     return new Map(varieties.map((variety) => [variety.id, variety.name]));
   }
 
-  private async getOrCreateDocument(
+  /** Returns the stored document for this source version, or renders and keeps it. */
+  async getOrCreateDocument(
     identity: SessionIdentity,
     sourceType: string,
     sourceId: string,
     sourceVersion: string,
     render: () => Promise<Buffer>,
+    format: { extension: string; mimeType: string } = {
+      extension: 'pdf',
+      mimeType: 'application/pdf',
+    },
   ) {
     const { businessId } = identity;
     const stored = await this.documents.findOne({
@@ -347,9 +352,9 @@ export class ReceiptsService {
         repository.create({
           businessId,
           content,
-          filename: `${sourceType}-${sourceId}.pdf`,
+          filename: `${sourceType}-${sourceId}.${format.extension}`,
           invalidatedAt: null,
-          mimeType: 'application/pdf',
+          mimeType: format.mimeType,
           retentionUntil,
           sha256: createHash('sha256').update(content).digest('hex'),
           sourceId,

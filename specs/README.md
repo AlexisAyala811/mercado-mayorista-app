@@ -11,6 +11,8 @@ Este índice conecta la línea base documental, el diseño de Figma y el trabajo
 | 005 | Operación offline, sincronización y auditoría | RF21, RF22 | Backend e interfaz móvil implementados; prueba instrumental Android pendiente | Cola cifrada y contratos centrales implementados |
 | 006 | Reportes y comprobantes | RF12, RF17, RF18 | Backend e interfaz móvil implementados; evidencia en tablet pendiente | CL-11 aprobada e implementada; visor nativo requiere cliente de desarrollo |
 | 007 | Analítica e inteligencia artificial | RF19, RF20 | Borrador | CL-08, CL-10 |
+| 008 | Mensajería y notificaciones | RF16, RF23, RF25, RF26 | Backend y Android implementados; evidencia nativa pendiente | CL-MN01–03 resueltas |
+| 009 | Estado de cuenta del comprador | RF27 (HU16) | Backend implementado y verificado; Android y Figma pendientes | Decisión del 29 de octubre de 2026 |
 
 ## Artefactos transversales
 
