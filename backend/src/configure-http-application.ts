@@ -5,6 +5,7 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { ApiExceptionFilter } from './common/http/api-exception.filter.js';
+import { parseTrustProxy } from './config/environment.schema.js';
 import { requestContextMiddleware } from './common/http/request-context.middleware.js';
 
 export function configureHttpApplication(app: NestExpressApplication) {
@@ -15,6 +16,10 @@ export function configureHttpApplication(app: NestExpressApplication) {
     .map((origin) => origin.trim())
     .filter(Boolean);
 
+  app.set(
+    'trust proxy',
+    parseTrustProxy(config.getOrThrow<string>('TRUST_PROXY')),
+  );
   app.setGlobalPrefix('api/v1');
   app.useSecurityHeaders();
   app.use(requestContextMiddleware);
