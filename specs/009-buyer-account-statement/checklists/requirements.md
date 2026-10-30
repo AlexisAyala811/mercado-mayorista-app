@@ -7,7 +7,7 @@
 - [x] Aislamiento por negocio y auditoría de generación y envío.
 - [x] Comprador sin deuda, ventas anuladas y devoluciones cubiertas por escenarios.
 - [x] Sin cambios de dinero, inventario ni cola comercial.
-- [ ] Aclaraciones CL-EC01 a CL-EC06 resueltas por el usuario.
+- [x] Aclaraciones CL-EC01 a CL-EC06 resueltas por el usuario el 30 de octubre de 2026.
 - [ ] Diseño en Figma (CL-EC07).
 
 ## Artefactos

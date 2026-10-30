@@ -1,6 +1,6 @@
 # Especificación 009: Estado de cuenta del comprador
 
-**Estado:** borrador · fase `specify` · aclaraciones abiertas (ver «Aclaraciones»)
+**Estado:** especificada y aclarada · lista para `plan` (Figma pendiente, CL-EC07)
 **Fecha:** 30 de octubre de 2026 · **Decisión de origen:** [módulos y estado de cuenta](../../docs/sdd/decision-modulos-y-estado-de-cuenta-2026-10-29.md)
 
 ## Objetivo
@@ -112,18 +112,24 @@ Los importes se expresan en soles con dos decimales y siempre coinciden con los 
 
 ## Aclaraciones
 
-Decisiones necesarias antes del plan. Cada una tiene una propuesta; la elección del usuario se registrará aquí y en `docs/sdd/`.
+Resueltas por el usuario el 30 de octubre de 2026 ([registro](../../docs/sdd/aclaraciones-estado-de-cuenta-2026-10-30.md)).
 
-| ID | Pregunta | Propuesta |
+| ID | Pregunta | Decisión |
 | --- | --- | --- |
-| CL-EC01 | ¿Qué ventas incluye: solo las que tienen saldo pendiente, o también las pagadas dentro de un periodo? | Solo saldo pendiente |
-| CL-EC02 | ¿Nivel de detalle: por venta con sus cuotas, una línea por venta, o extracto movimiento a movimiento? | Por venta con sus cuotas |
-| CL-EC03 | ¿La fecha de corte es siempre el momento de generarlo, o se puede elegir una fecha pasada? | Siempre el momento actual |
-| CL-EC04 | ¿Se hace también para proveedores (lo que el negocio les debe)? | Solo compradores en este corte |
-| CL-EC05 | ¿Se muestra el límite de crédito del comprador y el crédito disponible? | No mostrarlo |
-| CL-EC06 | ¿Formato de la imagen cuando hay muchas ventas? | Una imagen vertical; si no cabe, recomendar el PDF |
-| CL-EC07 | Diseño visual en Figma | Pendiente de diseño |
+| CL-EC01 | ¿Qué ventas incluye? | **Solo las que tienen saldo pendiente.** Las ventas pagadas o anuladas no aparecen. |
+| CL-EC02 | ¿Nivel de detalle? | **Por venta con sus cuotas:** importe, abonos, devoluciones y saldo de cada venta; debajo, sus cuotas pendientes con vencimiento y marca de vencida. |
+| CL-EC03 | ¿Fecha de corte? | **Siempre el momento de generarlo.** No se reconstruyen saldos de fechas pasadas. |
+| CL-EC04 | ¿También para proveedores? | **Solo compradores en este corte.** Proveedores será una historia futura. |
+| CL-EC05 | ¿Mostrar el límite de crédito? | Sin preferencia del usuario; se adopta la propuesta: **no se muestra.** |
+| CL-EC06 | ¿Imagen con muchas ventas? | **Imagen para hasta 10 ventas con saldo;** con más, solo se ofrece el PDF y se explica el motivo. |
+| CL-EC07 | Diseño visual en Figma | Pendiente; el plan definirá la estructura y Figma la convergencia visual. |
+
+### Criterio de aceptación derivado de CL-EC06
+
+- **Dado** un comprador con 11 o más ventas con saldo pendiente
+- **Cuando** el Mayorista genera su estado de cuenta
+- **Entonces** puede ver y enviar el PDF, la opción de imagen no está disponible y la aplicación explica que el detalle no cabe legible en una imagen.
 
 ## Artefactos SDD relacionados
 
-[Checklist de requisitos](checklists/requirements.md). Plan y tareas se crearán después de cerrar las aclaraciones.
+[Checklist de requisitos](checklists/requirements.md). Siguiente fase: plan y tareas.
