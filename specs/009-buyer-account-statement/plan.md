@@ -149,6 +149,13 @@ Requisito previo: incorporar `mercado-app` al monorepo en `app/` con su CI, para
 - Backend: `@resvg/resvg-js` (render SVG a PNG) y la fuente Noto Sans. Se revisan con `npm audit` en la CI.
 - Android: ninguna; se reutilizan `expo-file-system` y `expo-sharing`.
 
+## Cambios durante la implementación
+
+- **Migración 028 `ReceiptDocumentsPng`:** `receipt_documents` tenía la restricción `ck_receipt_documents_mime` limitada a `application/pdf`, que el plan no consideró. La e2e la detectó al guardar la primera imagen (`500` por `QueryFailedError`). La migración admite también `image/png`; su reversión se niega si ya hay imágenes conservadas, porque el trigger de retención impide borrarlas.
+- **`getOrCreateDocument`** de `ReceiptsService` pasa a ser público y recibe el tipo de archivo (extensión y MIME), con PDF por defecto para no cambiar los comprobantes.
+- **Vista compartida** (`buyer-statement.view.ts`): PDF e imagen se generan desde las mismas líneas de texto, para que nunca difieran.
+- **Documento reutilizado en el día:** si los saldos no cambian, el PDF o la imagen guardados conservan la hora de corte de su primera generación; el resumen JSON siempre muestra la hora actual.
+
 ## Fuera de este plan
 
 Estado de cuenta de proveedores (CL-EC04), fechas de corte pasadas (CL-EC03), envío automático y cualquier cambio en el cálculo de cuentas.

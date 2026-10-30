@@ -1,6 +1,6 @@
 # Especificación 009: Estado de cuenta del comprador
 
-**Estado:** especificada, aclarada, planificada y con tareas · lista para `implement` (Figma pendiente, CL-EC07)
+**Estado:** en implementación · backend completo y verificado (30 de octubre de 2026); Android y Figma pendientes
 **Fecha:** 30 de octubre de 2026 · **Decisión de origen:** [módulos y estado de cuenta](../../docs/sdd/decision-modulos-y-estado-de-cuenta-2026-10-29.md)
 
 ## Objetivo

@@ -42,6 +42,7 @@ describe('database data source', () => {
       'OperationCharacteristics1791936000025',
       'Messaging1792972800026',
       'InstallmentVoidedState1793232000027',
+      'ReceiptDocumentsPng1793318400028',
     ]);
     expect(new Set(migrations).size).toBe(migrations.length);
   });

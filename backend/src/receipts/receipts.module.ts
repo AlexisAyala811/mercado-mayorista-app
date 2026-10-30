@@ -17,12 +17,14 @@ import { SaleLineEntity } from '../sales/entities/sale-line.entity.js';
 import { SaleEntity } from '../sales/entities/sale.entity.js';
 import { SaleReturnEntity } from '../sales/entities/sale-return.entity.js';
 import { SaleReturnLineEntity } from '../sales/entities/sale-return-line.entity.js';
+import { BuyerStatementController } from './buyer-statement/buyer-statement.controller.js';
+import { BuyerStatementService } from './buyer-statement/buyer-statement.service.js';
 import { ReceiptsController } from './receipts.controller.js';
 import { ReceiptsService } from './receipts.service.js';
 import { ReceiptDocumentEntity } from './receipt-document.entity.js';
 
 @Module({
-  controllers: [ReceiptsController,ReceiptHistoryController],
+  controllers: [ReceiptsController, ReceiptHistoryController, BuyerStatementController],
   imports: [
     IdentityModule,
     TypeOrmModule.forFeature([
@@ -42,7 +44,7 @@ import { ReceiptDocumentEntity } from './receipt-document.entity.js';
       ReceiptDocumentEntity,
     ]),
   ],
-  providers: [ReceiptsService,ReceiptHistoryService],
+  providers: [ReceiptsService, ReceiptHistoryService, BuyerStatementService],
   exports: [ReceiptsService],
 })
 export class ReceiptsModule {}
