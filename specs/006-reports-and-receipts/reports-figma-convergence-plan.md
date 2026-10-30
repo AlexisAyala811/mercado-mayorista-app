@@ -1,0 +1,32 @@
+# Convergencia de Reportes 98:304
+
+Decisión aprobada el 17 de octubre: `docs/sdd/propuesta-reportes-figma-2026-10-17.md`. Implementar saldo actual de cuentas de operaciones del periodo y cuatro descargas. No queda autorización pendiente para esos elementos.
+
+Contrato de implementación siguiente: nueva proyección de reportes por `purchase|sale`, periodo Lima validado y aislamiento por negocio/Mayorista. Obtener operaciones, sus cantidades y cuentas relacionadas en una lectura consistente; agregar sacos aparte antes de unir cuentas para evitar multiplicar importes por joins. Separar resumen, detalle, contraparte y variedad. Devolver importes como cadenas de centavos, pesos decimales exactos, identificadores y marca temporal. Paginar consultas de detalle sin truncar la exportación; generar Excel real, nunca CSV renombrado. Las descargas agregadas no sustituyen comprobantes retenidos ni ejecutan escrituras comerciales. Validar sumas contra detalle, cuenta de otro periodo excluida, cuenta pagada, anulaciones, devoluciones separadas y negocio ajeno.
+
+Contexto completo y captura recibidos el 17 de octubre; texto preservado en `tmp/figma-reportes-context-20261017.txt`. Siete SVG originales descargados sin modificar; dimensiones y SHA256 en `tmp/reports-figma-assets-20261017.json`. La consulta específica de User 98:308 agotó la cuota Starter. No se certifica todavía ese activo ni el render de todos los slots.
+
+La referencia usa barra de usuario, Compra/Venta, título REPORTES, selector de periodo, Desde/Hasta, Restablecer/Consultar, cuatro indicadores y cuatro filas de reportes con acciones Consultar/Descargar. El periodo de ejemplo es mes anterior; los importes son explícitamente de ejemplo y no son datos de aplicación. Contenido a 1440: margen exterior21, contenido horizontal99, bloques redondeados20, separación24. Inter/Raleway y grises del diseño; adaptar flujo a teléfono/texto ampliado sin deformar activos.
+
+## Diferencias funcionales comprobadas
+
+- Resumen actual tiene importes y cantidades de operaciones, pero no sacos/peso ni número de cuentas abiertas por periodo.
+- Saldos actuales son globales actuales del negocio; la referencia parece relacionarlos con las operaciones del periodo. No relabelar silenciosamente saldos globales como saldos del periodo.
+- La API actual no ofrece los cuatro reportes agregados descargables PDF/Excel. Los comprobantes de operación existentes no sustituyen esos reportes.
+- El selector Compra/Venta del diseño afecta el resumen completo; el filtro actual de operación solo afecta precios. Mantener esa diferencia explícita hasta integrar un contrato completo.
+
+## Secuencia
+
+Columna Registros: resumen/detalle muestran número de operaciones; contraparte, número de proveedores/compradores distintos; variedad, número de variedades distintas presentes en las líneas/sacos de operaciones confirmadas. Los conteos se obtienen en el mismo statement del resumen, aislados por negocio, nunca de ejemplos Figma ni de la primera página. Tabla con SVG originales file-text (20×20), eye/download (16×16), fila mínima 70 y controles táctiles mínimos 44; en ancho reducido o texto ampliado, columnas apiladas sin truncar datos.
+
+Consulta tabular: GET `reports/rows` admite `report=detail|variety`, Compra/Venta, periodo Lima, `limit` 1–100 (20 por defecto) y `offset` entero no negativo. Misma proyección que exportación, con LIMIT/OFFSET en PostgreSQL y total exacto incluso en página vacía; no cargar todo y recortar en cliente. Conteo/filas/indicadores consistentes dentro de cada petición. Orden estable fecha Lima+ID para detalle y nombre+ID para variedad. Las páginas son consultas actuales independientes; se muestra su actualización, no se promete snapshot retenido entre peticiones. Modal con carga, error/reintento, vacío, anterior/siguiente y cierre; cancelar presentación de respuestas al cerrar/cambiar página/periodo/sesión. Descargar sigue exportando todo el periodo, no solo la página visible.
+
+Consulta PDF (19 de octubre): las acciones Consultar de resumen y contraparte abren el visor PDF existente con el mismo endpoint de exportación autenticado. No crear comprobantes ni escrituras. Mantener un único archivo en vista previa; liberar blob/caché al cerrar, reemplazar o desmontar por cambio de periodo/sesión. Descartar archivos que lleguen después del desmontaje, permitir reintento y no abrir el panel de compartir al consultar. Consulta de detalle/variedad continúa pendiente de contrato JSON paginado; no simular lectura de Excel en el visor PDF.
+
+Contrato de descargas (19 de octubre): GET `reports/export`, query `operation`, `from`, `to`, `report=summary|detail|counterparty|variety`. Summary/counterparty entregan PDF, detail/variety XLSX. Mayorista y negocio de sesión, respuestas privadas sin caché. Snapshot transaccional REPEATABLE READ para indicadores y filas. Detalle: una fila por operación con referencia, fecha Lima, contraparte, bruto, flete, descuentos, adelantos de compra, importe confirmado, sacos, peso y saldo actual. Variedad: cantidades y subtotal de venta ya asignado a líneas; compras sin importe asignado por variedad muestran «No distribuido», nunca prorrateo nuevo. Documentar nombres de referencia vigentes, devoluciones del periodo separadas, moneda y fecha de generación. No recortar filas silenciosamente; rechazar límites XLSX explícitamente. La descarga usa el periodo consultado, no filtros de precios, y descarta respuestas obsoletas tras cambiar filtros o sesión.
+
+1. Añadir periodos rápidos (mes actual/mes anterior/personalizado) y restablecer el periodo sin borrar filtros de precios. Calcular cada selección al momento de usarla, conservar edición manual, invalidar resultados anteriores y no consultar automáticamente. Reutilizar selector/diálogo existente; verificar enero/diciembre y febrero bisiesto.
+2. Precisar contrato de indicadores/agrupaciones y descargas con trazabilidad SDD antes de construir reportes nuevos. Propuesta separada de decisiones de saldo y exportación.
+3. Implementar proyecciones aisladas por negocio y consistentes; exportaciones con valores reales, permisos Mayorista, formato/tipo MIME y descargas verificadas.
+4. Componer la pantalla completa con activos originales, reutilizando visor/compartición y componentes. No mostrar botones de descarga ficticios ni números de ejemplo.
+5. Verificar todos los slots, tamaños, texto ampliado, lector de pantalla, consultas y archivos reales. Mantener filtros de precios/alertas existentes accesibles.

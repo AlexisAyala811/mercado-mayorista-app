@@ -1,0 +1,13 @@
+# Coordinación documental: RF04 / CL-13
+
+Decisión humana posterior: retirar Catálogo del aplicativo y registrar/editar referencias dentro de los formularios de operación. `decision-referencias-en-operaciones-2026-10-14.md` conserva respuestas y la interpretación comunicada de Carros: teléfono y placa separados. Editores contextuales y retirada de menú/ruta implementados; evidencia `verificacion-referencias-en-operaciones-2026-10-14.md`. Actualizar navegación de documento/Figma, manteniendo entidades, roles, datos históricos y reglas. No continuar diseñando una sección móvil independiente de Datos maestros.
+
+Estado posterior vigente: filtros descriptivos calidad/procedencia, No informada y listas históricas ya implementados; migraciones 024/025 y paquete completo activados en QA local conservando huellas de operaciones/saldos/PDF. `verificacion-filtros-caracteristicas-2026-10-14.md`. Las referencias a captura/filtros/activación pendientes de los párrafos históricos inferiores quedan sustituidas. Sigue pendiente regenerar/revisar DOCX y converger diseño/dispositivos; no se crea otra fuente de requisitos ni se cierra RF04.
+
+El usuario solicitó revisar captura/listas de calidad y procedencia y luego respondió «eso esta bien». Se le comunicó que se mantiene la propuesta original; secuencia completa e interpretación en `propuesta-calidad-procedencia-2026-10-14.md`. Actualizados registro de decisiones, especificaciones 002/003/004/006/007, plan transversal y descripción RF04 de `build_propuesta.py`.
+
+Regla vigente del corte: atributos de la papa por saco de compra/línea de venta, listas del Mayorista, Encargado solo selecciona en sus operaciones autorizadas, ausencia explícita de información e historial sin inferencias. No cambia predicción por variedad ni introduce inventario. Se implementó/probó administración de listas; captura y consultas posteriores siguen pendientes según `verificacion-catalogos-caracteristicas-2026-10-14.md`.
+
+Para converger los tres trabajos: regenerar y revisar visualmente el DOCX académico con la fuente actualizada; incorporar a los flujos de diseño la selección repetida de características y opciones no informadas; mantener roles/historias y criterios sin declarar completado RF04 por el catálogo. No se envió un mensaje a otro chat ni se modificó Figma para sustituir su contexto bloqueado.
+
+Actualización del mismo día: captura por saco/línea, historial y proyección PDF implementados y probados en código; evidencia posterior `verificacion-captura-caracteristicas-2026-10-14.md` reemplaza el estado de captura pendiente anterior. Faltan filtros descriptivos y convergencia completa. Sin cambios predictivos; migraciones 024/025 aún no aplicadas al entorno UI compartido.
