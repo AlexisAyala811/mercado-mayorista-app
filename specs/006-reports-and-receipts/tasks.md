@@ -109,9 +109,9 @@ La especificación 008 incorpora HU15/RF25–26 y centraliza avisos HU14. Cuenta
 
 ## Estado de cuenta del comprador (HU16 / RF27) — 29 de octubre de 2026
 
-Decisión: [módulos y estado de cuenta](../../docs/sdd/decision-modulos-y-estado-de-cuenta-2026-10-29.md). Pendiente de especificar antes de implementar.
+Decisión: [módulos y estado de cuenta](../../docs/sdd/decision-modulos-y-estado-de-cuenta-2026-10-29.md). Especificación en curso: [009 Estado de cuenta del comprador](../009-buyer-account-statement/spec.md).
 
-- [ ] `specify`: historia, reglas y criterios de aceptación del estado de cuenta (contenido, fecha de corte, comprador sin deuda, conservación del documento).
+- [x] `specify`: historia, reglas y criterios de aceptación en la spec 009 (borrador del 30 de octubre de 2026).
 - [ ] `clarify`: diseño en Figma, formato de la imagen y posible equivalente para proveedores.
 - [ ] `plan` y `tasks`: contrato de la API, generación PDF e imagen, permisos y pruebas.
 - [ ] `implement` y `converge` en backend y Android, con envío por Mensajería (spec 008).
