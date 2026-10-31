@@ -1,5 +1,19 @@
 # Auditoría de dependencias del backend
 
+## 30 de octubre de 2026
+
+**Comando:** `npm audit --omit=dev --audit-level=high` (paso de la CI)
+
+La CI de la rama `refactor/pesaje-solid` falló en este paso por un aviso nuevo, sin relación con el cambio:
+
+| Paquete | Severidad | Problema | Resultado |
+| --- | --- | --- | --- |
+| `joi` 18.2.9 | Alta | Tiempo cuadrático al dividir en `string().email({ multiple: true })` ([GHSA-4528-x5fx-h6hg](https://github.com/advisories/GHSA-4528-x5fx-h6hg)) | Actualizado a 18.3.1. El backend solo usa `joi` para validar la configuración de arranque y no usa `email` |
+| `minimatch` < 11.0.1 (vía `exceljs` → `archiver`, `unzipper`) | Moderada | Denegación de servicio por amplificación de patrones ([GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249)) | **Pendiente**, como `uuid`: la corrección automática baja `exceljs` a 3.4.0. El backend no pasa patrones de usuarios a `minimatch` |
+| `uuid` < 11.1.1 (vía `exceljs`) | Moderada | Ver 29 de octubre | **Pendiente** |
+
+Resultado: sin vulnerabilidades altas; 9 moderadas, todas por `exceljs` 4.4.0.
+
 ## 29 de octubre de 2026
 
 **Comandos:** `npm audit --omit=dev`, `npm audit fix`
