@@ -12,14 +12,17 @@ Mostrar las clases, contratos de entrada, funciones y dependencias que colaboran
 
 Fuente editable: [nivel4-clases.svg](../../img/fuentes-svg/nivel4-clases.svg).
 
-El diagrama tiene cuatro columnas: presentación (azul), servicios (verde), reglas y modelos (ámbar) e infraestructura (violeta). Los nombres son los del código. Las entidades son modelos TypeORM, y `WeighingService` y `PurchaseService` reciben directamente `DataSource` y `AuditService`; los puertos y casos de uso extraídos son evolución y no aparecen aquí.
+El diagrama tiene cuatro columnas: presentación (azul), servicios (verde), reglas y modelos (ámbar) e infraestructura (violeta). Los nombres son los del código. Las entidades son modelos TypeORM, y `WeighingService` y `PurchaseService` reciben directamente `DataSource` y `AuditService`; desde el 30 de octubre de 2026 el alta de un saco pasa por el caso de uso `RegisterSackWeight` y sus contratos; el diagrama aún no lo dibuja y la tabla ya lo refleja.
 
 | Elemento | Responsabilidad | Referencia técnica |
 | --- | --- | --- |
 | ReceptionController / AddSackDto | Recibir y validar la orden de ingreso de peso | `src/reception/reception.controller.ts`, `src/reception/http/weighing.dto.ts` |
-| WeighingService | Coordinar alta, cierre y correcciones del pesaje | `src/reception/weighing.service.ts` |
+| WeighingService | Delegar el alta y coordinar cierre y correcciones del pesaje | `src/reception/weighing.service.ts` |
+| RegisterSackWeight | Caso de uso del alta: idempotencia, estado, variedad, versión, secuencia y auditoría sobre contratos | `src/reception/application/register-sack-weight.ts` |
+| PostgresWeighingUnitOfWork | Adaptador de los contratos: transacción, bloqueo consultivo y de la recepción, auditoría | `src/reception/infrastructure/postgres-weighing.ts` |
+| SackWeight | Modelo inmutable del peso del saco | `src/reception/application/sack-weight.ts` |
 | ReceptionSackEntity | Conservar variedad, secuencia, pesos, UUID y responsable | `src/reception/entities/reception-sack.entity.ts` |
-| calculateWeights | Validar bruto/tara y calcular peso neto a tres decimales | Función en `weighing.service.ts` |
+| calculateSackWeights | Validar bruto/tara y calcular peso neto a tres decimales | `src/common/domain/sack-weights.ts` |
 | PurchaseController / SettlePurchaseDto | Recibir condiciones y versión de la recepción | `src/purchase/purchase.controller.ts`, `src/purchase/http/settle-purchase.dto.ts` |
 | PurchaseService | Recuperar una liquidación previa o confirmar una nueva | `src/purchase/purchase.service.ts` |
 | PurchaseSettlementEntity | Conservar precio, flete, adelantos, líquido y estado | `src/purchase/entities/purchase-settlement.entity.ts` |
@@ -35,9 +38,9 @@ Las rutas son relativas a `backend/`. La vista es selectiva y omite campos y mé
 ## Recorrido de ingreso de pesos
 
 1. Mayorista o Encargado con reemplazo vigente envía variedad, calidad, procedencia, peso bruto, tara opcional, UUID y versión esperada.
-2. El controlador aplica las guardas y validación de entrada y delega en `WeighingService.add`.
-3. El servicio abre una transacción y busca un saco previo con ese UUID; si existe y los datos coinciden, lo devuelve sin crear otro; si difieren, responde `409`.
-4. Para una orden nueva valida recepción, versión, estado y variedad. `calculateWeights` exige bruto positivo y tara no negativa menor al bruto.
+2. El controlador aplica las guardas y validación de entrada; `WeighingService.add` delega en `RegisterSackWeight`.
+3. El caso de uso abre la unidad de trabajo y busca un saco previo con ese UUID; si existe y los datos coinciden, lo devuelve sin crear otro; si difieren, responde `409`.
+4. Para una orden nueva valida recepción, versión, estado y variedad. `calculateSackWeights` exige bruto positivo y tara no negativa menor al bruto.
 5. Confirma saco, secuencia, versión de recepción y auditoría juntos. Los pesos tienen tres decimales; por ejemplo, 52.500 − 0.500 = 52.000 kg.
 
 ## Recorrido de liquidación de compra
