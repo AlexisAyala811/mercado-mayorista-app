@@ -106,3 +106,19 @@ Extender la protección de datos iniciales a la ruta completa: interceptar la re
 ## Impacto de Mensajería y notificaciones — 26 de octubre de 2026
 
 La especificación 008 incorpora HU15/RF25–26 y centraliza avisos HU14. Cuentas conserva saldos y vencimientos; Reportes conserva los endpoints previos por compatibilidad; Android comparte adjuntos por decisión del Mayorista. No ampliar permisos del Encargado, alterar importes ni reutilizar la cola comercial para enviar mensajes. Las referencias previas a canal pendiente se sustituyen por WhatsApp/correo mediante compartición manual; envío automático no aprobado.
+
+## Refactor SOLID del ingreso de pesos — 30 de octubre de 2026
+
+Origen: [principios de diseño](../../docs/03-diseño-de-software/diseño-interno/principios-de-diseño.md), que describe como diseño objetivo la extracción de las reglas de peso, un modelo del saco y un caso de uso que dependa de contratos. Cambio interno sin cambio de contrato: rutas, cuerpos, códigos HTTP, mensajes, auditoría y base de datos quedan iguales.
+
+| Pieza | Ubicación | Responsabilidad |
+| --- | --- | --- |
+| Reglas de peso (S) | `backend/src/common/domain/sack-weights.ts` | Bruto > 0, 0 ≤ tara < bruto, neto con tres decimales; función pura con error de dominio propio |
+| Modelo del saco (`SackWeight`, «PesoSaco») | `backend/src/reception/application/sack-weight.ts` | Valor inmutable bruto/tara/neto y comparación con un saco guardado para reintentos |
+| Caso de uso (`RegisterSackWeight`, «RegistrarPesoCasoUso») | `backend/src/reception/application/register-sack-weight.ts` | Idempotencia, estado, variedad, versión, secuencia y auditoría; depende solo de contratos (D) |
+| Contratos (I) | mismo archivo: `WeighingRepository`, `WeighingAudit`, `WeighingUnitOfWork` | Capacidades mínimas del registro; sin caja, reportes ni inventario |
+| Adaptador PostgreSQL (O, L) | `backend/src/reception/infrastructure/postgres-weighing.ts` | Transacción, bloqueo consultivo por negocio/UUID, bloqueo de la recepción y auditoría en la misma unidad de trabajo |
+| Adaptador en memoria | solo en las pruebas | Pruebas de contrato; no acredita concurrencia ni durabilidad |
+| Composición | `reception.module.ts` (`useFactory`) | Conecta el caso de uso con el adaptador PostgreSQL |
+
+Alcance: el registro de un saco nuevo (`POST /receptions/:id/sacks`). Corrección, anulación y cierre usan las reglas extraídas y conservan su servicio actual; migrarlos al caso de uso queda como evolución.

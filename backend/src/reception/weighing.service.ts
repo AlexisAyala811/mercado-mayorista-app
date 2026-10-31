@@ -4,7 +4,7 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { DataSource, IsNull, type EntityManager } from 'typeorm';
+import { DataSource, IsNull } from 'typeorm';
 
 import { AuditService } from '../audit/audit.service.js';
 import {resolveCommercialSnapshot} from '../catalog/commercial-snapshot.js';
@@ -26,12 +26,20 @@ import type {
   CorrectSackDto,
   VoidSackDto,
 } from './http/weighing.dto.js';
+import {
+  matchesSackOrder,
+  RegisterSackWeight,
+  requireReceptionVersion,
+  weightOf,
+} from './application/register-sack-weight.js';
+import { lockReceptionWithVarieties } from './infrastructure/postgres-weighing.js';
 
 @Injectable()
 export class WeighingService {
   constructor(
     private readonly dataSource: DataSource,
     private readonly audit: AuditService,
+    private readonly registerSack: RegisterSackWeight<ReceptionSackEntity>,
   ) {}
 
   async list(businessId: string, receptionId: string) {
@@ -42,88 +50,8 @@ export class WeighingService {
     });
   }
 
-  async add(identity: SessionIdentity, receptionId: string, input: AddSackDto) {
-    return this.dataSource.transaction(async (manager) => {
-      await manager.query(
-        'SELECT pg_advisory_xact_lock(hashtext($1), hashtext($2))',
-        [identity.businessId, input.clientOperationId],
-      );
-      const sacks = manager.getRepository(ReceptionSackEntity);
-      const existing = await sacks.findOne({
-        where: {
-          businessId: identity.businessId,
-          clientOperationId: input.clientOperationId,
-        },
-      });
-      if (existing) {
-        requireSameOperation(matchesSack(existing, receptionId, null, input));
-        return existing;
-      }
-
-      const reception = await lockReceptionWithVarieties(
-        manager,
-        identity.businessId,
-        receptionId,
-      );
-      if (!reception) throw new NotFoundException('Recepción no encontrada.');
-      requireReceptionVersion(reception, input.expectedReceptionVersion);
-      if (
-        ![ReceptionState.Draft, ReceptionState.Weighing].includes(
-          reception.state,
-        )
-      ) {
-        throw new ConflictException('El pesaje ya no admite nuevos sacos.');
-      }
-      if (
-        !reception.expectedVarieties.some(
-          (variety) => variety.id === input.varietyId,
-        )
-      ) {
-        throw new UnprocessableEntityException(
-          'La variedad no pertenece a la recepción.',
-        );
-      }
-
-      const weights = calculateWeights(
-        input.grossWeightKg,
-        input.tareKg ?? '0',
-      );
-      const maximum = await sacks
-        .createQueryBuilder('sack')
-        .select('COALESCE(MAX(sack.sequence), 0)', 'maximum')
-        .where('sack.receptionId = :receptionId', { receptionId })
-        .getRawOne<{ maximum: string }>();
-      const sack = await sacks.save(
-        sacks.create({
-          businessId: identity.businessId,
-          clientOperationId: input.clientOperationId,
-          correctionReason: null,
-          correctedFromSackId: null,
-          ...await resolveCommercialSnapshot(manager,identity.businessId,input),
-          createdByUserId: identity.userId,
-          grossWeightKg: weights.gross,
-          netWeightKg: weights.net,
-          receptionId,
-          sequence: Number(maximum?.maximum ?? 0) + 1,
-          tareKg: weights.tare,
-          varietyId: input.varietyId,
-          voidOperationId: null,
-          voidedAt: null,
-        }),
-      );
-      reception.state = ReceptionState.Weighing;
-      reception.version += 1;
-      await manager.getRepository(ReceptionEntity).save(reception);
-      await this.audit.record(manager, {
-        action: 'reception.sack-added',
-        actorUserId: identity.userId,
-        businessId: identity.businessId,
-        details: { sequence: sack.sequence },
-        resourceId: sack.id,
-        resourceType: 'reception-sack',
-      });
-      return sack;
-    });
+  add(identity: SessionIdentity, receptionId: string, input: AddSackDto) {
+    return this.registerSack.execute(identity, receptionId, input);
   }
 
   async correct(
@@ -146,7 +74,7 @@ export class WeighingService {
       });
       if (existing) {
         requireSameOperation(
-          matchesSack(existing, receptionId, sackId, input) &&
+          matchesSackOrder(existing, receptionId, sackId, input) &&
             existing.correctionReason === null,
         );
         return existing;
@@ -181,7 +109,7 @@ export class WeighingService {
         },
       });
       if (!original) throw new NotFoundException('Saco no encontrado.');
-      const weights = calculateWeights(
+      const weights = weightOf(
         input.grossWeightKg,
         input.tareKg ?? '0',
       );
@@ -302,7 +230,7 @@ export class WeighingService {
       });
       if (repeated) {
         requireSameOperation(
-          matchesSack(repeated, receptionId, sackId, input) &&
+          matchesSackOrder(repeated, receptionId, sackId, input) &&
             repeated.correctionReason === input.reason,
         );
         return repeated;
@@ -344,7 +272,7 @@ export class WeighingService {
         },
       });
       if (!original) throw new NotFoundException('Saco no encontrado.');
-      const weights = calculateWeights(
+      const weights = weightOf(
         input.grossWeightKg,
         input.tareKg ?? '0',
       );
@@ -458,77 +386,4 @@ export class WeighingService {
       .exists({ where: { businessId, id } });
     if (!exists) throw new NotFoundException('Recepción no encontrada.');
   }
-}
-
-function requireReceptionVersion(
-  reception: ReceptionEntity,
-  expectedVersion: number,
-) {
-  if (reception.version !== expectedVersion) {
-    throw new ConflictException({
-      code: 'reception-version-conflict',
-      currentVersion: reception.version,
-      message: 'La recepción cambió; revise sus datos.',
-    });
-  }
-}
-
-function lockReceptionWithVarieties(
-  manager: EntityManager,
-  businessId: string,
-  receptionId: string,
-) {
-  return manager
-    .getRepository(ReceptionEntity)
-    .createQueryBuilder('reception')
-    .innerJoinAndSelect('reception.expectedVarieties', 'expectedVariety')
-    .where('reception.businessId = :businessId', { businessId })
-    .andWhere('reception.id = :receptionId', { receptionId })
-    .setLock('pessimistic_write', undefined, ['reception'])
-    .getOne();
-}
-
-function matchesSack(
-  sack: ReceptionSackEntity,
-  receptionId: string,
-  correctedFromSackId: string | null,
-  input: AddSackDto,
-) {
-  const weights = calculateWeights(input.grossWeightKg, input.tareKg ?? '0');
-  // An omitted characteristic on a correction keeps the original sack's value.
-  const sameCharacteristic = (stored: string | null, requested?: string | null) =>
-    (requested === undefined && correctedFromSackId !== null) ||
-    stored === (requested ?? null);
-  return (
-    sack.receptionId === receptionId &&
-    sack.correctedFromSackId === correctedFromSackId &&
-    sack.varietyId === input.varietyId &&
-    sack.grossWeightKg === weights.gross &&
-    sack.tareKg === weights.tare &&
-    sameCharacteristic(sack.qualityId, input.qualityId) &&
-    sameCharacteristic(sack.originId, input.originId)
-  );
-}
-
-function calculateWeights(grossInput: string, tareInput: string) {
-  let gross: bigint;
-  let tare: bigint;
-  try {
-    gross = parseFixedDecimal(grossInput, 3, 9);
-    tare = parseFixedDecimal(tareInput, 3, 9);
-  } catch {
-    throw new UnprocessableEntityException(
-      'El peso debe tener hasta tres decimales.',
-    );
-  }
-  if (gross <= 0n || tare < 0n || tare >= gross) {
-    throw new UnprocessableEntityException(
-      'El peso neto debe ser mayor que cero.',
-    );
-  }
-  return {
-    gross: formatFixedDecimal(gross, 3),
-    net: formatFixedDecimal(gross - tare, 3),
-    tare: formatFixedDecimal(tare, 3),
-  };
 }

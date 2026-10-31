@@ -1,6 +1,6 @@
 # Principios de diseño
 
-> **Proyecto:** Gestión comercial mayorista de papa · **Módulo de referencia:** Recepción y compras (ingreso de pesos) · **Versión:** 2.0 · **Actualización:** 29 de octubre de 2026
+> **Proyecto:** Gestión comercial mayorista de papa · **Módulo de referencia:** Recepción y compras (ingreso de pesos) · **Versión:** 2.1 · **Actualización:** 30 de octubre de 2026
 
 ## Objetivo
 
@@ -12,15 +12,15 @@ Aplicar SOLID al registro del peso de cada saco de papa, separando captura, regl
 
 Fuente editable: [solid-modulo-pesaje.svg](../../../img/fuentes-svg/solid-modulo-pesaje.svg).
 
-El diagrama combina el código actual (controlador, servicio y regla de pesos) con la extracción propuesta de un caso de uso, un modelo de saco y contratos. Los puertos y adaptadores son el diseño objetivo.
+Desde el 30 de octubre de 2026 el diseño objetivo está implementado para el registro de un saco nuevo: reglas puras, modelo del saco, caso de uso que depende de contratos y adaptador PostgreSQL conectado en la composición del módulo. El diagrama conserva los nombres en español de la propuesta; la tabla indica el nombre en el código.
 
 | Principio | Aplicación al ingreso de pesos | Elementos y estado |
 | --- | --- | --- |
-| S · Responsabilidad única | El controlador traduce entrada; las reglas calculan neto; el caso de uso coordina; persistencia y auditoría conservan hechos | `ReceptionController`, reglas `calculateWeights` y `WeighingService` existen. La extracción de `RegistrarPesoCasoUso` y `PesoSaco` es propuesta |
-| O · Abierto/cerrado | Agregar otra implementación del contrato sin modificar reglas de peso | Adaptadores propuestos de PostgreSQL y memoria. No habilita una balanza integrada, fuera del MVP |
-| L · Sustitución de Liskov | Implementaciones intercambiables preservan precisión, UUID, aislamiento y respuestas/errores del contrato | Memoria solo apoya pruebas de contrato; no acredita bloqueos, concurrencia, seguridad o durabilidad de PostgreSQL |
-| I · Segregación de interfaces | El registro usa capacidades pequeñas de pesajes, unidad de trabajo y auditoría | Puertos propuestos `RepositorioPesajes`, `UnidadTrabajoPesaje`, `AuditoriaPesaje`; no requieren caja, reportes ni inventario |
-| D · Inversión de dependencias | El caso de uso propuesto recibe contratos, y la composición conecta adaptadores | Objetivo de evolución. `WeighingService` actualmente recibe `DataSource` y `AuditService`; inyección no implica DIP completo |
+| S · Responsabilidad única | El controlador traduce entrada; las reglas calculan neto; el caso de uso coordina; persistencia y auditoría conservan hechos | `ReceptionController`; reglas `calculateSackWeights`; modelo `SackWeight` («PesoSaco»); caso de uso `RegisterSackWeight` («RegistrarPesoCasoUso»). Implementado |
+| O · Abierto/cerrado | Agregar otra implementación del contrato sin modificar reglas de peso | `PostgresWeighingUnitOfWork` en producción y un adaptador en memoria en las pruebas, sin tocar el caso de uso. No habilita una balanza integrada, fuera del MVP |
+| L · Sustitución de Liskov | Implementaciones intercambiables preservan precisión, UUID, aislamiento y respuestas/errores del contrato | Las mismas garantías se prueban con memoria (contrato) y con PostgreSQL (e2e: reenvíos simultáneos y rollback). Memoria no acredita bloqueos ni durabilidad |
+| I · Segregación de interfaces | El registro usa capacidades pequeñas de pesajes, unidad de trabajo y auditoría | `WeighingRepository` («RepositorioPesajes»), `WeighingUnitOfWork` («UnidadTrabajoPesaje»), `WeighingAudit` («AuditoriaPesaje»); no requieren caja, reportes ni inventario |
+| D · Inversión de dependencias | El caso de uso recibe contratos, y la composición conecta adaptadores | `RegisterSackWeight` no conoce TypeORM; `reception.module.ts` lo construye con `PostgresWeighingUnitOfWork` (`useFactory`). Corrección, anulación y cierre siguen en `WeighingService` con `DataSource`; migrarlos es evolución |
 
 ## Recorrido del registro
 
@@ -52,12 +52,16 @@ Ejemplo: bruto **52,500 kg** y tara **0,500 kg** producen **52,000 kg netos**. U
 | --- | --- |
 | `backend/src/reception/reception.controller.ts` | Entrada `addSack` y delegación de la operación |
 | `backend/src/reception/http/weighing.dto.ts` | UUID, versión, variedad, peso bruto y tara; validación de formato |
-| `backend/src/reception/weighing.service.ts` | `add`, transacción, bloqueo por negocio/UUID, estado, variedad, versión y `calculateWeights` |
+| `backend/src/reception/weighing.service.ts` | `add` delega en el caso de uso; corrección, anulación y cierre |
+| `backend/src/common/domain/sack-weights.ts` | Reglas de bruto, tara y neto (`calculateSackWeights`), función pura |
+| `backend/src/reception/application/sack-weight.ts` | Modelo del saco `SackWeight` |
+| `backend/src/reception/application/register-sack-weight.ts` | Caso de uso `RegisterSackWeight` y contratos |
+| `backend/src/reception/infrastructure/postgres-weighing.ts` | Adaptador PostgreSQL: transacción, bloqueos y auditoría |
 | `backend/src/common/domain/fixed-decimal.ts` | Conversión decimal determinista usada por las reglas |
 | `mercado-app/src/domain/reception/reception.ts` | Modelo del saco y representación de resultados para la interfaz |
 | `mercado-app/src/services/api/reception-api.ts` | Envío de `addSack` al contrato central |
 
-`calculateWeights` vive hoy dentro de `weighing.service.ts`. Extraerla a `common/domain`, sin cambiar su comportamiento, es la primera mejora propuesta; debe conservar la transacción y la idempotencia. El repositorio en memoria es solo para pruebas.
+La extracción se hizo sin cambiar el contrato HTTP ni la base de datos; conserva la transacción y la idempotencia. El adaptador en memoria vive solo en las pruebas. Evidencia: [verificación del refactor](../../sdd/verificacion-pesaje-solid-2026-10-30.md).
 
 ## Verificación de principios y contratos
 
