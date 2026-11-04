@@ -96,6 +96,6 @@ Plan: [refactor SOLID](plan.md#refactor-solid-del-ingreso-de-pesos--30-de-octubr
 
 Aclaraciones CL-FM05, CL-FM06, CL-FM08 a CL-FM11 en [aclaraciones del frontend MAÑAY](../../docs/sdd/aclaraciones-frontend-manay-2026-11-04.md). Pendiente de especificar o diseñar; nada implementado todavía.
 
-- [ ] Especificar y planificar la compra con varias líneas («Lote A / Lote B»), cada una con variedad, base (kilo o saco) y precio propios; migración compatible con las liquidaciones de una sola base.
-- [ ] Especificar la elección del flete en la liquidación: descontado al proveedor o asumido por el Mayorista.
+- [ ] Especificar y planificar la compra con varias líneas («Lote A / Lote B»), cada una con variedad, base (kilo o saco) y precio propios; migración compatible con las liquidaciones de una sola base. **Borrador:** [spec 010](../010-purchase-lines-and-freight-choice/spec.md), pendiente de aprobación.
+- [ ] Especificar la elección del flete en la liquidación: descontado al proveedor o asumido por el Mayorista. **Borrador:** incluido en la [spec 010](../010-purchase-lines-and-freight-choice/spec.md).
 - [ ] Captura de bruto y tara por saco en kilos enteros y diseño para 200 o más sacos (lista, ir al saco N, totales fijos).
