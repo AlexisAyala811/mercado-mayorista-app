@@ -37,7 +37,47 @@ La composición está en `reception.module.ts` con un proveedor `useFactory` (pa
 | `nest build` | Correcto |
 | E2E en PostgreSQL 17 portable | 50/50 en 7 archivos, incluidos los escenarios de compra que pasan por el pesaje (`commercial-database-scenarios.ts`) |
 
+## Operaciones restantes — 4 de noviembre de 2026
+
+Rama `refactor/pesaje-solid-operaciones`, tareas T228–T231 de la spec 002. Las cuatro escrituras que seguían en `WeighingService` pasaron a casos de uso sobre los mismos contratos:
+
+| Operación | Ruta | Caso de uso |
+| --- | --- | --- |
+| Corregir un saco con el pesaje abierto | `PATCH /receptions/:id/sacks/:sackId` | `CorrectSackWeight` |
+| Corregir un saco de un pesaje cerrado | `POST /receptions/:id/sacks/:sackId/correct-closed` | `CorrectClosedSackWeight` |
+| Retirar un saco | `POST /receptions/:id/sacks/:sackId/void` | `VoidSack` |
+| Cerrar el pesaje | `POST /receptions/:id/close-weighing` | `CloseWeighing` |
+
+- Los contratos se movieron a `application/weighing-ports.ts` y se ampliaron con sacos activos, reemplazo, retiro, versión y cierre. `WeighingAudit` pasó a un solo método `record` con las cinco acciones permitidas.
+- `WeighingUseCases` construye los cinco casos de uso sobre una unidad de trabajo; `WeighingService` solo lista sacos y delega, y ya no recibe `AuditService`.
+- Se conservó el orden de cada validación y cada mensaje. La corrección de un pesaje cerrado comprueba el estado antes que la versión y responde «La recepción cambió.», como antes.
+
+### Pruebas
+
+| Archivo | Comprueba |
+| --- | --- |
+| `src/reception/application/weighing-use-cases.spec.ts` (17, reemplaza a `register-sack-weight.spec.ts`) | Los 10 casos del registro y 7 nuevos: corrección con la misma secuencia y reenvío idempotente; retiro con motivo, reenvío y `operation-id-conflict` con otro saco; cierre con totales solo de sacos activos y una sola vez; cierre sin sacos `422`; corrección de cerrado rechazada antes del cierre y aceptada después con su motivo en ambos sacos; mensaje de versión del pesaje cerrado; saco retirado `404` |
+| `test/weighing.e2e-spec.ts` (+1, ahora 4) | Por HTTP en PostgreSQL: corregir, retirar, **cinco cierres simultáneos** con un único evento `reception.weighing-closed` (1 saco, 49,500 kg) y corrección del pesaje cerrado (49,000 kg), quedando un único saco activo |
+
+### Resultados
+
+| Verificación | Resultado |
+| --- | --- |
+| `tsc --noEmit`, `oxlint --type-aware` | Sin errores |
+| Pruebas unitarias | 314 en 71 archivos |
+| `nest build` | Correcto |
+| `npm audit --omit=dev --audit-level=high` | Sin vulnerabilidades altas |
+| E2E en PostgreSQL 17 portable | 51/51 en 7 archivos |
+
+Dos observaciones del entorno local, sin relación con el cambio:
+
+- La prueba que renderiza dos PNG del estado de cuenta superó los 5 s por defecto al correr con toda la suite en paralelo (pasa sola). Se le dio un límite propio de 30 s.
+- Ejecutado solo, `weighing.e2e-spec.ts` agota los 10 s del `beforeAll` en una base nueva porque aplica las 28 migraciones; en la suite completa y con más tiempo pasa.
+
+### Diagramas
+
+`solid-modulo-pesaje.svg` y `nivel4-clases.svg` usan ahora los nombres del código (casos de uso, contratos y adaptadores PostgreSQL). Se editó el SVG directamente porque el generador `build_solid_weighing_view.py` requiere Python, que no está instalado en este equipo; sus PNG se renderizaron con Chrome sin interfaz a 1800 × 1940 y 1800 × 2070.
+
 ## Pendiente
 
-- Redibujar `img/fuentes-svg/solid-modulo-pesaje.svg` y `nivel4-clases.svg` con los nombres del código; el texto de ambos documentos ya está actualizado.
-- Llevar corrección, anulación y cierre del pesaje al mismo esquema de caso de uso.
+- Actualizar el generador Python de los diagramas para que no sobrescriba estos cambios si se vuelve a ejecutar.

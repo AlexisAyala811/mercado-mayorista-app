@@ -12,13 +12,13 @@ Mostrar las clases, contratos de entrada, funciones y dependencias que colaboran
 
 Fuente editable: [nivel4-clases.svg](../../img/fuentes-svg/nivel4-clases.svg).
 
-El diagrama tiene cuatro columnas: presentación (azul), servicios (verde), reglas y modelos (ámbar) e infraestructura (violeta). Los nombres son los del código. Las entidades son modelos TypeORM, y `WeighingService` y `PurchaseService` reciben directamente `DataSource` y `AuditService`; desde el 30 de octubre de 2026 el alta de un saco pasa por el caso de uso `RegisterSackWeight` y sus contratos; el diagrama aún no lo dibuja y la tabla ya lo refleja.
+El diagrama tiene cuatro columnas: presentación (azul), servicios (verde), reglas y modelos (ámbar) e infraestructura (violeta). Los nombres son los del código. Las entidades son modelos TypeORM, y `WeighingService` y `PurchaseService` reciben directamente `DataSource` y `AuditService`; desde el 4 de noviembre de 2026 todas las escrituras del pesaje pasan por casos de uso sobre `PostgresWeighingUnitOfWork`; la compra sigue recibiendo `DataSource` y `AuditService`.
 
 | Elemento | Responsabilidad | Referencia técnica |
 | --- | --- | --- |
 | ReceptionController / AddSackDto | Recibir y validar la orden de ingreso de peso | `src/reception/reception.controller.ts`, `src/reception/http/weighing.dto.ts` |
-| WeighingService | Delegar el alta y coordinar cierre y correcciones del pesaje | `src/reception/weighing.service.ts` |
-| RegisterSackWeight | Caso de uso del alta: idempotencia, estado, variedad, versión, secuencia y auditoría sobre contratos | `src/reception/application/register-sack-weight.ts` |
+| WeighingService | Listar sacos y delegar cada escritura del pesaje | `src/reception/weighing.service.ts` |
+| RegisterSackWeight / CorrectSackWeight / CorrectClosedSackWeight / VoidSack / CloseWeighing | Casos de uso del pesaje: idempotencia, estado, variedad, versión y auditoría sobre contratos | `src/reception/application/` |
 | PostgresWeighingUnitOfWork | Adaptador de los contratos: transacción, bloqueo consultivo y de la recepción, auditoría | `src/reception/infrastructure/postgres-weighing.ts` |
 | SackWeight | Modelo inmutable del peso del saco | `src/reception/application/sack-weight.ts` |
 | ReceptionSackEntity | Conservar variedad, secuencia, pesos, UUID y responsable | `src/reception/entities/reception-sack.entity.ts` |
