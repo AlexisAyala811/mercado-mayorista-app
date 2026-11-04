@@ -11,6 +11,7 @@ import { InventoryMovementEntity } from '../inventory/entities/inventory-movemen
 import { InventoryLotValuationEntity } from '../inventory/entities/inventory-lot-valuation.entity.js';
 import { ReceptionEntity } from '../reception/entities/reception.entity.js';
 import { ReceptionSackEntity } from '../reception/entities/reception-sack.entity.js';
+import { PurchaseSettlementLotEntity } from './entities/purchase-settlement-lot.entity.js';
 import { PurchaseSettlementEntity } from './entities/purchase-settlement.entity.js';
 import { PurchaseController } from './purchase.controller.js';
 import { PurchaseService } from './purchase.service.js';
@@ -22,6 +23,7 @@ import { PurchaseService } from './purchase.service.js';
     IdentityModule,
     TypeOrmModule.forFeature([
       PurchaseSettlementEntity,
+      PurchaseSettlementLotEntity,
       ReceptionEntity,
       ReceptionSackEntity,
       InventoryLotEntity,

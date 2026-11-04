@@ -12,6 +12,7 @@ import { BusinessEntity } from '../identity/entities/business.entity.js';
 import type { SessionIdentity } from '../identity/application/ports/session-identity-reader.js';
 import { InventoryLotEntity } from '../inventory/entities/inventory-lot.entity.js';
 import { InventoryMovementEntity } from '../inventory/entities/inventory-movement.entity.js';
+import { PurchaseSettlementLotEntity } from '../purchase/entities/purchase-settlement-lot.entity.js';
 import { PurchaseSettlementEntity } from '../purchase/entities/purchase-settlement.entity.js';
 import { ReceptionSackEntity } from '../reception/entities/reception-sack.entity.js';
 import { ReceptionEntity } from '../reception/entities/reception.entity.js';
@@ -92,12 +93,34 @@ export class ReceiptsService {
       businessId,
       activeSacks.map((sack) => sack.varietyId),
     );
-    const lines: ReceiptLine[] = receiptSackGroups(activeSacks).map(
-      (value) => ({
-        description: varietyMap.get(value.source.varietyId) ?? 'Variedad',
-        detail: `${value.sacks} saco(s) · ${formatKilograms(value.weight)} kg netos\n${receiptCharacteristics(value.source)}`,
-      }),
-    );
+    // Settlements with lots (spec 010) show each lot with its own price;
+    // earlier settlements keep their receipt exactly as before.
+    const lots =
+      settlement.priceBasis === null
+        ? await this.purchases.manager
+            .getRepository(PurchaseSettlementLotEntity)
+            .find({
+              order: { letter: 'ASC' },
+              where: { settlementId: settlement.id },
+            })
+        : [];
+    const lines: ReceiptLine[] = lots.length
+      ? lots.map((lot) => ({
+          amount: formatMoney(lot.amountCents),
+          description: `Lote ${lot.letter} · ${lot.name ?? varietyMap.get(lot.varietyId) ?? 'Variedad'}`,
+          detail: `${varietyMap.get(lot.varietyId) ?? 'Variedad'}${lot.qualityName ? ` · ${lot.qualityName}` : ''}\n${lot.sacks} saco(s) · ${lot.netWeightKg} kg netos · ${formatMoney(lot.unitPriceCents)} por ${lot.priceBasis === 'kilogram' ? 'kg' : 'saco'}`,
+        }))
+      : receiptSackGroups(activeSacks).map((value) => ({
+          description: varietyMap.get(value.source.varietyId) ?? 'Variedad',
+          detail: `${value.sacks} saco(s) · ${formatKilograms(value.weight)} kg netos\n${receiptCharacteristics(value.source)}`,
+        }));
+    const freightLine =
+      settlement.freightChargedTo === 'wholesaler'
+        ? {
+            label: 'Flete asumido por el comprador',
+            value: formatMoney(settlement.freightAmountCents),
+          }
+        : { label: 'Flete', value: formatMoney(settlement.freightAmountCents) };
     return this.getOrCreateDocument(
       identity,
       'purchase',
@@ -121,10 +144,7 @@ export class ReceiptsService {
               label: 'Importe bruto',
               value: formatMoney(settlement.grossAmountCents),
             },
-            {
-              label: 'Flete',
-              value: formatMoney(settlement.freightAmountCents),
-            },
+            freightLine,
             {
               label: 'Adelantos',
               value: formatMoney(settlement.advancesCents),

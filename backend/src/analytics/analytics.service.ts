@@ -123,19 +123,26 @@ export class AnalyticsService {
       SELECT 'purchase' AS "operationType", ps.id AS "operationId", rs.variety_id AS "varietyId", v.name AS "varietyName",
         date_trunc('week', ps.created_at AT TIME ZONE 'America/Lima')::date::text AS "weekStart",
         rs.sacks, rs.weight::text AS "weightKg",
-        (CASE WHEN ps.price_basis = 'kilogram' THEN ROUND(rs.weight * ps.unit_price_cents)
-          ELSE rs.sacks * ps.unit_price_cents END)::text AS "merchandiseCents",
+        (CASE WHEN COALESCE(lot.price_basis, ps.price_basis) = 'kilogram'
+            THEN ROUND(rs.weight * COALESCE(lot.unit_price_cents, ps.unit_price_cents))
+          ELSE rs.sacks * COALESCE(lot.unit_price_cents, ps.unit_price_cents) END)::text AS "merchandiseCents",
         ARRAY[]::text[] AS "compensationIds"
       FROM purchase_settlements ps
       JOIN receptions reception ON reception.id = ps.reception_id AND reception.business_id = ps.business_id
+      -- Spec 010: settlements with lots are priced by variety and quality;
+      -- earlier ones keep their single price grouped by variety only.
       JOIN LATERAL (
-        SELECT variety_id, COUNT(*)::int AS sacks, SUM(net_weight_kg) AS weight
+        SELECT variety_id, CASE WHEN ps.price_basis IS NULL THEN quality_id END AS lot_quality_id,
+          COUNT(*)::int AS sacks, SUM(net_weight_kg) AS weight
         FROM reception_sacks
         WHERE reception_id = ps.reception_id AND business_id = ps.business_id AND voided_at IS NULL
           AND ($7::text IS NULL OR CASE WHEN $7 = 'unreported' THEN quality_id IS NULL ELSE quality_id = NULLIF($7, 'unreported')::uuid END)
           AND ($8::text IS NULL OR CASE WHEN $8 = 'unreported' THEN origin_id IS NULL ELSE origin_id = NULLIF($8, 'unreported')::uuid END)
-        GROUP BY variety_id
+        GROUP BY 1, 2
       ) rs ON true
+      LEFT JOIN purchase_settlement_lots lot ON ps.price_basis IS NULL AND lot.settlement_id = ps.id
+        AND lot.business_id = ps.business_id AND lot.variety_id = rs.variety_id
+        AND lot.quality_id IS NOT DISTINCT FROM rs.lot_quality_id
       JOIN potato_varieties v ON v.id = rs.variety_id AND v.business_id = ps.business_id
       WHERE ps.business_id = $1 AND ps.state = 'confirmed'
         AND ps.created_at >= ($2::date::timestamp AT TIME ZONE 'America/Lima')

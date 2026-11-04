@@ -264,12 +264,15 @@ export class ReportsService {
     const rows = await this.dataSource.query(
       `SELECT DISTINCT 'purchase' AS "operationType", ps.id AS "operationId", ps.created_at AS "occurredAt",
               rs.variety_id AS "varietyId", v.name AS "varietyName", r.provider_id AS "counterpartyId",
-              p.name AS "counterpartyName", ps.price_basis AS "priceBasis",
-              ps.unit_price_cents::text AS "unitPriceCents", NULL::uuid AS "sourceLineId",
+              p.name AS "counterpartyName", COALESCE(psl.price_basis, ps.price_basis) AS "priceBasis",
+              COALESCE(psl.unit_price_cents, ps.unit_price_cents)::text AS "unitPriceCents", psl.id AS "sourceLineId",
               rs.quality_id AS "qualityId", rs.quality_name AS "qualityName", rs.origin_id AS "originId", rs.origin_name AS "originName"
        FROM purchase_settlements ps
        JOIN receptions r ON r.id = ps.reception_id AND r.business_id = ps.business_id
        JOIN reception_sacks rs ON rs.reception_id = r.id AND rs.business_id = ps.business_id AND rs.voided_at IS NULL
+       -- Spec 010: a settlement with lots prices each variety and quality on its own.
+       LEFT JOIN purchase_settlement_lots psl ON psl.settlement_id = ps.id AND psl.business_id = ps.business_id
+         AND psl.variety_id = rs.variety_id AND psl.quality_id IS NOT DISTINCT FROM rs.quality_id
        JOIN potato_varieties v ON v.id = rs.variety_id AND v.business_id = ps.business_id
        JOIN providers p ON p.id = r.provider_id AND p.business_id = ps.business_id
        WHERE ps.business_id = $1 AND ps.state = 'confirmed' AND ps.created_at >= ($2::date::timestamp AT TIME ZONE 'America/Lima') AND ps.created_at < (($3::date + INTERVAL '1 day') AT TIME ZONE 'America/Lima')

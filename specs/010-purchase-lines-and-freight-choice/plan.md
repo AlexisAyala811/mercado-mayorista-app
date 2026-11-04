@@ -78,7 +78,7 @@ CREATE INDEX ix_purchase_settlement_lots_business ON purchase_settlement_lots (b
 | --- | --- |
 | `lots` y `priceBasis`/`unitPriceCents` a la vez, o ninguno | `400` |
 | `freightChargedTo` sin flete | `400` |
-| Falta, sobra o se repite un grupo de variedad y calidad | `422` con los grupos esperados |
+| Falta, sobra o se repite un grupo de variedad y calidad | `422` con `code: purchase-lots-mismatch` (el filtro de errores de la API solo transmite `code`, `message` y `currentVersion`; los grupos se consultan en `settlement-groups`) |
 | Precio ≤ 0, base inválida, nombre > 60 caracteres | `400` |
 | Reintento igual | Misma liquidación |
 | Mismo UUID con otros lotes, precios, bases o `freightChargedTo` | `409 operation-id-conflict` |
@@ -113,6 +113,11 @@ Sin cambios: venta, cuentas y cuotas, liquidación de fletes, anulación (solo e
 | E2E PostgreSQL | Los seis escenarios de la spec por HTTP; cinco reenvíos simultáneos; compra antigua leída igual; comprobante y reporte con lotes; analítica por variedad |
 | Migración | `up` sobre datos existentes sin cambiar importes; `down` rechazado si hay lotes |
 | Rendimiento | 300 sacos en 5 lotes < 1 s |
+
+## Cambios durante la implementación
+
+- El `422` por lotes que no cubren los sacos lleva `code: purchase-lots-mismatch` en lugar de la lista de grupos: el filtro global de errores solo transmite `code`, `message` y `currentVersion`, y ampliarlo cambiaría el contrato de todos los errores.
+- La e2e carga los 52 sacos de cada recepción con `WeighingService` (el mismo servicio de la ruta HTTP): por HTTP superaba el límite de 100 solicitudes por minuto de la API.
 
 ## Riesgos
 
