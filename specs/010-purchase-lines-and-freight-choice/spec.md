@@ -1,6 +1,6 @@
 # Especificación 010: Lotes con precio propio y flete elegible en la compra
 
-**Estado:** aclaraciones resueltas; pendiente de aprobación (`clarify`) · **Fecha:** 4 de noviembre de 2026
+**Estado:** aprobada por el usuario el 4 de noviembre de 2026; siguiente fase `plan` · **Fecha:** 4 de noviembre de 2026
 **Origen:** [aclaraciones del frontend MAÑAY](../../docs/sdd/aclaraciones-frontend-manay-2026-11-04.md), CL-FM08, CL-FM09 y CL-FM10 · **Spec afectada:** [002 Recepción, pesaje y liquidación de compra](../002-reception-weighing-and-purchase-settlement/spec.md)
 
 ## Objetivo
@@ -164,4 +164,4 @@ Consecuencia de CL-PL01: dos grupos de sacos de la misma variedad y calidad no p
 
 ## Artefactos SDD relacionados
 
-[Checklist de requisitos](checklists/requirements.md). Siguientes fases, después de la aprobación: `plan` y `tasks`.
+[Plan](plan.md), [tareas](tasks.md) y [checklist de requisitos](checklists/requirements.md). Siguiente fase: aprobación del plan.

@@ -9,9 +9,9 @@
 - [x] Compatibilidad con liquidaciones antiguas y con aplicaciones anteriores.
 - [x] Impacto en comprobante, reportes y analítica identificado.
 - [x] Anulación sin cambios: solo el Mayorista, con motivo (CL-FM14).
-- [ ] Aprobación del usuario.
+- [x] Aprobación del usuario el 4 de noviembre de 2026.
 - [x] Aclaraciones CL-PL01 a CL-PL04 resueltas por el usuario el 4 de noviembre de 2026.
 
 ## Artefactos
 
-[Especificación](../spec.md).
+[Especificación](../spec.md), [plan](../plan.md) y [tareas](../tasks.md).
