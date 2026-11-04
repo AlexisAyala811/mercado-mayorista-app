@@ -1,6 +1,6 @@
 # Tareas 010: Lotes con precio propio y flete elegible en la compra
 
-**Especificación:** [spec 010](spec.md) · **Plan:** [plan 010](plan.md) · **Estado:** pendiente de aprobación del plan
+**Especificación:** [spec 010](spec.md) · **Plan:** [plan 010](plan.md) · **Estado:** plan aprobado el 4 de noviembre de 2026; en implementación
 
 Cada tarea se marca `[x]` solo con evidencia enlazable. Las de backend van en una rama y un PR; las de la app, cuando la app esté en el monorepo (T900).
 

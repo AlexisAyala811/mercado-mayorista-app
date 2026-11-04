@@ -1,6 +1,6 @@
 # Plan 010: Lotes con precio propio y flete elegible en la compra
 
-**Estado:** borrador pendiente de aprobación (`plan`) · **Fecha:** 4 de noviembre de 2026 · **Especificación:** [spec 010](spec.md), aprobada el 4 de noviembre de 2026
+**Estado:** aprobado por el usuario el 4 de noviembre de 2026; en implementación · **Fecha:** 4 de noviembre de 2026 · **Especificación:** [spec 010](spec.md), aprobada el 4 de noviembre de 2026
 
 ## Punto de partida
 
