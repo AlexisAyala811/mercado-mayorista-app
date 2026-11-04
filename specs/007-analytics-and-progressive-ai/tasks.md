@@ -64,3 +64,9 @@ T714 incorpora comprobación real en tablet 1280×800 y teléfono 360×800 de hi
 ## Impacto de Mensajería y notificaciones — 26 de octubre de 2026
 
 La especificación 008 incorpora HU15/RF25–26 y centraliza avisos HU14. Cuentas conserva saldos y vencimientos; Reportes conserva los endpoints previos por compatibilidad; Android comparte adjuntos por decisión del Mayorista. No ampliar permisos del Encargado, alterar importes ni reutilizar la cola comercial para enviar mensajes. Las referencias previas a canal pendiente se sustituyen por WhatsApp/correo mediante compartición manual; envío automático no aprobado.
+
+## Impacto del frontend MAÑAY — 4 de noviembre de 2026
+
+Aclaraciones CL-FM20 en [aclaraciones del frontend MAÑAY](../../docs/sdd/aclaraciones-frontend-manay-2026-11-04.md). Pendiente de especificar o diseñar; nada implementado todavía.
+
+- [ ] La pizarra de precios sugeridos solo muestra estimaciones cuando la disponibilidad lo permite; si no, «datos insuficientes» con sus condiciones.

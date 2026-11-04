@@ -54,3 +54,10 @@ La especificación 008 incorpora HU15/RF25–26 y centraliza avisos HU14. Cuenta
 - [x] Rechazar con `409 operation-id-conflict` un UUID reutilizado con datos distintos en recepciones, sacos, compras, ventas, devoluciones, abonos, reversos, estiba y flete; conservar el resultado original y no aplicar efectos. `backend/src/common/domain/operation-replay.ts`; 10 pruebas nuevas (reutilización en cuenta, importe, reverso, venta, comprador, proveedor y registros de flete). Evidencia: [verificación del backend](../../docs/sdd/verificacion-backend-2026-10-29.md).
 - [x] Ejecutar las e2e en PostgreSQL de forma secuencial: las suites compartían la base y migraban en paralelo. 35/35 en local y en la CI de los PR #1 y #2.
 - [ ] Tratar `409 operation-id-conflict` en la cola cifrada de Android: no reintentar, mostrar la orden en revisión y reenviar con UUID nuevo solo tras confirmación. Verificar en tablet.
+
+## Impacto del frontend MAÑAY — 4 de noviembre de 2026
+
+Aclaraciones CL-FM15, CL-FM16 en [aclaraciones del frontend MAÑAY](../../docs/sdd/aclaraciones-frontend-manay-2026-11-04.md). Pendiente de especificar o diseñar; nada implementado todavía.
+
+- [ ] Pantalla «Pendientes de envío» con estado, reintento y descarte con motivo.
+- [ ] Aviso de conflicto ante `409` sin reintento automático.

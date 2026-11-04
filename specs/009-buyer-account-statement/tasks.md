@@ -57,3 +57,9 @@ T910 → T911 → T912 → T913 → T914         │
 ```
 
 El backend (fases 1 a 3) puede avanzar mientras se incorpora la app (fase 0). La fase 4 necesita la API (T931) y la app en el monorepo (T900).
+
+## Impacto del frontend MAÑAY — 4 de noviembre de 2026
+
+Aclaraciones CL-FM13 en [aclaraciones del frontend MAÑAY](../../docs/sdd/aclaraciones-frontend-manay-2026-11-04.md). Pendiente de especificar o diseñar; nada implementado todavía.
+
+- [ ] T940: botón «Estado de cuenta» en el comprador dentro de Deudas que abre una pantalla propia.

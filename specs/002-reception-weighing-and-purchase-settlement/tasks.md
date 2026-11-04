@@ -91,3 +91,11 @@ Plan: [refactor SOLID](plan.md#refactor-solid-del-ingreso-de-pesos--30-de-octubr
 - [x] T226 Las mismas garantías sobre PostgreSQL: e2e HTTP de reenvíos y conflicto, y rollback real cuando falla la auditoría. **Hecho:** `test/weighing.e2e-spec.ts` 3/3, incluidos cinco envíos simultáneos; suite e2e 50/50. Evidencia: [verificación del refactor](../../docs/sdd/verificacion-pesaje-solid-2026-10-30.md).
 - [x] T227 Actualizar principios de diseño, C4 nivel 4 y verificación con evidencia. **Hecho en texto:** principios de diseño v2.1 y C4 nivel 4; redibujar los SVG queda abierto abajo. Evidencia: [verificación del refactor](../../docs/sdd/verificacion-pesaje-solid-2026-10-30.md).
 - [ ] Redibujar `solid-modulo-pesaje.svg` y `nivel4-clases.svg` con `RegisterSackWeight`, `SackWeight` y los contratos; renderizar sus PNG.
+
+## Impacto del frontend MAÑAY — 4 de noviembre de 2026
+
+Aclaraciones CL-FM05, CL-FM06, CL-FM08 a CL-FM11 en [aclaraciones del frontend MAÑAY](../../docs/sdd/aclaraciones-frontend-manay-2026-11-04.md). Pendiente de especificar o diseñar; nada implementado todavía.
+
+- [ ] Especificar y planificar la compra con varias líneas («Lote A / Lote B»), cada una con variedad, base (kilo o saco) y precio propios; migración compatible con las liquidaciones de una sola base.
+- [ ] Especificar la elección del flete en la liquidación: descontado al proveedor o asumido por el Mayorista.
+- [ ] Captura de bruto y tara por saco en kilos enteros y diseño para 200 o más sacos (lista, ir al saco N, totales fijos).

@@ -67,3 +67,21 @@ La secuencia no reduce el alcance: ordena la construcción para mantener trazabi
 ## Mensajería y notificaciones — 26 de octubre de 2026
 
 Mensajería y notificaciones organiza avisos financieros y compartición manual de archivos. Cuentas y caja conserva la autoridad sobre saldos y vencimientos. El Mayorista puede seleccionar un PDF, DOC/DOCX o imagen y un cliente/comprador o proveedor; después elige WhatsApp o correo y confirma destinatario y envío en la aplicación externa. El canal previsto no fuerza la aplicación final. Compartición solicitada no significa enviado, entregado ni leído. No se añade chat, envío automático, push ni acceso de mensajería al Encargado. La selección y compartición ocurren en Android mediante DocumentPicker y Sharing. La API autoriza, consulta avisos y conserva metadatos en message_share_attempts; no recibe el contenido de los archivos. Un adjunto por intento, hasta 20 MiB. PDF, DOC/DOCX, JPEG, PNG, WEBP, GIF y HEIC/HEIF. Los comprobantes PDF existentes se reutilizan desde HU10. En web, compartir requiere soporte de archivos del navegador; si falta, se prepara una descarga y no se declara compartición externa. La especificación 008 mantiene contratos, tareas y evidencia. HU15 añade adjuntos genéricos mediante RF25/RF26 sin renumerar historias anteriores.
+
+## Diseño MAÑAY de Google Stitch — 4 de noviembre de 2026
+
+Referencia visual aprobada por el usuario: 16 pantallas de Stitch con la marca MAÑAY. Respuestas y correcciones en [aclaraciones del frontend MAÑAY](../../docs/sdd/aclaraciones-frontend-manay-2026-11-04.md). Las pantallas se rehacen en la app Expo; el HTML de Stitch no se integra.
+
+| Módulo | Pantalla de Stitch |
+| --- | --- |
+| Acceso | `login_tablet_agrogesti_n_terra_con_barra_superior` |
+| Menú | `men_principal_tablet_agropapa` y `men_principal_tablet_m_dulo_de_ventas`, a unir en un menú con Compra y Venta visibles (CL-FM19) |
+| Compra | `registro_de_compra_multilotes_100_funcional_e_interactivo_tablet_2` |
+| Venta | `registro_de_compra_multilotes_100_funcional_e_interactivo_tablet_1` |
+| Ver compras / Ver ventas | `ver_compras_compras_pagadas_en_verde_y_deudas_en_rojo`, `ver_ventas_ventas_cobradas_en_verde_y_deudas_en_rojo` |
+| Deudas / Cobranzas | `deudas_gesti_n_de_saldos_y_cobranzas_tablet_1` y `_2`, con sus dos confirmaciones de guardado (CL-FM18) |
+| Carros | `registro_de_carros_tablet_agrogesti_n_terra_1` y `_2` |
+| Reportes | `reportes_de_compras_acopio_y_liquidaciones_tablet`, `reportes_de_ventas_cierre_comercial_y_despachos_tablet` |
+| Analítica | `anal_tica_pizarra_de_precios_y_mercado_tablet` |
+
+Sin diseño en Stitch todavía: estado de cuenta (HU16), pendientes de envío, aviso de conflicto, autorización de reemplazo y datos insuficientes de la analítica.
