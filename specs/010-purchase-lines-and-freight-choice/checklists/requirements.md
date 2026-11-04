@@ -10,7 +10,7 @@
 - [x] Impacto en comprobante, reportes y analítica identificado.
 - [x] Anulación sin cambios: solo el Mayorista, con motivo (CL-FM14).
 - [ ] Aprobación del usuario.
-- [ ] Aclaraciones CL-PL01 a CL-PL04 resueltas.
+- [x] Aclaraciones CL-PL01 a CL-PL04 resueltas por el usuario el 4 de noviembre de 2026.
 
 ## Artefactos
 

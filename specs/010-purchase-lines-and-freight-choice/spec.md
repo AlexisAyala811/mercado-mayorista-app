@@ -1,6 +1,6 @@
 # Especificación 010: Lotes con precio propio y flete elegible en la compra
 
-**Estado:** borrador pendiente de aprobación (`specify`) · **Fecha:** 4 de noviembre de 2026
+**Estado:** aclaraciones resueltas; pendiente de aprobación (`clarify`) · **Fecha:** 4 de noviembre de 2026
 **Origen:** [aclaraciones del frontend MAÑAY](../../docs/sdd/aclaraciones-frontend-manay-2026-11-04.md), CL-FM08, CL-FM09 y CL-FM10 · **Spec afectada:** [002 Recepción, pesaje y liquidación de compra](../002-reception-weighing-and-purchase-settlement/spec.md)
 
 ## Objetivo
@@ -37,7 +37,7 @@ Hoy la liquidación admite **un solo precio y una sola base** para toda la compr
 ## Flujo principal
 
 1. La recepción tiene su pesaje cerrado: cada saco con variedad, calidad, procedencia, bruto, tara y neto.
-2. El Mayorista abre la liquidación. La aplicación propone **un lote por cada combinación de variedad y calidad** presente en los sacos activos (ver CL-PL01), con su número de sacos y su peso neto.
+2. El Mayorista abre la liquidación. La aplicación forma **un lote por cada combinación de variedad y calidad** presente en los sacos activos (CL-PL01), con su número de sacos y su peso neto, y le asigna una letra (A, B, C…). El Mayorista puede darle un nombre (CL-PL02).
 3. Para cada lote elige la base (kilo o saco) y escribe el precio. La aplicación muestra una vista previa del importe de cada lote y del total.
 4. Indica el flete (base y tarifa, como hoy) y elige **quién lo asume**: el proveedor (opción por defecto) o el Mayorista.
 5. Registra adelantos, otros descuentos y la forma de pago (contado o crédito con cuotas), como hoy.
@@ -77,8 +77,8 @@ Una recepción con 32 sacos de Canchán 1ra (1 612 kg netos) y 20 sacos de Perua
 
 ## Requisitos funcionales verificables
 
-1. Una liquidación tiene **uno o más lotes**; cada lote declara su variedad y calidad, su base y su precio entero en céntimos mayor que cero.
-2. Los lotes cubren **todos** los sacos activos de la recepción, y cada saco pertenece a **un solo** lote. Una liquidación que deja sacos fuera o los repite se rechaza con `422`.
+1. Una liquidación tiene **un lote por cada combinación de variedad y calidad** de sus sacos activos (CL-PL01); un saco sin calidad informada forma su propio grupo con su variedad. Cada lote declara su base, su precio entero en céntimos mayor que cero y, opcionalmente, un nombre de hasta 60 caracteres (CL-PL02).
+2. La orden declara exactamente esos grupos: si falta uno, sobra uno o se repite, se rechaza con `422` y no se guarda nada. Así cada saco pertenece a un solo lote y ninguno queda fuera.
 3. Sacos, peso neto e importe de cada lote los calcula el servidor a partir de los sacos activos; la aplicación solo los muestra como vista previa.
 4. El bruto es la suma exacta de los importes de los lotes; el líquido sigue las reglas de la tabla según quién asume el flete.
 5. La elección del flete es obligatoria cuando hay flete y vale «proveedor» si una aplicación anterior no la envía.
@@ -86,7 +86,7 @@ Una recepción con 32 sacos de Canchán 1ra (1 612 kg netos) y 20 sacos de Perua
 7. Un reintento con el mismo `clientOperationId` y los mismos datos —incluidos lotes, bases, precios y elección del flete— devuelve la misma liquidación; con datos distintos responde `409 operation-id-conflict`.
 8. Las liquidaciones ya registradas con una sola base **no se modifican**: se leen como una liquidación de un único lote con todos sus sacos, y sus importes, comprobantes y reportes siguen iguales.
 9. Una aplicación anterior que todavía envía un solo precio y una sola base sigue funcionando: el servidor lo interpreta como un único lote con todos los sacos activos.
-10. El comprobante interno de la compra muestra cada lote (variedad, calidad, sacos, neto, base, precio, importe) y, cuando el Mayorista asume el flete, lo indica sin restarlo al proveedor (ver CL-PL03).
+10. El comprobante interno de la compra muestra cada lote (nombre o variedad y calidad, sacos, neto, base, precio, importe). Cuando el Mayorista asume el flete, muestra la línea informativa «Flete asumido por el comprador: S/ …» sin restarla del líquido (CL-PL03).
 11. Reportes y analítica calculan el precio por variedad con los importes de cada lote, no con un precio promedio de la compra.
 12. La anulación de una compra con varios lotes funciona como hoy: solo el Mayorista, con motivo, y revierte cuenta o caja y flete pendiente.
 13. Creación y anulación quedan en auditoría con los lotes, la elección del flete y el usuario.
@@ -149,15 +149,19 @@ Una recepción con 32 sacos de Canchán 1ra (1 612 kg netos) y 20 sacos de Perua
 - Cambiar la venta: ya tiene base y precio por línea y la opción `freightIncludedInTotal`.
 - Facturación electrónica (CL-FM12).
 
-## Aclaraciones abiertas
+## Aclaraciones
 
-| ID | Pregunta | Propuesta |
+Resueltas por el usuario el 4 de noviembre de 2026.
+
+| ID | Pregunta | Decisión |
 | --- | --- | --- |
-| CL-PL01 | ¿Cómo se forman los lotes? | **Por variedad y calidad** de los sacos ya pesados: la aplicación los propone automáticamente y el Mayorista solo pone base y precio. Alternativa: lotes libres, armados por el Mayorista eligiendo sacos. |
-| CL-PL02 | ¿Se puede nombrar un lote? | Sí: nombre opcional (por ejemplo «Canchán #1»); si no lo pone, se muestra la variedad y la calidad. |
-| CL-PL03 | Si el Mayorista asume el flete, ¿el comprobante del proveedor lo muestra? | Lo muestra como línea informativa «Flete asumido por el comprador: S/ 130,00», sin restarlo. |
+| CL-PL01 | ¿Cómo se forman los lotes? | **Automáticamente por variedad y calidad** de los sacos ya pesados; el Mayorista solo pone base y precio. |
+| CL-PL02 | ¿Se puede nombrar un lote? | **Sí, opcional** (por ejemplo «Canchán #1»); si no, se muestra la variedad y la calidad. |
+| CL-PL03 | Si el Mayorista asume el flete, ¿el comprobante del proveedor lo muestra? | **Sí, como dato informativo:** «Flete asumido por el comprador: S/ 130,00», sin restarlo. |
 | CL-PL04 | ¿Cambia algo de la anulación? | No: solo el Mayorista, con motivo, como hoy (CL-FM14). |
+
+Consecuencia de CL-PL01: dos grupos de sacos de la misma variedad y calidad no pueden tener precios distintos en una misma compra. Si se necesitara, la diferencia debe registrarse como otra calidad.
 
 ## Artefactos SDD relacionados
 
-[Checklist de requisitos](checklists/requirements.md). Siguientes fases, después de la aprobación y de cerrar las aclaraciones: `plan` y `tasks`.
+[Checklist de requisitos](checklists/requirements.md). Siguientes fases, después de la aprobación: `plan` y `tasks`.
