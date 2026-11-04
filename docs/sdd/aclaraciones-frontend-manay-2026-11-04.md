@@ -21,7 +21,7 @@ El diseño de Stitch es la referencia visual de la app Expo existente. No se int
 | CL-FM11 | Decimales de peso | Sin decimales, son exactos. **Aclarado: solo kilos enteros** | La app acepta bruto y tara solo en kilos enteros y los muestra sin decimales. El backend sigue guardando tres decimales (los enteros son válidos) y no cambia; los datos ya registrados con decimales se muestran redondeados solo en pantalla, nunca en los cálculos |
 | CL-FM12 | Guías y facturas SUNAT | Fuera del alcance; tal vez a futuro | Quitar «Guías SUNAT» de Reportes. Una integración con SUNAT requiere su propia especificación |
 | CL-FM13 | Estado de cuenta HU16 | Un botón dentro de «Deudas» y una pantalla propia | Botón «Estado de cuenta» en el comprador dentro de Deudas, que abre una pantalla propia con vista previa, PDF, imagen y compartir (spec 009, T940–T944) |
-| CL-FM14 | Devoluciones y anulaciones | **Aclarado: en el negocio no se usan** | **Cambio de alcance** de las specs 003 y 004: la app no muestra devolver ni anular. Ver «Decisión pendiente de confirmar» abajo |
+| CL-FM14 | Devoluciones y anulaciones | **Aclarado: en el negocio no se usan.** Confirmado el 4 de noviembre: la anulación se conserva **solo para el Mayorista** | La app no muestra devoluciones. Anular compra, venta o recepción queda solo para el Mayorista, como corrección de errores con motivo obligatorio |
 | CL-FM15 | Sin conexión | Pantalla de cola | Pantalla «Pendientes de envío» con estado de cada operación, reintento y descarte con motivo (spec 005) |
 | CL-FM16 | Conflicto con otra tablet | Se avisa | Al recibir `409` (`*-version-conflict` u `operation-id-conflict`) la operación no se reintenta sola: se muestra un aviso y se pide revisar |
 | CL-FM17 | Reemplazo del Encargado | El Mayorista lo autoriza desde la tablet | Pantalla de autorización de reemplazo para el Mayorista (máximo 24 horas, HU12) |
@@ -35,13 +35,17 @@ Se especificarán antes de implementarse:
 
 1. **Compra con varias líneas de precio** (CL-FM08, CL-FM09). Cada lote de la compra tiene variedad, base (kilo o saco) y precio propios; el bruto es la suma de las líneas. Debe convivir con las liquidaciones existentes de una sola base sin modificarlas (migración compatible) y conservar idempotencia, versión y auditoría.
 2. **Flete de compra a cargo del Mayorista** (CL-FM10). Una marca en la liquidación decide si el flete se descuenta del líquido del proveedor o se registra solo como costo logístico del Mayorista.
-3. **Ocultar devoluciones y anulaciones** (CL-FM14). Sin cambio de backend si se confirma la recomendación de abajo.
+3. **Ocultar devoluciones** (CL-FM14). Sin cambio de backend: anular ya es exclusivo del Mayorista (`@Roles(UserRole.Wholesaler)` en compra, venta y recepción) y exige motivo de 1 a 240 caracteres.
 
-## Decisión pendiente de confirmar: devoluciones y anulaciones
+## Decisión: devoluciones y anulaciones — 4 de noviembre de 2026
 
-Las specs 003 y 004 tienen implementadas la anulación de compras y ventas y la devolución comercial, con sus pruebas. Sin anular, un error ya confirmado (proveedor equivocado, precio mal escrito) no se puede deshacer, porque la regla es no borrar hechos.
+Las specs 003 y 004 tienen implementadas la anulación de compras y ventas y la devolución comercial, con sus pruebas. Sin anular, un error ya confirmado (proveedor equivocado, precio mal escrito) no se podría deshacer, porque la regla es no borrar hechos.
 
-Recomendación: **ocultar devoluciones** en la app, y **conservar la anulación solo para el Mayorista** como corrección de errores, con motivo obligatorio. Los endpoints del backend se mantienen para no romper la historia ni las migraciones. Si el usuario confirma que tampoco quiere anular, se oculta también y se registra como decisión.
+El usuario aprobó la recomendación:
+
+- **Devoluciones:** no se muestran en la app.
+- **Anulación:** se conserva solo para el Mayorista, como corrección de errores con motivo obligatorio. El Encargado no la ve.
+- **Backend:** sin cambios. Los endpoints de devolución se mantienen para no romper la historia, las migraciones ni las pruebas; la app simplemente no los usa.
 
 ## Correcciones visuales detectadas en las 16 pantallas
 

@@ -139,4 +139,4 @@ La especificación 008 incorpora HU15/RF25–26 y centraliza avisos HU14. Cuenta
 Aclaraciones CL-FM13, CL-FM14, CL-FM18 en [aclaraciones del frontend MAÑAY](../../docs/sdd/aclaraciones-frontend-manay-2026-11-04.md). Pendiente de especificar o diseñar; nada implementado todavía.
 
 - [ ] Separar en la app «Deudas» (a proveedores) y «Cobranzas» (de compradores), cada una con su confirmación de guardado.
-- [ ] Ocultar reversos y anulaciones según la decisión de CL-FM14.
+- [ ] Según CL-FM14 (decidido): sin devoluciones en la app; anulación de compras solo para el Mayorista, con motivo.
