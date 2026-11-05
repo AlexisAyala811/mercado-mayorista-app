@@ -8,7 +8,7 @@ Cada tarea se marca `[x]` solo con evidencia enlazable (pruebas, ejecución de C
 ## Fase 0 · Preparación
 
 - [x] **T900** Incorporar `mercado-app` al monorepo en `app/` conservando su historial, con su `.gitignore` (sin `node_modules`, `dist`, `android` generado ni credenciales). *Verificación:* el árbol `app/` coincide con el proyecto original; `npm ci`, tipos, lint y pruebas de la app pasan desde `app/`. **Hecho el 4 de noviembre de 2026:** 727 archivos en `app/`, generados ignorados y sin secretos. El origen solo tenía el commit de la plantilla y el trabajo sin confirmar, así que no había historial útil que conservar. Evidencia: [verificación de la app en el monorepo](../../docs/sdd/verificacion-app-monorepo-2026-11-04.md).
-- [ ] **T901** Crear `app-ci.yml`: en cada PR que toca `app/`, `npm ci`, tipos, lint y pruebas. *Verificación:* ejecución en verde en el PR.
+- [x] **T901** Crear `app-ci.yml`: en cada PR que toca `app/`, `npm ci`, tipos, lint y pruebas. *Verificación:* ejecución en verde en el PR. **Hecho:** App · CI 41940536861 en verde (tipos, lint y pruebas; exportación web); también se ejecuta en cada push a ramas de trabajo. Evidencia: [verificación de la app en el monorepo](../../docs/sdd/verificacion-app-monorepo-2026-11-04.md).
 
 ## Fase 1 · Cálculo (backend, sin base de datos)
 

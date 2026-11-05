@@ -37,8 +37,13 @@ Ejecutados dentro de `app/` después de `npm ci`, sin la carpeta de origen:
 
 La URL de la exportación en la CI es un marcador que solo prueba que el paquete se construye; la dirección real se configura al publicar una versión.
 
+## Resultado en GitHub Actions
+
+| Ejecución | Rama / evento | Commit | Resultado |
+| --- | --- | --- | --- |
+| App · CI 41940536861 | `feat/t900-app-monorepo`, push | `f3491b6` | «Tipos, lint y pruebas» y «Exportación web» aprobados |
+
 ## Pendiente
 
-- Ejecución en verde de `app-ci.yml` en GitHub (se completa al subir la rama).
 - Actualizar la ubicación de la app en la documentación de trabajo fuera del repositorio cuando esta rama esté en `main`.
 - Aplicar el diseño MAÑAY y las pantallas de las specs 009 y 010 (T940–T944, T1040–T1042).
