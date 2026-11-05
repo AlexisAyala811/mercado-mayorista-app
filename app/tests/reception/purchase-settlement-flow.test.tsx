@@ -57,8 +57,8 @@ describe.each(['weighing','weighed'] as const)('route removal from recovered rec
   }
   const screen=(root:ReactTestRenderer)=>root.root.findAll(node=>node.props.screenKind===(state==='weighing'?'weighing':'settlement'))[0];
   const exit=(root:ReactTestRenderer)=>root.root.findAll(node=>node.props.confirmLabel===(state==='weighing'?'Salir sin guardar este peso':'Salir sin guardar estos datos'))[0];
-  async function edit(root:ReactTestRenderer){await act(async()=>{if(state==='weighing')screen(root).props.onGrossWeightChange('51');else screen(root).props.onChange('unitPrice','2.50');});}
-  function expectEdited(root:ReactTestRenderer){expect(state==='weighing'?screen(root).props.currentGrossWeight:screen(root).props.values.unitPrice).toBe(state==='weighing'?'51':'2.50');}
+  async function edit(root:ReactTestRenderer){await act(async()=>{if(state==='weighing')screen(root).props.onGrossWeightChange('51');else screen(root).props.onChangeLot(screen(root).props.lots[0].key,'unitPrice','2.50');});}
+  function expectEdited(root:ReactTestRenderer){expect(state==='weighing'?screen(root).props.currentGrossWeight:(Object.values(screen(root).props.values.lots) as {unitPrice:string}[])[0]?.unitPrice).toBe(state==='weighing'?'51':'2.50');}
   it('does not block a clean recovered stage',async()=>{
     const root=await open();expect(mockPreventRemove.mock.calls.at(-1)![0]).toBe(false);expect(mockBrowserTraversalGuard.mock.calls.at(-1)![0]).toBe(false);await act(async()=>root.unmount());
   });
@@ -218,7 +218,7 @@ describe('recovery of an existing reception', () => {
     const root = await open();
     const screen = () => root.root.findAll(node => node.props.screenKind === 'settlement')[0];
     const confirm = () => root.root.findAll(node => node.props.confirmLabel === 'Liquidar compra')[0];
-    await act(async () => { screen().props.onChange('unitPrice', '2.50'); screen().props.onChange('paymentMode', 'credit'); screen().props.onAddInstallment(); });
+    await act(async () => { screen().props.onChangeLot(screen().props.lots[0].key,'unitPrice','2.50'); screen().props.onChange('paymentMode', 'credit'); screen().props.onAddInstallment(); });
     const id = screen().props.values.installments[0].id;
     await act(async () => { screen().props.onChangeInstallment(id, 'amount', '250'); screen().props.onChangeInstallment(id, 'dueOn', '2030-02-30'); });
     await act(async () => { screen().props.onSubmit(); });
@@ -239,12 +239,12 @@ describe('recovery of an existing reception', () => {
     jest.mocked(getReception).mockReset().mockResolvedValue({ ...current, state: 'weighed' });
     const root = await open();
     const screen = () => root.root.findAll(node => node.props.screenKind === 'settlement')[0];
-    await act(async () => { screen().props.onChange('unitPrice', '2.50'); });
+    await act(async () => { screen().props.onChangeLot(screen().props.lots[0].key,'unitPrice','2.50'); });
     await act(async () => { screen().props.onGoHome(); });
     const exit = root.root.findAll(node => node.props.confirmLabel === 'Salir sin guardar estos datos')[0];
     expect(exit.props.visible).toBe(true); expect(mockReplace).not.toHaveBeenCalled();
     await act(async () => { exit.props.onCancel(); });
-    expect(screen().props.values.unitPrice).toBe('2.50'); expect(mockEnqueue).not.toHaveBeenCalled();
+    expect((Object.values(screen().props.values.lots) as {unitPrice:string}[])[0]?.unitPrice).toBe('2.50'); expect(mockEnqueue).not.toHaveBeenCalled();
     await act(async () => { root.unmount(); });
   });
 
@@ -259,8 +259,8 @@ describe('recovery of an existing reception', () => {
     const screen = root.root.findAll(node => node.props.screenKind === 'weighing')[0];
     expect(screen.props.displayContext).toEqual({ username: 'Mayorista de prueba', providerName: 'Proveedor', providerPhone: '987654321', receivedOn: '2026-10-06' });
     expect(screen.props.varietySummaries).toEqual([
-      { varietyId: 'variety-id', varietyName: 'Papa', summary: { sackCountDisplay: '1', totalWeightDisplay: '50.000 kg', averageWeightDisplay: '50.000 kg' } },
-      { varietyId: 'second-variety', varietyName: 'Otra papa', summary: { sackCountDisplay: '1', totalWeightDisplay: '20.000 kg', averageWeightDisplay: '20.000 kg' } },
+      { varietyId: 'variety-id', varietyName: 'Papa', summary: { sackCountDisplay: '1', totalWeightDisplay: '50 kg', averageWeightDisplay: '50.0 kg' } },
+      { varietyId: 'second-variety', varietyName: 'Otra papa', summary: { sackCountDisplay: '1', totalWeightDisplay: '20 kg', averageWeightDisplay: '20.0 kg' } },
     ]);
     expect(mockEnqueue).not.toHaveBeenCalled();
     await act(async () => { root.unmount(); });
@@ -292,14 +292,18 @@ describe('recovery of an existing reception', () => {
     const root = await open();
     const screen = () => root.root.findAll(node => node.props.screenKind === 'weighing')[0];
     expect(screen().props.entries.map((entry: { id: string }) => entry.id)).toEqual(['kept-sack']);
-    expect(screen().props.summary).toMatchObject({ sackCountDisplay: '1', totalWeightDisplay: '50.000 kg' });
+    expect(screen().props.summary).toMatchObject({ sackCountDisplay: '1', totalWeightDisplay: '50 kg' });
     expect(mockEnqueue).not.toHaveBeenCalled(); expect(createReception).not.toHaveBeenCalled();
+    await act(async () => { screen().props.onGrossWeightChange('55,5'); });
+    await act(async () => { screen().props.onAddSack(); });
+    expect(screen().props.errorMessage).toBe('Ingresa el bruto y la tara en kilos enteros, sin decimales.');
+    expect(mockEnqueue).not.toHaveBeenCalled();
     mockSendQueued.mockResolvedValueOnce({ id: mockIds[0], status: 'pending' });
     await act(async () => { screen().props.onGrossWeightChange('55'); });
     await act(async () => { screen().props.onAddSack(); });
     expect(mockEnqueue).toHaveBeenCalledWith(expect.objectContaining({ path: '/receptions/saved-reception/sacks', type: 'reception.sack-add', body: expect.objectContaining({ expectedReceptionVersion: 7, varietyId: 'variety-id' }) }));
     expect(screen().props.entries.map((entry: { sequence: number }) => entry.sequence)).toEqual([2, 4]);
-    expect(screen().props.summary).toMatchObject({ sackCountDisplay: '2', totalWeightDisplay: '105.000 kg' });
+    expect(screen().props.summary).toMatchObject({ sackCountDisplay: '2', totalWeightDisplay: '105 kg' });
     await act(async () => { root.unmount(); });
   });
 
@@ -359,14 +363,14 @@ describe('offline local recovery', () => {
     let root!: ReactTestRenderer;
     await act(async () => { root = create(<PurchaseFlowScreen initialReceptionId={`local:${mockIds[0]}`} />); });
     const screen = () => root.root.findAll(node => node.props.screenKind === 'weighing')[0];
-    expect(screen().props).toMatchObject({ selectedVariety: 'Papa guardada', summary: { sackCountDisplay: '1', totalWeightDisplay: '12.000 kg' } });
+    expect(screen().props).toMatchObject({ selectedVariety: 'Papa guardada', summary: { sackCountDisplay: '1', totalWeightDisplay: '12 kg' } });
     expect(screen().props.notice).toContain('almacenamiento cifrado');
     expect(loadReceptionCatalogs).not.toHaveBeenCalled(); expect(getReception).not.toHaveBeenCalled(); expect(mockEnqueue).not.toHaveBeenCalled();
     await act(async () => { screen().props.onGrossWeightChange('10'); });
     await act(async () => { screen().props.onAddSack(); });
     expect(mockEnqueue).toHaveBeenCalledWith(expect.objectContaining({ id: mockIds[2], path: `/receptions/@${mockIds[0]}/sacks`, body: expect.objectContaining({ expectedReceptionVersion: 1 }) }));
     expect(mockSendQueued).not.toHaveBeenCalled();
-    expect(screen().props.summary).toMatchObject({ sackCountDisplay: '2', totalWeightDisplay: '22.000 kg' });
+    expect(screen().props.summary).toMatchObject({ sackCountDisplay: '2', totalWeightDisplay: '22 kg' });
     await act(async () => { root.unmount(); });
   });
 });
@@ -387,7 +391,7 @@ async function prepare(stop:'details'|'weighing'|'settlement'='settlement'){
   await act(async()=>{screen('weighing').props.onAddSack();await Promise.resolve()});
   await act(async()=>{screen('weighing').props.onContinue()});
   await act(async()=>{root.root.findAll(node=>node.props.confirmLabel==='Cerrar pesaje')[0].props.onConfirm();await Promise.resolve()});
-  await act(async()=>{screen('settlement').props.onChange('unitPrice','2.50')});
+  await act(async()=>{screen('settlement').props.onChangeLot(screen('settlement').props.lots[0].key,'unitPrice','2.50')});
   await act(async()=>{screen('settlement').props.onSubmit()});
   return root;
 }
@@ -395,7 +399,7 @@ async function confirm(root:ReactTestRenderer){await act(async()=>{root.root.fin
 
 it('stores the settlement before sending and queries the confirmed detail',async()=>{
   const root=await prepare();await confirm(root);
-  expect(mockEnqueue).toHaveBeenCalledWith({id:mockIds[3],method:'POST',path:'/purchases/receptions/reception-id/settlement',type:'purchase.settle',body:{advancesCents:0,clientOperationId:mockIds[3],discountsCents:0,expectedReceptionVersion:2,installments:[],paymentMode:'cash',priceBasis:'kilogram',unitPriceCents:250}});
+  expect(mockEnqueue).toHaveBeenCalledWith({id:mockIds[3],method:'POST',path:'/purchases/receptions/reception-id/settlement',type:'purchase.settle',body:{advancesCents:0,clientOperationId:mockIds[3],discountsCents:0,expectedReceptionVersion:2,installments:[],paymentMode:'cash',lots:[{varietyId:'variety-id',qualityId:null,priceBasis:'kilogram',unitPriceCents:250}]}});
   expect(mockEnqueue.mock.invocationCallOrder[0]).toBeLessThan(mockSendQueued.mock.invocationCallOrder[0]);
   expect(getPurchaseSettlement).toHaveBeenCalledWith('test-token','reception-id');expect(mockReplace).not.toHaveBeenCalled();
   expect(root.root.findAll(node=>node.props.screenKind==='confirmation')).not.toHaveLength(0);
@@ -469,7 +473,7 @@ it('stores a sack correction with its original path and version before sending',
   await act(async()=>{root.root.findAll(node=>node.props.screenKind==='weighing')[0].props.onEditEntry({id:'sack-id'})});
   await act(async()=>{root.root.findAll(node=>node.props.screenKind==='weighing')[0].props.onGrossWeightChange('110')});
   await act(async()=>{root.root.findAll(node=>node.props.screenKind==='weighing')[0].props.onAddSack();await Promise.resolve()});
-  expect(mockEnqueue).toHaveBeenLastCalledWith({id:mockIds[2],method:'PATCH',path:'/receptions/reception-id/sacks/sack-id',type:'reception.sack-correct',sackCharacteristics:{qualityId:null,qualityName:null,originId:null,originName:null},body:{clientOperationId:mockIds[2],expectedReceptionVersion:1,grossWeightKg:'110',tareKg:'0.000',varietyId:'variety-id',qualityId:null,originId:null}});
+  expect(mockEnqueue).toHaveBeenLastCalledWith({id:mockIds[2],method:'PATCH',path:'/receptions/reception-id/sacks/sack-id',type:'reception.sack-correct',sackCharacteristics:{qualityId:null,qualityName:null,originId:null,originName:null},body:{clientOperationId:mockIds[2],expectedReceptionVersion:1,grossWeightKg:'110',tareKg:'0',varietyId:'variety-id',qualityId:null,originId:null}});
   expect(mockEnqueue.mock.invocationCallOrder[2]).toBeLessThan(mockSendQueued.mock.invocationCallOrder[2]);
   await act(async()=>{root.unmount()});
 });
@@ -479,7 +483,7 @@ it('keeps closure and settlement queued behind an uncertain sack on a central re
   await act(async()=>{root.root.findAll(node=>node.props.screenKind==='weighing')[0].props.onAddSack();await Promise.resolve()});
   await act(async()=>{root.root.findAll(node=>node.props.screenKind==='weighing')[0].props.onContinue()});
   await act(async()=>{root.root.findAll(node=>node.props.confirmLabel==='Cerrar pesaje')[0].props.onConfirm();await Promise.resolve()});
-  await act(async()=>{root.root.findAll(node=>node.props.screenKind==='settlement')[0].props.onChange('unitPrice','2.50')});
+  await act(async()=>{root.root.findAll(node=>node.props.screenKind==='settlement')[0].props.onChangeLot(root.root.findAll(node=>node.props.screenKind==='settlement')[0].props.lots[0].key,'unitPrice','2.50')});
   await act(async()=>{root.root.findAll(node=>node.props.screenKind==='settlement')[0].props.onSubmit()});
   await confirm(root);
   expect(mockEnqueue.mock.calls.slice(1).map(call=>({type:call[0].type,version:call[0].body.expectedReceptionVersion}))).toEqual([{type:'reception.sack-add',version:0},{type:'reception.close',version:1},{type:'purchase.settle',version:2}]);

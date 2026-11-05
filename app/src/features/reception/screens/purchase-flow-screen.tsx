@@ -8,7 +8,8 @@ import { readInitialPurchaseDraft, rememberInitialPurchaseDraft, clearInitialPur
 
 import type { PotatoVariety, Provider, PurchaseSettlement, Reception, ReceptionSack, Vehicle } from '@/domain/reception/reception';
 import { createOperationId, moneyInputToCents, summarizeSacks } from '@/domain/reception/reception';
-import { calculatePurchasePreview, formatPreviewMoney, validateCreditSchedule } from '@/domain/reception/purchase-preview';
+import { formatKilograms, kilogramsDraft, validateSackWeights } from '@/domain/reception/whole-kilograms';
+import { calculatePurchasePreview, emptyLotDraft, formatPreviewMoney, groupPurchaseLots, settlementLotsPayload, validateCreditSchedule } from '@/domain/reception/purchase-preview';
 import { formatLocalDateInput } from '@/domain/shared/date';
 import { hasUnresolvedReceptionWrites } from '@/domain/reception/reception-recovery';
 import { recoverLocalReception } from '@/domain/reception/local-reception-recovery';
@@ -42,7 +43,7 @@ type Dialog = 'provider' | 'vehicle' | 'varieties' | 'sack-variety' | null;
 function initialDetails(): ReceptionDetails {
   return { date: formatLocalDateInput(), driverName: '', expectedVarieties: '', providerName: '', providerPhone: '', vehiclePlate: '' };
 }
-const initialSettlement: SettlementDraft = { advances: '0', discounts: '0', freightBasis: 'none', freightRate: '0', installments: [], paymentMode: 'cash', priceBasis: 'kilogram', unitPrice: '' };
+const initialSettlement: SettlementDraft = { advances: '0', discounts: '0', freightBasis: 'none', freightRate: '0', freightChargedTo: 'provider', installments: [], paymentMode: 'cash', lots: {} };
 
 export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?: string } = {}) {
   const router = useRouter();
@@ -229,13 +230,14 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
     id: sack.id,
     sequence: sack.sequence,
     varietyName: varieties.find((item) => item.id === sack.varietyId)?.name ?? expectedVarieties.find((item) => item.id === sack.varietyId)?.name ?? 'Variedad',
-    weightDisplay: `${Number(sack.netWeightKg).toFixed(3)} kg netos`,
-    detailDisplay: `Bruto ${Number(sack.grossWeightKg).toFixed(3)} kg · Tara ${Number(sack.tareKg).toFixed(3)} kg · ${commercialDescription(sack)}`,
+    weightDisplay: `${formatKilograms(sack.netWeightKg)} netos`,
+    detailDisplay: `Bruto ${formatKilograms(sack.grossWeightKg)} · Tara ${formatKilograms(sack.tareKg)} · ${commercialDescription(sack)}`,
   }));
   const summary = useMemo(() => summarizeSacks(activeSacks), [activeSacks]);
-  const settlementPreview = useMemo(() => calculatePurchasePreview(activeSacks, settlementDraft), [activeSacks, settlementDraft]);
+  const purchaseLots = useMemo(() => groupPurchaseLots(activeSacks, (varietyId) => varieties.find((item) => item.id === varietyId)?.name ?? expectedVarieties.find((item) => item.id === varietyId)?.name ?? 'Variedad'), [activeSacks, varieties, expectedVarieties]);
+  const settlementPreview = useMemo(() => calculatePurchasePreview(purchaseLots, settlementDraft), [purchaseLots, settlementDraft]);
   const settlementConfirmationMessage = settlementPreview.kind === 'ready'
-    ? `Importes provisionales: bruto ${formatPreviewMoney(settlementPreview.grossCents)}; flete ${formatPreviewMoney(settlementPreview.freightCents)}; adelantos ${formatPreviewMoney(settlementPreview.advancesCents)}; descuentos ${formatPreviewMoney(settlementPreview.discountsCents)}. Total líquido ${formatPreviewMoney(settlementPreview.liquidCents)}. ${settlementDraft.paymentMode === 'cash' ? 'Pago al contado.' : `Crédito con ${settlementDraft.installments.length} ${settlementDraft.installments.length === 1 ? 'cuota' : 'cuotas'}.`} El servidor verificará los importes y registrará los efectos de compra, flete, caja o cuenta por pagar.`
+    ? `Importes provisionales: ${settlementPreview.lots.length} ${settlementPreview.lots.length === 1 ? 'lote' : 'lotes'}, bruto ${formatPreviewMoney(settlementPreview.grossCents)}; ${settlementPreview.freightDeducted ? `flete descontado ${formatPreviewMoney(settlementPreview.freightCents)}` : settlementDraft.freightBasis === 'none' ? 'sin flete' : `flete a cargo del Mayorista ${formatPreviewMoney(settlementPreview.freightCents)}, no se descuenta`}; adelantos ${formatPreviewMoney(settlementPreview.advancesCents)}; descuentos ${formatPreviewMoney(settlementPreview.discountsCents)}. Total líquido ${formatPreviewMoney(settlementPreview.liquidCents)}. ${settlementDraft.paymentMode === 'cash' ? 'Pago al contado.' : `Crédito con ${settlementDraft.installments.length} ${settlementDraft.installments.length === 1 ? 'cuota' : 'cuotas'}.`} El servidor verificará los importes y registrará los efectos de compra, flete, caja o cuenta por pagar.`
     : 'Revisa los datos de la liquidación antes de confirmar.';
   const varietySummaries = expectedVarieties.map((variety) => ({ varietyId: variety.id, varietyName: variety.name, summary: summarizeSacks(activeSacks.filter((sack) => sack.varietyId === variety.id)) }));
   const displayContext = { username: session?.user?.username ?? '', providerName: details.providerName || providers.find((provider) => provider.id === providerId)?.name || 'Proveedor no disponible', providerPhone: reception?.providerPhone ?? details.providerPhone, receivedOn: reception?.receivedOn ?? details.date };
@@ -298,14 +300,14 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
   async function saveSack(){
     if(!reception||!sackVarietyId||capturing.current)return;
     setError(null);
-    const grossNumber=Number(gross.replace(',','.'));const tareNumber=Number((tare||'0').replace(',','.'));
-    if(!Number.isFinite(grossNumber)||!Number.isFinite(tareNumber)||grossNumber<=tareNumber||tareNumber<0){setError('El peso bruto debe ser mayor que la tara y ambos deben ser valores válidos.');return;}
+    const weights=validateSackWeights(gross,tare);
+    if(!weights.ok){setError(weights.message);return;}
     let characteristics:CommercialSnapshot;
     try{characteristics=captureCommercialSnapshot({qualityId,originId},qualities,origins,sacks.find(sack=>sack.id===editingSackId));}
     catch(cause){setError(cause instanceof Error?cause.message:'Revisa calidad y procedencia.');return;}
     capturing.current=true;setBusy(true);sackOperationRef.current??=createOperationId();
     const operationId=sackOperationRef.current;
-    const input={clientOperationId:operationId,expectedReceptionVersion:reception.version,grossWeightKg:gross.replace(',','.'),tareKg:(tare||'0').replace(',','.'),varietyId:sackVarietyId,qualityId,originId};
+    const input={clientOperationId:operationId,expectedReceptionVersion:reception.version,grossWeightKg:weights.value.grossWeightKg,tareKg:weights.value.tareKg,varietyId:sackVarietyId,qualityId,originId};
     const receptionReference=reception.id.startsWith('local:')?`@${reception.id.slice(6)}`:reception.id;
     const sackReference=editingSackId?.startsWith('local:')?`@${editingSackId.slice(6)}`:editingSackId;
     const path=editingSackId?`/receptions/${receptionReference}/sacks/${sackReference}`:`/receptions/${receptionReference}/sacks`;
@@ -350,7 +352,7 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
       const scheduleError = validateCreditSchedule(settlementDraft.installments, preview.liquidCents);
       if (scheduleError) { setError(scheduleError); return; }
     }
-    const unitPrice = moneyInputToCents(settlementDraft.unitPrice);
+    const unitPrice = Boolean(purchaseLots?.length && purchaseLots.every((lot) => (moneyInputToCents(settlementDraft.lots[lot.key]?.unitPrice ?? '') ?? 0) > 0));
     const freightRate = settlementDraft.freightBasis === 'none' ? 0 : moneyInputToCents(settlementDraft.freightRate);
     const advances = moneyInputToCents(settlementDraft.advances);
     const discounts = moneyInputToCents(settlementDraft.discounts);
@@ -362,16 +364,16 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
   }
 
   async function confirmSettlement() {
-    if(!reception||settling.current||confirmedPurchase)return;
+    if(!reception||settling.current||confirmedPurchase||!purchaseLots)return;
     settling.current=true;setConfirmation(null);setBusy(true);setError(null);
     settlementOperationRef.current??=createOperationId();
     const operationId=settlementOperationRef.current;
     const payload={
       advancesCents:moneyInputToCents(settlementDraft.advances)!,clientOperationId:operationId,
       discountsCents:moneyInputToCents(settlementDraft.discounts)!,expectedReceptionVersion:reception.version,
-      ...(settlementDraft.freightBasis==='none'?{}:{freightBasis:settlementDraft.freightBasis,freightRateCents:moneyInputToCents(settlementDraft.freightRate)!}),
+      ...(settlementDraft.freightBasis==='none'?{}:{freightBasis:settlementDraft.freightBasis,freightRateCents:moneyInputToCents(settlementDraft.freightRate)!,freightChargedTo:settlementDraft.freightChargedTo}),
       installments:settlementDraft.paymentMode==='cash'?[]:settlementDraft.installments.map(item=>({amountCents:moneyInputToCents(item.amount)!,dueOn:item.dueOn})),
-      paymentMode:settlementDraft.paymentMode,priceBasis:settlementDraft.priceBasis,unitPriceCents:moneyInputToCents(settlementDraft.unitPrice)!
+      paymentMode:settlementDraft.paymentMode,lots:settlementLotsPayload(purchaseLots,settlementDraft.lots)
     };
     let saved=false;
     try{
@@ -422,13 +424,13 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
   </>;
   if (step === 'weighing') return <>
     {referenceEditor}
-    <WeighingScreen characteristics={<>{referenceFeedback}<OperationReferenceActions kinds={['qualities','origins']} onManage={referenceManage} disabled={busy||isOfflineSession||Boolean(referenceKind)||referenceReloadBusy}/><CharacteristicFields value={{qualityId,originId}} qualities={qualities} origins={origins} disabled={busy} historical={sacks.find(sack=>sack.id===editingSackId)} onChange={(field,id)=>{if(busy)return;if(field==='qualityId')setQualityId(id);else setOriginId(id);}}/></>} displayContext={displayContext} varietySummaries={varietySummaries} onGoHome={() => requestExit('home')} onGoHistory={() => requestExit('history')} notice={[recoveryNotice,catalogNotice].filter(Boolean).join(' ')||undefined} currentGrossWeight={gross} currentTare={tare} entries={sackViews} errorMessage={error ?? undefined} isSubmitting={busy} onAddSack={() => void saveSack()} onContinue={() => setConfirmation('close')} onEditEntry={(entry) => { const sack = sacks.find((item) => item.id === entry.id); if (!sack) return; setEditingSackId(sack.id); setGross(sack.grossWeightKg); setTare(sack.tareKg); setSackVarietyId(sack.varietyId);setQualityId(sack.qualityId??null);setOriginId(sack.originId??null); }} onGrossWeightChange={setGross} onSelectVariety={() => setDialog('sack-variety')} onTareChange={setTare} selectedVariety={selectedSackVariety?.name} summary={summary} />
+    <WeighingScreen characteristics={<>{referenceFeedback}<OperationReferenceActions kinds={['qualities','origins']} onManage={referenceManage} disabled={busy||isOfflineSession||Boolean(referenceKind)||referenceReloadBusy}/><CharacteristicFields value={{qualityId,originId}} qualities={qualities} origins={origins} disabled={busy} historical={sacks.find(sack=>sack.id===editingSackId)} onChange={(field,id)=>{if(busy)return;if(field==='qualityId')setQualityId(id);else setOriginId(id);}}/></>} displayContext={displayContext} varietySummaries={varietySummaries} onGoHome={() => requestExit('home')} onGoHistory={() => requestExit('history')} notice={[recoveryNotice,catalogNotice].filter(Boolean).join(' ')||undefined} currentGrossWeight={gross} currentTare={tare} entries={sackViews} errorMessage={error ?? undefined} isSubmitting={busy} onAddSack={() => void saveSack()} onContinue={() => setConfirmation('close')} onEditEntry={(entry) => { const sack = sacks.find((item) => item.id === entry.id); if (!sack) return; setEditingSackId(sack.id); setGross(kilogramsDraft(sack.grossWeightKg)); setTare(kilogramsDraft(sack.tareKg)); setSackVarietyId(sack.varietyId);setQualityId(sack.qualityId??null);setOriginId(sack.originId??null); }} onGrossWeightChange={setGross} onSelectVariety={() => setDialog('sack-variety')} onTareChange={setTare} selectedVariety={selectedSackVariety?.name} summary={summary} />
     <ConfirmationDialog busy={busy} confirmLabel="Salir sin guardar este peso" title="¿Salir del pesaje?" message="El peso o las características en edición todavía no se han guardado. Los sacos ya registrados se conservan en la recepción." visible={stageExitAction !== null} onCancel={() => setStageExitAction(null)} onConfirm={confirmStageExit} />
     <ChoiceDialog choices={sackChoices} onClose={() => setDialog(null)} onSelect={selectChoice} selectedIds={[sackVarietyId]} title="Seleccionar variedad" visible={dialog === 'sack-variety'} />
     <ConfirmationDialog busy={busy} confirmLabel="Cerrar pesaje" message="Después del cierre, el detalle queda bloqueado y cualquier corrección posterior requiere autorización del Mayorista." onCancel={() => setConfirmation(null)} onConfirm={() => void confirmClose()} title="¿Cerrar el pesaje?" visible={confirmation === 'close'} />
   </>;
   if (step === 'settlement') return <>
-    <SettlementScreen displayContext={displayContext} sacks={activeSacks} sackEntries={sackViews} onGoHome={() => requestExit('home')} onGoHistory={() => requestExit('history')} notice={[recoveryNotice,catalogNotice].filter(Boolean).join(' ')||undefined} errorMessage={error ?? undefined} isSubmitting={busy} onAddInstallment={() => setSettlementDraft((current) => ({ ...current, installments: [...current.installments, { amount: '', dueOn: '', id: createOperationId() }] }))} onChange={(field, value) => setSettlementDraft((current) => ({ ...current, [field]: value }))} onChangeInstallment={(id, field, value) => setSettlementDraft((current) => ({ ...current, installments: current.installments.map((item) => item.id === id ? { ...item, [field]: value } : item) }))} onRemoveInstallment={(id) => setSettlementDraft((current) => ({ ...current, installments: current.installments.filter((item) => item.id !== id) }))} onSubmit={requestSettlement} values={settlementDraft} />
+    <SettlementScreen displayContext={displayContext} sacks={activeSacks} lots={purchaseLots ?? []} preview={settlementPreview} onChangeLot={(key, field, value) => setSettlementDraft((current) => ({ ...current, lots: { ...current.lots, [key]: { ...(current.lots[key] ?? emptyLotDraft), [field]: value } } }))} sackEntries={sackViews} onGoHome={() => requestExit('home')} onGoHistory={() => requestExit('history')} notice={[recoveryNotice,catalogNotice].filter(Boolean).join(' ')||undefined} errorMessage={error ?? undefined} isSubmitting={busy} onAddInstallment={() => setSettlementDraft((current) => ({ ...current, installments: [...current.installments, { amount: '', dueOn: '', id: createOperationId() }] }))} onChange={(field, value) => setSettlementDraft((current) => ({ ...current, [field]: value }))} onChangeInstallment={(id, field, value) => setSettlementDraft((current) => ({ ...current, installments: current.installments.map((item) => item.id === id ? { ...item, [field]: value } : item) }))} onRemoveInstallment={(id) => setSettlementDraft((current) => ({ ...current, installments: current.installments.filter((item) => item.id !== id) }))} onSubmit={requestSettlement} values={settlementDraft} />
     <ConfirmationDialog busy={busy} confirmLabel="Salir sin guardar estos datos" title="¿Salir de la liquidación?" message="Los precios, deducciones y cuotas en edición todavía no se han confirmado. El pesaje cerrado y sus sacos se conservan." visible={stageExitAction !== null} onCancel={() => setStageExitAction(null)} onConfirm={confirmStageExit} />
     <ConfirmationDialog busy={busy} confirmLabel="Liquidar compra" message={settlementConfirmationMessage} onCancel={() => setConfirmation(null)} onConfirm={() => void confirmSettlement()} title="¿Confirmar la liquidación?" visible={confirmation === 'settle'} />
   </>;

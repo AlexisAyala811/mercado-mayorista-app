@@ -36,10 +36,10 @@ export type SackInput = CommercialInput&{
 export type SettlementInput = {
   clientOperationId: string;
   expectedReceptionVersion: number;
-  priceBasis: "kilogram" | "sack";
-  unitPriceCents: number;
+  lots: { varietyId: string; qualityId: string | null; priceBasis: "kilogram" | "sack"; unitPriceCents: number; name?: string }[];
   freightBasis?: "kilogram" | "sack";
   freightRateCents?: number;
+  freightChargedTo?: "provider" | "wholesaler";
   advancesCents: number;
   discountsCents: number;
   paymentMode: "cash" | "credit";
