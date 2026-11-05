@@ -1,0 +1,62 @@
+# Integración continua de la app MAÑAY (Expo): cada push a una rama de trabajo
+# y cada PR que toque app/ deben dejarla verificada (tipos, lint, pruebas y
+# exportación web). La compilación Android se hace con EAS, fuera de esta CI.
+name: App · CI
+
+on:
+  push:
+    branches-ignore: [main]
+    paths:
+      - 'app/**'
+      - '.github/workflows/app-ci.yml'
+  pull_request:
+    paths:
+      - 'app/**'
+      - '.github/workflows/app-ci.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: app-ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    working-directory: app
+
+jobs:
+  verificar:
+    name: Tipos, lint y pruebas
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test -- --runInBand
+
+  exportar:
+    name: Exportación web
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: verificar
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - run: npm ci
+      # Placeholder that only proves the bundle builds; the real API address
+      # is configured when a build is published, never in the repository.
+      - run: npm run export:web
+        env:
+          EXPO_PUBLIC_API_URL: https://api.mercado.invalid/api/v1
