@@ -1,6 +1,6 @@
 # Especificación 011: Diseño MAÑAY en la app
 
-**Estado:** borrador pendiente de aprobación (`specify`) · **Fecha:** 5 de noviembre de 2026
+**Estado:** aclaraciones CL-MD02 a CL-MD04 resueltas; pendiente de aprobación (`clarify`) · **Fecha:** 5 de noviembre de 2026
 **Origen:** diseño de Google Stitch del usuario (16 pantallas y `DESIGN.md`) y [aclaraciones del frontend MAÑAY](../../docs/sdd/aclaraciones-frontend-manay-2026-11-04.md), CL-FM01 a CL-FM20 · **Relacionadas:** specs [001](../001-authentication-and-authorisation/spec.md) a [010](../010-purchase-lines-and-freight-choice/spec.md)
 
 ## Objetivo
@@ -133,14 +133,16 @@ El cambio es **de presentación y navegación**. Las reglas de negocio, los cál
 - Balanza conectada, SUNAT, inventario y devoluciones.
 - Publicación en Play Store (se planifica con la puesta en producción).
 
-## Aclaraciones abiertas
+## Aclaraciones
 
-| ID | Pregunta | Propuesta |
+CL-MD02 a CL-MD04 resueltas por el usuario el 5 de noviembre de 2026; CL-MD01 queda abierta hasta recibir el archivo.
+
+| ID | Pregunta | Decisión |
 | --- | --- | --- |
-| CL-MD01 | Archivo del logo MAÑAY | El usuario lo entrega en SVG o PNG de al menos 1024 px; hasta entonces se usa el nombre en texto |
-| CL-MD02 | ¿La app también se usa en teléfono? | Sí, se mantiene el ancho mínimo de 360 px que ya soporta la app, aunque el diseño se piense para tablet |
-| CL-MD03 | ¿Hace falta tema oscuro? | No: a pleno sol funciona mejor el tema claro de alto contraste |
-| CL-MD04 | ¿Orden de las pantallas? | Primero base visual, acceso y menú; luego Anote y liquidación; luego Deudas, Cobranzas y estado de cuenta; al final Reportes, Analítica, Carros y pantallas de cola y conflicto |
+| CL-MD01 | Archivo del logo MAÑAY | **Abierta.** El usuario lo entrega en SVG o PNG de al menos 1024 px; hasta entonces se usa el nombre en texto |
+| CL-MD02 | ¿La app también se usa en teléfono? | **Tablet y teléfono:** se mantiene el ancho mínimo de 360 px, aunque el diseño se piense para tablet |
+| CL-MD03 | ¿Hace falta tema oscuro? | **No:** solo el tema claro de alto contraste |
+| CL-MD04 | ¿Orden de las pantallas? | **Base visual, acceso y menú primero;** luego Anote y liquidación; luego Deudas, Cobranzas y estado de cuenta; al final Reportes, Analítica, Carros y pantallas de cola y conflicto |
 
 ## Artefactos SDD relacionados
 

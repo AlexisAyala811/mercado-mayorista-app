@@ -9,7 +9,8 @@
 - [x] Pantallas de cola, conflicto y reemplazo incluidas.
 - [x] Escenarios de aceptación por rol, pesaje, volumen, conexión, conflicto y contraste.
 - [ ] Aprobación del usuario.
-- [ ] Aclaraciones CL-MD01 a CL-MD04 resueltas.
+- [x] Aclaraciones CL-MD02 a CL-MD04 resueltas el 5 de noviembre de 2026.
+- [ ] CL-MD01: archivo del logo MAÑAY.
 
 ## Artefactos
 
