@@ -8,10 +8,10 @@
 - [x] Retiros: inventario, devoluciones, balanza conectada y SUNAT.
 - [x] Pantallas de cola, conflicto y reemplazo incluidas.
 - [x] Escenarios de aceptación por rol, pesaje, volumen, conexión, conflicto y contraste.
-- [ ] Aprobación del usuario.
+- [x] Aprobación del usuario el 5 de noviembre de 2026.
 - [x] Aclaraciones CL-MD02 a CL-MD04 resueltas el 5 de noviembre de 2026.
 - [ ] CL-MD01: archivo del logo MAÑAY.
 
 ## Artefactos
 
-[Especificación](../spec.md).
+[Especificación](../spec.md), [plan](../plan.md) y [tareas](../tasks.md).

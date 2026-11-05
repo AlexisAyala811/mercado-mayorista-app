@@ -1,6 +1,6 @@
 # Especificación 011: Diseño MAÑAY en la app
 
-**Estado:** aclaraciones CL-MD02 a CL-MD04 resueltas; pendiente de aprobación (`clarify`) · **Fecha:** 5 de noviembre de 2026
+**Estado:** aprobada por el usuario el 5 de noviembre de 2026; siguiente fase `plan` · **Fecha:** 5 de noviembre de 2026
 **Origen:** diseño de Google Stitch del usuario (16 pantallas y `DESIGN.md`) y [aclaraciones del frontend MAÑAY](../../docs/sdd/aclaraciones-frontend-manay-2026-11-04.md), CL-FM01 a CL-FM20 · **Relacionadas:** specs [001](../001-authentication-and-authorisation/spec.md) a [010](../010-purchase-lines-and-freight-choice/spec.md)
 
 ## Objetivo
@@ -146,4 +146,4 @@ CL-MD02 a CL-MD04 resueltas por el usuario el 5 de noviembre de 2026; CL-MD01 qu
 
 ## Artefactos SDD relacionados
 
-[Checklist de requisitos](checklists/requirements.md). Siguientes fases, después de la aprobación y de cerrar las aclaraciones: `plan` y `tasks`.
+[Plan](plan.md), [tareas](tasks.md) y [checklist de requisitos](checklists/requirements.md). Siguiente fase: aprobación del plan.
