@@ -5,7 +5,7 @@ import { DataSource } from 'typeorm';
 import { AuditModule } from '../audit/audit.module.js';
 import { AuditService } from '../audit/audit.service.js';
 import { IdentityModule } from '../identity/identity.module.js';
-import { RegisterSackWeight } from './application/register-sack-weight.js';
+import { WeighingUseCases } from './application/weighing-use-cases.js';
 import { ReceptionEntity } from './entities/reception.entity.js';
 import { ReceptionSackEntity } from './entities/reception-sack.entity.js';
 import { ReceptionController } from './reception.controller.js';
@@ -24,12 +24,10 @@ import { WeighingService } from './weighing.service.js';
     ReceptionService,
     WeighingService,
     {
-      // Composition root: the use case receives the PostgreSQL unit of work.
-      provide: RegisterSackWeight,
+      // Composition root: the use cases receive the PostgreSQL unit of work.
+      provide: WeighingUseCases,
       useFactory: (dataSource: DataSource, audit: AuditService) =>
-        new RegisterSackWeight(
-          new PostgresWeighingUnitOfWork(dataSource, audit),
-        ),
+        new WeighingUseCases(new PostgresWeighingUnitOfWork(dataSource, audit)),
       inject: [DataSource, AuditService],
     },
   ],

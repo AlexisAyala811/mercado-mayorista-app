@@ -39,7 +39,7 @@ import {
 } from '../src/reception/entities/reception.entity.js';
 import { ReceptionSackEntity } from '../src/reception/entities/reception-sack.entity.js';
 import { ReceptionService } from '../src/reception/reception.service.js';
-import { RegisterSackWeight } from '../src/reception/application/register-sack-weight.js';
+import { WeighingUseCases } from '../src/reception/application/weighing-use-cases.js';
 import { PostgresWeighingUnitOfWork } from '../src/reception/infrastructure/postgres-weighing.js';
 import { WeighingService } from '../src/reception/weighing.service.js';
 import { ReceiptDocumentEntity } from '../src/receipts/receipt-document.entity.js';
@@ -118,8 +118,7 @@ export function registerCommercialDatabaseScenarios(
     );
     const weighingService = new WeighingService(
       dataSource,
-      audit,
-      new RegisterSackWeight(new PostgresWeighingUnitOfWork(dataSource, audit)),
+      new WeighingUseCases(new PostgresWeighingUnitOfWork(dataSource, audit)),
     );
     const purchaseService = new PurchaseService(dataSource, audit);
     const sales = dataSource.getRepository(SaleEntity);
