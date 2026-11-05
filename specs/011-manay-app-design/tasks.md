@@ -1,6 +1,6 @@
 # Tareas 011: Diseño MAÑAY en la app
 
-**Especificación:** [spec 011](spec.md) · **Plan:** [plan 011](plan.md) · **Estado:** pendiente de aprobación del plan
+**Especificación:** [spec 011](spec.md) · **Plan:** [plan 011](plan.md) · **Estado:** plan aprobado el 5 de noviembre de 2026; fase 1 en implementación
 
 Cada tarea se marca `[x]` solo con evidencia enlazable. Cada fase va en su propia rama y PR.
 

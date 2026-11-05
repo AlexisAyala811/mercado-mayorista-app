@@ -1,6 +1,6 @@
 # Plan 011: Diseño MAÑAY en la app
 
-**Estado:** borrador pendiente de aprobación (`plan`) · **Fecha:** 5 de noviembre de 2026 · **Especificación:** [spec 011](spec.md), aprobada el 5 de noviembre de 2026
+**Estado:** aprobado por el usuario el 5 de noviembre de 2026; en implementación · **Fecha:** 5 de noviembre de 2026 · **Especificación:** [spec 011](spec.md), aprobada el 5 de noviembre de 2026
 
 ## Punto de partida
 
