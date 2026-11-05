@@ -15,9 +15,12 @@ export type ModuleId =
   | 'receipts'
   | 'reports'
   | 'sales'
-  | 'sales-history';
+  | 'sales-history'
+  | 'sync-queue';
 
-const assistantModules = new Set<ModuleId>(['purchases', 'sales']);
+// The Encargado records weighings, purchases and sales with a valid replacement,
+// and reviews the operations saved on the tablet; the server still decides.
+const assistantModules = new Set<ModuleId>(['purchases', 'sales', 'sync-queue']);
 
 export function canAccessModule(role: UserRole, module: ModuleId) {
   // Reserved legacy module; retired by the approved no-inventory scope.

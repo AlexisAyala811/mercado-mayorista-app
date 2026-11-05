@@ -12,7 +12,7 @@ import {
   type TextInputProps,
 } from "react-native";
 
-import { radius, spacing, typography } from "@/ui/tokens";
+import { radius, spacing, typography, color as tokenColor } from "@/ui/tokens";
 import { KeyboardFocusContext } from "./keyboard-focus-context";
 import { ReportAsset } from './report-asset';
 import { reportVisual } from '@/ui/report-tokens';
@@ -66,7 +66,7 @@ export function FormField({
         accessibilityHint={error ?? supportingText}
         accessibilityLabel={accessibilityLabel ?? label}
         placeholderTextColor={
-          appearance === "login" ? "#78847c" : color.textSecondary
+          color.textSecondary
         }
         style={[
           styles.input,
@@ -88,7 +88,7 @@ export function FormField({
 
 const reportStyles = StyleSheet.create({
   label: {color:reportVisual.secondary,fontSize:12,lineHeight:18,fontWeight:'600'},
-  input: {minHeight:44,paddingHorizontal:14,paddingRight:42,paddingVertical:8,borderRadius:10,borderWidth:1,borderColor:reportVisual.border,backgroundColor:reportVisual.surface,color:reportVisual.value,fontSize:14,lineHeight:20},
+  input: {minHeight:48,paddingHorizontal:14,paddingRight:42,paddingVertical:8,borderRadius:10,borderWidth:1,borderColor:reportVisual.border,backgroundColor:reportVisual.surface,color:reportVisual.value,fontSize:14,lineHeight:20},
   icon: {position:'absolute',right:14,top:0,bottom:0,justifyContent:'center'},
 });
 const createStyles = (color: VisualPalette) =>
@@ -117,7 +117,7 @@ const createStyles = (color: VisualPalette) =>
 const loginStyles = StyleSheet.create({
   container: { gap: 10 },
   label: {
-    color: "#324038",
+    color: tokenColor.textPrimary,
     fontFamily: "LoginInterSemiBold",
     fontSize: 15,
     lineHeight: 18,

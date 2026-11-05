@@ -1,21 +1,19 @@
 {
   "expo": {
-    "name": "Mercado",
+    "name": "MAÑAY",
     "slug": "mercado",
     "version": "1.0.0",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/brand/icon.png",
     "scheme": "mercado",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "ios": {
       "icon": "./assets/expo.icon"
     },
     "android": {
       "package": "com.mercado.gestion",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#FFFFFF",
+        "foregroundImage": "./assets/brand/adaptive-foreground.png"
       },
       "predictiveBackGestureEnabled": false
     },
@@ -28,9 +26,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#244234",
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "backgroundColor": "#FFFFFF",
+          "image": "./assets/brand/splash.png",
+          "imageWidth": 160
         }
       ],
       "expo-secure-store",

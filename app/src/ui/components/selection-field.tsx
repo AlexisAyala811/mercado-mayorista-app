@@ -59,7 +59,7 @@ export function SelectionField({
 const reportStyles = StyleSheet.create({
   label: {color:reportVisual.secondary,fontSize:12,lineHeight:18,fontWeight:'600'},
   value: {color:reportVisual.value,fontSize:14,lineHeight:20},
-  control: {minHeight:44,paddingHorizontal:14,paddingVertical:8,borderRadius:10,borderWidth:1,borderColor:reportVisual.border,backgroundColor:reportVisual.surface},
+  control: {minHeight:48,paddingHorizontal:14,paddingVertical:8,borderRadius:10,borderWidth:1,borderColor:reportVisual.border,backgroundColor:reportVisual.surface},
 });
 const createStyles = (color: VisualPalette) => StyleSheet.create({
   container: { gap: spacing.sm },

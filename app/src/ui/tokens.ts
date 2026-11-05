@@ -1,18 +1,23 @@
+// MAÑAY (spec 011): values of the Stitch design system (DESIGN.md), light
+// theme only, chosen for high contrast under direct sunlight. Text pairs are
+// checked against WCAG in tests/ui/contrast.test.ts.
 export const color = {
-  brand: '#244234',
-  brandMuted: '#E8EFE5',
-  surface: '#F7F8F5',
+  brand: '#1F3A2F',
+  brandMuted: '#E3EDE7',
+  surface: '#F9FAFB',
   surfaceRaised: '#FFFFFF',
-  textPrimary: '#1F2A23',
-  textSecondary: '#526057',
+  textPrimary: '#0B1C30',
+  textSecondary: '#475569',
   textOnBrand: '#FFFFFF',
-  border: '#AAB6AC',
-  danger: '#B42318',
-  dangerMuted: '#FEE4E2',
-  success: '#287A43',
-  successMuted: '#E3F5E8',
-  warning: '#9A6700',
-  warningMuted: '#FFF1C2',
+  border: '#CBD5E1',
+  danger: '#991B1B',
+  dangerMuted: '#FEF2F2',
+  dangerAccent: '#EF4444',
+  success: '#065F46',
+  successMuted: '#ECFDF5',
+  successAccent: '#10B981',
+  warning: '#92400E',
+  warningMuted: '#FFFBEB',
 } as const;
 
 export const spacing = {
