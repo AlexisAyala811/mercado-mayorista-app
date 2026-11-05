@@ -10,7 +10,7 @@ import {
   validateUsername,
   type LoginValidationErrors,
 } from "@/features/auth/validation/login-validation";
-import { AppButton, AppScreen, FormField, LoadingState } from "@/ui/components";
+import { AppButton, AppScreen, BrandMark, FormField, LoadingState } from "@/ui/components";
 import { color, radius, spacing, typography } from "@/ui/tokens";
 
 type LoginCredentials = {
@@ -107,13 +107,15 @@ export function LoginScreen({
           />
           <View style={styles.brandContent}>
             <View style={styles.brandBadge}>
-              <Text style={styles.brandBadgeText}>MERCADO</Text>
+              <BrandMark size={isWide ? 112 : 72} />
             </View>
             <Text
+              accessibilityRole="header"
               style={[styles.brandTitle, !isWide && styles.brandTitleCompact]}
             >
-              Gestión comercial de papa
+              MAÑAY
             </Text>
+            <Text style={styles.brandSubtitle}>Gestión comercial de papa</Text>
             <Text
               style={[
                 styles.brandDescription,
@@ -285,20 +287,19 @@ const styles = StyleSheet.create({
     height: 350,
   },
   brandContent: { maxWidth: 392 },
+  // White tile so the greens of the MAÑAY logo read on the brand panel.
   brandBadge: {
-    alignItems: "center",
-    justifyContent: "center",
     alignSelf: "flex-start",
-    backgroundColor: "#d9e3c5",
-    borderRadius: 18,
-    width: 116,
-    height: 36,
+    backgroundColor: color.surfaceRaised,
+    borderRadius: radius.xl,
+    padding: spacing.sm,
   },
-  brandBadgeText: {
-    color: color.brand,
+  brandSubtitle: {
+    color: color.brandMuted,
     fontFamily: "LoginInterSemiBold",
-    fontSize: 13,
-    lineHeight: 16,
+    fontSize: 20,
+    lineHeight: 28,
+    marginTop: spacing.sm,
   },
   brandTitle: {
     color: color.textOnBrand,
@@ -309,7 +310,7 @@ const styles = StyleSheet.create({
   },
   brandTitleCompact: { fontSize: 26, lineHeight: 32, marginTop: 16 },
   brandDescription: {
-    color: "#e5eee3",
+    color: color.brandMuted,
     fontFamily: "LoginInterRegular",
     fontSize: 19,
     lineHeight: 29,
@@ -326,13 +327,13 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   roleDescription: {
-    color: "#d1ded0",
+    color: color.brandMuted,
     fontFamily: "LoginInterRegular",
     fontSize: 16,
     lineHeight: 24,
   },
   brandFooter: {
-    color: "#c6d5c6",
+    color: color.brandMuted,
     fontFamily: "LoginInterRegular",
     fontSize: 14,
     lineHeight: 17,
@@ -367,7 +368,7 @@ const styles = StyleSheet.create({
     lineHeight: 39,
   },
   formDescription: {
-    color: "#637068",
+    color: color.textSecondary,
     fontFamily: "LoginInterRegular",
     fontSize: 17,
     lineHeight: 21,
@@ -386,16 +387,16 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   securityMessage: {
-    color: "#637068",
+    color: color.textSecondary,
     fontFamily: "LoginInterRegular",
     fontSize: 14,
     lineHeight: 17,
     textAlign: "center",
     marginTop: 26,
   },
-  divider: { backgroundColor: "#e5e9e4", height: 1, marginTop: 31 },
+  divider: { backgroundColor: color.border, height: 1, marginTop: 31 },
   helpMessage: {
-    color: "#637068",
+    color: color.textSecondary,
     fontFamily: "LoginInterRegular",
     fontSize: 14,
     lineHeight: 21,

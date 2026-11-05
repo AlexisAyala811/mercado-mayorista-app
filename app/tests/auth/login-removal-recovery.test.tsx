@@ -29,6 +29,7 @@ jest.mock("@/ui/components", () => {
   return {
     AppScreen: control,
     AppButton: control,
+    BrandMark: control,
     FormField: control,
     FormSection: section,
   };

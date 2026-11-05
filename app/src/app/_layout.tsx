@@ -72,7 +72,6 @@ export function RootNavigator() {
           <Stack.Screen name="purchase-flow" />
           <Stack.Screen name="sale-flow" />
           <Stack.Screen name="sync-queue" />
-          <Stack.Screen name="inventory" />
           <Stack.Screen name="accounts" />
           <Stack.Screen name="logistics" />
           <Stack.Screen name="reports" />
@@ -80,7 +79,6 @@ export function RootNavigator() {
           <Stack.Screen name="cost-settlements" />
           <Stack.Screen name="receipts" />
           <Stack.Screen name="catalog" />
-          <Stack.Screen name="inventory-adjustment" />
           <Stack.Screen name="sales-history" />
           <Stack.Screen name="purchase-history" />
           <Stack.Screen name="administration" />

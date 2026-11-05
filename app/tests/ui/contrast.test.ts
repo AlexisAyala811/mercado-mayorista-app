@@ -27,6 +27,7 @@ describe('MAÑAY contrast', () => {
     ['primary text on cards', color.textPrimary, color.surfaceRaised],
     ['brand text on cards', color.brand, color.surfaceRaised],
     ['text on the brand colour', color.textOnBrand, color.brand],
+    ['light brand text on the brand colour', color.brandMuted, color.brand],
     ['paid state', color.success, color.successMuted],
     ['debt state', color.danger, color.dangerMuted],
     ['report values', reportVisual.value, reportVisual.surface],
