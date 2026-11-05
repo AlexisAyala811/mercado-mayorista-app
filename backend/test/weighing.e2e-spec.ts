@@ -3,7 +3,7 @@ import { Test } from '@nestjs/testing';
 import { randomUUID } from 'node:crypto';
 import type { Server } from 'node:http';
 import request from 'supertest';
-import type { DataSource } from 'typeorm';
+import { IsNull, type DataSource } from 'typeorm';
 
 import { AuditEventEntity } from '../src/audit/audit-event.entity.js';
 import type { AuditService } from '../src/audit/audit.service.js';
@@ -186,5 +186,67 @@ describe('Sack weighing (PostgreSQL)', () => {
       .getRepository(ReceptionEntity)
       .findOneByOrFail({ id: reception.id });
     expect(stored.version).toBe(reception.version);
+  });
+  it('corrects, withdraws and closes over HTTP, closing once under five simultaneous resends', async () => {
+    const reception = await newReception();
+    const url = `/api/v1/receptions/${reception.id}`;
+    const first = (await post(`${url}/sacks`, sack(0)).expect(201)).body;
+    const second = (await post(`${url}/sacks`, sack(1)).expect(201)).body;
+
+    const corrected = (
+      await http()
+        .patch(`${url}/sacks/${first.id}`)
+        .set('Authorization', `Bearer ${token}`)
+        .send(sack(2, { grossWeightKg: '50' }))
+        .expect(200)
+    ).body;
+    expect(corrected).toMatchObject({
+      correctedFromSackId: first.id,
+      netWeightKg: '49.500',
+      sequence: 1,
+    });
+    await post(`${url}/sacks/${second.id}/void`, {
+      clientOperationId: randomUUID(),
+      expectedReceptionVersion: 3,
+      reason: 'Saco duplicado',
+    }).expect(201);
+
+    const close = {
+      clientOperationId: randomUUID(),
+      expectedReceptionVersion: 4,
+    };
+    const closes = await Promise.all(
+      Array.from({ length: 5 }, () =>
+        post(`${url}/close-weighing`, close).expect(201),
+      ),
+    );
+    expect(new Set(closes.map((response) => response.body.version))).toEqual(
+      new Set([5]),
+    );
+    const closedEvents = await dataSource.getRepository(AuditEventEntity).find({
+      where: { action: 'reception.weighing-closed', resourceId: reception.id },
+    });
+    expect(closedEvents).toHaveLength(1);
+    expect(closedEvents[0]!.details).toMatchObject({
+      sackCount: 1,
+      totalWeightKg: '49.500',
+      varietyCount: 1,
+    });
+
+    const reason = 'Tara mal registrada';
+    const fixed = (
+      await post(`${url}/sacks/${corrected.id}/correct-closed`, {
+        ...sack(5, { grossWeightKg: '50', tareKg: '1' }),
+        reason,
+      }).expect(201)
+    ).body;
+    expect(fixed).toMatchObject({
+      correctionReason: reason,
+      netWeightKg: '49.000',
+    });
+    const active = await dataSource
+      .getRepository(ReceptionSackEntity)
+      .find({ where: { receptionId: reception.id, voidedAt: IsNull() } });
+    expect(active.map((item) => item.id)).toEqual([fixed.id]);
   });
 });

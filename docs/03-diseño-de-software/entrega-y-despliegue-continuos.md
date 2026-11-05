@@ -30,6 +30,7 @@ flowchart LR
 | --- | --- | --- |
 | `backend-ci.yml` | En cada PR que toca `backend/` | **Verificar:** `npm ci`, `typecheck`, `lint`, pruebas unitarias, `build` y `npm audit` sin vulnerabilidades altas. **PostgreSQL:** migraciones y pruebas e2e contra un PostgreSQL 17 efímero. **Imagen:** construcción de la imagen Docker. |
 | `backend-cd.yml` | En cada push a `main` que toca `backend/`, o manualmente | **CI** completa (reutiliza `backend-ci.yml`) → **Publicar** la imagen con etiquetas `sha-<commit>` y `latest` → **Desplegar** en producción si el entorno está habilitado. |
+| `app-ci.yml` | En cada push a una rama de trabajo y en cada PR que toca `app/` | **Verificar:** `npm ci`, tipos, lint y pruebas Jest. **Exportar:** exportación web con una URL de API de marcador. La compilación Android se hace con EAS, fuera de la CI. |
 | `docs-ci.yml` | En cada PR o push que toca Markdown o imágenes | Verifica que no haya enlaces ni anclas rotos. |
 
 ## Despliegue en el servidor

@@ -1,0 +1,237 @@
+[
+  {
+    "frame": "menu",
+    "name": "imgImage1",
+    "file": "D:\\2026 - II\\Arquitectura de Software\\Propuesta\\mercado-app\\assets\\figma\\original\\menu\\imgImage1.png",
+    "sourceUrl": "https://www.figma.com/api/mcp/asset/6dff485c-da81-4d3b-ab91-da0838c90c33.png",
+    "bytes": 25992,
+    "sha256": "181D2F9B69FEA8818B64D47AD884B00690F630B0F2410CA1A3EE3A17195C208F",
+    "dimensions": {
+      "width": 512,
+      "height": 512
+    }
+  },
+  {
+    "frame": "menu",
+    "name": "imgImage3",
+    "file": "D:\\2026 - II\\Arquitectura de Software\\Propuesta\\mercado-app\\assets\\figma\\original\\menu\\imgImage3.png",
+    "sourceUrl": "https://www.figma.com/api/mcp/asset/ecd50f7a-e1c9-4643-9e11-96ec2a699081.png",
+    "bytes": 16357,
+    "sha256": "857553EB868C4F9300105398EBD45EE505B452EB7C968047F1E04C0679B6FF6E",
+    "dimensions": {
+      "width": 512,
+      "height": 512
+    }
+  },
+  {
+    "frame": "menu",
+    "name": "imgImage2",
+    "file": "D:\\2026 - II\\Arquitectura de Software\\Propuesta\\mercado-app\\assets\\figma\\original\\menu\\imgImage2.png",
+    "sourceUrl": "https://www.figma.com/api/mcp/asset/13eefd3b-7dfd-4fcf-9a8f-58f043df496e.png",
+    "bytes": 21632,
+    "sha256": "39D69DBADBF2D5B023BF4880F133C95675BE0361EAB865C436C6C33DA2F1F41C",
+    "dimensions": {
+      "width": 512,
+      "height": 512
+    }
+  },
+  {
+    "frame": "menu",
+    "name": "imgImage",
+    "file": "D:\\2026 - II\\Arquitectura de Software\\Propuesta\\mercado-app\\assets\\figma\\original\\menu\\imgImage.png",
+    "sourceUrl": "https://www.figma.com/api/mcp/asset/2c27faf5-2628-4be3-b3f9-4fa8ea2bb0f7.png",
+    "bytes": 2113,
+    "sha256": "7CE7CED3C0747582E93DF28A93E5DA2C19EA15CBA89744B9320C21D88F0A9E29",
+    "dimensions": {
+      "width": 160,
+      "height": 160
+    }
+  },
+  {
+    "frame": "menu",
+    "name": "imgGridiconsBook",
+    "file": "D:\\2026 - II\\Arquitectura de Software\\Propuesta\\mercado-app\\assets\\figma\\original\\menu\\imgGridiconsBook.svg",
+    "sourceUrl": "https://www.figma.com/api/mcp/asset/0afc2066-b94c-42e9-9f4c-3a86ecf2c25f.svg",
+    "bytes": 343,
+    "sha256": "1014FA6888C4BE67EC22BFCC65DA136386385C734F102D39C3053B8AA8D21939",
+    "dimensions": {
+      "width": "24",
+      "height": "24",
+      "viewBox": "0 0 24 24"
+    }
+  },
+  {
+    "frame": "compra",
+    "name": "imgGroup",
+    "file": "D:\\2026 - II\\Arquitectura de Software\\Propuesta\\mercado-app\\assets\\figma\\original\\compra\\imgGroup.svg",
+    "sourceUrl": "https://www.figma.com/api/mcp/asset/a6487445-f1f1-4a5f-981d-3b12b246d62a.svg",
+    "bytes": 1746,
+    "sha256": "5E3550B3AB06068BA5832FA5F29A288BD49FE1118A0FCB0A0B167C04C6719420",
+    "dimensions": {
+      "width": "41.6667",
+      "height": "41.6667",
+      "viewBox": "0 0 41.6667 41.6667"
+    }
+  },
+  {
+    "frame": "compra",
+    "name": "imgGroup1",
+    "file": "D:\\2026 - II\\Arquitectura de Software\\Propuesta\\mercado-app\\assets\\figma\\original\\compra\\imgGroup1.svg",
+    "sourceUrl": "https://www.figma.com/api/mcp/asset/9e553efb-1f06-4e82-9d10-61cad1d1ac3d.svg",
+    "bytes": 1734,
+    "sha256": "6B5EDE873FF5A5FDAA5FEEF5F2AEEC3974D6EC396D2C65FD6489A8ECE2805034",
+    "dimensions": {
+      "width": "31.6667",
+      "height": "31.6667",
+      "viewBox": "0 0 31.6667 31.6667"
+    }
+  },
+  {
+    "frame": "compra",
+    "name": "imgGroup2",
+    "file": "D:\\2026 - II\\Arquitectura de Software\\Propuesta\\mercado-app\\assets\\figma\\original\\compra\\imgGroup2.svg",
+    "sourceUrl": "https://www.figma.com/api/mcp/asset/fcc5b0bc-fb11-4349-ad32-6dc77cdfdc02.svg",
+    "bytes": 1584,
+    "sha256": "55212B86E937538DBA024D45FC103BE0E30EF1C43F3F063217303C48669C3002",
+    "dimensions": {
+      "width": "32.5",
+      "height": "32.5",
+      "viewBox": "0 0 32.5 32.5"
+    }
+  },
+  {
+    "frame": "compra",
+    "name": "imgMaterialSymbolsArrowBack2",
+    "file": "D:\\2026 - II\\Arquitectura de Software\\Propuesta\\mercado-app\\assets\\figma\\original\\compra\\imgMaterialSymbolsArrowBack2.svg",
+    "sourceUrl": "https://www.figma.com/api/mcp/asset/ca987d5b-791b-4648-ab2a-41fa5d0c61b5.svg",
+    "bytes": 313,
+    "sha256": "58E8EE97B99F4F748F6CD830FFC4A07EC9AF833FC692B700969F5E4FE90BBAB2",
+    "dimensions": {
+      "width": "103",
+      "height": "103",
+      "viewBox": "0 0 103 103"
+    }
+  },
+  {
+    "frame": "compra",
+    "name": "imgMaterialSymbolsArrowBack3",
+    "file": "D:\\2026 - II\\Arquitectura de Software\\Propuesta\\mercado-app\\assets\\figma\\original\\compra\\imgMaterialSymbolsArrowBack3.svg",
+    "sourceUrl": "https://www.figma.com/api/mcp/asset/3f156d12-d11b-49d4-8048-5566795dc2b2.svg",
+    "bytes": 295,
+    "sha256": "A43131076E314DE674EB99C0286691A56556E8FE556D93B920070511C3176515",
+    "dimensions": {
+      "width": "93",
+      "height": "93",
+      "viewBox": "0 0 93 93"
+    }
+  },
+  {
+    "frame": "compra",
+    "name": "imgGravityUiHouseFill",
+    "file": "D:\\2026 - II\\Arquitectura de Software\\Propuesta\\mercado-app\\assets\\figma\\original\\compra\\imgGravityUiHouseFill.svg",
+    "sourceUrl": "https://www.figma.com/api/mcp/asset/b96b7bc5-f75e-4ef9-a004-837506e1a68f.svg",
+    "bytes": 852,
+    "sha256": "C8934C6794D326F31C4B64C18D3DCDBDC26B967A7CA6B940F5277BAAE53419DE",
+    "dimensions": {
+      "width": "72",
+      "height": "72",
+      "viewBox": "0 0 72 72"
+    }
+  },
+  {
+    "frame": "login",
+    "name": "decoracion-inferior",
+    "file": "D:\\2026 - II\\Arquitectura de Software\\Propuesta\\mercado-app\\assets\\figma\\original\\login\\decoracion-inferior.svg",
+    "sourceUrl": "https://www.figma.com/api/mcp/asset/227e7222-e9b6-41ab-9466-641bae5e4708.svg",
+    "bytes": 278,
+    "sha256": "207AC71643D6B26B15EFF90944D67035AAD6455EC1C85249760A305916B3DBFC",
+    "dimensions": {
+      "width": 350,
+      "height": 350
+    }
+  },
+  {
+    "frame": "login",
+    "name": "decoracion-superior",
+    "file": "D:\\2026 - II\\Arquitectura de Software\\Propuesta\\mercado-app\\assets\\figma\\original\\login\\decoracion-superior.svg",
+    "sourceUrl": "https://www.figma.com/api/mcp/asset/d55426d6-5a45-4a64-8b93-6e40c8f7b97e.svg",
+    "bytes": 279,
+    "sha256": "E2CE71BA7A42E8DB21C771DC3295635798B68ECD4329599782B2BB6F786AFC06",
+    "dimensions": {
+      "width": 450,
+      "height": 450
+    }
+  },
+  {
+    "frame": "carros",
+    "name": "back",
+    "file": "D:\\2026 - II\\Arquitectura de Software\\Propuesta\\mercado-app\\assets\\figma\\original\\carros\\back.svg",
+    "sourceUrl": "https://www.figma.com/api/mcp/asset/507e479a-3845-4f41-91b0-c4280c64608f.svg",
+    "bytes": 295,
+    "sha256": "A43131076E314DE674EB99C0286691A56556E8FE556D93B920070511C3176515",
+    "dimensions": {
+      "width": "93",
+      "height": "93"
+    }
+  },
+  {
+    "frame": "carros",
+    "name": "forward",
+    "file": "D:\\2026 - II\\Arquitectura de Software\\Propuesta\\mercado-app\\assets\\figma\\original\\carros\\forward.svg",
+    "sourceUrl": "https://www.figma.com/api/mcp/asset/2012f9fd-b372-413f-9361-5e6a41234556.svg",
+    "bytes": 313,
+    "sha256": "58E8EE97B99F4F748F6CD830FFC4A07EC9AF833FC692B700969F5E4FE90BBAB2",
+    "dimensions": {
+      "width": "103",
+      "height": "103"
+    }
+  },
+  {
+    "frame": "carros",
+    "name": "home",
+    "file": "D:\\2026 - II\\Arquitectura de Software\\Propuesta\\mercado-app\\assets\\figma\\original\\carros\\home.svg",
+    "sourceUrl": "https://www.figma.com/api/mcp/asset/a7e80bf5-a717-45d7-951f-20ba3297b55a.svg",
+    "bytes": 852,
+    "sha256": "C8934C6794D326F31C4B64C18D3DCDBDC26B967A7CA6B940F5277BAAE53419DE",
+    "dimensions": {
+      "width": "72",
+      "height": "72"
+    }
+  },
+  {
+    "frame": "carros",
+    "name": "add",
+    "file": "D:\\2026 - II\\Arquitectura de Software\\Propuesta\\mercado-app\\assets\\figma\\original\\carros\\add.svg",
+    "sourceUrl": "https://www.figma.com/api/mcp/asset/253dc575-8af2-4cb8-930c-ea14b5b23e73.svg",
+    "bytes": 1740,
+    "sha256": "FFCD3A8DC3F1AB53678DEDADAC13445772747725A966AF38B810A9C4FC773E3D",
+    "dimensions": {
+      "width": "70.8333",
+      "height": "70.8333"
+    }
+  },
+  {
+    "frame": "carros",
+    "name": "search",
+    "file": "D:\\2026 - II\\Arquitectura de Software\\Propuesta\\mercado-app\\assets\\figma\\original\\carros\\search.png",
+    "sourceUrl": "https://www.figma.com/api/mcp/asset/da780cd0-9ab1-4b23-8733-b618ff67419e.png",
+    "bytes": 13469,
+    "sha256": "04A18CEF4D6DCE0A5F3C127A6249F40AB544FECA91B855BBEE902603396668DF",
+    "dimensions": {
+      "height": 512,
+      "width": 512
+    }
+  },
+  {
+    "frame": "carros",
+    "name": "field",
+    "file": "D:\\2026 - II\\Arquitectura de Software\\Propuesta\\mercado-app\\assets\\figma\\original\\carros\\field.svg",
+    "sourceUrl": "https://www.figma.com/api/mcp/asset/c1da3949-0f43-41c0-b277-c2e9ce63ad60.svg",
+    "bytes": 415,
+    "sha256": "6C45F572DCA67CB506230C73A49175F4EDD0198EAD109F2A8FD80520F0E712A5",
+    "dimensions": {
+      "width": "621",
+      "height": "45"
+    }
+  }
+]
