@@ -100,3 +100,11 @@ Continúa el refactor anterior con las cuatro escrituras que seguían en `Weighi
 - [x] T229 Casos de uso `CorrectSackWeight`, `CorrectClosedSackWeight`, `VoidSack` y `CloseWeighing`, agrupados en `WeighingUseCases`; `WeighingService` solo lee y delega. *Verificación:* mismo orden de validaciones y mensajes, incluido «La recepción cambió.» en la corrección de un pesaje cerrado. **Hecho.** Evidencia: [verificación del refactor](../../docs/sdd/verificacion-pesaje-solid-2026-10-30.md#operaciones-restantes--4-de-noviembre-de-2026).
 - [x] T230 Pruebas de contrato en memoria de las cuatro operaciones. *Verificación:* corrección conserva secuencia; reenvío del retiro devuelve el mismo saco y otro saco con el mismo UUID da `409`; cierre con totales solo de sacos activos y una sola vez; cierre sin sacos `422`; corrección de cerrado solo tras el cierre y con su motivo; saco retirado `404`. **Hecho:** 17 pruebas en `weighing-use-cases.spec.ts`. Evidencia: [verificación del refactor](../../docs/sdd/verificacion-pesaje-solid-2026-10-30.md#operaciones-restantes--4-de-noviembre-de-2026).
 - [x] T231 E2E HTTP en PostgreSQL: corregir, retirar, cerrar con cinco envíos simultáneos (un único evento de cierre) y corregir el pesaje cerrado. **Hecho:** `test/weighing.e2e-spec.ts` 4/4; suite e2e 51/51. Evidencia: [verificación del refactor](../../docs/sdd/verificacion-pesaje-solid-2026-10-30.md#operaciones-restantes--4-de-noviembre-de-2026).
+
+## Impacto del frontend MAÑAY — 4 de noviembre de 2026
+
+Aclaraciones CL-FM05, CL-FM06, CL-FM08 a CL-FM11 en [aclaraciones del frontend MAÑAY](../../docs/sdd/aclaraciones-frontend-manay-2026-11-04.md). Pendiente de especificar o diseñar; nada implementado todavía.
+
+- [ ] Especificar y planificar la compra con varias líneas («Lote A / Lote B»), cada una con variedad, base (kilo o saco) y precio propios; migración compatible con las liquidaciones de una sola base. **Borrador:** [spec 010](../010-purchase-lines-and-freight-choice/spec.md), pendiente de aprobación.
+- [ ] Especificar la elección del flete en la liquidación: descontado al proveedor o asumido por el Mayorista. **Borrador:** incluido en la [spec 010](../010-purchase-lines-and-freight-choice/spec.md).
+- [ ] Captura de bruto y tara por saco en kilos enteros y diseño para 200 o más sacos (lista, ir al saco N, totales fijos).

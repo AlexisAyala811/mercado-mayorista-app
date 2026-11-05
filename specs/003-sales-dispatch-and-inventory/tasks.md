@@ -72,3 +72,10 @@ Corte posterior offline/protección: `docs/sdd/verificacion-venta-offline-2026-1
 ## Impacto de Mensajería y notificaciones — 26 de octubre de 2026
 
 La especificación 008 incorpora HU15/RF25–26 y centraliza avisos HU14. Cuentas conserva saldos y vencimientos; Reportes conserva los endpoints previos por compatibilidad; Android comparte adjuntos por decisión del Mayorista. No ampliar permisos del Encargado, alterar importes ni reutilizar la cola comercial para enviar mensajes. Las referencias previas a canal pendiente se sustituyen por WhatsApp/correo mediante compartición manual; envío automático no aprobado.
+
+## Impacto del frontend MAÑAY — 4 de noviembre de 2026
+
+Aclaraciones CL-FM14 en [aclaraciones del frontend MAÑAY](../../docs/sdd/aclaraciones-frontend-manay-2026-11-04.md). Pendiente de especificar o diseñar; nada implementado todavía.
+
+- [x] Confirmar con el usuario si la anulación se conserva solo para el Mayorista. **Confirmado el 4 de noviembre de 2026:** anular solo el Mayorista con motivo; el backend ya lo exige. Evidencia: [decisión](../../docs/sdd/aclaraciones-frontend-manay-2026-11-04.md#decisión-devoluciones-y-anulaciones--4-de-noviembre-de-2026).
+- [ ] Ocultar la devolución comercial en la app y mostrar «Anular» solo al Mayorista.

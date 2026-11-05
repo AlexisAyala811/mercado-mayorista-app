@@ -133,3 +133,10 @@ La especificación 008 incorpora HU15/RF25–26 y centraliza avisos HU14. Cuenta
 - [x] Añadir el estado `voided` de cuota; la anulación de compra y venta a crédito lo aplica con saldo cero, sin movimiento de caja. Migración `InstallmentVoidedState1793232000027` (recrea el enum y reclasifica cuotas de cuentas anuladas). Prueba unitaria de anulación de compra a crédito y e2e con la migración aplicada. Evidencia: [verificación del backend](../../docs/sdd/verificacion-backend-2026-10-29.md).
 - [ ] Mostrar las cuotas `voided` como «Anulada» en el detalle de cuenta de Android y verificar que no aparezcan como cobradas o pagadas.
 - [x] Prueba e2e específica de anulación de venta a crédito sobre PostgreSQL que compruebe el estado de las cuotas. `backend/test/voided-credit-and-isolation.e2e-spec.ts`. Evidencia: [verificación de pendientes](../../docs/sdd/verificacion-backend-pendientes-2026-10-30.md).
+
+## Impacto del frontend MAÑAY — 4 de noviembre de 2026
+
+Aclaraciones CL-FM13, CL-FM14, CL-FM18 en [aclaraciones del frontend MAÑAY](../../docs/sdd/aclaraciones-frontend-manay-2026-11-04.md). Pendiente de especificar o diseñar; nada implementado todavía.
+
+- [ ] Separar en la app «Deudas» (a proveedores) y «Cobranzas» (de compradores), cada una con su confirmación de guardado.
+- [ ] Según CL-FM14 (decidido): sin devoluciones en la app; anulación de compras solo para el Mayorista, con motivo.

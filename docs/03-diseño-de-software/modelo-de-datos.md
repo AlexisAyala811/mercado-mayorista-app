@@ -20,6 +20,8 @@ erDiagram
     potato_varieties ||--o{ reception_sacks : clasifica
     commercial_characteristics ||--o{ reception_sacks : "calidad / procedencia"
     receptions ||--o| purchase_settlements : "se liquida en"
+    purchase_settlements ||--o{ purchase_settlement_lots : "lotes"
+    potato_varieties ||--o{ purchase_settlement_lots : clasifica
 
     buyers ||--o{ sales : compra
     sales ||--|{ sale_lines : contiene
@@ -62,15 +64,29 @@ erDiagram
     purchase_settlements {
         uuid id PK
         uuid reception_id FK
-        enum price_basis
-        bigint unit_price_cents
+        enum price_basis "null si tiene lotes"
+        bigint unit_price_cents "null si tiene lotes"
         bigint freight_amount_cents
+        enum freight_charged_to "provider | wholesaler"
         bigint advances_cents
         bigint discounts_cents
         bigint liquid_amount_cents
         enum payment_mode
         enum state
         int version
+    }
+    purchase_settlement_lots {
+        uuid id PK
+        uuid settlement_id FK
+        varchar letter
+        varchar name
+        uuid variety_id FK
+        uuid quality_id
+        enum price_basis
+        bigint unit_price_cents
+        int sacks
+        numeric net_weight_kg
+        bigint amount_cents
     }
     sales {
         uuid id PK
@@ -102,7 +118,7 @@ erDiagram
 | Módulo | Tablas |
 | --- | --- |
 | Identidad y acceso | `businesses`, `users`, `sessions`, `delegations` |
-| Recepción y compras | `receptions`, `reception_expected_varieties`, `reception_sacks`, `purchase_settlements` |
+| Recepción y compras | `receptions`, `reception_expected_varieties`, `reception_sacks`, `purchase_settlements`, `purchase_settlement_lots` |
 | Ventas y despachos | `sales`, `sale_lines`, `sale_returns`, `sale_return_lines` |
 | Cuentas y caja | `accounts`, `account_installments`, `account_payments`, `account_payment_allocations`, `cash_movements` |
 | Costos logísticos | `freight_entries`, `freight_settlements`, `work_groups`, `stowage_entries`, `stowage_settlements` |
@@ -136,4 +152,6 @@ La integridad de estas referencias la garantiza el servicio dentro de la transac
 - `token_hash` único en `sessions`; el token en claro nunca se guarda.
 - Una cuenta por operación de origen: `(business_id, source_type, source_id)` único en `accounts`.
 - `receipt_documents` admite `application/pdf` e `image/png` (migración 028) y conserva cada versión durante el periodo de retención; un trigger impide borrarlas antes.
+- Una liquidación de compra tiene un precio único (`price_basis` y `unit_price_cents`) o lotes en `purchase_settlement_lots`, nunca ambos; cada lote es único por `(settlement_id, variety_id, quality_id)` y por letra (migración 029, spec 010). Un lote es una línea de la liquidación, no un lote de inventario.
+- `freight_charged_to = 'wholesaler'` solo con flete; el flete pendiente con el transportista se registra igual en ambos casos.
 - Las migraciones se aplican de forma explícita (`npm run migration:run`); `synchronize` está desactivado.

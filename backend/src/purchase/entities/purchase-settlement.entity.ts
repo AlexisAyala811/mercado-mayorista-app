@@ -16,6 +16,13 @@ export enum PaymentMode {
   Credit = 'credit',
 }
 
+// Who bears the freight of a purchase (spec 010): the provider has it deducted
+// from the liquid amount; the wholesaler only owes it to the carrier.
+export enum FreightChargeParty {
+  Provider = 'provider',
+  Wholesaler = 'wholesaler',
+}
+
 export enum PurchaseSettlementState {
   Confirmed = 'confirmed',
   Voided = 'voided',
@@ -45,12 +52,14 @@ export class PurchaseSettlementEntity {
     enum: CalculationBasis,
     enumName: 'calculation_basis',
     name: 'price_basis',
+    nullable: true,
     type: 'enum',
   })
-  priceBasis!: CalculationBasis;
+  // Single price of settlements without lots; null when the settlement has lots.
+  priceBasis!: CalculationBasis | null;
 
-  @Column({ name: 'unit_price_cents', type: 'bigint' })
-  unitPriceCents!: string;
+  @Column({ name: 'unit_price_cents', nullable: true, type: 'bigint' })
+  unitPriceCents!: string | null;
 
   @Column({ name: 'gross_amount_cents', type: 'bigint' })
   grossAmountCents!: string;
@@ -66,6 +75,15 @@ export class PurchaseSettlementEntity {
 
   @Column({ name: 'freight_rate_cents', nullable: true, type: 'bigint' })
   freightRateCents!: string | null;
+
+  @Column({
+    default: FreightChargeParty.Provider,
+    enum: FreightChargeParty,
+    enumName: 'freight_charge_party',
+    name: 'freight_charged_to',
+    type: 'enum',
+  })
+  freightChargedTo!: FreightChargeParty;
 
   @Column({ name: 'freight_amount_cents', type: 'bigint' })
   freightAmountCents!: string;

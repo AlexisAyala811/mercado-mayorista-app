@@ -50,6 +50,21 @@ export class PurchaseController {
     );
   }
 
+  @Get('receptions/:receptionId/settlement-groups')
+  groups(
+    @CurrentIdentity() identity: SessionIdentity,
+    @Param('receptionId', ParseUUIDPipe) receptionId: string,
+  ) {
+    return auditForeignAccess(
+      this.audit,
+      identity,
+      ReceptionEntity,
+      receptionId,
+      'reception',
+      () => this.purchases.settlementGroups(identity.businessId, receptionId),
+    );
+  }
+
   @Post('receptions/:receptionId/settlement')
   settle(
     @CurrentIdentity() identity: SessionIdentity,

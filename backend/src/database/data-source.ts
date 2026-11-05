@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { Messaging1792972800026 } from './migrations/202610260026-messaging.js';
 import { InstallmentVoidedState1793232000027 } from './migrations/202610290027-installment-voided-state.js';
 import { ReceiptDocumentsPng1793318400028 } from './migrations/202610300028-receipt-documents-png.js';
+import { PurchaseSettlementLots1793750400029 } from './migrations/202611040029-purchase-settlement-lots.js';
 import { ShareAttemptEntity } from '../messaging/share-attempt.entity.js';
 
 import { DataSource } from 'typeorm';
@@ -40,6 +41,7 @@ import { CarrierEntity } from '../logistics/entities/carrier.entity.js';
 import { VehicleEntity } from '../logistics/entities/vehicle.entity.js';
 import { ReceptionEntity } from '../reception/entities/reception.entity.js';
 import { ReceptionSackEntity } from '../reception/entities/reception-sack.entity.js';
+import { PurchaseSettlementLotEntity } from '../purchase/entities/purchase-settlement-lot.entity.js';
 import { PurchaseSettlementEntity } from '../purchase/entities/purchase-settlement.entity.js';
 import { InventoryLotEntity } from '../inventory/entities/inventory-lot.entity.js';
 import { InventoryMovementEntity } from '../inventory/entities/inventory-movement.entity.js';
@@ -98,6 +100,7 @@ export default new DataSource({
     ReceptionEntity,
     ReceptionSackEntity,
     PurchaseSettlementEntity,
+    PurchaseSettlementLotEntity,
     InventoryLotEntity,
     InventoryMovementEntity,
     InventoryLotValuationEntity,
@@ -147,6 +150,7 @@ export default new DataSource({
     Messaging1792972800026,
     InstallmentVoidedState1793232000027,
     ReceiptDocumentsPng1793318400028,
+    PurchaseSettlementLots1793750400029,
   ],
 });
 
