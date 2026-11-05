@@ -1,0 +1,84 @@
+{
+  "source": "Figma original vectors; no redraw or PNG used in the interface",
+  "fileKey": "Bwk3Aukec2fZJR01CXbhb6",
+  "codeConnectSourceAvailable": false,
+  "purchaseVariant": {
+    "instance": "1:352",
+    "component": "1:12",
+    "vectorNode": "I1:352;7758:12536",
+    "file": "compra-icon.svg",
+    "bytes": 563,
+    "sha256": "E4BEF75791985A8D2AC883E60EBBE42460968B6180486DE93A56507328864B44",
+    "position": { "x": 48, "y": 20 },
+    "originalSvg": { "width": 40, "height": 44.5 }
+  },
+  "verifiedIdenticalInstanceVectors": [
+    "1:137",
+    "18:462"
+  ],
+  "vectorNodes": [
+    "I1:137;7758:12536",
+    "I18:462;7758:12536"
+  ],
+  "instance": {
+    "height": 54,
+    "width": 54
+  },
+  "vectorGeometry": {
+    "x": 9,
+    "width": 36,
+    "height": 40.5,
+    "y": 6.75,
+    "strokeOverflow": 2
+  },
+  "originalSvg": {
+    "height": 44.5,
+    "width": 40
+  },
+  "renderedVectorSlot": {
+    "left": 7,
+    "width": 40,
+    "top": 4.75,
+    "height": 44.5
+  },
+  "menuInstancePosition": {
+    "x": 56,
+    "y": 33
+  },
+  "carrosInstancePosition": {
+    "x": 48,
+    "y": 20
+  },
+  "files": [
+    {
+      "file": "menu-icon.svg",
+      "bytes": 563,
+      "sha256": "E6B82ED09FF19266AF7BD6AA6A1A28F2258C16F8B5C6E579E6EC4BFEC5FAD19A",
+      "runtime": true
+    },
+    {
+      "file": "carros-icon.svg",
+      "bytes": 563,
+      "sha256": "E6B82ED09FF19266AF7BD6AA6A1A28F2258C16F8B5C6E579E6EC4BFEC5FAD19A",
+      "runtime": false
+    },
+    {
+      "file": "vector-a.svg",
+      "bytes": 563,
+      "sha256": "E6B82ED09FF19266AF7BD6AA6A1A28F2258C16F8B5C6E579E6EC4BFEC5FAD19A",
+      "runtime": false
+    },
+    {
+      "file": "vector-b.svg",
+      "bytes": 558,
+      "sha256": "03F7BF969EE1ADC042E357DD2B032C142FD666DC55A8C99C22B3C83F101DBCBE",
+      "runtime": false
+    },
+    {
+      "file": "reference.png",
+      "bytes": 889,
+      "sha256": "815EA01894DEEA11C4C3FABC57748068560293D1A702DF210A9EDAFA8C4C0634",
+      "runtime": false
+    }
+  ]
+}

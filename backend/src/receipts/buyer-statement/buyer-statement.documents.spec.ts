@@ -99,6 +99,8 @@ describe('buyer statement image', () => {
     expect(svg).not.toMatch(/font-size="(1\d|2[0-7])"/);
   });
 
+  // Two full resvg renders with embedded fonts: about 1 s alone, but more
+  // than the default 5 s when the whole suite runs in parallel.
   it('renders a 1080 px wide PNG that grows with the sales', () => {
     const size = (png: Buffer) => ({
       width: png.readUInt32BE(16),
@@ -110,5 +112,5 @@ describe('buyer statement image', () => {
     expect(size(one).width).toBe(1080);
     expect(size(ten).width).toBe(1080);
     expect(size(ten).height).toBeGreaterThan(size(one).height);
-  });
+  }, 30_000);
 });

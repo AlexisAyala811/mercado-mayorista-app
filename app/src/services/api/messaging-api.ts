@@ -1,0 +1,10 @@
+import type { AttachmentMetadata } from '@/domain/messaging/attachment';
+import { apiRequest } from './api-client';
+export type Recipient = { id: string; kind: 'buyer' | 'provider'; name: string; phone: string | null };
+export type ShareInput = AttachmentMetadata & { clientOperationId: string; recipientId: string; recipientKind: Recipient['kind']; channel: 'whatsapp' | 'email'; state: 'prepared' | 'sharing_requested' | 'failed' };
+export type ShareAttempt = ShareInput & { id: string; recipientName: string; createdAt: string; updatedAt: string };
+export type FinancialAlert = { accountId: string; installmentId: string; kind: 'payable' | 'receivable'; counterpartyId: string; dueOn: string; balanceCents: string; status: 'overdue' | 'due_soon' };
+export const loadRecipients = (token: string) => apiRequest<Recipient[]>('/messaging/recipients', { token });
+export const loadShareHistory = (token: string) => apiRequest<ShareAttempt[]>('/messaging/share-attempts', { token });
+export const recordShareAttempt = (token: string, body: ShareInput) => apiRequest<ShareAttempt>('/messaging/share-attempts', { token, body, method: 'POST' });
+export const loadMessagingAlerts = (token: string, asOf: string, through: string) => apiRequest<{ accountAlerts: FinancialAlert[]; generatedAt: string }>(`/messaging/alerts?asOf=${encodeURIComponent(asOf)}&through=${encodeURIComponent(through)}`, { token });
