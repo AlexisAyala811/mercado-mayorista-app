@@ -1,0 +1,12 @@
+import {cp,mkdir,readFile,writeFile} from 'node:fs/promises';
+import {fileURLToPath} from 'node:url';
+const source=new URL('../node_modules/pdfjs-dist/',import.meta.url);
+const metadata=JSON.parse(await readFile(new URL('package.json',source),'utf8'));
+if(metadata.version!=='6.4.299')throw new Error('Update the reviewed PDF.js asset version before changing the dependency.');
+const destination=new URL(`../public/pdfjs/${metadata.version}/`,import.meta.url);
+await mkdir(destination,{recursive:true});
+await cp(fileURLToPath(new URL('build/pdf.worker.min.mjs',source)),fileURLToPath(new URL('pdf.worker.min.mjs',destination)));
+for(const directory of ['standard_fonts','cmaps','wasm'])await cp(fileURLToPath(new URL(directory,source)),fileURLToPath(new URL(directory,destination)),{recursive:true});
+await cp(fileURLToPath(new URL('LICENSE',source)),fileURLToPath(new URL('LICENSE',destination)));
+await writeFile(new URL('asset-version.json',destination),JSON.stringify({package:'pdfjs-dist',version:metadata.version},null,2));
+console.log(`Copied reviewed PDF.js ${metadata.version} browser assets.`);

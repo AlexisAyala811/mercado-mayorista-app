@@ -1,0 +1,105 @@
+{
+  "fileKey": "Bwk3Aukec2fZJR01CXbhb6",
+  "frame": "20:531",
+  "sourceFrame": {
+    "width": 1440,
+    "height": 1024
+  },
+  "headerUserInstance": [
+    48,
+    20,
+    54,
+    54
+  ],
+  "rowUserInstance": [
+    16,
+    16,
+    54,
+    54
+  ],
+  "sharedUserComponent": "1:12",
+  "userProps": {
+    "variantSize": "48",
+    "size": "48"
+  },
+  "rowVectorSeparateExportAvailable": false,
+  "assets": [
+    {
+      "name": "search",
+      "file": "carros/search.png",
+      "node": "20:545",
+      "sha256": "04A18CEF4D6DCE0A5F3C127A6249F40AB544FECA91B855BBEE902603396668DF",
+      "bytes": 13469,
+      "renderedDimensions": [
+        60.651,
+        60.651
+      ]
+    },
+    {
+      "name": "back",
+      "file": "carros/back.svg",
+      "node": "20:539",
+      "sha256": "A43131076E314DE674EB99C0286691A56556E8FE556D93B920070511C3176515",
+      "bytes": 295,
+      "renderedDimensions": [
+        93,
+        93
+      ]
+    },
+    {
+      "name": "forward",
+      "file": "carros/forward.svg",
+      "node": "20:537",
+      "sha256": "58E8EE97B99F4F748F6CD830FFC4A07EC9AF833FC692B700969F5E4FE90BBAB2",
+      "bytes": 313,
+      "renderedDimensions": [
+        103,
+        103
+      ]
+    },
+    {
+      "name": "home",
+      "file": "carros/home.svg",
+      "node": "20:541",
+      "sha256": "C8934C6794D326F31C4B64C18D3DCDBDC26B967A7CA6B940F5277BAAE53419DE",
+      "bytes": 852,
+      "renderedDimensions": [
+        72,
+        72
+      ]
+    },
+    {
+      "name": "add",
+      "file": "deudas/add.svg",
+      "node": "20:563",
+      "sha256": "3E2C58163F1FD687274C3C11373B2357B8E6EFE04B14E76448347D2B586F2385",
+      "bytes": 1740,
+      "renderedDimensions": [
+        70.8333,
+        70.8333
+      ]
+    },
+    {
+      "name": "field",
+      "file": "deudas/field.svg",
+      "node": "20:549",
+      "sha256": "F7781805A51ACE7CDAD72F0A393ED9D78C1246DBAD13A02F09913718843FF26B",
+      "bytes": 746,
+      "renderedDimensions": [
+        621,
+        45
+      ]
+    },
+    {
+      "name": "user",
+      "file": "user/compra-icon.svg",
+      "node": "20:534",
+      "sha256": "E4BEF75791985A8D2AC883E60EBBE42460968B6180486DE93A56507328864B44",
+      "bytes": 563,
+      "renderedDimensions": [
+        40,
+        44.5
+      ]
+    }
+  ]
+}

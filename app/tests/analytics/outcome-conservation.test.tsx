@@ -1,0 +1,35 @@
+import React from 'react';
+import { act,create,type ReactTestRenderer } from 'react-test-renderer';
+import { OutcomeConservation } from '@/features/analytics/screens/outcome-conservation';
+import { OutcomeHistory } from '@/features/analytics/screens/outcome-history';
+import { savePublicationOutcome,listPublicationOutcomes,getSavedPublicationOutcome,type SavedPublicationOutcome } from '@/services/api/analytics-api';
+const mockInvalidate=jest.fn();
+jest.mock('@/features/auth/session/session-provider',()=>({useSession:()=>({invalidateSession:mockInvalidate})}));
+jest.mock('@/services/api/analytics-api',()=>({savePublicationOutcome:jest.fn(),listPublicationOutcomes:jest.fn(),getSavedPublicationOutcome:jest.fn()}));
+jest.mock('@/ui/components',()=>{const react=jest.requireActual('react');const control=(props:object)=>react.createElement('test-control',props);return {AppButton:control,AppCard:control,FeedbackState:control,LoadingState:control,EmptyState:control};});
+const saved:SavedPublicationOutcome={id:'version',publicationId:'p',createdAt:'2026-10-19T15:00:00Z',retainUntil:'2031-10-19T15:00:00Z',createdByUserId:'u',result:{publicationId:'p',takenAt:'2026-10-19T15:00:00Z',timeZone:'America/Lima',state:'compared',actualSolesPerKg:'0.0000',absoluteErrorSolesPerKg:'3.0000',covered:false,operationCount:1,weightKg:'10.000',operationIds:[],compensationIds:[],excluded:[]}};
+beforeEach(()=>{(globalThis as typeof globalThis & {IS_REACT_ACT_ENVIRONMENT:boolean}).IS_REACT_ACT_ENVIRONMENT=true;jest.clearAllMocks();});
+const button=(root:ReactTestRenderer,label:string)=>root.root.findAll(node=>node.props.label===label)[0]!;
+it('recovers a lost response using the same operation and creates another only on explicit request',async()=>{
+  jest.mocked(savePublicationOutcome).mockRejectedValueOnce(new Error('lost response')).mockResolvedValue(saved);
+  let root!:ReactTestRenderer;await act(async()=>{root=create(<OutcomeConservation token="t" id="p"/>);});
+  await act(async()=>button(root,'Conservar versión de comparación').props.onPress());
+  await act(async()=>root.root.findAll(node=>node.props.actionLabel==='Reintentar conservación')[0]!.props.onAction());
+  expect(jest.mocked(savePublicationOutcome).mock.calls[1]).toEqual(jest.mocked(savePublicationOutcome).mock.calls[0]);
+  expect(JSON.stringify(root.toJSON())).toContain('0.0000');
+  await act(async()=>button(root,'Preparar otra versión').props.onPress());
+  await act(async()=>button(root,'Conservar versión de comparación').props.onPress());
+  expect(jest.mocked(savePublicationOutcome).mock.calls[2]![2]).not.toBe(jest.mocked(savePublicationOutcome).mock.calls[0]![2]);
+  await act(async()=>root.unmount());
+});
+it('loads later history pages, opens original result, and preserves page when returning',async()=>{
+  jest.mocked(listPublicationOutcomes).mockImplementation(async(_token,_id,offset)=>({items:offset?[saved]:Array.from({length:20},(_,i)=>({...saved,id:`v${i}`})),total:21,limit:20,offset}));
+  jest.mocked(getSavedPublicationOutcome).mockResolvedValue(saved);
+  let root!:ReactTestRenderer;await act(async()=>{root=create(<OutcomeHistory token="t" id="p"/>);});
+  await act(async()=>button(root,'Comparaciones siguientes').props.onPress());
+  await act(async()=>button(root,'Abrir comparación version').props.onPress());
+  expect(getSavedPublicationOutcome).toHaveBeenCalledWith('t','p','version');expect(JSON.stringify(root.toJSON())).toContain('0.0000');
+  await act(async()=>button(root,'Volver a comparaciones').props.onPress());
+  expect(button(root,'Comparaciones siguientes').props.disabled).toBe(true);expect(savePublicationOutcome).not.toHaveBeenCalled();
+  await act(async()=>root.unmount());
+});
