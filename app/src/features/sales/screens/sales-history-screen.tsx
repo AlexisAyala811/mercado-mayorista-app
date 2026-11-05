@@ -42,11 +42,13 @@ import {
 } from "@/ui/components";
 import {color,spacing,typography} from "@/ui/tokens";
 type LineDraft = { sacks: string; weight: string; gross: string };
-export function SalesHistoryScreen() {
+// CL-FM14 (spec 011): the business does not use commercial returns, so the
+// app hides them; voiding a sale stays available to the Mayorista.
+export function SalesHistoryScreen({allowReturns=false}:{allowReturns?:boolean}={}) {
   const {session}=useSession();
-  return session?<SalesHistoryWorkspace key={session.accessToken}/>:null;
+  return session?<SalesHistoryWorkspace key={session.accessToken} allowReturns={allowReturns}/>:null;
 }
-function SalesHistoryWorkspace() {
+function SalesHistoryWorkspace({allowReturns}:{allowReturns:boolean}) {
   const router = useRouter();
   const navigation=useNavigation();const exitAllowed=useRef(false);
   const [exitAction,setExitAction]=useState<(()=>void)|null>(null);
@@ -427,7 +429,7 @@ function SalesHistoryWorkspace() {
           </View>
           <ScreenHeader
             eyebrow="VENTAS"
-            title="Detalle y devoluciones"
+            title={allowReturns?"Detalle y devoluciones":"Detalle de la venta"}
             description={`${detail.sale.buyerName ?? "Comprador registrado"} · ${detail.sale.destinationDepartment} · ${formatSaleDate(detail.sale.createdAt)}`}
           />
           {error ? (
@@ -472,13 +474,13 @@ function SalesHistoryWorkspace() {
             <MetricTile label="Versión" value={String(detail.sale.version)} />
           </View>
           <FormField editable={!busy&&!sharingBusy&&!action&&!exitAction&&!detailStale} label="Motivo" onChangeText={value=>{if(!submitting.current&&!sharing.current&&!action&&!exitAction&&!detailStale)setReason(value);}} value={reason} />
-          <FormField
+          {allowReturns?<FormField
             editable={!busy&&!sharingBusy&&!action&&!exitAction&&!detailStale}
             keyboardType="decimal-pad"
             label="Ajuste de flete (S/)"
             onChangeText={value=>{if(!submitting.current&&!sharing.current&&!action&&!exitAction&&!detailStale)setFreight(value);}}
             value={freight}
-          />
+          />:null}
           {detail.lines.map((line, index) => (
             <AppCard
               key={line.id}
@@ -486,7 +488,7 @@ function SalesHistoryWorkspace() {
               description={`${line.sacks} sacos · ${line.weightKg} kg · ${formatMoney(line.subtotalCents)}`}
             >
               <Text style={styles.characteristics}>{commercialDescription(line)}</Text>
-              <View style={styles.columns}>
+              {allowReturns?<View style={styles.columns}>
                 <View style={styles.field}>
                   <FormField
                     editable={!busy&&!sharingBusy&&!action&&!exitAction&&!detailStale}
@@ -514,15 +516,15 @@ function SalesHistoryWorkspace() {
                     value={drafts[line.id]?.gross}
                   />
                 </View>
-              </View>
+              </View>:null}
             </AppCard>
           ))}
           <View style={styles.actions}>
-            <AppButton
+            {allowReturns?<AppButton
               disabled={busy || sharingBusy || Boolean(exitAction) || detailStale || detail.sale.state !== "confirmed"}
               label="Confirmar devolución comercial"
               onPress={() => setAction("return")}
-            />
+            />:null}
             <AppButton
               disabled={busy || sharingBusy || Boolean(exitAction) || detailStale || detail.sale.state !== "confirmed"}
               label="Anular venta"

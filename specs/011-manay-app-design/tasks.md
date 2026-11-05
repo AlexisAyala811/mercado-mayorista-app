@@ -14,10 +14,10 @@ Cada tarea se marca `[x]` solo con evidencia enlazable. Cada fase va en su propi
 
 ## Fase 2 · Acceso y menú
 
-- [ ] **T1110** Inicio de sesión MAÑAY. *Verificación:* captura comparada con Stitch; pruebas de acceso actuales en verde.
-- [ ] **T1111** Menú con Compra y Venta visibles, entradas descritas con su permiso y filtradas por rol y reemplazo. *Verificación:* pruebas del menú para Mayorista y Encargado con y sin reemplazo vigente; captura comparada con Stitch.
-- [ ] **T1112** Barra de sincronización con el estilo MAÑAY. *Verificación:* pruebas actuales de la barra en verde.
-- [ ] **T1113** Retirar rutas, pantallas, servicio y pruebas de inventario; quitar accesos a devoluciones. La cola sigue mostrando operaciones antiguas de esos tipos para descartarlas. *Verificación:* búsqueda sin referencias a inventario ni devoluciones en la navegación; prueba de la cola con una operación antigua.
+- [x] **T1110** Inicio de sesión MAÑAY. *Verificación:* captura comparada con Stitch; pruebas de acceso actuales en verde. **Hecho.** Evidencia: [verificación de la fase 2](../../docs/sdd/verificacion-manay-fase2-2026-11-04.md).
+- [x] **T1111** Menú con Compra y Venta visibles, entradas descritas con su permiso y filtradas por rol y reemplazo. *Verificación:* pruebas del menú para Mayorista y Encargado con y sin reemplazo vigente; captura comparada con Stitch. **Hecho:** captura del Mayorista en el emulador; el Encargado se cubre con pruebas. Evidencia: [verificación de la fase 2](../../docs/sdd/verificacion-manay-fase2-2026-11-04.md).
+- [x] **T1112** Barra de sincronización con el estilo MAÑAY. *Verificación:* pruebas actuales de la barra en verde. **Hecho:** ya usaba los tokens; sin cambios de código. Evidencia: [verificación de la fase 2](../../docs/sdd/verificacion-manay-fase2-2026-11-04.md).
+- [x] **T1113** Retirar rutas, pantallas, servicio y pruebas de inventario; quitar accesos a devoluciones. La cola sigue mostrando operaciones antiguas de esos tipos para descartarlas. *Verificación:* búsqueda sin referencias a inventario ni devoluciones en la navegación; prueba de la cola con una operación antigua. **Hecho.** Evidencia: [verificación de la fase 2](../../docs/sdd/verificacion-manay-fase2-2026-11-04.md).
 
 ## Fase 3 · Compra
 
