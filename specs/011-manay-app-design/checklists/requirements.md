@@ -10,7 +10,7 @@
 - [x] Escenarios de aceptación por rol, pesaje, volumen, conexión, conflicto y contraste.
 - [x] Aprobación del usuario el 5 de noviembre de 2026.
 - [x] Aclaraciones CL-MD02 a CL-MD04 resueltas el 5 de noviembre de 2026.
-- [ ] CL-MD01: archivo del logo MAÑAY.
+- [x] CL-MD01: logo entregado el 5 de noviembre de 2026 (`app/assets/brand/manay-logo.png`).
 
 ## Artefactos
 

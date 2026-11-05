@@ -9,7 +9,7 @@ Cada tarea se marca `[x]` solo con evidencia enlazable. Cada fase va en su propi
 - [ ] **T1101** Tokens MAÑAY de `DESIGN.md` en `ui/tokens.ts` (colores, Inter, espaciado, radios, estados pagado y deuda). *Verificación:* tipos y suite sin regresiones.
 - [ ] **T1102** Prueba de contraste WCAG de los pares de tokens: texto AA ≥ 4,5:1; importes, saldos y estados AAA ≥ 7:1. *Verificación:* prueba en verde; valores ajustados registrados.
 - [ ] **T1103** `MenuVisualTheme` y `PurchaseVisualTheme` como alias del tema MAÑAY. *Verificación:* capturas de las pantallas principales en el emulador sin textos ilegibles ni cortes.
-- [ ] **T1104** Componente `BrandMark` (logo o «MAÑAY» en texto, CL-MD01). *Verificación:* prueba de componente.
+- [ ] **T1104** Componente `BrandMark` con el logo de `assets/brand/manay-logo.png` y texto accesible «MAÑAY»; icono de la app Android desde el mismo archivo. *Verificación:* prueba de componente y captura del icono en el emulador.
 - [ ] **T1105** Componentes compartidos con el estilo MAÑAY y objetivos táctiles de 48 px. *Verificación:* pruebas de componente y revisión en emulador.
 
 ## Fase 2 · Acceso y menú
