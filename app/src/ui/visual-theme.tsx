@@ -1,6 +1,6 @@
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
 
-import { color } from '@/ui/tokens';
+import { color, radius } from '@/ui/tokens';
 
 export type VisualPalette = { [Key in keyof typeof color]: string } & {
   controlSurface?: string;
@@ -8,19 +8,14 @@ export type VisualPalette = { [Key in keyof typeof color]: string } & {
   fieldBorderWidth?: number;
 };
 
-// COMPRA (1:346): values from the Figma design context, scoped to purchases.
+// Spec 011: purchases and the menu use the MAÑAY theme. These providers stay
+// as variants (form controls, card radius) so screens keep their structure
+// while they are redesigned one by one.
 export const purchasePalette: VisualPalette = {
   ...color,
-  brand: '#2C2C2C',
-  brandMuted: '#D9D9D9',
-  surface: '#FFFFFF',
-  surfaceRaised: '#F4F4F4',
-  textPrimary: '#000000',
-  textSecondary: '#454545',
-  border: '#000000',
-  controlSurface: '#D9D9D9',
-  cornerRadius: 10,
-  fieldBorderWidth: 0,
+  controlSurface: color.surfaceRaised,
+  cornerRadius: radius.sm,
+  fieldBorderWidth: 1,
 };
 
 const VisualThemeContext = createContext<VisualPalette>(color);
@@ -29,7 +24,7 @@ export function PurchaseVisualTheme({ children }: { children: ReactNode }) {
   return <VisualThemeContext.Provider value={purchasePalette}>{children}</VisualThemeContext.Provider>;
 }
 
-const menuPalette: VisualPalette = { ...purchasePalette, surfaceRaised: '#E3E3E3', border: '#D9D9D9', cornerRadius: 20 };
+const menuPalette: VisualPalette = { ...purchasePalette, border: '#E2E8F0', cornerRadius: radius.lg };
 export function MenuVisualTheme({ children }: { children: ReactNode }) {
   return <VisualThemeContext.Provider value={menuPalette}>{children}</VisualThemeContext.Provider>;
 }

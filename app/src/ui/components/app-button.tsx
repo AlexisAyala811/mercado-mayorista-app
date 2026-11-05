@@ -77,7 +77,7 @@ export function AppButton({
 
 const reportOperationStyles = StyleSheet.create({
   base: { width: 313, maxWidth: '100%', minHeight: 67, borderRadius: 10, borderWidth: 0, backgroundColor: reportVisual.control, paddingVertical: 12 },
-  selected: { backgroundColor: '#CBCBCB' },
+  selected: { backgroundColor: reportVisual.selected },
   label: { fontSize: 28, lineHeight: 36, fontWeight: '400', color: reportVisual.value, textAlign: 'center' },
 });
 
@@ -115,6 +115,6 @@ const loginStyles = StyleSheet.create({
 });
 
 const reportStyles = StyleSheet.create({
-  base: { flexDirection: 'row', gap: 8, minHeight: 44, minWidth: 44, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10, borderWidth: 1, borderColor: '#D9D9D9', backgroundColor: '#FFFFFF' },
-  label: { fontSize: 12, lineHeight: 18, fontWeight: '600', color: '#595959' },
+  base: { flexDirection: 'row', gap: 8, minHeight: 48, minWidth: 48, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10, borderWidth: 1, borderColor: reportVisual.border, backgroundColor: reportVisual.surface },
+  label: { fontSize: 12, lineHeight: 18, fontWeight: '600', color: reportVisual.title },
 });

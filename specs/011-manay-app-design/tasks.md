@@ -1,16 +1,16 @@
 # Tareas 011: Diseño MAÑAY en la app
 
-**Especificación:** [spec 011](spec.md) · **Plan:** [plan 011](plan.md) · **Estado:** plan aprobado el 5 de noviembre de 2026; fase 1 en implementación
+**Especificación:** [spec 011](spec.md) · **Plan:** [plan 011](plan.md) · **Estado:** plan aprobado el 5 de noviembre de 2026; fase 1 implementada; fase 2 pendiente
 
 Cada tarea se marca `[x]` solo con evidencia enlazable. Cada fase va en su propia rama y PR.
 
 ## Fase 1 · Base visual
 
-- [ ] **T1101** Tokens MAÑAY de `DESIGN.md` en `ui/tokens.ts` (colores, Inter, espaciado, radios, estados pagado y deuda). *Verificación:* tipos y suite sin regresiones.
-- [ ] **T1102** Prueba de contraste WCAG de los pares de tokens: texto AA ≥ 4,5:1; importes, saldos y estados AAA ≥ 7:1. *Verificación:* prueba en verde; valores ajustados registrados.
-- [ ] **T1103** `MenuVisualTheme` y `PurchaseVisualTheme` como alias del tema MAÑAY. *Verificación:* capturas de las pantallas principales en el emulador sin textos ilegibles ni cortes.
-- [ ] **T1104** Componente `BrandMark` con el logo de `assets/brand/manay-logo.png` y texto accesible «MAÑAY»; icono de la app Android desde el mismo archivo. *Verificación:* prueba de componente y captura del icono en el emulador.
-- [ ] **T1105** Componentes compartidos con el estilo MAÑAY y objetivos táctiles de 48 px. *Verificación:* pruebas de componente y revisión en emulador.
+- [x] **T1101** Tokens MAÑAY de `DESIGN.md` en `ui/tokens.ts` (colores, Inter, espaciado, radios, estados pagado y deuda). *Verificación:* tipos y suite sin regresiones. **Hecho.** Evidencia: [verificación de la fase 1](../../docs/sdd/verificacion-manay-fase1-2026-11-05.md).
+- [x] **T1102** Prueba de contraste WCAG de los pares de tokens: texto AA ≥ 4,5:1; importes, saldos y estados AAA ≥ 7:1. *Verificación:* prueba en verde; valores ajustados registrados. **Hecho:** 14 pares; todos los valores de `DESIGN.md` pasaron sin ajustes. Evidencia: [verificación de la fase 1](../../docs/sdd/verificacion-manay-fase1-2026-11-05.md).
+- [x] **T1103** `MenuVisualTheme` y `PurchaseVisualTheme` como alias del tema MAÑAY. *Verificación:* capturas de las pantallas principales en el emulador sin textos ilegibles ni cortes. **Hecho:** capturas de acceso y nueva recepción; el menú se rehace en T1111. Evidencia: [verificación de la fase 1](../../docs/sdd/verificacion-manay-fase1-2026-11-05.md).
+- [x] **T1104** Componente `BrandMark` con el logo de `assets/brand/manay-logo.png` y texto accesible «MAÑAY»; icono de la app Android desde el mismo archivo. *Verificación:* prueba de componente y captura del icono en el emulador. **Hecho:** también icono de Android y pantalla de inicio con el isotipo. Evidencia: [verificación de la fase 1](../../docs/sdd/verificacion-manay-fase1-2026-11-05.md).
+- [x] **T1105** Componentes compartidos con el estilo MAÑAY y objetivos táctiles de 48 px. *Verificación:* pruebas de componente y revisión en emulador. **Hecho.** Evidencia: [verificación de la fase 1](../../docs/sdd/verificacion-manay-fase1-2026-11-05.md).
 
 ## Fase 2 · Acceso y menú
 

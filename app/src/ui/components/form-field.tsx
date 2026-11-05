@@ -88,7 +88,7 @@ export function FormField({
 
 const reportStyles = StyleSheet.create({
   label: {color:reportVisual.secondary,fontSize:12,lineHeight:18,fontWeight:'600'},
-  input: {minHeight:44,paddingHorizontal:14,paddingRight:42,paddingVertical:8,borderRadius:10,borderWidth:1,borderColor:reportVisual.border,backgroundColor:reportVisual.surface,color:reportVisual.value,fontSize:14,lineHeight:20},
+  input: {minHeight:48,paddingHorizontal:14,paddingRight:42,paddingVertical:8,borderRadius:10,borderWidth:1,borderColor:reportVisual.border,backgroundColor:reportVisual.surface,color:reportVisual.value,fontSize:14,lineHeight:20},
   icon: {position:'absolute',right:14,top:0,bottom:0,justifyContent:'center'},
 });
 const createStyles = (color: VisualPalette) =>
