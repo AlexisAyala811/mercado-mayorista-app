@@ -144,6 +144,27 @@ Resueltas por el usuario el 5 de noviembre de 2026.
 | CL-MD03 | ¿Hace falta tema oscuro? | **No:** solo el tema claro de alto contraste |
 | CL-MD04 | ¿Orden de las pantallas? | **Base visual, acceso y menú primero;** luego Anote y liquidación; luego Deudas, Cobranzas y estado de cuenta; al final Reportes, Analítica, Carros y pantallas de cola y conflicto |
 
+## Ampliación del 5 de noviembre de 2026: estado de pago en Ver compras
+
+**Aprobada por el usuario el 5 de noviembre de 2026.** «Ver compras» debe mostrar si cada compra está pagada o tiene deuda (menú: «Compras pagadas y con deuda»). Hoy el listado de recepciones no trae ese dato y `GET /accounts` no filtra por compra, así que esta spec suma **una consulta de solo lectura** al backend. Es la única excepción a «sin cambios de API fuera de las specs 009 y 010».
+
+**Regla (CL-MD05, derivada de las reglas vigentes de la spec 002 y de cuentas):**
+
+| Situación de la compra | Estado mostrado | Saldo |
+| --- | --- | --- |
+| Recepción sin liquidar | Sin estado de pago | — |
+| Liquidada al contado | **Pagada** | S/ 0.00 |
+| Liquidada a crédito con saldo pendiente | **Con deuda** | Saldo de la cuenta por pagar |
+| Liquidada a crédito con saldo cero | **Pagada** | S/ 0.00 |
+| Liquidación anulada | **Anulada** | — |
+
+**Criterios de aceptación:**
+
+1. Cada compra liquidada de «Ver compras» muestra «Pagada», «Con deuda» (con su saldo) o «Anulada» con los colores de estado de la fase 1 (pagado `#065F46` sobre `#ECFDF5`, deuda `#991B1B` sobre `#FEF2F2`) y el texto, no solo el color.
+2. El estado sale del servidor; la app no lo calcula a partir de pagos locales.
+3. La consulta filtra por el negocio de la sesión, acepta solo las recepciones pedidas (hasta 100) y la usan el Mayorista y el Encargado, como el listado.
+4. Sin conexión, «Ver compras» sigue funcionando sin el estado y lo indica.
+
 ## Artefactos SDD relacionados
 
 [Plan](plan.md), [tareas](tasks.md) y [checklist de requisitos](checklists/requirements.md). Siguiente fase: aprobación del plan.
