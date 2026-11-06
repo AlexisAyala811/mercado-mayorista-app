@@ -34,10 +34,10 @@ Cada tarea se marca `[x]` solo con evidencia enlazable (pruebas, ejecución de C
 
 ## Fase 4 · Android
 
-- [ ] **T940** Servicio de API para el resumen, el PDF y la imagen, con tipos del resumen JSON y manejo de `404`, `422` y `409 statement-inconsistent`. *Verificación:* pruebas del servicio.
-- [ ] **T941** Pantalla de vista previa: totales, ventas, cuotas, marca de vencida; estados de carga, error con reintento, sin deuda y sin conexión. *Verificación:* pruebas de componentes de cada estado.
-- [ ] **T942** Accesos «Estado de cuenta» en el detalle del comprador y de la cuenta por cobrar, solo para el Mayorista. *Verificación:* pruebas de permisos por rol.
-- [ ] **T943** «Enviar PDF» y «Enviar imagen» con el flujo de Mensajería (intento preparado → compartición solicitada, destinatario comprador); imagen deshabilitada con explicación si no está disponible. *Verificación:* pruebas del flujo y del registro del intento.
+- [x] **T940** Servicio de API para el resumen, el PDF y la imagen, con tipos del resumen JSON y manejo de `404`, `422` y `409 statement-inconsistent`. *Verificación:* pruebas del servicio. **Hecho.** Evidencia: [verificación de la fase 4](../../docs/sdd/verificacion-manay-fase4-2026-11-06.md).
+- [x] **T941** Pantalla de vista previa: totales, ventas, cuotas, marca de vencida; estados de carga, error con reintento, sin deuda y sin conexión. *Verificación:* pruebas de componentes de cada estado. **Hecho.** Evidencia: [verificación de la fase 4](../../docs/sdd/verificacion-manay-fase4-2026-11-06.md).
+- [x] **T942** Accesos «Estado de cuenta» en el detalle del comprador y de la cuenta por cobrar, solo para el Mayorista. *Verificación:* pruebas de permisos por rol. **Hecho.** Evidencia: [verificación de la fase 4](../../docs/sdd/verificacion-manay-fase4-2026-11-06.md).
+- [x] **T943** «Enviar PDF» y «Enviar imagen» con el flujo de Mensajería (intento preparado → compartición solicitada, destinatario comprador); imagen deshabilitada con explicación si no está disponible. *Verificación:* pruebas del flujo y del registro del intento. **Hecho.** Evidencia: [verificación de la fase 4](../../docs/sdd/verificacion-manay-fase4-2026-11-06.md).
 - [ ] **T944** Verificación en Android: tablet 1280 × 800 y teléfono, envío real a WhatsApp y correo, imagen legible sin ampliar, texto ampliado al 200 % y lector de pantalla. *Verificación:* archivo `docs/sdd/verificacion-estado-de-cuenta-android-<fecha>.md` con capturas.
 
 ## Fase 5 · Convergencia
@@ -62,4 +62,4 @@ El backend (fases 1 a 3) puede avanzar mientras se incorpora la app (fase 0). La
 
 Aclaraciones CL-FM13 en [aclaraciones del frontend MAÑAY](../../docs/sdd/aclaraciones-frontend-manay-2026-11-04.md). Pendiente de especificar o diseñar; nada implementado todavía.
 
-- [ ] T940: botón «Estado de cuenta» en el comprador dentro de Deudas que abre una pantalla propia.
+- [x] T940: botón «Estado de cuenta» en el comprador, dentro de **Cobranzas** (las cuentas de compradores pasaron ahí con CL-FM18), que abre una pantalla propia. Evidencia: [verificación de la fase 4](../../docs/sdd/verificacion-manay-fase4-2026-11-06.md).

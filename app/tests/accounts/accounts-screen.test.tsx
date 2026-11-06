@@ -104,7 +104,7 @@ beforeEach(() => {
 async function prepare(kind: "payment" | "reversal" = "payment") {
   let root!: ReactTestRenderer;
   await act(async () => {
-    root = create(<AccountsScreen />);
+    root = create(<AccountsScreen kind="payable" />);
   });
   await act(async () => {
     root.root
@@ -115,7 +115,7 @@ async function prepare(kind: "payment" | "reversal" = "payment") {
   if (kind === "payment") {
     await act(async () => {
       root.root
-        .findAll((node) => node.props.label === "Pago (S/)")[0]
+        .findAll((node) => node.props.label === "Pago al proveedor (S/)")[0]
         .props.onChangeText("10");
     });
     await act(async () => {
@@ -155,18 +155,14 @@ async function confirm(root: ReactTestRenderer) {
   });
 }
 
-it('paginates every filtered account and resets the page after a new search without writing', async () => {
+it('lists every account of its kind and narrows them by search without writing', async () => {
   const accounts = Array.from({ length: 9 }, (_, index) => ({ ...detail.account, id: `account-${index}`, counterpartyName: `Persona ${index}` }));
   jest.mocked(listAccounts).mockResolvedValue({ items: accounts, total: 9, limit: 100, offset: 0 });
   let root!: ReactTestRenderer;
-  await act(async () => { root = create(<AccountsScreen />); });
+  await act(async () => { root = create(<AccountsScreen kind="payable" />); });
   const identities = () => [...new Set(root.root.findAll(node => node.props.label === 'Ver detalle').map(node => node.props.accessibilityLabel))];
-  expect(identities()).toEqual(accounts.slice(0, 4).map(a => `Ver detalle de ${a.counterpartyName}, referencia ${a.id}`));
-  await act(async () => { root.root.findAll(node => node.props.accessibilityLabel === 'Página siguiente de cuentas' && typeof node.props.onPress === 'function')[0].props.onPress(); });
-  expect(identities()).toEqual(accounts.slice(4, 8).map(a => `Ver detalle de ${a.counterpartyName}, referencia ${a.id}`));
-  await act(async () => { root.root.findAll(node => node.props.accessibilityLabel === 'Página siguiente de cuentas' && typeof node.props.onPress === 'function')[0].props.onPress(); });
-  expect(identities()).toEqual(['Ver detalle de Persona 8, referencia account-8']);
-  await act(async () => { root.root.findAll(node => node.props.label === 'Nombre o referencia de cuenta')[0].props.onChangeText('Persona 0'); });
+  expect(identities()).toEqual(accounts.map(a => `Ver detalle de ${a.counterpartyName}, referencia ${a.id}`));
+  await act(async () => { root.root.findAll(node => node.props.label === 'Proveedor o referencia')[0].props.onChangeText('Persona 0'); });
   expect(identities()).toEqual(['Ver detalle de Persona 0, referencia account-0']);
   await act(async () => { root.root.findAll(node => node.props.label === 'Ver detalle')[0].props.onPress(); });
   expect(getAccount).toHaveBeenLastCalledWith('test-token', 'account-0');
@@ -175,16 +171,23 @@ it('paginates every filtered account and resets the page after a new search with
   await act(async () => { root.unmount(); });
 });
 
-it('starts an existing commercial source from plus without creating a debt or financial movement', async () => {
+it.each([
+  ['payable', 'Deudas', 'Registrar compra', '/purchase-flow', 'provider-account'],
+  ['receivable', 'Cobranzas', 'Registrar venta', '/sale-flow', 'buyer-account'],
+] as const)('shows %s accounts only in %s and starts their commercial source without a movement', async (kind, title, origin, route, expected) => {
+  jest.mocked(listAccounts).mockResolvedValue({ items: [
+    { ...detail.account, id: 'provider-account', kind: 'payable', counterpartyName: 'Proveedor' },
+    { ...detail.account, id: 'buyer-account', kind: 'receivable', counterpartyName: 'Comprador' },
+  ], total: 2, limit: 100, offset: 0 });
   let root!: ReactTestRenderer;
-  await act(async () => { root = create(<AccountsScreen />); });
-  await act(async () => { root.root.findAll(node => node.props.accessibilityLabel === 'Nueva operación que origina una cuenta' && typeof node.props.onPress === 'function')[0].props.onPress(); });
-  const sourceDialog = root.root.findAll(node => node.props.title === 'Las cuentas se originan en operaciones a crédito' && node.props.visible)[0];
-  expect(sourceDialog.props.choices.map((choice: {id:string}) => choice.id)).toEqual(['purchase', 'sale']);
-  await act(async () => { sourceDialog.props.onSelect({ id: 'purchase' }); });
-  expect(mockPush).toHaveBeenLastCalledWith('/purchase-flow');
+  await act(async () => { root = create(<AccountsScreen kind={kind} />); });
+  expect(root.root.findAll(node => typeof node.type === 'string' && node.props.accessibilityRole === 'header' && node.props.children === title)).toHaveLength(1);
+  const shown = root.root.findAll(node => typeof node.type === 'string' && node.props.label === 'Ver detalle').map(node => node.props.accessibilityLabel as string);
+  expect(shown).toHaveLength(1);
+  expect(shown[0]).toContain(expected);
+  await act(async () => { root.root.findAll(node => node.props.label === origin)[0].props.onPress(); });
+  expect(mockPush).toHaveBeenLastCalledWith(route);
   expect(mockEnqueue).not.toHaveBeenCalled();
-  expect(mockSendQueued).not.toHaveBeenCalled();
   await act(async () => { root.unmount(); });
 });
 
@@ -192,7 +195,7 @@ it.each(["accounts", "cash"])("does not present zero balances or empty results w
   if (source === "accounts") jest.mocked(listAccounts).mockRejectedValueOnce(new Error("Accounts offline"));
   else jest.mocked(listCashMovements).mockRejectedValueOnce(new Error("Cash offline"));
   let root!: ReactTestRenderer;
-  await act(async () => { root = create(<AccountsScreen />); });
+  await act(async () => { root = create(<AccountsScreen kind="payable" />); });
   expect(root.root.findAll(node => node.props.title === "Datos financieros no disponibles")).not.toHaveLength(0);
   expect(root.root.findAll(node => node.props.label === "Neto")).toHaveLength(0);
   expect(root.root.findAll(node => node.props.title === "Sin cuentas" || node.props.title === "Sin movimientos")).toHaveLength(0);
@@ -210,7 +213,7 @@ it.each(["accounts", "cash"])("does not present zero balances or empty results w
 it("invalidates an unauthorized initial read without treating it as an empty account list", async () => {
   jest.mocked(listAccounts).mockRejectedValueOnce(new ApiError("Sesión vencida", 401));
   let root!: ReactTestRenderer;
-  await act(async () => { root = create(<AccountsScreen />); });
+  await act(async () => { root = create(<AccountsScreen kind="payable" />); });
   expect(mockInvalidate).toHaveBeenCalledTimes(1);
   expect(root.root.findAll(node => node.props.label === "Neto")).toHaveLength(0);
   expect(root.root.findAll(node => node.props.title === "Sin cuentas")).toHaveLength(0);
@@ -221,7 +224,7 @@ it("keeps a confirmed movement and refreshed detail when the following collectio
   const root = await prepare();
   jest.mocked(listCashMovements).mockRejectedValueOnce(new Error("Cash refresh failed"));
   await confirm(root);
-  expect(root.root.findAll(node => node.props.title === "Movimiento confirmado")).not.toHaveLength(0);
+  expect(root.root.findAll(node => ["Pago guardado", "Reverso guardado"].includes(node.props.title))).not.toHaveLength(0);
   expect(root.root.findAll(node => node.props.title === "Lista de cuentas y caja pendiente")).not.toHaveLength(0);
   await act(async () => { root.root.findAll(node => node.props.actionLabel === "Reintentar cuentas y caja")[0].props.onAction(); });
   expect(root.root.findAll(node => node.props.title === "Lista de cuentas y caja pendiente")).toHaveLength(0);
@@ -234,14 +237,14 @@ it("does not present an old account detail after the authenticated token changes
   let resolve!: (value: AccountDetail) => void;
   jest.mocked(getAccount).mockReturnValueOnce(new Promise(done => { resolve = done; }));
   let root!: ReactTestRenderer;
-  await act(async () => { root = create(<AccountsScreen />); });
+  await act(async () => { root = create(<AccountsScreen kind="payable" />); });
   await act(async () => { root.root.findAll(node => node.props.label === "Ver detalle")[0].props.onPress(); });
   mockAccessToken = "new-session-token";
-  await act(async () => { root.update(<AccountsScreen />); });
+  await act(async () => { root.update(<AccountsScreen kind="payable" />); });
   await act(async () => { resolve({ ...detail, account: { ...detail.account, counterpartyName: "Old session private counterparty" } }); });
   expect(listAccounts).toHaveBeenLastCalledWith("new-session-token");
   expect(JSON.stringify(root.toJSON())).not.toContain("Old session private counterparty");
-  expect(root.root.findAll(node => node.props.label === "Volver a cuentas")).toHaveLength(0);
+  expect(root.root.findAll(node => node.props.label === "Volver a deudas")).toHaveLength(0);
   await act(async () => { root.unmount(); });
 });
 
@@ -283,7 +286,7 @@ it("renders exact cash totals beyond the safe integer limit while every movement
   });
   let root!: ReactTestRenderer;
   await act(async () => {
-    root = create(<AccountsScreen />);
+    root = create(<AccountsScreen kind="payable" />);
   });
   const metric = (label: string) =>
     root.root.findAll(
@@ -302,9 +305,9 @@ it("keeps account search accessible before expanding cash and preserves totals w
     id: "cash-entry", direction: "in", amountCents: "1234", category: "sale-collection", sourceType: "sale", sourceId: "sale-id", createdByUserId: "test-user", createdAt: "2026-10-11T12:00:00Z",
   }] });
   let root!: ReactTestRenderer;
-  await act(async () => { root = create(<AccountsScreen />); });
+  await act(async () => { root = create(<AccountsScreen kind="payable" />); });
   const control = (label: string) => root.root.findAll(node => node.props.label === label)[0];
-  expect(control("Nombre o referencia de cuenta")).toBeDefined();
+  expect(control("Proveedor o referencia")).toBeDefined();
   expect(control("Ver movimientos de caja").props.accessibilityState.expanded).toBe(false);
   expect(JSON.stringify(root.toJSON())).not.toContain("+ S/ 12.34");
   expect(control("Neto").props.value).toBe("S/ 12.34");
@@ -351,7 +354,7 @@ it.each(["payment", "reversal"] as const)(
     expect(getAccount).toHaveBeenCalledTimes(2);
     expect(mockPush).not.toHaveBeenCalled();
     expect(
-      root.root.findAll((node) => node.props.title === "Movimiento confirmado"),
+      root.root.findAll((node) => ["Pago guardado", "Reverso guardado"].includes(node.props.title)),
     ).not.toHaveLength(0);
     await act(async () => {
       root.unmount();
@@ -393,7 +396,7 @@ it("preserves the payment and compensation history without offering a second rev
     { ...detail.payments[0]!, id: "reversal-id", isReversal: true, reversedPaymentId: "payment-id", reason: "Corrección" },
   ] });
   let root!: ReactTestRenderer;
-  await act(async () => { root = create(<AccountsScreen />); });
+  await act(async () => { root = create(<AccountsScreen kind="payable" />); });
   await act(async () => { root.root.findAll(node => node.props.label === "Ver detalle")[0].props.onPress(); });
   expect(root.root.findAll(node => node.props.label === "Revertir")).toHaveLength(0);
   expect(JSON.stringify(root.toJSON())).toContain("Movimiento revertido");
@@ -411,7 +414,7 @@ it("keeps the payment form without sending when durable storage fails", async ()
     root.root.findAll((node) => node.props.message === "Storage full"),
   ).not.toHaveLength(0);
   expect(
-    root.root.findAll((node) => node.props.label === "Pago (S/)")[0].props
+    root.root.findAll((node) => node.props.label === "Pago al proveedor (S/)")[0].props
       .value,
   ).toBe("10");
   await act(async () => {
@@ -440,12 +443,12 @@ it("searches counterparties and preserves filters after opening and leaving deta
   jest.mocked(getAccount).mockResolvedValueOnce({ ...detail, account: named });
   let root!: ReactTestRenderer;
   await act(async () => {
-    root = create(<AccountsScreen />);
+    root = create(<AccountsScreen kind="payable" />);
   });
   await act(async () => {
     root.root
       .findAll(
-        (node) => node.props.label === "Nombre o referencia de cuenta",
+        (node) => node.props.label === "Proveedor o referencia",
       )[0]
       .props.onChangeText("JOSE");
   });
@@ -466,22 +469,22 @@ it("searches counterparties and preserves filters after opening and leaving deta
   ).not.toHaveLength(0);
   await act(async () => {
     root.root
-      .findAll((node) => node.props.label === "Volver a cuentas")[0]
+      .findAll((node) => node.props.label === "Volver a deudas")[0]
       .props.onPress();
   });
   expect(
     root.root.findAll(
-      (node) => node.props.label === "Nombre o referencia de cuenta",
+      (node) => node.props.label === "Proveedor o referencia",
     )[0].props.value,
   ).toBe("JOSE");
   await act(async () => {
     root.root
-      .findAll((node) => node.props.label === "Por cobrar")[0]
+      .findAll((node) => node.props.label === "Pagada")[0]
       .props.onPress();
   });
   expect(
     root.root.findAll(
-      (node) => node.props.title === "Sin resultados de cuentas",
+      (node) => node.props.title === "Sin resultados",
     ),
   ).not.toHaveLength(0);
   expect(
@@ -513,7 +516,7 @@ it("shows the exact provisional balances and locks editing during confirmation",
     "saldo resultante provisional S/ 70.00",
   );
   expect(
-    root.root.findAll((node) => node.props.label === "Pago (S/)")[0].props
+    root.root.findAll((node) => node.props.label === "Pago al proveedor (S/)")[0].props
       .editable,
   ).toBe(false);
   expect(mockEnqueue).not.toHaveBeenCalled();
@@ -521,7 +524,7 @@ it("shows the exact provisional balances and locks editing during confirmation",
     dialog.props.onCancel();
   });
   expect(
-    root.root.findAll((node) => node.props.label === "Pago (S/)")[0].props
+    root.root.findAll((node) => node.props.label === "Pago al proveedor (S/)")[0].props
       .editable,
   ).toBe(true);
   await act(async () => {
@@ -538,7 +541,7 @@ it("blocks an excessive amount before opening confirmation and also before durab
   });
   await act(async () => {
     root.root
-      .findAll((node) => node.props.label === "Pago (S/)")[0]
+      .findAll((node) => node.props.label === "Pago al proveedor (S/)")[0]
       .props.onChangeText("80.01");
   });
   await act(async () => {
@@ -568,13 +571,14 @@ it("blocks an excessive amount before opening confirmation and also before durab
 });
 
 it("identifies collections and their provisional remaining balance separately from payments", async () => {
+  jest.mocked(listAccounts).mockResolvedValue({ items: [{ ...detail.account, kind: "receivable" }], total: 1, limit: 100, offset: 0 });
   jest.mocked(getAccount).mockResolvedValueOnce({
     ...detail,
     account: { ...detail.account, kind: "receivable" },
   });
   let root!: ReactTestRenderer;
   await act(async () => {
-    root = create(<AccountsScreen />);
+    root = create(<AccountsScreen kind="receivable" />);
   });
   await act(async () => {
     root.root
@@ -583,7 +587,7 @@ it("identifies collections and their provisional remaining balance separately fr
   });
   await act(async () => {
     root.root
-      .findAll((node) => node.props.label === "Cobro (S/)")[0]
+      .findAll((node) => node.props.label === "Cobro al comprador (S/)")[0]
       .props.onChangeText("80");
   });
   await act(async () => {
@@ -598,6 +602,8 @@ it("identifies collections and their provisional remaining balance separately fr
   expect(dialog.props.message).toContain(
     "saldo resultante provisional S/ 0.00",
   );
+  expect(dialog.props.title).toBe("¿Confirmar cobro al comprador?");
+  expect(dialog.props.confirmLabel).toBe("Registrar cobro");
   expect(mockEnqueue).not.toHaveBeenCalled();
   await act(async () => {
     root.unmount();
@@ -613,7 +619,7 @@ it("opens recovery for a saved pending payment without refreshing or showing suc
   expect(mockPush).toHaveBeenCalledWith("/sync-queue");
   expect(getAccount).toHaveBeenCalledTimes(1);
   expect(
-    root.root.findAll((node) => node.props.title === "Movimiento confirmado"),
+    root.root.findAll((node) => ["Pago guardado", "Reverso guardado"].includes(node.props.title)),
   ).toHaveLength(0);
   await act(async () => {
     root.unmount();
@@ -626,7 +632,7 @@ it("locks new movements and retries only the account lookup after confirmed paym
     .mockRejectedValueOnce(new Error("Account lookup failed"));
   await confirm(root);
   expect(
-    root.root.findAll((node) => node.props.title === "Movimiento confirmado"),
+    root.root.findAll((node) => ["Pago guardado", "Reverso guardado"].includes(node.props.title)),
   ).not.toHaveLength(0);
   expect(
     root.root.findAll((node) => node.props.label === "Confirmar importe")[0]
@@ -652,3 +658,23 @@ it("locks new movements and retries only the account lookup after confirmed paym
   });
 });
 
+
+it.each([
+  ['receivable', 'buyer', 1],
+  ['payable', 'provider', 0],
+] as const)('offers the buyer statement only in Cobranzas (%s account of a %s)', async (kind, counterpartyType, expected) => {
+  const account = { ...detail.account, kind, counterpartyType, counterpartyId: 'party-id', counterpartyName: 'Mercado Central' };
+  jest.mocked(listAccounts).mockResolvedValue({ items: [account], total: 1, limit: 100, offset: 0 });
+  jest.mocked(getAccount).mockResolvedValueOnce({ ...detail, account });
+  let root!: ReactTestRenderer;
+  await act(async () => { root = create(<AccountsScreen kind={kind} />); });
+  await act(async () => { root.root.findAll(node => node.props.label === "Ver detalle")[0]!.props.onPress(); });
+  const buttons = root.root.findAll(node => typeof node.type === "string" && node.props.label === "Estado de cuenta");
+  expect(buttons).toHaveLength(expected);
+  if (expected) {
+    await act(async () => { buttons[0]!.props.onPress(); });
+    expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/buyer-statement", params: { buyerId: "party-id" } });
+  }
+  expect(mockEnqueue).not.toHaveBeenCalled();
+  await act(async () => { root.unmount(); });
+});

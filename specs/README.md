@@ -12,9 +12,9 @@ Este índice conecta la línea base documental, el diseño de Figma y el trabajo
 | 006 | Reportes y comprobantes | RF12, RF17, RF18 | Backend e interfaz móvil implementados; evidencia en tablet pendiente | CL-11 aprobada e implementada; visor nativo requiere cliente de desarrollo |
 | 007 | Analítica e inteligencia artificial | RF19, RF20 | Borrador | CL-08, CL-10 |
 | 008 | Mensajería y notificaciones | RF16, RF23, RF25, RF26 | Backend y Android implementados; evidencia nativa pendiente | CL-MN01–03 resueltas |
-| 009 | Estado de cuenta del comprador | RF27 (HU16) | Backend implementado y verificado; Android y Figma pendientes | Decisión del 29 de octubre de 2026 |
+| 009 | Estado de cuenta del comprador | RF27 (HU16) | Backend y app implementados (T940–T943); verificación en dispositivo (T944) y Figma pendientes | Decisión del 29 de octubre de 2026 |
 | [010](010-purchase-lines-and-freight-choice/spec.md) | Lotes con precio propio y flete elegible en la compra | RF07 (HU02) | Backend y app implementados y verificados (T1040–T1042); convergencia pendiente (T1050) | CL-FM08–10, CL-PL01–04 |
-| [011](011-manay-app-design/spec.md) | Diseño MAÑAY en la app | RF01–RF27 visibles (HU01–HU16) | Fases 1, 2 y 3 (compra, con estado pagado o deuda en Ver compras) implementadas; fases 4 y 5 pendientes | CL-FM01–20; CL-MD01–04 resueltas |
+| [011](011-manay-app-design/spec.md) | Diseño MAÑAY en la app | RF01–RF27 visibles (HU01–HU16) | Fases 1 a 4 implementadas (compra; Deudas, Cobranzas y estado de cuenta), salvo la verificación en dispositivo T944; fase 5 pendiente | CL-FM01–20; CL-MD01–04 resueltas |
 
 ## Artefactos transversales
 

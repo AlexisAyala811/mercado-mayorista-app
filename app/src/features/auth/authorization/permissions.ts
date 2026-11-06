@@ -1,7 +1,8 @@
 import type { UserRole } from '@/domain/auth/session';
 
 export type ModuleId =
-  | 'accounts'
+  | 'debts'
+  | 'collections'
   | 'messaging'
   | 'analytics'
   | 'administration'

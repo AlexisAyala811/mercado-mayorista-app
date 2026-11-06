@@ -31,8 +31,8 @@ Cada tarea se marca `[x]` solo con evidencia enlazable. Cada fase va en su propi
 
 ## Fase 4 · Cuentas
 
-- [ ] **T1130** Deudas (a proveedores) y Cobranzas (de compradores) como pantallas separadas, cada una con su confirmación de guardado. *Verificación:* pruebas de navegación y capturas comparadas con Stitch.
-- [ ] **T1131** Botón «Estado de cuenta» del comprador y su pantalla (T940–T944 de la spec 009). *Verificación:* las de T940–T944.
+- [x] **T1130** Deudas (a proveedores) y Cobranzas (de compradores) como pantallas separadas, cada una con su confirmación de guardado. *Verificación:* pruebas de navegación y capturas comparadas con Stitch. **Hecho:** rutas /debts y /collections con textos y confirmaciones propios. Evidencia: [verificación de la fase 4](../../docs/sdd/verificacion-manay-fase4-2026-11-06.md).
+- [ ] **T1131** Botón «Estado de cuenta» del comprador y su pantalla (T940–T944 de la spec 009). *Verificación:* las de T940–T944. **Parcial:** T940–T943 hechas; falta T944 (envío real y accesibilidad en dispositivo). Evidencia: [verificación de la fase 4](../../docs/sdd/verificacion-manay-fase4-2026-11-06.md).
 
 ## Fase 5 · Resto
 
