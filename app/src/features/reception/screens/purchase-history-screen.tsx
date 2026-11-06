@@ -1,5 +1,7 @@
 import { backOrHome } from "@/navigation/back-or-home";
 import { paymentStatusView, receptionsWithPayment } from "@/domain/reception/payment-status";
+import { formatKilograms, kilogramsDraft, validateSackWeights } from "@/domain/reception/whole-kilograms";
+import { freightLabel, SettlementLotList } from "@/features/reception/components/settlement-lot-list";
 import {commercialDescription} from '@/domain/catalog/commercial-characteristic';
 import { useCallback, useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
@@ -252,8 +254,8 @@ export function PurchaseHistoryScreen() {
     next: Exclude<Action, "void-reception" | "void-purchase" | null>,
   ) {
     setSack(value);
-    setGross(value.grossWeightKg);
-    setTare(value.tareKg);
+    setGross(kilogramsDraft(value.grossWeightKg));
+    setTare(kilogramsDraft(value.tareKg));
     setReason("");
     setAction(next);
   }
@@ -309,14 +311,11 @@ export function PurchaseHistoryScreen() {
           body: base,
         };
       else if (action === "correct-sack" && sack) {
-        const grossValue = gross.replace(",", ".");
-        const tareValue = tare.replace(",", ".");
-        if (
-          !/^\d+(?:\.\d{1,3})?$/.test(grossValue) ||
-          !/^\d+(?:\.\d{1,3})?$/.test(tareValue) ||
-          Number(grossValue) <= Number(tareValue)
-        )
-          throw new Error("El peso bruto debe ser mayor que la tara.");
+        // Spec 011 (T1121): corrections are also captured in whole kilograms.
+        const weights = validateSackWeights(gross, tare);
+        if (!weights.ok) throw new Error(weights.message);
+        const grossValue = weights.value.grossWeightKg;
+        const tareValue = weights.value.tareKg;
         const openWeighing =
           reception.state === "draft" || reception.state === "weighing";
         const body = {
@@ -603,17 +602,29 @@ export function PurchaseHistoryScreen() {
             />
           ) : null}
         </View>
+        {settlement ? (
+          <AppCard title={settlement.state === "voided" ? "Liquidación anulada" : "Liquidación"}>
+            <SettlementLotList settlement={settlement} />
+            <View style={styles.metrics}>
+              <MetricTile label="Importe bruto" value={formatMoney(settlement.grossAmountCents)} />
+              <MetricTile label={freightLabel(settlement)} value={formatMoney(settlement.freightAmountCents)} />
+              <MetricTile label="Adelantos y descuentos" value={formatMoney(String(BigInt(settlement.advancesCents) + BigInt(settlement.discountsCents)))} />
+              <MetricTile label="Monto líquido" value={formatMoney(settlement.liquidAmountCents)} />
+              <MetricTile label="Forma de pago" value={settlement.paymentMode === "cash" ? "Contado" : "Crédito"} />
+            </View>
+          </AppCard>
+        ) : null}
         <AppCard title="Pesaje">
           {sacks.length ? (
             sacks.map((item) => (
               <View key={item.id} style={styles.row}>
                 <View style={styles.copy}>
                   <Text style={styles.title}>
-                    Saco {item.sequence} · {item.netWeightKg} kg netos
+                    Saco {item.sequence} · {formatKilograms(item.netWeightKg)} netos
                   </Text>
                   <Text style={styles.meta}>{commercialDescription(item)}</Text>
                   <Text style={styles.meta}>
-                    Bruto {item.grossWeightKg} kg · tara {item.tareKg} kg
+                    Bruto {formatKilograms(item.grossWeightKg)} · tara {formatKilograms(item.tareKg)}
                     {item.voidedAt ? " · anulado" : ""}
                   </Text>
                 </View>
@@ -647,13 +658,13 @@ export function PurchaseHistoryScreen() {
         {action === "correct-sack" ? (
           <AppCard title="Nueva medición">
             <FormField
-              keyboardType="decimal-pad"
+              keyboardType="number-pad"
               label="Peso bruto (kg)"
               onChangeText={setGross}
               value={gross}
             />
             <FormField
-              keyboardType="decimal-pad"
+              keyboardType="number-pad"
               label="Tara (kg)"
               onChangeText={setTare}
               value={tare}

@@ -43,7 +43,7 @@ type Dialog = 'provider' | 'vehicle' | 'varieties' | 'sack-variety' | null;
 function initialDetails(): ReceptionDetails {
   return { date: formatLocalDateInput(), driverName: '', expectedVarieties: '', providerName: '', providerPhone: '', vehiclePlate: '' };
 }
-const initialSettlement: SettlementDraft = { advances: '0', discounts: '0', freightBasis: 'none', freightRate: '0', freightChargedTo: 'provider', installments: [], paymentMode: 'cash', lots: {} };
+const initialSettlement: SettlementDraft = { advances: '0', discounts: '0', freightBasis: 'none', freightRate: '', freightChargedTo: 'provider', installments: [], paymentMode: 'cash', lots: {} };
 
 export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?: string } = {}) {
   const router = useRouter();

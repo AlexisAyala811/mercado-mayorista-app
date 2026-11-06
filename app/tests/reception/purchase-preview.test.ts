@@ -95,3 +95,8 @@ it('requires a calendar-valid credit schedule that equals the exact liquid amoun
   expect(validateCreditSchedule([{ dueOn: '2030-03-01', amount: '249.99' }], '25000')).not.toBeNull();
   expect(validateCreditSchedule([{ dueOn: '2028-02-29', amount: '100.01' }, { dueOn: '2028-03-01', amount: '149.99' }], '25000')).toBeNull();
 });
+
+it('waits for the freight rate after choosing a freight basis', () => {
+  expect(preview([sack('50')], { ...single('2.50'), freightBasis: 'sack', freightRate: '' })).toEqual({ kind: 'pending', message: 'Ingresa la tarifa de flete o elige «Sin flete».' });
+  expect(preview([sack('50')], { ...single('2.50'), freightBasis: 'none', freightRate: '' }).kind).toBe('ready');
+});

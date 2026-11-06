@@ -114,6 +114,7 @@ export function calculatePurchasePreview(lots: readonly PurchaseLot[] | null, in
   }
   const sackCount = lots.reduce((sum, lot) => sum + lot.sacks, 0);
   const grams = lots.reduce((sum, lot) => sum + lot.grams, 0n);
+  if (input.freightBasis !== 'none' && !input.freightRate.trim()) return { kind: 'pending', message: 'Ingresa la tarifa de flete o elige «Sin flete».' };
   const freightRate = input.freightBasis === 'none' ? 0n : cents(input.freightRate);
   const advances = cents(input.advances);
   const discounts = cents(input.discounts);

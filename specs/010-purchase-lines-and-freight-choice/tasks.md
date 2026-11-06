@@ -31,8 +31,8 @@ Cada tarea se marca `[x]` solo con evidencia enlazable. Las de backend van en un
 ## Fase 5 · App MAÑAY
 
 - [x] **T1040** Pantalla de liquidación con los lotes de `settlement-groups`: base y precio por lote, nombre opcional, vista previa en céntimos con `BigInt`, elección del flete. *Verificación:* pruebas Jest y recorrido en tablet 1280 × 800. **Hecho:** la app agrupa con la misma regla que `settlement-groups` para trabajar sin conexión; recorrido en tablet con 250 sacos y tres lotes. Evidencia: [verificación de la fase 3 de la spec 011](../../docs/sdd/verificacion-manay-fase3-2026-11-04.md).
-- [ ] **T1041** Cola sin conexión: la orden con lotes se guarda cifrada y se reenvía con el mismo UUID; un `409` se muestra como aviso sin reintentar (CL-FM16). *Verificación:* pruebas de la cola.
-- [ ] **T1042** Detalle de compra y comprobante con lotes en la app. *Verificación:* pruebas de componente y tablet.
+- [x] **T1041** Cola sin conexión: la orden con lotes se guarda cifrada y se reenvía con el mismo UUID; un `409` se muestra como aviso sin reintentar (CL-FM16). *Verificación:* pruebas de la cola. **Hecho:** sin cambios de código; prueba nueva de la cola con lotes. Evidencia: [verificación de lotes en la app](../../docs/sdd/verificacion-lotes-app-2026-11-06.md).
+- [x] **T1042** Detalle de compra y comprobante con lotes en la app. *Verificación:* pruebas de componente y tablet. **Hecho:** lotes en la confirmación y en el detalle de «Ver compras»; el PDF ya los incluía desde el backend. Evidencia: [verificación de lotes en la app](../../docs/sdd/verificacion-lotes-app-2026-11-06.md).
 
 ## Convergencia
 
