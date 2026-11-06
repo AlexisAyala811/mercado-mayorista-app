@@ -36,10 +36,10 @@ Cada tarea se marca `[x]` solo con evidencia enlazable. Cada fase va en su propi
 
 ## Fase 5 · Resto
 
-- [ ] **T1140** Venta y Ver ventas con el estilo MAÑAY. *Verificación:* capturas y pruebas actuales en verde.
-- [ ] **T1141** Carros, Reportes y Analítica (precios sugeridos solo con datos suficientes). *Verificación:* capturas comparadas con Stitch; prueba del estado «datos insuficientes».
-- [ ] **T1142** Pendientes de envío y aviso de conflicto con el estilo MAÑAY. *Verificación:* pruebas actuales de la cola en verde, incluido el `409` sin reintento.
-- [ ] **T1143** Administración de reemplazos con el estilo MAÑAY. *Verificación:* pruebas actuales en verde.
+- [x] **T1140** Venta y Ver ventas con el estilo MAÑAY. *Verificación:* capturas y pruebas actuales en verde. **Hecho:** ya usaban los tokens; revisadas en el emulador. Evidencia: [verificación de la fase 5](../../docs/sdd/verificacion-manay-fase5-2026-11-06.md).
+- [x] **T1141** Carros, Reportes y Analítica (precios sugeridos solo con datos suficientes). *Verificación:* capturas comparadas con Stitch; prueba del estado «datos insuficientes». **Hecho:** Carros rehecho con los tokens; cabecera y botón de Reportes; Analítica ya cubría «datos insuficientes». Evidencia: [verificación de la fase 5](../../docs/sdd/verificacion-manay-fase5-2026-11-06.md).
+- [x] **T1142** Pendientes de envío y aviso de conflicto con el estilo MAÑAY. *Verificación:* pruebas actuales de la cola en verde, incluido el `409` sin reintento. **Hecho:** ya usaban los tokens; 409 en revisión probado. Evidencia: [verificación de la fase 5](../../docs/sdd/verificacion-manay-fase5-2026-11-06.md).
+- [x] **T1143** Administración de reemplazos con el estilo MAÑAY. *Verificación:* pruebas actuales en verde. **Hecho:** reemplazo por duración desde ahora, máximo 24 horas, sin fechas ISO. Evidencia: [verificación de la fase 5](../../docs/sdd/verificacion-manay-fase5-2026-11-06.md).
 
 ## Convergencia
 
