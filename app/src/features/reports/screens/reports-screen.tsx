@@ -39,7 +39,7 @@ import { ReportIndicators } from './report-indicators';
 import { useReportFonts } from '@/ui/report-fonts';
 import { reportVisual } from '@/ui/report-tokens';
 import { ReportAsset } from '@/ui/components/report-asset';
-import { OriginalUserIcon } from '@/ui/components/original-user-icon';
+import { BrandMark } from '@/ui/components/brand-mark';
 
 type Dialog = "buyer" | "operation" | "provider" | "variety" | "quality" | "origin" | "period" | null;
 type OperationFilter = "all" | "purchase" | "sale";
@@ -222,8 +222,9 @@ function ReportsWorkspace() {
     <AppScreen edgeToEdge contentContainerStyle={styles.screen}>
       <View style={[styles.accountBar, !wide && styles.compactAccountBar]}>
         <View style={styles.identity}>
-          <OriginalUserIcon variant="report" />
-          <Text accessibilityLabel={`Usuario ${session.user?.username ?? ''}`} style={[styles.username, !wide && styles.compactUsername, reportFontsLoaded && {fontFamily:'ReportInterRegular'}]}>{session.user?.username ?? ''}</Text>
+          <BrandMark size={44} />
+          <Text accessibilityRole="header" style={styles.brandTitle}>Reportes</Text>
+          <Text numberOfLines={1} accessibilityLabel={`Usuario ${session.user?.username ?? ''}`} style={[styles.username, !wide && styles.compactUsername, reportFontsLoaded && {fontFamily:'ReportInterRegular'}]}>{session.user?.username ?? ''}</Text>
         </View>
         <AppButton
           label="Volver al menú" appearance="report-link" reportFontsLoaded={reportFontsLoaded}
@@ -564,8 +565,9 @@ const styles = StyleSheet.create({
   accountBar: {minHeight:75,backgroundColor:reportVisual.control,paddingHorizontal:35,paddingVertical:12,flexDirection:'row',justifyContent:'space-between',alignItems:'center',gap:20},
   compactAccountBar: {paddingHorizontal:14,flexWrap:'wrap'},
   identity: {flexDirection:'row',alignItems:'center',gap:19,flexShrink:1,minWidth:0},
-  username: {fontSize:40,lineHeight:48,fontWeight:'400',color:reportVisual.value,flexShrink:1},
-  compactUsername: {fontSize:24,lineHeight:32},
+  username: {fontSize:18,lineHeight:24,fontWeight:'700',color:reportVisual.value,flexShrink:1},
+  brandTitle: {fontSize:26,lineHeight:32,fontWeight:'800',color:color.brand},
+  compactUsername: {fontSize:16,lineHeight:22},
   body: {gap:24},
   wideBody: {paddingHorizontal:99,paddingTop:3},
   periodField: {flexBasis:200,flexGrow:1,minWidth:0,maxWidth:'100%'},

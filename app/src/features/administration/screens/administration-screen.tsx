@@ -17,6 +17,7 @@ import {
 } from '@/services/api/administration-api';
 import { AppButton, AppCard, AppScreen, ConfirmationDialog, EmptyState, FeedbackState, FormField, LoadingState, ScreenHeader } from '@/ui/components';
 import { color, spacing, typography } from '@/ui/tokens';
+import { formatReplacementTime, replacementDurations, replacementWindow, replacementWindowFromNow, type ReplacementDuration } from '@/domain/administration/replacement-window';
 
 type Confirmation = { kind: 'deactivate'; assistant: Assistant } | { kind: 'revoke'; delegation: Delegation } | null;
 
@@ -29,8 +30,7 @@ export function AdministrationScreen() {
   const [selected, setSelected] = useState<Assistant | null>(null);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [startsAt, setStartsAt] = useState(defaultStart());
-  const [expiresAt, setExpiresAt] = useState(defaultEnd());
+  const [duration, setDuration] = useState<ReplacementDuration>(8);
   const [reason, setReason] = useState('');
   const [confirmation, setConfirmation] = useState<Confirmation>(null);
   const [loading, setLoading] = useState(true);
@@ -83,13 +83,10 @@ export function AdministrationScreen() {
 
   async function addDelegation() {
     if (!selected) { setError('Selecciona un Encargado.'); return; }
-    const start = Date.parse(startsAt); const end = Date.parse(expiresAt);
-    if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start || end - start > 86_400_000) {
-      setError('Ingresa fechas ISO válidas; el reemplazo debe durar entre un instante y 24 horas.');
-      return;
-    }
+    // The window starts when the Wholesaler confirms (spec 011, CL-FM17).
+    const window = replacementWindowFromNow(duration);
     await execute(async () => {
-      await createDelegation(token, selected.id, { startsAt: new Date(start).toISOString(), expiresAt: new Date(end).toISOString(), reason: reason.trim() || undefined });
+      await createDelegation(token, selected.id, { ...window, reason: reason.trim() || undefined });
       setReason(''); setSuccess('Reemplazo autorizado.');
     });
   }
@@ -140,8 +137,9 @@ export function AdministrationScreen() {
           )) : <EmptyState title="Sin Encargados" message="Crea una cuenta individual para autorizar reemplazos." />}
         </AppCard>
         <AppCard title="Nuevo reemplazo" description={selected ? `Encargado: ${selected.username}` : 'Selecciona un Encargado activo en la lista anterior.'}>
-          <FormField autoCapitalize="none" label="Inicio (ISO 8601)" onChangeText={setStartsAt} value={startsAt} />
-          <FormField autoCapitalize="none" label="Fin (ISO 8601)" onChangeText={setExpiresAt} value={expiresAt} />
+          <Text style={styles.label}>Duración desde ahora</Text>
+          <View style={styles.actions}>{replacementDurations.map((hours) => <AppButton key={hours} label={`${hours} h`} accessibilityLabel={`Reemplazo de ${hours} horas`} accessibilityRole="radio" accessibilityState={{ checked: duration === hours }} tone={duration === hours ? 'primary' : 'secondary'} disabled={busy} onPress={() => setDuration(hours)} />)}</View>
+          <Text style={styles.label}>{`Vigente desde ahora hasta ${formatReplacementTime(replacementWindow(renderTime, duration).expiresAt)} aproximadamente (hora de Lima). Máximo 24 horas.`}</Text>
           <FormField label="Motivo" onChangeText={setReason} value={reason} />
           <View style={styles.actions}><AppButton disabled={!selected || busy} label="Autorizar reemplazo" onPress={() => void addDelegation()} /></View>
         </AppCard>
@@ -158,12 +156,11 @@ export function AdministrationScreen() {
   );
 }
 
-function defaultStart() { return new Date().toISOString(); }
-function defaultEnd() { return new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(); }
+
 
 const styles = StyleSheet.create({
   screen: { gap: spacing.xl }, center: { justifyContent: 'center' }, top: { flexDirection: 'row', justifyContent: 'space-between' },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, justifyContent: 'flex-end' },
   row: { alignItems: 'center', borderBottomColor: color.border, borderBottomWidth: 1, flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, justifyContent: 'space-between', paddingVertical: spacing.md },
-  copy: { flexBasis: 260, flexGrow: 1, gap: spacing.xs }, title: { color: color.textPrimary, ...typography.body, fontWeight: '700' }, meta: { color: color.textSecondary, ...typography.bodySmall },
+  copy: { flexBasis: 260, flexGrow: 1, gap: spacing.xs }, title: { color: color.textPrimary, ...typography.body, fontWeight: '700' }, meta: { color: color.textSecondary, ...typography.bodySmall }, label: { color: color.textPrimary, ...typography.bodySmall, fontWeight: '700' },
 });

@@ -1,7 +1,7 @@
 import { useVisualStyles, type VisualPalette } from "@/ui/visual-theme";
 import { Pressable, StyleSheet, Text, type PressableProps } from "react-native";
 
-import { radius, spacing, typography } from "@/ui/tokens";
+import { color as brandColor, radius, spacing, typography } from "@/ui/tokens";
 import type { ReactNode } from 'react';
 import { reportVisual } from '@/ui/report-tokens';
 
@@ -45,7 +45,7 @@ export function AppButton({
         appearance === "login" && loginStyles.base,
         isPrimary ? styles.primary : styles.secondary,
         appearance === "report" && reportStyles.base,
-        appearance === 'report-query' && [reportStyles.base, {backgroundColor:reportVisual.title,borderColor:reportVisual.title,paddingHorizontal:18}],
+        appearance === 'report-query' && [reportStyles.base, {backgroundColor:brandColor.brand,borderColor:brandColor.brand,paddingHorizontal:18}],
         appearance === 'report-link' && [reportStyles.base, {backgroundColor:'transparent',borderWidth:0,paddingHorizontal:0}],
         appearance === "report-operation" && reportOperationStyles.base,
         appearance === "report-operation" && accessibilityState?.selected && reportOperationStyles.selected,
