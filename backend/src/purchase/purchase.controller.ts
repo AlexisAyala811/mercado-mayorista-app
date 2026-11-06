@@ -5,6 +5,7 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -22,6 +23,7 @@ import {
   SettlePurchaseDto,
   VoidPurchaseDto,
 } from './http/settle-purchase.dto.js';
+import { PaymentStatusQueryDto } from './http/payment-status-query.dto.js';
 import { PurchaseService } from './purchase.service.js';
 
 @Controller('purchases')
@@ -34,6 +36,15 @@ export class PurchaseController {
     private readonly purchases: PurchaseService,
     private readonly audit: AuditService,
   ) {}
+
+  // Spec 011 (CL-MD05): paid, debt or voided for one page of «Ver compras».
+  @Get('payment-status')
+  paymentStatus(
+    @CurrentIdentity() identity: SessionIdentity,
+    @Query() query: PaymentStatusQueryDto,
+  ) {
+    return this.purchases.paymentStatus(identity.businessId, query.receptionIds);
+  }
 
   @Get('receptions/:receptionId/settlement')
   get(

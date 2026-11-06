@@ -1,4 +1,5 @@
 import { backOrHome } from "@/navigation/back-or-home";
+import { paymentStatusView, receptionsWithPayment } from "@/domain/reception/payment-status";
 import {commercialDescription} from '@/domain/catalog/commercial-characteristic';
 import { useCallback, useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
@@ -17,6 +18,8 @@ import {
   getReception,
   getSacks,
   listReceptions,
+  getPurchasePaymentStatus,
+  type PurchasePaymentStatus,
   type ReceptionsHistoryQuery,
 } from "@/services/api/reception-api";
 import {
@@ -31,7 +34,7 @@ import {
   MetricTile,
   ScreenHeader,
 } from "@/ui/components";
-import { color, spacing, typography } from "@/ui/tokens";
+import { color, radius, spacing, typography } from "@/ui/tokens";
 
 import { useSyncQueue } from "@/features/sync/sync-queue-provider";
 
@@ -50,6 +53,8 @@ export function PurchaseHistoryScreen() {
   const { session } = useSession();
   const token = session?.accessToken ?? "";
   const [receptions, setReceptions] = useState<Reception[]>([]);
+  // Spec 011 (CL-MD05): server payment state per reception, or 'unavailable' offline.
+  const [paymentStatus, setPaymentStatus] = useState<Map<string, PurchasePaymentStatus> | 'unavailable' | null>(null);
   const [reception, setReception] = useState<Reception | null>(null);
   const [sacks, setSacks] = useState<ReceptionSack[]>([]);
   const [settlement, setSettlement] = useState<PurchaseSettlement | null>(null);
@@ -89,12 +94,19 @@ export function PurchaseHistoryScreen() {
       offset: number,
     ) => {
       setReceptions(value.items);
+      setPaymentStatus(null);
+      const ids = receptionsWithPayment(value.items);
+      const request = requestSequence.current;
+      if (ids.length)
+        getPurchasePaymentStatus(token, ids)
+          .then((items) => { if (request === requestSequence.current) setPaymentStatus(new Map(items.map((item) => [item.receptionId, item]))); })
+          .catch(() => { if (request === requestSequence.current) setPaymentStatus('unavailable'); });
       setTotal(value.total);
       setAppliedQuery(query);
       setPageOffset(offset);
       setListLoaded(true);
     },
-    [],
+    [token],
   );
   async function loadList(
     query: ReceptionsHistoryQuery = appliedQuery,
@@ -481,6 +493,7 @@ export function PurchaseHistoryScreen() {
               title={`${item.providerName ?? "Proveedor registrado"} · ${item.receivedOn}`}
               description={`${stateName(item.state)} · ${item.driverName} · versión ${item.version}`}
             >
+              <PaymentStatusLine reception={item} status={paymentStatus} />
               <AppButton
                 label="Abrir detalle"
                 accessibilityLabel={`Abrir detalle de compra de ${item.providerName ?? 'proveedor registrado'}, ${item.receivedOn}, operación ${item.id}`}
@@ -704,6 +717,27 @@ export function PurchaseHistoryScreen() {
   );
 }
 
+function PaymentStatusLine({ reception, status }: { reception: Reception; status: Map<string, PurchasePaymentStatus> | "unavailable" | null }) {
+  if (reception.state !== "settled" && reception.state !== "voided") return null;
+  if (status === "unavailable") return <Text style={styles.paymentUnavailable}>Estado de pago no disponible sin conexión.</Text>;
+  const item = status?.get(reception.id);
+  if (!item) return status ? null : <Text style={styles.paymentUnavailable}>Consultando estado de pago…</Text>;
+  const view = paymentStatusView(item);
+  const tone = view.tone === "success" ? paymentTones.paid : view.tone === "danger" ? paymentTones.debt : paymentTones.voided;
+  return (
+    <View accessibilityLabel={`Estado de pago: ${view.label}${view.detail ? `, ${view.detail}` : ""}`} style={[styles.paymentBadge, tone.box]}>
+      <Text style={[styles.paymentLabel, tone.text]}>{view.label}</Text>
+      {view.detail ? <Text style={[styles.paymentDetail, tone.text]}>{view.detail}</Text> : null}
+    </View>
+  );
+}
+
+const paymentTones = {
+  paid: StyleSheet.create({ box: { backgroundColor: color.successMuted, borderColor: color.successAccent }, text: { color: color.success } }),
+  debt: StyleSheet.create({ box: { backgroundColor: color.dangerMuted, borderColor: color.dangerAccent }, text: { color: color.danger } }),
+  voided: StyleSheet.create({ box: { backgroundColor: color.surface, borderColor: color.border }, text: { color: color.textSecondary } }),
+};
+
 function stateName(value: Reception["state"]) {
   return (
     {
@@ -717,6 +751,10 @@ function stateName(value: Reception["state"]) {
 }
 const styles = StyleSheet.create({
   screen: { gap: spacing.xl },
+  paymentBadge: { alignSelf: "flex-start", borderLeftWidth: 4, borderRadius: radius.sm, gap: spacing.xs, paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
+  paymentLabel: { ...typography.body, fontWeight: "800" },
+  paymentDetail: { ...typography.bodySmall, fontWeight: "700" },
+  paymentUnavailable: { color: color.textSecondary, ...typography.bodySmall },
   filterFields: { flexDirection: "row", flexWrap: "wrap", gap: spacing.md },
   filterField: { flex: 1, minWidth: 220 },
   filterActions: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
