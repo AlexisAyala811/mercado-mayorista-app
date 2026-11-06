@@ -36,7 +36,7 @@ Cada tarea se marca `[x]` solo con evidencia enlazable. Las de backend van en un
 
 ## Convergencia
 
-- [ ] **T1050** Lista de convergencia de la spec 010 con evidencia; actualizar el estado en el índice de specs y la spec 002.
+- [x] **T1050** Lista de convergencia de la spec 010 con evidencia; actualizar el estado en el índice de specs y la spec 002. **Hecho.** Evidencia: [convergencia de la spec 010](../../docs/sdd/convergencia-spec-010-2026-11-06.md).
 
 ## Orden y dependencias
 

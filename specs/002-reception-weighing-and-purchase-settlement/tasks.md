@@ -105,6 +105,6 @@ Continúa el refactor anterior con las cuatro escrituras que seguían en `Weighi
 
 Aclaraciones CL-FM05, CL-FM06, CL-FM08 a CL-FM11 en [aclaraciones del frontend MAÑAY](../../docs/sdd/aclaraciones-frontend-manay-2026-11-04.md). Pendiente de especificar o diseñar; nada implementado todavía.
 
-- [ ] Especificar y planificar la compra con varias líneas («Lote A / Lote B»), cada una con variedad, base (kilo o saco) y precio propios; migración compatible con las liquidaciones de una sola base. **Borrador:** [spec 010](../010-purchase-lines-and-freight-choice/spec.md), pendiente de aprobación.
-- [ ] Especificar la elección del flete en la liquidación: descontado al proveedor o asumido por el Mayorista. **Borrador:** incluido en la [spec 010](../010-purchase-lines-and-freight-choice/spec.md).
+- [x] Especificar y planificar la compra con varias líneas («Lote A / Lote B»), cada una con variedad, base (kilo o saco) y precio propios; migración compatible con las liquidaciones de una sola base. **Hecho:** [spec 010](../010-purchase-lines-and-freight-choice/spec.md), implementada y [convergida](../../docs/sdd/convergencia-spec-010-2026-11-06.md) el 6 de noviembre de 2026.
+- [x] Especificar la elección del flete en la liquidación: descontado al proveedor o asumido por el Mayorista. **Hecho:** [spec 010](../010-purchase-lines-and-freight-choice/spec.md), [convergida](../../docs/sdd/convergencia-spec-010-2026-11-06.md) el 6 de noviembre de 2026.
 - [ ] Captura de bruto y tara por saco en kilos enteros y diseño para 200 o más sacos (lista, ir al saco N, totales fijos).
