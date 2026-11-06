@@ -95,7 +95,7 @@ export function renderReceiptPdf(receipt: ReceiptDocument): Promise<Buffer> {
       .fontSize(8)
       .fillColor('#6B7280')
       .text(
-        'Generado por Mercado. Conserve este documento como constancia operativa interna.',
+        'Generado por MAÑAY. Conserve este documento como constancia operativa interna.',
         { align: 'center' },
       );
     document.end();

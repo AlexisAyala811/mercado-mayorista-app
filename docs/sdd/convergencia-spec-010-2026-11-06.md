@@ -63,9 +63,9 @@ Bruto S/ 24 478,50; flete asumido por el comprador S/ 750,00, sin restar; adelan
 | --- | --- |
 | La app no consulta `GET settlement-groups`; agrupa con la misma regla para trabajar sin conexión | Aceptada. La regla está duplicada a propósito y probada en los dos lados; en el emulador, los lotes de la app coincidieron con los de la ruta |
 | El comprobante muestra el neto con tres decimales («2999.000 kg») y la app en kilos enteros | Aceptada. El dominio guarda tres decimales y el PDF es un documento de constancia |
-| El pie del comprobante dice «Generado por Mercado» y la cabecera, «MAÑAY» | Pendiente menor de marca, fuera de la spec 010; se corrige con la convergencia de la spec 011 (T1150) |
+| El pie del comprobante decía «Generado por Mercado» y la cabecera, «MAÑAY» | **Resuelta el 6 de noviembre de 2026:** el pie del comprobante dice «Generado por MAÑAY»; también el pie de los reportes PDF («MAÑAY · Documento interno») y el autor de los libros Excel. Revisado a ojo en un PDF de muestra |
 | Comparación con Stitch píxel a píxel | No hecha; se hace con T1150 |
 
 ## Resultado
 
-La spec 010 queda **convergida**: los trece requisitos funcionales y los tres de calidad tienen evidencia. Las divergencias abiertas son de presentación y quedan asignadas a T1150 de la spec 011.
+La spec 010 queda **convergida**: los trece requisitos funcionales y los tres de calidad tienen evidencia. La única divergencia abierta es la comparación con Stitch, asignada a T1150 de la spec 011.

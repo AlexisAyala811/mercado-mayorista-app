@@ -27,7 +27,7 @@ export function renderReportPdf(report: ReportPdf): Promise<Buffer> {
     for (let page = range.start; page < range.start + range.count; page++) {
       document.switchToPage(page);
       // Footer sits inside the bottom margin without provoking another page.
-      document.font('Helvetica').fontSize(8).text(`Mercado · Documento interno · ${page + 1}/${range.count}`, 48, document.page.height - 35, { lineBreak: false });
+      document.font('Helvetica').fontSize(8).text(`MAÑAY · Documento interno · ${page + 1}/${range.count}`, 48, document.page.height - 35, { lineBreak: false });
     }
     document.end();
   });
