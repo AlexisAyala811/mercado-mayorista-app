@@ -164,4 +164,4 @@ Consecuencia de CL-PL01: dos grupos de sacos de la misma variedad y calidad no p
 
 ## Artefactos SDD relacionados
 
-[Plan](plan.md), [tareas](tasks.md) y [checklist de requisitos](checklists/requirements.md). Siguiente fase: aprobación del plan.
+[Plan](plan.md), [tareas](tasks.md) y [checklist de requisitos](checklists/requirements.md). Estado: implementada y convergida el 6 de noviembre de 2026 ([convergencia](../../docs/sdd/convergencia-spec-010-2026-11-06.md)).
