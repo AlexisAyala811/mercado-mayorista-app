@@ -1,3 +1,4 @@
+import { summarizeWholeKilograms } from './whole-kilograms';
 import type {CommercialSnapshot} from '@/domain/catalog/commercial-characteristic';
 export type Page<T> = { items: T[]; limit: number; offset: number; total: number };
 
@@ -31,6 +32,13 @@ export type ReceptionSack = Partial<CommercialSnapshot>&{
   correctionReason?: string | null;
 };
 
+export type SettlementLotView = {
+  letter: string; name: string | null;
+  varietyName: string | null; qualityName: string | null;
+  sacks: number; netWeightKg: string;
+  priceBasis: 'kilogram' | 'sack'; unitPriceCents: string; amountCents: string;
+};
+
 export type PurchaseSettlement = {
   id: string;
   grossAmountCents: string;
@@ -39,6 +47,9 @@ export type PurchaseSettlement = {
   discountsCents: string;
   liquidAmountCents: string;
   paymentMode: 'cash' | 'credit';
+  // Spec 010: absent in responses from servers before lots.
+  freightChargedTo?: 'provider' | 'wholesaler';
+  lots?: SettlementLotView[];
   state: 'confirmed' | 'voided';
   version: number;
 };
@@ -49,12 +60,8 @@ export function createOperationId() {
 }
 
 export function summarizeSacks(sacks: ReceptionSack[]) {
-  const total = sacks.reduce((sum, sack) => sum + Number(sack.netWeightKg), 0);
-  return {
-    averageWeightDisplay: sacks.length ? `${(total / sacks.length).toFixed(3)} kg` : '0.000 kg',
-    sackCountDisplay: String(sacks.length),
-    totalWeightDisplay: `${total.toFixed(3)} kg`,
-  };
+  // Whole kilograms on screen (spec 011); the exact total comes from grams.
+  return summarizeWholeKilograms(sacks.map((sack) => sack.netWeightKg));
 }
 
 export function moneyInputToCents(value: string) {

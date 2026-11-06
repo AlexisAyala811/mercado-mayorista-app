@@ -151,7 +151,7 @@ export function WeighingScreen({
                 </View>
                 <View style={styles.captureField}>
                   <FormField
-                    keyboardType="decimal-pad"
+                    keyboardType="number-pad"
                     label="Peso bruto (kg)"
                     onChangeText={onGrossWeightChange}
                     onSubmitEditing={canAdd ? onAddSack : undefined}
@@ -162,11 +162,11 @@ export function WeighingScreen({
                 </View>
                 <View style={styles.captureField}>
                   <FormField
-                    keyboardType="decimal-pad"
+                    keyboardType="number-pad"
                     label="Tara (kg)"
                     onChangeText={onTareChange}
                     placeholder="0"
-                    supportingText="Se descontará del peso bruto."
+                    supportingText="Kilos enteros; se descuenta del bruto."
                     value={currentTare}
                   />
                 </View>

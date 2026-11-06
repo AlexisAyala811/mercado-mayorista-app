@@ -30,6 +30,8 @@ SUNAT y balanza conectada solo aparecían en las maquetas de Stitch; la app no l
 7. **Retiros sin borrar datos.** Las rutas y pantallas de inventario y devoluciones se eliminan de la app con sus pruebas; el backend conserva sus endpoints y su historial. La cola cifrada sigue leyendo operaciones antiguas de esos tipos para poder descartarlas con motivo.
 8. **Comparación con Stitch por pantalla.** Cada pantalla rediseñada se captura en el emulador 1280 × 800 y se compara con su maqueta; las diferencias aceptadas quedan en la verificación.
 
+**Ampliación del 5 de noviembre de 2026 (CL-MD05).** Nueva ruta de solo lectura `GET /purchases/payment-status?receptionIds=…` en el módulo de compras, que ya conoce liquidaciones y cuentas. No se toca el listado de recepciones, para no hacer depender Recepción de Compras ni de Cuentas. Devuelve `{ receptionId, settlementId, state: 'paid' | 'debt' | 'voided', balanceCents }` por cada recepción liquidada del negocio; las no liquidadas o ajenas no aparecen. Es una sola consulta SQL con `LEFT JOIN` a `accounts` por `source_type = 'purchase-settlement'`. La app la pide después de cada página del listado.
+
 ## Fases (CL-MD04)
 
 | Fase | Contenido | Depende de |

@@ -48,6 +48,7 @@ import {
   purchaseLiquidCents,
   type PlannedLot,
 } from './domain/purchase-lots.js';
+import { purchasePaymentStatus } from './domain/payment-status.js';
 import { PurchaseSettlementLotEntity } from './entities/purchase-settlement-lot.entity.js';
 import {
   CalculationBasis,
@@ -79,6 +80,53 @@ export class PurchaseService {
     if (!settlement)
       throw new NotFoundException('Liquidación de compra no encontrada.');
     return presentSettlement(this.dataSource.manager, settlement);
+  }
+
+  // Payment state of the settled purchases of one page of «Ver compras»
+  // (spec 011, CL-MD05). Receptions without settlement or of another business
+  // are left out; the newest settlement of each reception wins.
+  async paymentStatus(businessId: string, receptionIds: readonly string[]) {
+    const rows = await this.dataSource.manager
+      .getRepository(PurchaseSettlementEntity)
+      .createQueryBuilder('settlement')
+      .leftJoin(
+        AccountEntity,
+        'account',
+        "account.businessId = settlement.businessId AND account.sourceType = 'purchase-settlement' AND account.sourceId = settlement.id",
+      )
+      .select('settlement.receptionId', 'receptionId')
+      .addSelect('settlement.id', 'settlementId')
+      .addSelect('settlement.state', 'settlementState')
+      .addSelect('settlement.paymentMode', 'paymentMode')
+      .addSelect('account.balanceCents', 'accountBalanceCents')
+      .where('settlement.businessId = :businessId', { businessId })
+      .andWhere('settlement.receptionId IN (:...receptionIds)', {
+        receptionIds: [...new Set(receptionIds)],
+      })
+      .orderBy('settlement.receptionId')
+      .addOrderBy('settlement.createdAt', 'DESC')
+      .getRawMany<{
+        receptionId: string;
+        settlementId: string;
+        settlementState: PurchaseSettlementState;
+        paymentMode: PaymentMode;
+        accountBalanceCents: string | null;
+      }>();
+    const latest = new Map<string, (typeof rows)[number]>();
+    for (const row of rows)
+      if (!latest.has(row.receptionId)) latest.set(row.receptionId, row);
+    return [...latest.values()].map((row) => ({
+      receptionId: row.receptionId,
+      settlementId: row.settlementId,
+      ...purchasePaymentStatus({
+        accountBalanceCents:
+          row.accountBalanceCents === null
+            ? null
+            : String(row.accountBalanceCents),
+        paymentMode: row.paymentMode,
+        settlementState: row.settlementState,
+      }),
+    }));
   }
 
   // Groups of variety and quality of the active sacks, with the letters the

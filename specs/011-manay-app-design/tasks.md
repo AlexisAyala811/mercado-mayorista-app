@@ -21,11 +21,13 @@ Cada tarea se marca `[x]` solo con evidencia enlazable. Cada fase va en su propi
 
 ## Fase 3 · Compra
 
-- [ ] **T1120** Recepción con el estilo MAÑAY. *Verificación:* captura comparada con Stitch.
-- [ ] **T1121** Pesaje: bruto y tara en kilos enteros, neto por saco. *Verificación:* pruebas del campo (acepta 52, rechaza 52,5) y del envío.
-- [ ] **T1122** Pesaje con lista virtualizada, totales fijos e «Ir al saco» para 200 sacos o más. *Verificación:* prueba con 250 sacos; recorrido en emulador.
-- [ ] **T1123** Liquidación con lotes de `settlement-groups` (T1040 de la spec 010). *Verificación:* las de T1040.
-- [ ] **T1124** Confirmación y Ver compras con estado pagado o deuda. *Verificación:* capturas y pruebas actuales en verde.
+- [x] **T1120** Recepción con el estilo MAÑAY. *Verificación:* captura comparada con Stitch. **Hecho:** cabecera, navegación, pesaje y liquidación con los tokens; capturas del emulador. Evidencia: [verificación de la fase 3](../../docs/sdd/verificacion-manay-fase3-2026-11-04.md).
+- [x] **T1121** Pesaje: bruto y tara en kilos enteros, neto por saco. *Verificación:* pruebas del campo (acepta 52, rechaza 52,5) y del envío. **Hecho.** Evidencia: [verificación de la fase 3](../../docs/sdd/verificacion-manay-fase3-2026-11-04.md).
+- [x] **T1122** Pesaje con lista virtualizada, totales fijos e «Ir al saco» para 200 sacos o más. *Verificación:* prueba con 250 sacos; recorrido en emulador. **Hecho:** 250 sacos en prueba y en emulador. Evidencia: [verificación de la fase 3](../../docs/sdd/verificacion-manay-fase3-2026-11-04.md).
+- [x] **T1123** Liquidación con lotes de `settlement-groups` (T1040 de la spec 010). *Verificación:* las de T1040. **Hecho:** lotes iguales a `settlement-groups` y confirmados por el servidor. Evidencia: [verificación de la fase 3](../../docs/sdd/verificacion-manay-fase3-2026-11-04.md).
+- [x] **T1124** Confirmación y Ver compras con estado pagado o deuda. *Verificación:* capturas y pruebas actuales en verde. **Hecho:** la confirmación muestra lotes y flete (fase 3) y «Ver compras» el estado pagado o deuda (T1126). Evidencia: [verificación del estado de pago](../../docs/sdd/verificacion-manay-estado-pago-2026-11-05.md).
+- [x] **T1125** Backend: `GET /purchases/payment-status` según CL-MD05 (DTO con hasta 100 UUID, `@Roles` de Mayorista y Encargado, filtro por `businessId`). *Verificación:* pruebas unitarias de la regla y e2e en PostgreSQL portable con contado, crédito con saldo, crédito pagado, anulada y recepción de otro negocio. **Hecho.** Evidencia: [verificación del estado de pago](../../docs/sdd/verificacion-manay-estado-pago-2026-11-05.md).
+- [x] **T1126** App: estado y saldo en «Ver compras» con los colores de estado y sin depender de la conexión. *Verificación:* pruebas de pantalla y captura en el emulador. **Hecho.** Evidencia: [verificación del estado de pago](../../docs/sdd/verificacion-manay-estado-pago-2026-11-05.md).
 
 ## Fase 4 · Cuentas
 

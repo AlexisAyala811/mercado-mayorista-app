@@ -1,4 +1,7 @@
 import { backOrHome } from "@/navigation/back-or-home";
+import { paymentStatusView, receptionsWithPayment } from "@/domain/reception/payment-status";
+import { formatKilograms, kilogramsDraft, validateSackWeights } from "@/domain/reception/whole-kilograms";
+import { freightLabel, SettlementLotList } from "@/features/reception/components/settlement-lot-list";
 import {commercialDescription} from '@/domain/catalog/commercial-characteristic';
 import { useCallback, useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
@@ -17,6 +20,8 @@ import {
   getReception,
   getSacks,
   listReceptions,
+  getPurchasePaymentStatus,
+  type PurchasePaymentStatus,
   type ReceptionsHistoryQuery,
 } from "@/services/api/reception-api";
 import {
@@ -31,7 +36,7 @@ import {
   MetricTile,
   ScreenHeader,
 } from "@/ui/components";
-import { color, spacing, typography } from "@/ui/tokens";
+import { color, radius, spacing, typography } from "@/ui/tokens";
 
 import { useSyncQueue } from "@/features/sync/sync-queue-provider";
 
@@ -50,6 +55,8 @@ export function PurchaseHistoryScreen() {
   const { session } = useSession();
   const token = session?.accessToken ?? "";
   const [receptions, setReceptions] = useState<Reception[]>([]);
+  // Spec 011 (CL-MD05): server payment state per reception, or 'unavailable' offline.
+  const [paymentStatus, setPaymentStatus] = useState<Map<string, PurchasePaymentStatus> | 'unavailable' | null>(null);
   const [reception, setReception] = useState<Reception | null>(null);
   const [sacks, setSacks] = useState<ReceptionSack[]>([]);
   const [settlement, setSettlement] = useState<PurchaseSettlement | null>(null);
@@ -89,12 +96,19 @@ export function PurchaseHistoryScreen() {
       offset: number,
     ) => {
       setReceptions(value.items);
+      setPaymentStatus(null);
+      const ids = receptionsWithPayment(value.items);
+      const request = requestSequence.current;
+      if (ids.length)
+        getPurchasePaymentStatus(token, ids)
+          .then((items) => { if (request === requestSequence.current) setPaymentStatus(new Map(items.map((item) => [item.receptionId, item]))); })
+          .catch(() => { if (request === requestSequence.current) setPaymentStatus('unavailable'); });
       setTotal(value.total);
       setAppliedQuery(query);
       setPageOffset(offset);
       setListLoaded(true);
     },
-    [],
+    [token],
   );
   async function loadList(
     query: ReceptionsHistoryQuery = appliedQuery,
@@ -240,8 +254,8 @@ export function PurchaseHistoryScreen() {
     next: Exclude<Action, "void-reception" | "void-purchase" | null>,
   ) {
     setSack(value);
-    setGross(value.grossWeightKg);
-    setTare(value.tareKg);
+    setGross(kilogramsDraft(value.grossWeightKg));
+    setTare(kilogramsDraft(value.tareKg));
     setReason("");
     setAction(next);
   }
@@ -297,14 +311,11 @@ export function PurchaseHistoryScreen() {
           body: base,
         };
       else if (action === "correct-sack" && sack) {
-        const grossValue = gross.replace(",", ".");
-        const tareValue = tare.replace(",", ".");
-        if (
-          !/^\d+(?:\.\d{1,3})?$/.test(grossValue) ||
-          !/^\d+(?:\.\d{1,3})?$/.test(tareValue) ||
-          Number(grossValue) <= Number(tareValue)
-        )
-          throw new Error("El peso bruto debe ser mayor que la tara.");
+        // Spec 011 (T1121): corrections are also captured in whole kilograms.
+        const weights = validateSackWeights(gross, tare);
+        if (!weights.ok) throw new Error(weights.message);
+        const grossValue = weights.value.grossWeightKg;
+        const tareValue = weights.value.tareKg;
         const openWeighing =
           reception.state === "draft" || reception.state === "weighing";
         const body = {
@@ -481,6 +492,7 @@ export function PurchaseHistoryScreen() {
               title={`${item.providerName ?? "Proveedor registrado"} · ${item.receivedOn}`}
               description={`${stateName(item.state)} · ${item.driverName} · versión ${item.version}`}
             >
+              <PaymentStatusLine reception={item} status={paymentStatus} />
               <AppButton
                 label="Abrir detalle"
                 accessibilityLabel={`Abrir detalle de compra de ${item.providerName ?? 'proveedor registrado'}, ${item.receivedOn}, operación ${item.id}`}
@@ -590,17 +602,29 @@ export function PurchaseHistoryScreen() {
             />
           ) : null}
         </View>
+        {settlement ? (
+          <AppCard title={settlement.state === "voided" ? "Liquidación anulada" : "Liquidación"}>
+            <SettlementLotList settlement={settlement} />
+            <View style={styles.metrics}>
+              <MetricTile label="Importe bruto" value={formatMoney(settlement.grossAmountCents)} />
+              <MetricTile label={freightLabel(settlement)} value={formatMoney(settlement.freightAmountCents)} />
+              <MetricTile label="Adelantos y descuentos" value={formatMoney(String(BigInt(settlement.advancesCents) + BigInt(settlement.discountsCents)))} />
+              <MetricTile label="Monto líquido" value={formatMoney(settlement.liquidAmountCents)} />
+              <MetricTile label="Forma de pago" value={settlement.paymentMode === "cash" ? "Contado" : "Crédito"} />
+            </View>
+          </AppCard>
+        ) : null}
         <AppCard title="Pesaje">
           {sacks.length ? (
             sacks.map((item) => (
               <View key={item.id} style={styles.row}>
                 <View style={styles.copy}>
                   <Text style={styles.title}>
-                    Saco {item.sequence} · {item.netWeightKg} kg netos
+                    Saco {item.sequence} · {formatKilograms(item.netWeightKg)} netos
                   </Text>
                   <Text style={styles.meta}>{commercialDescription(item)}</Text>
                   <Text style={styles.meta}>
-                    Bruto {item.grossWeightKg} kg · tara {item.tareKg} kg
+                    Bruto {formatKilograms(item.grossWeightKg)} · tara {formatKilograms(item.tareKg)}
                     {item.voidedAt ? " · anulado" : ""}
                   </Text>
                 </View>
@@ -634,13 +658,13 @@ export function PurchaseHistoryScreen() {
         {action === "correct-sack" ? (
           <AppCard title="Nueva medición">
             <FormField
-              keyboardType="decimal-pad"
+              keyboardType="number-pad"
               label="Peso bruto (kg)"
               onChangeText={setGross}
               value={gross}
             />
             <FormField
-              keyboardType="decimal-pad"
+              keyboardType="number-pad"
               label="Tara (kg)"
               onChangeText={setTare}
               value={tare}
@@ -704,6 +728,27 @@ export function PurchaseHistoryScreen() {
   );
 }
 
+function PaymentStatusLine({ reception, status }: { reception: Reception; status: Map<string, PurchasePaymentStatus> | "unavailable" | null }) {
+  if (reception.state !== "settled" && reception.state !== "voided") return null;
+  if (status === "unavailable") return <Text style={styles.paymentUnavailable}>Estado de pago no disponible sin conexión.</Text>;
+  const item = status?.get(reception.id);
+  if (!item) return status ? null : <Text style={styles.paymentUnavailable}>Consultando estado de pago…</Text>;
+  const view = paymentStatusView(item);
+  const tone = view.tone === "success" ? paymentTones.paid : view.tone === "danger" ? paymentTones.debt : paymentTones.voided;
+  return (
+    <View accessibilityLabel={`Estado de pago: ${view.label}${view.detail ? `, ${view.detail}` : ""}`} style={[styles.paymentBadge, tone.box]}>
+      <Text style={[styles.paymentLabel, tone.text]}>{view.label}</Text>
+      {view.detail ? <Text style={[styles.paymentDetail, tone.text]}>{view.detail}</Text> : null}
+    </View>
+  );
+}
+
+const paymentTones = {
+  paid: StyleSheet.create({ box: { backgroundColor: color.successMuted, borderColor: color.successAccent }, text: { color: color.success } }),
+  debt: StyleSheet.create({ box: { backgroundColor: color.dangerMuted, borderColor: color.dangerAccent }, text: { color: color.danger } }),
+  voided: StyleSheet.create({ box: { backgroundColor: color.surface, borderColor: color.border }, text: { color: color.textSecondary } }),
+};
+
 function stateName(value: Reception["state"]) {
   return (
     {
@@ -717,6 +762,10 @@ function stateName(value: Reception["state"]) {
 }
 const styles = StyleSheet.create({
   screen: { gap: spacing.xl },
+  paymentBadge: { alignSelf: "flex-start", borderLeftWidth: 4, borderRadius: radius.sm, gap: spacing.xs, paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
+  paymentLabel: { ...typography.body, fontWeight: "800" },
+  paymentDetail: { ...typography.bodySmall, fontWeight: "700" },
+  paymentUnavailable: { color: color.textSecondary, ...typography.bodySmall },
   filterFields: { flexDirection: "row", flexWrap: "wrap", gap: spacing.md },
   filterField: { flex: 1, minWidth: 220 },
   filterActions: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },

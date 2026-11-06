@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { FlatList, Modal, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
-import { calculatePurchasePreview, formatPreviewMoney } from '@/domain/reception/purchase-preview';
+import { formatPreviewMoney, type FreightChargedTo, type LotDraft, type PurchaseLot, type PurchasePreview } from '@/domain/reception/purchase-preview';
 import type { ReceptionSack } from '@/domain/reception/reception';
 import type { SackEntryView } from '../components/sack-entry-row';
 import type { PurchaseDisplayContext } from '../components/purchase-reference-elements';
 import { PaymentTermsFields } from '../components/payment-terms-fields';
+import { AmountLine, SettlementFreight, SettlementLots, type LotField } from '../components/settlement-lots';
 import { TabletSettlementWorkspace } from './tablet-settlement-workspace';
 
 import { AppButton, AppCard, AppScreen, FeedbackState, FormField, ScreenHeader, StepProgress } from '@/ui/components';
@@ -17,16 +18,19 @@ export type SettlementDraft = {
   discounts: string;
   freightBasis: 'none' | 'kilogram' | 'sack';
   freightRate: string;
+  freightChargedTo: FreightChargedTo;
   installments: InstallmentDraft[];
   paymentMode: 'cash' | 'credit';
-  priceBasis: 'kilogram' | 'sack';
-  unitPrice: string;
+  lots: Record<string, LotDraft>;
 };
+export type SettlementField = Exclude<keyof SettlementDraft, 'installments' | 'lots'>;
 
 export type SettlementScreenProps = {
   displayContext?: PurchaseDisplayContext;
   sacks?: ReceptionSack[];
   sackEntries?: SackEntryView[];
+  lots: readonly PurchaseLot[];
+  preview: PurchasePreview;
   onGoHome?: () => void;
   onGoHistory?: () => void;
   notice?: string;
@@ -34,7 +38,8 @@ export type SettlementScreenProps = {
   isSubmitting?: boolean;
   onAddInstallment: () => void;
   onBack?: () => void;
-  onChange: (field: Exclude<keyof SettlementDraft, 'installments'>, value: string) => void;
+  onChange: (field: SettlementField, value: string) => void;
+  onChangeLot: (key: string, field: LotField, value: string) => void;
   onChangeInstallment: (id: string, field: 'amount' | 'dueOn', value: string) => void;
   onRemoveInstallment: (id: string) => void;
   onSubmit: () => void;
@@ -44,36 +49,26 @@ export type SettlementScreenProps = {
 const steps = ['Datos', 'Pesaje', 'Liquidación', 'Confirmación'] as const;
 
 export function SettlementScreen(props: SettlementScreenProps) {
-  const { notice, errorMessage, isSubmitting, onBack, onChange, onSubmit, values } = props;
+  const { notice, errorMessage, isSubmitting, onBack, onChange, onSubmit, values, preview } = props;
   const { width, fontScale } = useWindowDimensions();
   const styles = useVisualStyles(createStyles);
   const [detailVisible, setDetailVisible] = useState(false);
-  const preview = useMemo(() => props.sacks ? calculatePurchasePreview(props.sacks, values) : null, [props.sacks, values]);
   if (width >= 1100 && fontScale <= 1.2 && props.sacks && props.sackEntries) return <TabletSettlementWorkspace {...props} sacks={props.sacks} sackEntries={props.sackEntries} />;
   return (
     <>
     <AppScreen contentContainerStyle={styles.screen} testID="settlement-screen">
-      <ScreenHeader eyebrow="RECEPCIÓN Y COMPRA" title="Liquidar compra" description="Registra el acuerdo comercial. Los importes definitivos serán calculados y confirmados por el servidor." />
+      <ScreenHeader eyebrow="RECEPCIÓN Y COMPRA" title="Liquidar compra" description="Registra el precio de cada lote. Los importes definitivos serán calculados y confirmados por el servidor." />
       <StepProgress activeIndex={2} steps={steps} />
       {notice ? <FeedbackState title="Pendiente de confirmación central" message={notice} /> : null}
       {errorMessage ? <FeedbackState message={errorMessage} title="No se pudo liquidar la compra" tone="error" /> : null}
       {props.sackEntries ? <AppButton disabled={isSubmitting} label={`Ver pesaje cerrado (${props.sackEntries.length} ${props.sackEntries.length === 1 ? 'saco' : 'sacos'})`} onPress={() => setDetailVisible(true)} tone="secondary" /> : null}
 
-      <AppCard title="Precio de compra" description="Indica si el precio acordado se aplica por kilogramo o por saco.">
-        <View style={styles.toggleRow}>
-          <AppButton label="Por kilogramo" onPress={() => onChange('priceBasis', 'kilogram')} accessibilityRole="radio" accessibilityState={{ checked: values.priceBasis === 'kilogram' }} tone={values.priceBasis === 'kilogram' ? 'primary' : 'secondary'} />
-          <AppButton label="Por saco" onPress={() => onChange('priceBasis', 'sack')} accessibilityRole="radio" accessibilityState={{ checked: values.priceBasis === 'sack' }} tone={values.priceBasis === 'sack' ? 'primary' : 'secondary'} />
-        </View>
-        <FormField keyboardType="decimal-pad" label={values.priceBasis === 'kilogram' ? 'Precio por kilogramo (S/)' : 'Precio por saco (S/)'} onChangeText={(v) => onChange('unitPrice', v)} placeholder="0.00" value={values.unitPrice} />
+      <AppCard title="Lotes de la compra" description="Un lote por variedad y calidad. Cada lote tiene su base y su precio.">
+        <SettlementLots lots={props.lots} drafts={values.lots} preview={preview} disabled={isSubmitting} onChangeLot={props.onChangeLot} />
       </AppCard>
 
-      <AppCard title="Flete y deducciones" description="Deja el flete en “Sin flete” cuando no corresponda.">
-        <View style={styles.toggleRow}>
-          {([['none', 'Sin flete'], ['kilogram', 'Por kilogramo'], ['sack', 'Por saco']] as const).map(([value, label]) => (
-            <AppButton key={value} label={label} onPress={() => onChange('freightBasis', value)} accessibilityRole="radio" accessibilityState={{ checked: values.freightBasis === value }} tone={values.freightBasis === value ? 'primary' : 'secondary'} />
-          ))}
-        </View>
-        {values.freightBasis !== 'none' ? <FormField keyboardType="decimal-pad" label="Tarifa de flete (S/)" onChangeText={(v) => onChange('freightRate', v)} placeholder="0.00" value={values.freightRate} /> : null}
+      <AppCard title="Flete y deducciones" description="Deja el flete en «Sin flete» cuando no corresponda.">
+        <SettlementFreight values={values} preview={preview} disabled={isSubmitting} onChange={onChange} />
         <View style={styles.columns}>
           <View style={styles.column}><FormField keyboardType="decimal-pad" label="Adelantos (S/)" onChangeText={(v) => onChange('advances', v)} placeholder="0.00" value={values.advances} /></View>
           <View style={styles.column}><FormField keyboardType="decimal-pad" label="Otros descuentos (S/)" onChangeText={(v) => onChange('discounts', v)} placeholder="0.00" value={values.discounts} /></View>
@@ -82,18 +77,18 @@ export function SettlementScreen(props: SettlementScreenProps) {
 
       <PaymentTermsFields {...props} />
 
-      {preview ? <AppCard title="Resumen provisional" description="El servidor verificará los importes y confirmará los efectos comerciales.">
+      <AppCard title="Resumen provisional" description="El servidor verificará los importes y confirmará los efectos comerciales.">
         {preview.kind === 'ready' ? <>
-          <Text>{preview.sackCount} sacos · {preview.weightKg} kg netos</Text>
-          <Text accessibilityLabel={`Total pago bruto provisional: ${formatPreviewMoney(preview.grossCents)}`}>Total pago bruto provisional: {formatPreviewMoney(preview.grossCents)}</Text>
-          <Text accessibilityLabel={`Total flete provisional: ${formatPreviewMoney(preview.freightCents)}`}>Total flete provisional: {formatPreviewMoney(preview.freightCents)}</Text>
-          <Text accessibilityLabel={`Total líquido provisional: ${formatPreviewMoney(preview.liquidCents)}`}>Total líquido provisional: {formatPreviewMoney(preview.liquidCents)}</Text>
+          <Text>{preview.sackCount} sacos · {props.lots.length} {props.lots.length === 1 ? 'lote' : 'lotes'}</Text>
+          <AmountLine label="Total pago bruto provisional" value={formatPreviewMoney(preview.grossCents)} />
+          <AmountLine label={preview.freightDeducted ? 'Total flete provisional' : 'Flete no descontado'} value={formatPreviewMoney(preview.freightDeducted ? preview.freightCents : '0')} />
+          <AmountLine label="Total líquido provisional" value={formatPreviewMoney(preview.liquidCents)} strong />
         </> : <FeedbackState title={preview.kind === 'invalid' ? 'Revisa la liquidación' : 'Importes pendientes'} message={preview.message} tone={preview.kind === 'invalid' ? 'error' : undefined} />}
-      </AppCard> : null}
+      </AppCard>
 
       <View style={styles.actions}>
         {onBack ? <AppButton label="Volver" onPress={onBack} tone="secondary" /> : null}
-        <AppButton disabled={isSubmitting || Boolean(preview && preview.kind !== 'ready')} label={isSubmitting ? 'Confirmando…' : 'Confirmar liquidación'} onPress={onSubmit} />
+        <AppButton disabled={isSubmitting || preview.kind !== 'ready'} label={isSubmitting ? 'Confirmando…' : 'Confirmar liquidación'} onPress={onSubmit} />
       </View>
     </AppScreen>
     <Modal visible={detailVisible} animationType="slide" onRequestClose={() => { if (!isSubmitting) setDetailVisible(false); }}>
@@ -111,7 +106,6 @@ const createStyles = () => StyleSheet.create({
   closedDetail: { flex: 1, gap: spacing.md },
   closedList: { gap: spacing.md, paddingBottom: spacing.xl },
   screen: { gap: spacing.xl },
-  toggleRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   columns: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   column: { flexBasis: 260, flexGrow: 1 },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, justifyContent: 'flex-end' },

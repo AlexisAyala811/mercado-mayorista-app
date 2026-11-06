@@ -36,10 +36,10 @@ export type SackInput = CommercialInput&{
 export type SettlementInput = {
   clientOperationId: string;
   expectedReceptionVersion: number;
-  priceBasis: "kilogram" | "sack";
-  unitPriceCents: number;
+  lots: { varietyId: string; qualityId: string | null; priceBasis: "kilogram" | "sack"; unitPriceCents: number; name?: string }[];
   freightBasis?: "kilogram" | "sack";
   freightRateCents?: number;
+  freightChargedTo?: "provider" | "wholesaler";
   advancesCents: number;
   discountsCents: number;
   paymentMode: "cash" | "credit";
@@ -206,3 +206,16 @@ export const voidPurchase = (
 export const listAllReceptions = (token: string) =>
   loadCollectionPages<Reception>("/receptions", token);
 
+
+// Spec 011 (CL-MD05): paid, debt or voided for one page of «Ver compras».
+export type PurchasePaymentStatus = {
+  receptionId: string;
+  settlementId: string;
+  state: "paid" | "debt" | "voided";
+  balanceCents: string;
+};
+export const getPurchasePaymentStatus = (token: string, receptionIds: readonly string[]) =>
+  apiRequest<PurchasePaymentStatus[]>(
+    `/purchases/payment-status?receptionIds=${receptionIds.map(encodeURIComponent).join(",")}`,
+    auth(token),
+  );

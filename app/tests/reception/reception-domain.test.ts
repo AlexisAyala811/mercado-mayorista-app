@@ -6,7 +6,7 @@ describe('reception presentation domain', () => {
       { id: '1', sequence: 1, varietyId: 'v1', grossWeightKg: '50.000', tareKg: '1.000', netWeightKg: '49.000' },
       { id: '2', sequence: 2, varietyId: 'v1', grossWeightKg: '48.500', tareKg: '0.500', netWeightKg: '48.000' },
     ]);
-    expect(summary).toEqual({ averageWeightDisplay: '48.500 kg', sackCountDisplay: '2', totalWeightDisplay: '97.000 kg' });
+    expect(summary).toEqual({ averageWeightDisplay: '48.5 kg', sackCountDisplay: '2', totalWeightDisplay: '97 kg' });
   });
 
   it('converts decimal money input to integer cents', () => {

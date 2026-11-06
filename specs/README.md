@@ -13,8 +13,8 @@ Este índice conecta la línea base documental, el diseño de Figma y el trabajo
 | 007 | Analítica e inteligencia artificial | RF19, RF20 | Borrador | CL-08, CL-10 |
 | 008 | Mensajería y notificaciones | RF16, RF23, RF25, RF26 | Backend y Android implementados; evidencia nativa pendiente | CL-MN01–03 resueltas |
 | 009 | Estado de cuenta del comprador | RF27 (HU16) | Backend implementado y verificado; Android y Figma pendientes | Decisión del 29 de octubre de 2026 |
-| [010](010-purchase-lines-and-freight-choice/spec.md) | Lotes con precio propio y flete elegible en la compra | RF07 (HU02) | Backend implementado y verificado; app pendiente | CL-FM08–10, CL-PL01–04 |
-| [011](011-manay-app-design/spec.md) | Diseño MAÑAY en la app | RF01–RF27 visibles (HU01–HU16) | Fases 1 (base visual) y 2 (acceso y menú) implementadas; fases 3 a 5 pendientes | CL-FM01–20; CL-MD01–04 resueltas |
+| [010](010-purchase-lines-and-freight-choice/spec.md) | Lotes con precio propio y flete elegible en la compra | RF07 (HU02) | Backend y app implementados y verificados (T1040–T1042); convergencia pendiente (T1050) | CL-FM08–10, CL-PL01–04 |
+| [011](011-manay-app-design/spec.md) | Diseño MAÑAY en la app | RF01–RF27 visibles (HU01–HU16) | Fases 1, 2 y 3 (compra, con estado pagado o deuda en Ver compras) implementadas; fases 4 y 5 pendientes | CL-FM01–20; CL-MD01–04 resueltas |
 
 ## Artefactos transversales
 
