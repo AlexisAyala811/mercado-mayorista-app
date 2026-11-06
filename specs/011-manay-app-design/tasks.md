@@ -26,6 +26,8 @@ Cada tarea se marca `[x]` solo con evidencia enlazable. Cada fase va en su propi
 - [x] **T1122** Pesaje con lista virtualizada, totales fijos e «Ir al saco» para 200 sacos o más. *Verificación:* prueba con 250 sacos; recorrido en emulador. **Hecho:** 250 sacos en prueba y en emulador. Evidencia: [verificación de la fase 3](../../docs/sdd/verificacion-manay-fase3-2026-11-04.md).
 - [x] **T1123** Liquidación con lotes de `settlement-groups` (T1040 de la spec 010). *Verificación:* las de T1040. **Hecho:** lotes iguales a `settlement-groups` y confirmados por el servidor. Evidencia: [verificación de la fase 3](../../docs/sdd/verificacion-manay-fase3-2026-11-04.md).
 - [ ] **T1124** Confirmación y Ver compras con estado pagado o deuda. *Verificación:* capturas y pruebas actuales en verde. **Parcial:** la confirmación muestra los lotes y el flete; falta el estado pagado o deuda en «Ver compras», que necesita un dato nuevo del backend. Evidencia: [verificación de la fase 3](../../docs/sdd/verificacion-manay-fase3-2026-11-04.md).
+- [ ] **T1125** Backend: `GET /purchases/payment-status` según CL-MD05 (DTO con hasta 100 UUID, `@Roles` de Mayorista y Encargado, filtro por `businessId`). *Verificación:* pruebas unitarias de la regla y e2e en PostgreSQL portable con contado, crédito con saldo, crédito pagado, anulada y recepción de otro negocio.
+- [ ] **T1126** App: estado y saldo en «Ver compras» con los colores de estado y sin depender de la conexión. *Verificación:* pruebas de pantalla y captura en el emulador.
 
 ## Fase 4 · Cuentas
 
