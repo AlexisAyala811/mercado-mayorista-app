@@ -33,7 +33,7 @@ export async function renderReportWorkbook(report: ReportWorkbook): Promise<Buff
     validateCells(row);
   }
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = 'Mercado';
+  workbook.creator = 'MAÑAY';
   workbook.created = report.generatedAt;
   workbook.modified = report.generatedAt;
   const description = workbook.addWorksheet('Información');
