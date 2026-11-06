@@ -10,7 +10,10 @@ describe('authorization rules', () => {
   });
 
   it('allows the wholesaler to access every approved module', () => {
-    expect(canAccessModule('wholesaler', 'accounts')).toBe(true);
+    expect(canAccessModule('wholesaler', 'debts')).toBe(true);
+    expect(canAccessModule('wholesaler', 'collections')).toBe(true);
+    expect(canAccessModule('assistant', 'debts')).toBe(false);
+    expect(canAccessModule('assistant', 'collections')).toBe(false);
     expect(canAccessModule('wholesaler', 'audit')).toBe(true);
     expect(canAccessModule('wholesaler', 'analytics')).toBe(true);
     expect(canAccessModule('wholesaler', 'inventory')).toBe(false);

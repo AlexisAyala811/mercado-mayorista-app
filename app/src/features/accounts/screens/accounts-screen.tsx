@@ -1,4 +1,5 @@
-import { ReferenceAccountsOverview } from "./reference-accounts-overview";
+import { AccountsOverview } from "./accounts-overview";
+import { accountKindCopy, type AccountKind } from "@/domain/accounts/account-kind";
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useRouter, type Href } from "expo-router";
@@ -37,12 +38,14 @@ import {
   type AccountFilters,
 } from "@/domain/accounts/account-filters";
 
-export function AccountsScreen() {
+// Spec 011 (CL-FM18): one screen per kind, Deudas or Cobranzas.
+export function AccountsScreen({ kind }: { kind: AccountKind }) {
   const { session } = useSession();
-  return session ? <AccountsContent key={session.accessToken} /> : null;
+  return session ? <AccountsContent key={`${session.accessToken}:${kind}`} kind={kind} /> : null;
 }
 
-function AccountsContent() {
+function AccountsContent({ kind }: { kind: AccountKind }) {
+  const copy = accountKindCopy[kind];
   const router = useRouter();
   const { session, invalidateSession } = useSession();
   const { enqueue, sendQueued } = useSyncQueue();
@@ -56,7 +59,7 @@ function AccountsContent() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [accountFilters, setAccountFilters] = useState<AccountFilters>({
     search: "",
-    kind: "all",
+    kind,
     state: "all",
   });
   const [cash, setCash] = useState<CashMovement[]>([]);
@@ -267,7 +270,7 @@ function AccountsContent() {
         path: "/accounts/" + detail.account.id + "/payments",
         type: "account.payment",
       },
-      "Movimiento confirmado. El saldo se actualiza desde el servidor.",
+      copy.savedMessage,
     );
   }
   async function reverse() {
@@ -315,19 +318,15 @@ function AccountsContent() {
         <AppScreen contentContainerStyle={styles.screen}>
           <View style={styles.top}>
             <AppButton
-              label="Volver a cuentas"
+              label={`Volver a ${copy.title.toLowerCase()}`}
               disabled={busy || confirm}
               onPress={() => { setDetail(null); setReverseTarget(null); setReason(""); setConfirm(false); }}
               tone="secondary"
             />
           </View>
           <ScreenHeader
-            eyebrow="CUENTAS Y CAJA"
-            title={
-              detail.account.kind === "payable"
-                ? "Cuenta por pagar"
-                : "Cuenta por cobrar"
-            }
+            eyebrow={copy.eyebrow}
+            title={copy.detailTitle}
             description={`${accountCounterpartyName(detail.account)} · Referencia ${detail.account.id} · Origen: ${commercialLabel(detail.account.sourceType)}`}
           />
           {error ? (
@@ -339,7 +338,7 @@ function AccountsContent() {
           ) : null}
           {result ? (
             <FeedbackState
-              title="Movimiento confirmado"
+              title={result === copy.savedMessage ? copy.savedTitle : "Reverso guardado"}
               message={result}
               tone="success"
             />
@@ -367,13 +366,20 @@ function AccountsContent() {
               value={accountStateLabel(detail.account.state)}
             />
           </View>
+          {kind === "receivable" && detail.account.counterpartyType === "buyer" && detail.account.counterpartyId ? (
+            <AppButton
+              label="Estado de cuenta"
+              accessibilityLabel={`Estado de cuenta de ${accountCounterpartyName(detail.account)}`}
+              disabled={busy || confirm}
+              tone="secondary"
+              onPress={() => router.push({ pathname: "/buyer-statement", params: { buyerId: detail.account.counterpartyId! } } as Href)}
+            />
+          ) : null}
           <AppCard title="Registrar movimiento">
             <FormField
               editable={!busy && !confirm && !needsRefresh}
               keyboardType="decimal-pad"
-              label={
-                detail.account.kind === "payable" ? "Pago (S/)" : "Cobro (S/)"
-              }
+              label={copy.amountLabel}
               onChangeText={setAmount}
               value={amount}
             />
@@ -431,20 +437,20 @@ function AccountsContent() {
         </AppScreen>
         <ConfirmationDialog
           busy={busy}
-          confirmLabel={reverseTarget ? "Revertir" : "Registrar"}
+          confirmLabel={reverseTarget ? "Revertir" : copy.confirmLabel}
           message={
             reverseTarget
               ? reversalReview?.kind === "ready"
                 ? `${accountCounterpartyName(detail.account)} · Referencia ${detail.account.id}. Movimiento ${reverseTarget.id}: ${formatMoney(reversalReview.amountCents)}. Saldo anterior ${formatMoney(reversalReview.beforeCents)}; saldo resultante provisional ${formatMoney(reversalReview.afterCents)}. Motivo: ${reversalReview.reason}. El servidor comprobará la versión y restaurará los vencimientos mediante un movimiento compensatorio en caja.`
                 : "Actualiza y revisa el movimiento y motivo antes de continuar."
               : paymentReview?.kind === "ready"
-                ? `${accountCounterpartyName(detail.account)} · Referencia ${detail.account.id}. ${detail.account.kind === "payable" ? "Pago" : "Cobro"} ${formatMoney(paymentReview.amountCents)}. Saldo anterior ${formatMoney(paymentReview.beforeCents)}; saldo resultante provisional ${formatMoney(paymentReview.afterCents)}. El servidor comprobará la versión y aplicará el importe al vencimiento abierto más antiguo.`
+                ? `${accountCounterpartyName(detail.account)} · Referencia ${detail.account.id}. ${copy.movement} ${formatMoney(paymentReview.amountCents)}. Saldo anterior ${formatMoney(paymentReview.beforeCents)}; saldo resultante provisional ${formatMoney(paymentReview.afterCents)}. El servidor comprobará la versión y aplicará el importe al vencimiento abierto más antiguo.`
                 : "Actualiza y revisa el importe antes de continuar."
           }
           onCancel={() => setConfirm(false)}
           onConfirm={() => (reverseTarget ? void reverse() : void pay())}
           title={
-            reverseTarget ? "¿Confirmar reverso?" : "¿Confirmar movimiento?"
+            reverseTarget ? "¿Confirmar reverso?" : copy.confirmTitle
           }
           visible={confirm}
         />
@@ -456,16 +462,18 @@ function AccountsContent() {
   const outgoing = cash
     .filter((x) => x.direction === "out")
     .reduce((sum, x) => sum + BigInt(x.amountCents), 0n);
-  const visibleAccounts = filterAccounts(accounts, accountFilters);
+  const kindAccounts = accounts.filter((account) => account.kind === kind);
+  const visibleAccounts = filterAccounts(kindAccounts, accountFilters);
   return (
-    <ReferenceAccountsOverview
+    <AccountsOverview
+      copy={copy}
       username={session.user?.username ?? "Mayorista"}
-      accounts={visibleAccounts} total={accounts.length} ready={collectionsReady}
-      search={accountFilters.search} filterKey={JSON.stringify(accountFilters)}
+      accounts={visibleAccounts} total={kindAccounts.length} ready={collectionsReady}
+      search={accountFilters.search}
       onSearch={(search) => setAccountFilters(current => ({ ...current, search }))}
       onOpen={(account) => void open(account)} onRefresh={() => void load()}
       onBack={() => backOrHome(router)} onHome={() => router.replace("/home" as Href)}
-      onNewSource={(source) => router.push((source === "purchase" ? "/purchase-flow" : "/sale-flow") as Href)}
+      onNewSource={() => router.push((copy.originSource === "purchase" ? "/purchase-flow" : "/sale-flow") as Href)}
       feedback={error || !collectionsReady ? <>
         {error ? <FeedbackState title="No se pudo completar" message={error} tone="error" /> : null}
         {!collectionsReady ? <FeedbackState title="Datos financieros no disponibles" message={collectionError ?? "No se pudo completar la consulta de cuentas y caja. No se muestran saldos ni resultados parciales."} tone="error" actionLabel="Reintentar cuentas y caja" onAction={() => void load()} /> : null}
@@ -510,29 +518,9 @@ function AccountsContent() {
         )}
       </AppCard>
       <AppCard
-        title="Buscar cuentas"
+        title="Filtrar por estado"
         description="Estos filtros no cambian los totales ni los movimientos de caja."
       >
-        <View style={styles.metrics}>
-          {(
-            [
-              ["all", "Todas las cuentas"],
-              ["payable", "Por pagar"],
-              ["receivable", "Por cobrar"],
-            ] as const
-          ).map(([kind, label]) => (
-            <AppButton
-              key={kind}
-              label={label}
-              accessibilityRole="radio"
-              accessibilityState={{ checked: accountFilters.kind === kind }}
-              tone={accountFilters.kind === kind ? "primary" : "secondary"}
-              onPress={() =>
-                setAccountFilters((current) => ({ ...current, kind }))
-              }
-            />
-          ))}
-        </View>
         <View style={styles.metrics}>
           {(
             [
@@ -558,15 +546,15 @@ function AccountsContent() {
           label="Limpiar búsqueda de cuentas"
           tone="secondary"
           onPress={() =>
-            setAccountFilters({ search: "", kind: "all", state: "all" })
+            setAccountFilters({ search: "", kind, state: "all" })
           }
         />
         <Text style={styles.text}>
-          {visibleAccounts.length} de {accounts.length} cuentas
+          {visibleAccounts.length} de {kindAccounts.length} cuentas
         </Text>
       </AppCard>
       </> : null}
-    </ReferenceAccountsOverview>
+    </AccountsOverview>
   );
 }
 const styles = StyleSheet.create({
