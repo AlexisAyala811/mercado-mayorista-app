@@ -75,7 +75,7 @@ La especificación 008 incorpora HU15/RF25–26 y centraliza avisos HU14. Cuenta
 
 ## Impacto del frontend MAÑAY — 4 de noviembre de 2026
 
-Aclaraciones CL-FM14 en [aclaraciones del frontend MAÑAY](../../docs/sdd/aclaraciones-frontend-manay-2026-11-04.md). Pendiente de especificar o diseñar; nada implementado todavía.
+Aclaraciones CL-FM14 en [aclaraciones del frontend MAÑAY](../../docs/sdd/aclaraciones-frontend-manay-2026-11-04.md). Implementado con la spec 011 y cerrado el 7 de noviembre de 2026.
 
 - [x] Confirmar con el usuario si la anulación se conserva solo para el Mayorista. **Confirmado el 4 de noviembre de 2026:** anular solo el Mayorista con motivo; el backend ya lo exige. Evidencia: [decisión](../../docs/sdd/aclaraciones-frontend-manay-2026-11-04.md#decisión-devoluciones-y-anulaciones--4-de-noviembre-de-2026).
-- [ ] Ocultar la devolución comercial en la app y mostrar «Anular» solo al Mayorista.
+- [x] Ocultar la devolución comercial en la app y mostrar «Anular» solo al Mayorista. **Hecho:** spec 011, fase 2 (T1113). Evidencia: [cierre del 7 de noviembre de 2026](../../docs/sdd/verificacion-cuotas-anuladas-2026-11-07.md).

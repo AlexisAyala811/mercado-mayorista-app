@@ -57,7 +57,7 @@ La especificación 008 incorpora HU15/RF25–26 y centraliza avisos HU14. Cuenta
 
 ## Impacto del frontend MAÑAY — 4 de noviembre de 2026
 
-Aclaraciones CL-FM15, CL-FM16 en [aclaraciones del frontend MAÑAY](../../docs/sdd/aclaraciones-frontend-manay-2026-11-04.md). Pendiente de especificar o diseñar; nada implementado todavía.
+Aclaraciones CL-FM15, CL-FM16 en [aclaraciones del frontend MAÑAY](../../docs/sdd/aclaraciones-frontend-manay-2026-11-04.md). Implementado con la spec 011 y cerrado el 7 de noviembre de 2026.
 
-- [ ] Pantalla «Pendientes de envío» con estado, reintento y descarte con motivo.
-- [ ] Aviso de conflicto ante `409` sin reintento automático.
+- [x] Pantalla «Pendientes de envío» con estado, reintento y descarte con motivo. **Hecho:** spec 011, fase 5 (T1142). Evidencia: [cierre del 7 de noviembre de 2026](../../docs/sdd/verificacion-cuotas-anuladas-2026-11-07.md).
+- [x] Aviso de conflicto ante `409` sin reintento automático. **Hecho:** spec 011, fase 5 (T1142), y prueba de la cola con lotes. Evidencia: [cierre del 7 de noviembre de 2026](../../docs/sdd/verificacion-cuotas-anuladas-2026-11-07.md).
