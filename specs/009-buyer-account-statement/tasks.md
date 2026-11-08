@@ -60,6 +60,6 @@ El backend (fases 1 a 3) puede avanzar mientras se incorpora la app (fase 0). La
 
 ## Impacto del frontend MAÑAY — 4 de noviembre de 2026
 
-Aclaraciones CL-FM13 en [aclaraciones del frontend MAÑAY](../../docs/sdd/aclaraciones-frontend-manay-2026-11-04.md). Pendiente de especificar o diseñar; nada implementado todavía.
+Aclaraciones CL-FM13 en [aclaraciones del frontend MAÑAY](../../docs/sdd/aclaraciones-frontend-manay-2026-11-04.md). Implementado con la spec 011 y cerrado el 7 de noviembre de 2026.
 
 - [x] T940: botón «Estado de cuenta» en el comprador, dentro de **Cobranzas** (las cuentas de compradores pasaron ahí con CL-FM18), que abre una pantalla propia. Evidencia: [verificación de la fase 4](../../docs/sdd/verificacion-manay-fase4-2026-11-06.md).

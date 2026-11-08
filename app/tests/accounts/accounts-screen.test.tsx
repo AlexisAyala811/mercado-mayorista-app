@@ -678,3 +678,20 @@ it.each([
   expect(mockEnqueue).not.toHaveBeenCalled();
   await act(async () => { root.unmount(); });
 });
+
+it("shows the installments of a voided credit sale as «Anulada» in Cobranzas", async () => {
+  const account = { ...detail.account, kind: "receivable" as const, state: "voided" as const, balanceCents: "0" };
+  jest.mocked(listAccounts).mockResolvedValue({ items: [account], total: 1, limit: 100, offset: 0 });
+  jest.mocked(getAccount).mockResolvedValueOnce({ ...detail, account, installments: [
+    { id: "i1", dueOn: "2026-11-20", initialAmountCents: "5000", balanceCents: "0", state: "voided" },
+    { id: "i2", dueOn: "2026-12-20", initialAmountCents: "5000", balanceCents: "0", state: "voided" },
+  ] });
+  let root!: ReactTestRenderer;
+  await act(async () => { root = create(<AccountsScreen kind="receivable" />); });
+  await act(async () => { root.root.findAll(node => node.props.label === "Ver detalle")[0]!.props.onPress(); });
+  const text = JSON.stringify(root.toJSON());
+  expect(text.match(/Anulada/g)?.length).toBeGreaterThanOrEqual(2);
+  expect(text).not.toContain("Cobrada");
+  expect(text).not.toContain("Pagado");
+  await act(async () => { root.unmount(); });
+});

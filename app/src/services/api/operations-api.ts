@@ -22,7 +22,7 @@ export type Installment = {
   dueOn: string;
   initialAmountCents: string;
   balanceCents: string;
-  state: "open" | "paid";
+  state: "open" | "paid" | "voided";
 };
 export type Payment = {
   id: string;

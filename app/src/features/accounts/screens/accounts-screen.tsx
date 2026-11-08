@@ -1,5 +1,6 @@
 import { AccountsOverview } from "./accounts-overview";
 import { accountKindCopy, type AccountKind } from "@/domain/accounts/account-kind";
+import { installmentStateLabel } from "@/domain/accounts/installment-label";
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useRouter, type Href } from "expo-router";
@@ -394,7 +395,7 @@ function AccountsContent({ kind }: { kind: AccountKind }) {
             {detail.installments.map((x) => (
               <Text key={x.id} style={styles.text}>
                 {x.dueOn} · {formatMoney(x.balanceCents)} ·{" "}
-                {detail.account.state === "voided" ? "Cerrado por anulación" : x.state === "open" ? "Pendiente" : "Pagado"}
+                {installmentStateLabel(x.state, detail.account.state, detail.account.kind)}
               </Text>
             ))}
           </AppCard>
