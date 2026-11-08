@@ -171,7 +171,7 @@ Resueltas por el usuario el 5 de noviembre de 2026.
 
 ## Convergencia con Stitch — 7 de noviembre de 2026
 
-**Estado:** especificada el 7 de noviembre de 2026; plan pendiente de aprobación. **Origen:** [comparación con Stitch](../../docs/sdd/comparacion-stitch-manay-2026-11-07.md) (brechas B1–B8 y resto R1) y [aclaraciones CL-ST01–CL-ST10](../../docs/sdd/aclaraciones-convergencia-stitch-2026-11-07.md).
+**Estado:** especificada el 7 de noviembre de 2026; plan aprobado el mismo día («Sí, apruebo»); en implementación. **Origen:** [comparación con Stitch](../../docs/sdd/comparacion-stitch-manay-2026-11-07.md) (brechas B1–B8 y resto R1) y [aclaraciones CL-ST01–CL-ST10](../../docs/sdd/aclaraciones-convergencia-stitch-2026-11-07.md).
 
 ### Objetivo
 

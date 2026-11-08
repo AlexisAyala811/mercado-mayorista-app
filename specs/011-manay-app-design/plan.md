@@ -68,7 +68,7 @@ La compilación Android usa el JDK 17 de Gradle (`~/.gradle/jdks`): el JDK 25 de
 
 ## Convergencia con Stitch — 7 de noviembre de 2026
 
-**Estado:** pendiente de aprobación · **Especificación:** [RQ-ST01–RQ-ST09](spec.md#convergencia-con-stitch--7-de-noviembre-de-2026) · **Aclaraciones:** [CL-ST01–CL-ST10](../../docs/sdd/aclaraciones-convergencia-stitch-2026-11-07.md)
+**Estado:** aprobado por el usuario el 7 de noviembre de 2026 («Sí, apruebo») · **Especificación:** [RQ-ST01–RQ-ST09](spec.md#convergencia-con-stitch--7-de-noviembre-de-2026) · **Aclaraciones:** [CL-ST01–CL-ST10](../../docs/sdd/aclaraciones-convergencia-stitch-2026-11-07.md)
 
 ### Backend (solo lectura, sin migración)
 
