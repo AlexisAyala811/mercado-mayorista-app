@@ -1,4 +1,4 @@
-import { backOrHome } from "@/navigation/back-or-home";
+import { BottomNavSlots } from '@/ui/navigation/app-chrome';
 import { paymentStatusView, receptionsWithPayment } from "@/domain/reception/payment-status";
 import { formatKilograms, kilogramsDraft, validateSackWeights } from "@/domain/reception/whole-kilograms";
 import { freightLabel, SettlementLotList } from "@/features/reception/components/settlement-lot-list";
@@ -383,24 +383,12 @@ export function PurchaseHistoryScreen() {
   if (!reception)
     return (
       <AppScreen contentContainerStyle={styles.screen}>
-        <View style={styles.top}>
-          <AppButton
-            label="Volver"
-            onPress={() => backOrHome(router)}
-            tone="secondary"
-          />
-          <AppButton
-            label="Actualizar"
-            disabled={loading}
-            onPress={search}
-            tone="secondary"
-          />
-        </View>
         <ScreenHeader
           eyebrow="COMPRAS"
           title="Historial de recepciones"
           description="Busca compras y pesajes por fecha de recepción o proveedor. Consulta el detalle y sus correcciones trazables."
         />
+        <View style={styles.top}><AppButton label="Actualizar" disabled={loading} onPress={search} tone="secondary" /></View>
         <AppCard title="Buscar operaciones">
           <View style={styles.filterFields}>
             <View style={styles.filterField}>
@@ -535,16 +523,7 @@ export function PurchaseHistoryScreen() {
   return (
     <>
       <AppScreen contentContainerStyle={styles.screen}>
-        <View style={styles.top}>
-          <AppButton
-            label="Volver al historial"
-            onPress={() => {
-              setReception(null);
-              setSettlement(null);
-            }}
-            tone="secondary"
-          />
-        </View>
+        <BottomNavSlots back={{ label: "Atrás", accessibilityLabel: "Volver al historial", onPress: () => { setReception(null); setSettlement(null); } }} />
         <ScreenHeader
           eyebrow="COMPRAS"
           title="Detalle de recepción"

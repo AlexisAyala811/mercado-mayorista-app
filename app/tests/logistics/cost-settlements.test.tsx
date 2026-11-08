@@ -12,6 +12,7 @@ import {
   listAllReceptions,
 } from "@/services/api/reception-api";
 import { listAllSales } from "@/services/api/sales-api";
+import { barButton, withChrome } from '../shared/with-chrome';
 
 const mockEnqueue = jest.fn();
 const mockSendQueued = jest.fn();
@@ -241,8 +242,8 @@ it('prevents double group creation while its first request is pending',async()=>
 it('returns to home when a directly opened cost route has no previous screen', async () => {
   mockCanGoBack.mockReturnValue(false);
   let root!: ReactTestRenderer;
-  await act(async () => { root = create(<CostSettlementsScreen />); });
-  await act(async () => { root.root.findAll(node => node.props.label === 'Volver')[0].props.onPress(); });
+  await act(async () => { root = create(withChrome(<CostSettlementsScreen />)); });
+  await act(async () => { barButton(root, 'Atrás').props.onPress(); });
   expect(mockReplace).toHaveBeenCalledWith('/home');
   expect(mockBack).not.toHaveBeenCalled();
   await act(async () => { root.unmount(); });

@@ -1,7 +1,5 @@
-import { backOrHome } from "@/navigation/back-or-home";
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
 
 import { useSession } from '@/features/auth/session/session-provider';
 import {
@@ -22,7 +20,6 @@ import { formatReplacementTime, replacementDurations, replacementWindow, replace
 type Confirmation = { kind: 'deactivate'; assistant: Assistant } | { kind: 'revoke'; delegation: Delegation } | null;
 
 export function AdministrationScreen() {
-  const router = useRouter();
   const { session } = useSession();
   const token = session?.accessToken ?? '';
   const [assistants, setAssistants] = useState<Assistant[]>([]);
@@ -115,8 +112,8 @@ export function AdministrationScreen() {
   return (
     <>
       <AppScreen contentContainerStyle={styles.screen}>
-        <View style={styles.top}><AppButton label="Volver" onPress={() => backOrHome(router)} tone="secondary" /><AppButton label="Actualizar" onPress={() => void load()} tone="secondary" /></View>
         <ScreenHeader eyebrow="ADMINISTRACIÓN" title="Encargados y reemplazos" description="Gestiona credenciales individuales y autorizaciones temporales de hasta 24 horas." />
+        <View style={styles.top}><AppButton label="Actualizar" onPress={() => void load()} tone="secondary" /></View>
         {error ? <FeedbackState title="Revisa la operación" message={error} tone="error" /> : null}
         {success ? <FeedbackState title="Operación confirmada" message={success} tone="success" /> : null}
         <AppCard title="Crear Encargado">

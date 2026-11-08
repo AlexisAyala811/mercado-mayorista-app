@@ -33,6 +33,7 @@ import {
 } from "@/ui/components";
 import { spacing } from "@/ui/tokens";
 import { backOrHome } from "@/navigation/back-or-home";
+import { useBottomNav } from "@/ui/navigation/app-chrome";
 import { ReferenceLogisticsScreen } from './reference-logistics-screen';
 import { MenuVisualTheme } from '@/ui/visual-theme';
 
@@ -103,6 +104,11 @@ function LogisticsWorkspace() {
     const leave=()=>destination==='home'?router.replace('/home'):backOrHome(router);
     if(protectExit)setExitAction(()=>leave);else leave();
   }
+  // Spec 011 (RQ-ST02): the bottom bar leaves through the same unsaved-changes check.
+  useBottomNav({
+    back:{label:'Atrás',disabled:interactionsBlocked,onPress:()=>requestExit()},
+    home:{label:'Menú principal',disabled:interactionsBlocked,onPress:()=>requestExit('home')},
+  });
   function confirmExit(){
     if(working.current||!exitAction)return;
     const leave=exitAction;exitAllowed.current=true;setDiscarded(true);setExitAction(null);leave();
@@ -261,14 +267,8 @@ function LogisticsWorkspace() {
   const selected = carriers.find((item) => item.id === carrierId);
 
   const editor=canEdit?<>
-    <ScreenHeader eyebrow="LOGÍSTICA" title="Registro de logística" description="Edita los datos del transportista y del vehículo por separado."/>
+    <ScreenHeader level="section" eyebrow="LOGÍSTICA" title="Registro de logística" description="Edita los datos del transportista y del vehículo por separado."/>
         <View style={styles.top}>
-          <AppButton
-            label="Volver"
-            disabled={interactionsBlocked}
-            onPress={()=>requestExit()}
-            tone="secondary"
-          />
           <AppButton
             disabled={interactionsBlocked||loading}
             label={loading?"Actualizando…":"Actualizar"}
@@ -364,7 +364,7 @@ function LogisticsWorkspace() {
   </>:null;
   return (
     <>
-      <ReferenceLogisticsScreen username={session.user.username} carriers={carriers} vehicles={vehicles} search={search} onSearchChange={setSearch} canEdit={canEdit} blocked={interactionsBlocked} loading={loading} unavailable={Boolean(catalogError)} editor={editor} onNew={requestNew} onBack={()=>requestExit()} onHome={()=>requestExit('home')} onRefresh={refresh} onEditCarrier={requestCarrierEdit} onEditVehicle={requestVehicleEdit} onDeactivateCarrier={value=>{setError(null);setRemoval({kind:'carrier',value});}} onDeactivateVehicle={value=>{setError(null);setRemoval({kind:'vehicle',value});}} feedback={catalogError||loading||(feedbackLocation==='main'&&(notice||(error&&!removal)))?<>
+      <ReferenceLogisticsScreen carriers={carriers} vehicles={vehicles} search={search} onSearchChange={setSearch} canEdit={canEdit} blocked={interactionsBlocked} loading={loading} unavailable={Boolean(catalogError)} editor={editor} onNew={requestNew} onRefresh={refresh} onEditCarrier={requestCarrierEdit} onEditVehicle={requestVehicleEdit} onDeactivateCarrier={value=>{setError(null);setRemoval({kind:'carrier',value});}} onDeactivateVehicle={value=>{setError(null);setRemoval({kind:'vehicle',value});}} feedback={catalogError||loading||(feedbackLocation==='main'&&(notice||(error&&!removal)))?<>
         {catalogError?<FeedbackState title="Logística no disponible" message={catalogError} tone="error" actionLabel="Reintentar logística" onAction={refresh}/>:null}
         {loading?<LoadingState label="Actualizando logística"/>:null}
         {feedbackLocation==='main'&&notice?<FeedbackState title="Operación confirmada" message={notice} tone="success"/>:null}

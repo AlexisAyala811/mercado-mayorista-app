@@ -120,3 +120,14 @@ Cada fase pasa tipos, lint, pruebas, build y auditoría (backend o app), e2e cua
 - Calcular conteos y totales en la app con la página cargada: daría totales parciales (CL-ST04).
 - `react-native-svg` para los gráficos: dependencia nueva sin necesidad (CL-ST05).
 - Ampliar `GET /receptions`: haría depender Recepción de Compras y Cuentas; el historial vive en el módulo de compras, como `payment-status`.
+
+### Cambios durante la implementación
+
+| Fecha | Cambio | Motivo |
+| --- | --- | --- |
+| 8 de noviembre de 2026 | La cabecera y la barra inferior viven en `ui/navigation/` (`AppHeader`, `BottomNav`, `AppChromeProvider`, `useBottomNav`, `BottomNavSlots`) y el layout raíz dibuja la barra, en lugar de recibirlas cada `AppScreen` por props | Una sola barra para todas las rutas autenticadas; cada pantalla solo declara lo que cambia. Una pantalla registra sus espacios mientras está enfocada (eventos `focus` y `blur` de la navegación), porque la pila mantiene montadas las anteriores |
+| 8 de noviembre de 2026 | En compra y venta el lugar de «Siguiente» lleva el nombre de la acción del paso («Revisar y cerrar pesaje», «Confirmar liquidación», «Revisar y confirmar») | «Siguiente» ocultaría que el paso confirma un hecho comercial; se conserva la posición de Stitch con un nombre honesto |
+| 8 de noviembre de 2026 | «Menú principal» también se declara por pantalla cuando hay cambios sin guardar (catálogo, Carros, venta) | Salir al menú pasa por la misma confirmación que «Atrás» |
+| 8 de noviembre de 2026 | `ScreenHeader` dibuja `AppHeader`; `level="section"` titula una parte de una pantalla sin repetir el logo | Las 20 pantallas que lo usan heredan la cabecera común sin cambios uno a uno |
+| 8 de noviembre de 2026 | El botón «Historial» del flujo de compra desaparece; «Ver compras» sigue en el menú | La barra de Stitch tiene tres lugares: Atrás, Menú principal y el paso |
+| 8 de noviembre de 2026 | Los datos vivos del menú salen de los resúmenes de la fase B (`/purchases/history/summary`, `/sales/summary`) y de la cola local; no se usa `GET /accounts` | Una consulta por dato, ya filtrada en el servidor |

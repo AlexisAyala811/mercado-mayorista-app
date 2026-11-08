@@ -1,4 +1,4 @@
-import { backOrHome } from "@/navigation/back-or-home";
+import { BottomNavSlots } from '@/ui/navigation/app-chrome';
 import {commercialDescription} from '@/domain/catalog/commercial-characteristic';
 import { useBrowserTraversalGuard } from '@/navigation/use-browser-traversal-guard';
 import { useSyncQueue } from "@/features/sync/sync-queue-provider";
@@ -419,14 +419,7 @@ function SalesHistoryWorkspace({allowReturns}:{allowReturns:boolean}) {
     return (
       <>
         <AppScreen contentContainerStyle={styles.screen}>
-          <View style={styles.top}>
-            <AppButton
-              label="Volver al historial"
-              disabled={busy||sharingBusy||Boolean(exitAction)}
-              onPress={() => requestExit(closeDetail)}
-              tone="secondary"
-            />
-          </View>
+          <BottomNavSlots back={{ label: "Atrás", accessibilityLabel: "Volver al historial", disabled: busy||sharingBusy||Boolean(exitAction), onPress: () => requestExit(closeDetail) }} />
           <ScreenHeader
             eyebrow="VENTAS"
             title={allowReturns?"Detalle y devoluciones":"Detalle de la venta"}
@@ -559,24 +552,12 @@ function SalesHistoryWorkspace({allowReturns}:{allowReturns:boolean}) {
     );
   return (
     <AppScreen contentContainerStyle={styles.screen}>
-      <View style={styles.top}>
-        <AppButton
-          label="Volver"
-          onPress={() => backOrHome(router)}
-          tone="secondary"
-        />
-        <AppButton
-          disabled={loading || busy}
-          label="Actualizar"
-          onPress={search}
-          tone="secondary"
-        />
-      </View>
       <ScreenHeader
         eyebrow="VENTAS"
         title="Historial de ventas"
         description="Busca ventas y despachos por fecha o comprador. Fechas del registro central en hora de Lima."
       />
+      <View style={styles.top}><AppButton disabled={loading || busy} label="Actualizar" onPress={search} tone="secondary" /></View>
       <AppCard title="Buscar operaciones">
         <View style={styles.columns}>
           <View style={styles.field}>

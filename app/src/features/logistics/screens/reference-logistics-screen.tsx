@@ -2,12 +2,11 @@ import { useState, type ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Carrier, LogisticsVehicle } from '@/services/api/operations-api';
 import { AppButton, AppScreen, EmptyState, FormField } from '@/ui/components';
-import { BrandMark } from '@/ui/components/brand-mark';
+import { AppHeader } from '@/ui/navigation/app-header';
 import { color, radius, spacing, typography } from '@/ui/tokens';
 import { logisticsRecords, type LogisticsRecord } from '../logistics-records';
 
 type Props = {
-  username: string;
   carriers: Carrier[];
   vehicles: LogisticsVehicle[];
   search: string;
@@ -19,8 +18,6 @@ type Props = {
   feedback: ReactNode;
   editor: ReactNode;
   onNew: () => void;
-  onBack: () => void;
-  onHome: () => void;
   onRefresh: () => void;
   onEditCarrier: (carrier: Carrier) => void;
   onEditVehicle: (vehicle: LogisticsVehicle) => void;
@@ -45,14 +42,7 @@ export function ReferenceLogisticsScreen(props: Props) {
   function deactivate(row: LogisticsRecord) { if (row.vehicle) props.onDeactivateVehicle(row.vehicle); else if (row.carrier) props.onDeactivateCarrier(row.carrier); }
 
   return <AppScreen contentContainerStyle={styles.screen} testID="reference-logistics-screen">
-    <View style={styles.header}>
-      <BrandMark size={44} />
-      <View style={styles.titles}>
-        <Text style={styles.eyebrow}>COMPRA · TRANSPORTISTAS Y VEHÍCULOS</Text>
-        <Text accessibilityRole="header" style={styles.title}>Carros</Text>
-      </View>
-      <Text accessibilityLabel={`Usuario: ${props.username}`} numberOfLines={1} style={styles.username}>{props.username}</Text>
-    </View>
+    <AppHeader eyebrow="COMPRA · TRANSPORTISTAS Y VEHÍCULOS" title="Carros" />
     <View style={styles.toolbar}>
       <View style={styles.search}><FormField label="Buscar transportista o vehículo" accessibilityLabel="Buscar transportista o vehículo" value={props.search} onChangeText={search} placeholder="Nombre, teléfono o placa" autoCorrect={false} /></View>
       <AppButton label="Limpiar búsqueda" accessibilityLabel="Limpiar búsqueda de logística" tone="secondary" onPress={() => search('')} />
@@ -83,9 +73,8 @@ export function ReferenceLogisticsScreen(props: Props) {
       </View>;
     })}</View> : null}
     <View style={styles.navigation}>
-      <AppButton label={current > 0 ? 'Anterior' : 'Volver'} accessibilityLabel={current > 0 ? 'Página anterior de Carros' : 'Volver'} tone="secondary" disabled={disabled} onPress={() => current > 0 ? setPage(current - 1) : props.onBack()} />
-      <AppButton label="Menú" accessibilityLabel="Volver al menú principal" tone="secondary" disabled={disabled} onPress={props.onHome} />
-      <AppButton label="Siguiente" accessibilityLabel="Página siguiente de Carros" tone="secondary" disabled={disabled || props.unavailable || current >= lastPage} onPress={() => setPage(current + 1)} />
+      <AppButton label="Página anterior" accessibilityLabel="Página anterior de Carros" tone="secondary" disabled={disabled || current === 0} onPress={() => setPage(current - 1)} />
+      <AppButton label="Página siguiente" accessibilityLabel="Página siguiente de Carros" tone="secondary" disabled={disabled || props.unavailable || current >= lastPage} onPress={() => setPage(current + 1)} />
     </View>
     {props.editor ? <View nativeID="logistics-editor" style={styles.editor}>{props.editor}</View> : null}
   </AppScreen>;
@@ -93,11 +82,6 @@ export function ReferenceLogisticsScreen(props: Props) {
 
 const styles = StyleSheet.create({
   screen: { gap: spacing.lg, maxWidth: 1280 },
-  header: { alignItems: 'center', backgroundColor: color.surfaceRaised, borderColor: color.border, borderRadius: radius.lg, borderWidth: 1, flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, padding: spacing.md },
-  titles: { flexBasis: 180, flexGrow: 1, flexShrink: 1 },
-  eyebrow: { color: color.textSecondary, ...typography.eyebrow },
-  title: { color: color.brand, fontSize: 28, fontWeight: '800', lineHeight: 34 },
-  username: { color: color.textPrimary, ...typography.body, fontWeight: '700', flexShrink: 1 },
   toolbar: { alignItems: 'flex-end', flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   search: { flexBasis: 320, flexGrow: 1 },
   count: { color: color.textSecondary, ...typography.bodySmall },

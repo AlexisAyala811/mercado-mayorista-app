@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { spacing, typography } from '@/ui/tokens';
 import { reportVisual } from '@/ui/report-tokens';
+import { AppHeader } from '@/ui/navigation/app-header';
 
 type ScreenHeaderProps = {
   actions?: ReactNode;
@@ -11,11 +12,21 @@ type ScreenHeaderProps = {
   eyebrow?: string;
   title: string;
   appearance?: 'default' | 'report';
+  // 'section' titles a part of a screen that already shows the MAÑAY header.
+  level?: 'screen' | 'section';
   reportFontsLoaded?: boolean;
 };
 
-export function ScreenHeader({ actions, description, eyebrow, title, appearance = 'default', reportFontsLoaded = false }: ScreenHeaderProps) {
+export function ScreenHeader({ actions, description, eyebrow, title, appearance = 'default', level = 'screen', reportFontsLoaded = false }: ScreenHeaderProps) {
   const styles = useVisualStyles(createStyles);
+  // Spec 011 (RQ-ST03): every screen opens with the shared MAÑAY header.
+  if (appearance === 'default' && level === 'screen') return (
+    <View style={styles.container}>
+      <AppHeader eyebrow={eyebrow} title={title} />
+      {description ? <Text style={styles.description}>{description}</Text> : null}
+      {actions ? <View style={styles.actions}>{actions}</View> : null}
+    </View>
+  );
   return (
     <View style={styles.container}>
       <View style={[styles.copy, appearance === 'report' && reportStyles.copy]}>

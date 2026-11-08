@@ -19,6 +19,7 @@ import {captureCommercialSnapshot,commercialDescription,commercialLineKey,type C
 import { ApiError, ApiUnavailableError } from '@/services/api/api-client';
 import { getSale, loadSaleCatalogs } from '@/services/api/sales-api';
 import { AppButton, AppCard, AppScreen, ChoiceDialog, ConfirmationDialog, FeedbackState, FormField, LoadingState, MetricTile, ScreenHeader, SelectionField, StepProgress, type Choice } from '@/ui/components';
+import { useBottomNav } from '@/ui/navigation/app-chrome';
 import { color, spacing, typography } from '@/ui/tokens';
 
 type Dialog = 'buyer' | 'vehicle' | 'variety' | null;
@@ -123,9 +124,9 @@ export function SaleFlowScreen() {
     window.addEventListener('beforeunload', beforeUnload);
     return () => window.removeEventListener('beforeunload', beforeUnload);
   }, [protectExit]);
-  function requestExit() {
+  function requestExit(destination: 'back' | 'home' = 'back') {
     if (submitting.current||referenceWorking.current) return;
-    const leave = () => {if(router.canGoBack()) router.back();else router.replace('/home' as Href);};
+    const leave = () => {if(destination==='back'&&router.canGoBack()) router.back();else router.replace('/home' as Href);};
     if (protectExit) setExitAction(() => leave);else leave();
   }
   function confirmExit() {
@@ -212,6 +213,14 @@ export function SaleFlowScreen() {
     catch(cause){setError(errorMessage(cause))}
     finally{setBusy(false)}
   }
+  // Spec 011 (RQ-ST02, CL-ST07): while editing, the bottom bar leaves through
+  // the unsaved-sale check and offers the review as its step action.
+  const editing = Boolean(session) && !loading && catalogLoaded && !sale && !confirmedSaleId;
+  useBottomNav({
+    back: editing ? { label: 'Atrás', disabled: busy, onPress: () => requestExit() } : null,
+    home: editing ? { label: 'Menú principal', disabled: busy, onPress: () => requestExit('home') } : null,
+    next: editing ? { label: busy ? 'Confirmando…' : 'Revisar y confirmar', disabled: busy, onPress: () => requestConfirmation() } : null,
+  });
   if (!session) return null;
   if (loading) return <AppScreen contentContainerStyle={{ justifyContent: 'center' }} scrollable={false}><LoadingState label="Cargando compradores y variedades" /></AppScreen>;
   if (!catalogLoaded) return <AppScreen><FeedbackState actionLabel="Reintentar" onAction={retryCatalogs} title="No se pudieron cargar los catálogos" message={error ?? 'Reintenta la consulta.'} tone="error" /></AppScreen>;
@@ -223,7 +232,6 @@ export function SaleFlowScreen() {
       {sale ? <View style={styles.metrics}><MetricTile label="Importe bruto" value={formatMoney(sale.grossAmountCents)} /><MetricTile label="Flete" value={formatMoney(sale.freightAmountCents)} /><MetricTile label="Descuentos" value={formatMoney(sale.discountsCents)} /><MetricTile label="Total" value={formatMoney(sale.totalAmountCents)} /></View> : null}
       {error ? <FeedbackState title="No se pudo cargar el detalle de la venta confirmada" message={error} tone="error" /> : null}
       {!sale ? <AppButton disabled={busy} label={busy?'Cargando detalle…':'Reintentar consulta del detalle'} onPress={()=>void reloadConfirmedSale()} tone="secondary" /> : null}
-      <View style={styles.actions}><AppButton label="Volver al menú" onPress={() => router.replace('/home' as Href)} /></View>
     </AppScreen>
   );
 
@@ -261,7 +269,7 @@ export function SaleFlowScreen() {
         {paymentMode === 'credit' ? <View style={{ gap: spacing.md }}>{installments.map((item, index) => <View key={item.id} style={styles.line}><View style={[styles.columns, styles.installmentFields]}><View style={styles.column}><FormField editable={!busy} label={`Vencimiento cuota ${index + 1}`} onChangeText={(v) => setInstallments((all) => all.map((x) => x.id === item.id ? { ...x, dueOn: v } : x))} placeholder="aaaa-mm-dd" value={item.dueOn} /></View><View style={styles.column}><FormField editable={!busy} keyboardType="decimal-pad" label="Importe (S/)" accessibilityLabel={`Importe cuota ${index + 1} (S/)`} onChangeText={(v) => setInstallments((all) => all.map((x) => x.id === item.id ? { ...x, amount: v } : x))} value={item.amount} /></View></View><AppButton disabled={busy} label="Quitar" accessibilityLabel={`Quitar cuota ${index + 1}`} onPress={() => setInstallments((all) => all.filter((x) => x.id !== item.id))} tone="secondary" /></View>)}<AppButton disabled={busy} label="Agregar cuota" onPress={() => setInstallments((all) => [...all, { amount: '', dueOn: '', id: createOperationId() }])} tone="secondary" /></View> : null}
       </AppCard>
       {preview.kind === 'ready' ? <View style={styles.metrics}><MetricTile label="Bruto provisional" value={formatMoney(preview.grossCents)} /><MetricTile label="Flete provisional" value={formatMoney(preview.freightCents)} /><MetricTile label="Descuentos" value={formatMoney(preview.discountsCents)} /><MetricTile label="Total provisional" value={formatMoney(preview.totalCents)} /></View> : null}
-      <View style={styles.actions}><AppButton disabled={busy} label="Cancelar" onPress={requestExit} tone="secondary" /><AppButton disabled={busy} label={busy ? 'Confirmando…' : 'Revisar y confirmar'} onPress={requestConfirmation} /></View>
+      <View style={styles.actions}><AppButton disabled={busy} label={busy ? 'Confirmando…' : 'Revisar y confirmar'} onPress={requestConfirmation} /></View>
     </AppScreen>
     <ChoiceDialog choices={dialog === 'buyer' ? buyers.map((item) => ({ id: item.id, label: item.name, supportingText: item.destinationDepartment ?? undefined })) : dialog === 'vehicle' ? vehicles.map((item) => ({ id: item.id, label: item.plate, supportingText: item.description ?? undefined })) : varietyChoices} onClose={() => setDialog(null)} onSelect={select} selectedIds={[buyerId, vehicleId, draft.varietyId]} title={dialog === 'buyer' ? 'Seleccionar comprador' : dialog === 'vehicle' ? 'Seleccionar vehículo' : 'Seleccionar variedad'} visible={dialog !== null} />
     <ConfirmationDialog busy={busy} confirmLabel="Confirmar venta" message={preview.kind === 'ready' ? `${buyer?.name ?? 'Comprador'} · ${destination}. Bruto ${formatMoney(preview.grossCents)}, flete ${formatMoney(preview.freightCents)} (${freightIncluded ? 'incluido' : 'separado'}), descuento ${formatMoney(preview.discountsCents)} y total ${formatMoney(preview.totalCents)}. Pago ${paymentMode === 'cash' ? 'al contado' : 'a crédito'}. ${scheduleReview} Se registrará la venta y su efecto financiero.` : 'Revisa los datos de la venta.'} onCancel={() => setConfirming(false)} onConfirm={() => void submit()} title="¿Confirmar la venta?" visible={confirming} />

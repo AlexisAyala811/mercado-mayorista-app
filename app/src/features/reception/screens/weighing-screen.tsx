@@ -20,6 +20,7 @@ import {
 } from '@/ui/components';
 import { spacing, typography } from '@/ui/tokens';
 import { useVisualStyles, type VisualPalette } from '@/ui/visual-theme';
+import { BottomNavSlots } from '@/ui/navigation/app-chrome';
 
 type WeighingSummary = {
   averageWeightDisplay: string;
@@ -110,7 +111,7 @@ export function WeighingScreen({
         }
         ListFooterComponent={
           <View style={styles.actions}>
-            {onBack ? <AppButton label="Volver a datos" onPress={onBack} tone="secondary" /> : null}
+            <BottomNavSlots back={onBack ? { label: "Atrás", accessibilityLabel: "Volver a datos", onPress: onBack } : null} home={onGoHome ? { label: "Menú principal", onPress: onGoHome } : null} />
             <AppButton disabled={!onContinue || entries.length === 0} label="Revisar y cerrar pesaje" onPress={onContinue} />
           </View>
         }

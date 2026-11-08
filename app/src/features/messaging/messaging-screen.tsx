@@ -8,7 +8,6 @@ import { downloadAttachmentCopy, pickAttachment, releaseAttachment, requestAttac
 import { AppButton, AppCard, AppScreen, ChoiceDialog, EmptyState, FeedbackState, FormField, LoadingState, ScreenHeader, SelectionField } from '@/ui/components';
 import { color, spacing, typography } from '@/ui/tokens';
 import { formatMoney } from '@/domain/reception/reception';
-import { backOrHome } from '@/navigation/back-or-home';
 
 const labels = { prepared: 'Preparado', sharing_requested: 'Compartición solicitada', failed: 'Intento fallido' };
 export function MessagingScreen() {
@@ -143,7 +142,6 @@ function MessagingWorkspace() {
   }
   if (!session) return null;
   return <AppScreen contentContainerStyle={styles.screen}>
-    <AppButton label="Volver" tone="secondary" onPress={() => backOrHome(router)} />
     <ScreenHeader eyebrow="COMUNICACIÓN COMERCIAL" title="Mensajería y notificaciones" description="Prepara un archivo para tu cliente o proveedor y confirma el envío en WhatsApp o correo." />
     {loading ? <LoadingState label="Cargando destinatarios e historial" /> : null}
     {error ? <FeedbackState title="Revisa la operación" message={error} tone="error" /> : null}

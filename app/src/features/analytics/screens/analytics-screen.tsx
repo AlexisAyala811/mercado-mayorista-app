@@ -1,7 +1,5 @@
-import { backOrHome } from "@/navigation/back-or-home";
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
 import { analyticsExclusionReason, analyticsFilterLabel, analyticsPointKey, weeklyComparisons, type AnalyticsFilterOption, type AnalyticsSeries, type PredictionReadiness } from '@/domain/analytics/analytics';
 import { formatLimaDateInput, formatLimaDateTime, isValidCivilDate } from '@/domain/shared/date';
 import { validateAnalyticsPeriod } from '@/domain/analytics/period';
@@ -27,7 +25,7 @@ export function AnalyticsScreen() {
 }
 
 function AnalyticsContent() {
-  const router = useRouter(); const { session, invalidateSession } = useSession();
+  const { session, invalidateSession } = useSession();
   const token = session?.accessToken ?? '';
   const [period, setPeriod] = useState(() => { const to = formatLimaDateInput(); return { from: `${to.slice(0, 8)}01`, to }; });
   const [varietyId, setVarietyId] = useState('');
@@ -99,7 +97,6 @@ function AnalyticsContent() {
   };
   const selectedDialog = dialogs[dialog ?? 'variety'];
   return <><AppScreen contentContainerStyle={styles.screen}>
-    <View><AppButton label="Volver" onPress={() => backOrHome(router)} tone="secondary" /></View>
     <ScreenHeader eyebrow="ANALÍTICA" title="Tendencias comerciales" description="Precios pactados y cantidades de operaciones confirmadas, separados por semana y variedad." />
     <AppCard title="Periodo, variedad y participantes">
       <View style={styles.fields}>

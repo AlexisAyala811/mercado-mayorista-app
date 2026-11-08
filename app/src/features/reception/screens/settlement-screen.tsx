@@ -11,6 +11,7 @@ import { TabletSettlementWorkspace } from './tablet-settlement-workspace';
 import { AppButton, AppCard, AppScreen, FeedbackState, FormField, ScreenHeader, StepProgress } from '@/ui/components';
 import { spacing } from '@/ui/tokens';
 import { useVisualStyles } from '@/ui/visual-theme';
+import { BottomNavSlots } from '@/ui/navigation/app-chrome';
 
 export type InstallmentDraft = { id: string; dueOn: string; amount: string };
 export type SettlementDraft = {
@@ -87,7 +88,7 @@ export function SettlementScreen(props: SettlementScreenProps) {
       </AppCard>
 
       <View style={styles.actions}>
-        {onBack ? <AppButton label="Volver" onPress={onBack} tone="secondary" /> : null}
+        <BottomNavSlots back={onBack ? { label: "Atrás", accessibilityLabel: "Volver al pesaje", disabled: isSubmitting, onPress: onBack } : null} home={props.onGoHome ? { label: "Menú principal", disabled: isSubmitting, onPress: props.onGoHome } : null} />
         <AppButton disabled={isSubmitting || preview.kind !== 'ready'} label={isSubmitting ? 'Confirmando…' : 'Confirmar liquidación'} onPress={onSubmit} />
       </View>
     </AppScreen>

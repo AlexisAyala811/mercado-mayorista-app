@@ -7,6 +7,7 @@ import {usePreventRemove} from 'expo-router/react-navigation';
 import {useBrowserTraversalGuard} from '@/navigation/use-browser-traversal-guard';
 import {OperationReferenceEditor} from '@/features/catalog/screens/catalog-workspace';
 import {Modal} from 'react-native';
+import { barButton, withChrome } from '../shared/with-chrome';
 
 let mockToken='qa-token';let mockRole='wholesaler';const mockInvalidate=jest.fn();const mockReplace=jest.fn();const mockDispatch=jest.fn();
 jest.mock('@/features/auth/session/session-provider',()=>({useSession:()=>({session:{accessToken:mockToken,user:{role:mockRole}},invalidateSession:mockInvalidate})}));
@@ -20,7 +21,7 @@ jest.mock('@/ui/components',()=>{
 });
 const data=()=>({providers:[],buyers:[],varieties:[],qualities:[{id:'q1',name:'Calidad QA',kind:'quality' as const,isActive:true}],origins:[{id:'o1',name:'Origen QA',kind:'origin' as const,isActive:true}]});
 function control(root:ReactTestRenderer,key:string,value:string){return root.root.findAll(node=>String(node.type)==='test-control'&&node.props[key]===value)[0];}
-async function open(){let root!:ReactTestRenderer;await act(async()=>{root=create(<CatalogScreen/>);});return root;}
+async function open(){let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<CatalogScreen/>));});return root;}
 beforeEach(()=>{(globalThis as typeof globalThis&{IS_REACT_ACT_ENVIRONMENT:boolean}).IS_REACT_ACT_ENVIRONMENT=true;jest.clearAllMocks();mockToken='qa-token';mockRole='wholesaler';jest.mocked(loadMasterCatalogs).mockResolvedValue(data());jest.mocked(createCatalogItem).mockResolvedValue({});jest.mocked(deactivateCatalogItem).mockResolvedValue(undefined);});
 
 it.each([['Calidades','qualities'],['Procedencias','origins']])('saves %s to its own collection with only a trimmed name',async(label,kind)=>{
@@ -109,7 +110,7 @@ it('preserves the browser destination through cancellation and discard',async()=
   const root=await open();await act(async()=>control(root,'label','Nombre').props.onChangeText('Borrador'));
   const leave=jest.fn();await act(async()=>jest.mocked(useBrowserTraversalGuard).mock.lastCall![2](leave));
   await act(async()=>discard(root).props.onCancel());expect(leave).not.toHaveBeenCalled();expect(control(root,'label','Nombre').props.value).toBe('Borrador');
-  await act(async()=>control(root,'label','Volver').props.onPress());await act(async()=>discard(root).props.onCancel());expect(mockReplace).not.toHaveBeenCalled();
+  await act(async()=>barButton(root,'Atrás').props.onPress());await act(async()=>discard(root).props.onCancel());expect(mockReplace).not.toHaveBeenCalled();
   await act(async()=>jest.mocked(useBrowserTraversalGuard).mock.lastCall![2](leave));await act(async()=>discard(root).props.onConfirm());expect(leave).toHaveBeenCalledTimes(1);expect(mockReplace).not.toHaveBeenCalled();await act(async()=>root.unmount());
 });
 it('does not start deactivation while a draft discard is cancelled',async()=>{

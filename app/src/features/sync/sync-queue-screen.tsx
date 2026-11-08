@@ -1,4 +1,3 @@
-import { backOrHome } from "@/navigation/back-or-home";
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useRouter, type Href } from 'expo-router';
@@ -23,8 +22,8 @@ export function SyncQueueScreen() {
   async function retryAndRevalidate(id:string) {await retry(id);if(isOfflineSession)retryBootstrap();}
   async function confirmDiscard() { if (!target || !reason.trim()) { setError('Indica el motivo del descarte.'); return; } try { await discard(target, reason); setTarget(null); setReason(''); } catch (cause) { setError(cause instanceof Error ? cause.message : 'No se pudo descartar.'); } }
   return <AppScreen contentContainerStyle={styles.screen}>
-    <View style={styles.top}><AppButton label="Volver" onPress={() => backOrHome(router)} tone="secondary" /><AppButton disabled={busy||!pendingCount||Boolean(queueError)} label={busy?'Procesando…':'Sincronizar pendientes'} onPress={() => void run(synchronizeAndRevalidate)} /></View>
     <ScreenHeader eyebrow="SINCRONIZACIÓN" title="Operaciones del dispositivo" description="El servidor central sigue siendo la fuente oficial. Los pendientes requieren comprobar el resultado central antes de confirmar sus efectos comerciales." />
+    <View style={styles.top}><AppButton disabled={busy||!pendingCount||Boolean(queueError)} label={busy?'Procesando…':'Sincronizar pendientes'} onPress={() => void run(synchronizeAndRevalidate)} /></View>
     {isOfflineSession?<FeedbackState title="Sesión local" message="Puedes comprobar la sesión central aunque no tengas operaciones pendientes." actionLabel="Revalidar sesión" onAction={retryBootstrap}/>:null}
     {queueError ? <FeedbackState title="No se pudieron recuperar los pendientes" message={queueError} tone="error" actionLabel="Reintentar lectura" onAction={()=>void run(reloadQueue)} /> : null}
     {error ? <FeedbackState title="No se pudo completar" message={error} tone="error" /> : null}

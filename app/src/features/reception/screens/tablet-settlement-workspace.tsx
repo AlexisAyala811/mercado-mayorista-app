@@ -64,7 +64,7 @@ export function TabletSettlementWorkspace(props: Props) {
           </View>
         </ScrollView></KeyboardFocusContext.Provider>
       </View>
-      <PurchaseReferenceNavigation onBack={props.onGoHistory} onHome={props.onGoHome} onContinue={props.onSubmit} canContinue={preview.kind === 'ready'} busy={props.isSubmitting} continueLabel="Confirmar liquidación" />
+      <PurchaseReferenceNavigation onStepBack={props.onBack} stepBackLabel="Volver al pesaje" onHome={props.onGoHome} onContinue={props.onSubmit} canContinue={preview.kind === 'ready'} busy={props.isSubmitting} continueLabel="Confirmar liquidación" />
     </AppScreen>
     <Modal visible={paymentVisible} animationType="slide" onRequestClose={() => { if (!props.isSubmitting) setPaymentVisible(false); }}>
       <AppScreen><PaymentTermsFields {...props} /><AppButton disabled={props.isSubmitting} label="Volver al resumen" onPress={() => setPaymentVisible(false)} /></AppScreen>

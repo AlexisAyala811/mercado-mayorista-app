@@ -3,6 +3,7 @@ import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { AppButton, AppScreen, FeedbackState, FormField, FormSection, ScreenHeader, SelectionField, StepProgress } from '@/ui/components';
 import { spacing } from '@/ui/tokens';
 import type {ReactNode} from 'react';
+import { BottomNavSlots } from '@/ui/navigation/app-chrome';
 
 export type ReceptionDetails = {
   date: string;
@@ -71,7 +72,7 @@ export function ReceptionDetailsScreen({
         description="Los datos se conservarán con la recepción y acompañarán el pesaje y la liquidación."
         footer={
           <View style={styles.actions}>
-            {onBack ? <AppButton disabled={locked} label="Volver" onPress={onBack} tone="secondary" /> : null}
+            <BottomNavSlots back={onBack ? { label: "Atrás", disabled: locked, onPress: onBack } : null} />
             <AppButton disabled={!onContinue || locked} label={isSubmitting ? 'Guardando…' : 'Continuar al pesaje'} onPress={onContinue} />
           </View>
         }
