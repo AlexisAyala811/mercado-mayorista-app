@@ -93,11 +93,11 @@ export function ReferenceLogisticsScreen(props: Props) {
 
 const styles = StyleSheet.create({
   screen: { gap: spacing.lg, maxWidth: 1280 },
-  header: { alignItems: 'center', backgroundColor: color.surfaceRaised, borderColor: color.border, borderRadius: radius.lg, borderWidth: 1, flexDirection: 'row', gap: spacing.md, padding: spacing.md },
-  titles: { flex: 1 },
+  header: { alignItems: 'center', backgroundColor: color.surfaceRaised, borderColor: color.border, borderRadius: radius.lg, borderWidth: 1, flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, padding: spacing.md },
+  titles: { flexBasis: 180, flexGrow: 1, flexShrink: 1 },
   eyebrow: { color: color.textSecondary, ...typography.eyebrow },
   title: { color: color.brand, fontSize: 28, fontWeight: '800', lineHeight: 34 },
-  username: { color: color.textPrimary, ...typography.body, fontWeight: '700', maxWidth: '30%' },
+  username: { color: color.textPrimary, ...typography.body, fontWeight: '700', flexShrink: 1 },
   toolbar: { alignItems: 'flex-end', flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   search: { flexBasis: 320, flexGrow: 1 },
   count: { color: color.textSecondary, ...typography.bodySmall },

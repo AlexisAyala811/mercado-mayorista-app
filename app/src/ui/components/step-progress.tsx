@@ -42,11 +42,13 @@ const createStyles = (color: VisualPalette) => StyleSheet.create({
   number: {
     alignItems: 'center',
     borderColor: color.border,
-    borderRadius: 16,
+    // Grows with the system text size (200 % on Android) instead of clipping the digit.
+    borderRadius: 999,
     borderWidth: 1,
-    height: 32,
     justifyContent: 'center',
-    width: 32,
+    minHeight: 32,
+    minWidth: 32,
+    paddingHorizontal: spacing.xs,
   },
   numberHighlighted: { backgroundColor: color.brand, borderColor: color.brand },
   numberText: { color: color.textSecondary, fontSize: 14, fontWeight: '700' },

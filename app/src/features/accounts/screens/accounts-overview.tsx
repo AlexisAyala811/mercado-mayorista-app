@@ -55,7 +55,7 @@ export function AccountsOverview(props: Props) {
             <View style={styles.party}>
               <Text numberOfLines={1} style={styles.name}>{name}</Text>
               <Text style={styles.meta}>{accountDueLabel(account.nextDueOn)} · {accountMovementLabel(account.lastMovementAt)}</Text>
-              <Text numberOfLines={1} style={styles.reference}>Referencia {account.id}</Text>
+              <Text ellipsizeMode="middle" numberOfLines={1} style={styles.reference}>Referencia {account.id}</Text>
             </View>
             <View style={styles.balance}>
               <View accessibilityLabel={`Estado: ${tone.label}`} style={[styles.badge, tone.box]}><Text style={[styles.badgeText, tone.text]}>{tone.label}</Text></View>
@@ -76,17 +76,17 @@ export function AccountsOverview(props: Props) {
 
 const styles = StyleSheet.create({
   screen: { gap: spacing.lg, maxWidth: 1280 },
-  header: { alignItems: 'center', backgroundColor: color.surfaceRaised, borderColor: color.border, borderRadius: radius.lg, borderWidth: 1, flexDirection: 'row', gap: spacing.md, padding: spacing.md },
-  titles: { flex: 1 },
+  header: { alignItems: 'center', backgroundColor: color.surfaceRaised, borderColor: color.border, borderRadius: radius.lg, borderWidth: 1, flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, padding: spacing.md },
+  titles: { flexBasis: 180, flexGrow: 1, flexShrink: 1 },
   eyebrow: { color: color.textSecondary, ...typography.eyebrow },
   title: { color: color.brand, fontSize: 28, fontWeight: '800', lineHeight: 34 },
-  username: { color: color.textPrimary, ...typography.body, fontWeight: '700', maxWidth: '30%' },
+  username: { color: color.textPrimary, ...typography.body, fontWeight: '700', flexShrink: 1 },
   toolbar: { alignItems: 'flex-end', flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   search: { flexBasis: 320, flexGrow: 1 },
   count: { color: color.textSecondary, ...typography.bodySmall },
   list: { gap: spacing.sm },
   row: { alignItems: 'center', backgroundColor: color.surfaceRaised, borderColor: color.border, borderRadius: radius.lg, borderWidth: 1, flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, padding: spacing.md },
-  party: { flexBasis: 320, flexGrow: 2, gap: spacing.xs, minWidth: 0 },
+  party: { flexBasis: 240, flexGrow: 2, flexShrink: 1, gap: spacing.xs, minWidth: 0 },
   name: { color: color.textPrimary, fontSize: 20, fontWeight: '700', lineHeight: 26 },
   meta: { color: color.textSecondary, ...typography.bodySmall },
   reference: { color: color.textSecondary, fontSize: 13, lineHeight: 18 },
