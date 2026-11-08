@@ -68,7 +68,7 @@ export function BuyerStatementScreen({ buyerId, onBack }: Props) {
   if (loading) return <AppScreen><LoadingState label="Preparando el estado de cuenta" /></AppScreen>;
   return <AppScreen contentContainerStyle={styles.screen} testID="buyer-statement-screen">
     <View style={styles.top}><AppButton label="Volver a cobranzas" tone="secondary" onPress={onBack} /></View>
-    <ScreenHeader eyebrow="VENTA · COBRANZAS" title="Estado de cuenta" description={statement ? `${statement.buyer.name} · N.° ${statement.statementNumber} · corte ${statement.cutoffDate}` : 'Resumen de lo que debe el comprador, calculado por el servidor.'} />
+    <ScreenHeader eyebrow="VENTA · COBRANZAS" title="Estado de cuenta" description={statement ? `${statement.buyer.name} · N.⁠° ${statement.statementNumber} · corte ${statement.cutoffDate}` : 'Resumen de lo que debe el comprador, calculado por el servidor.'} />
     {offline ? <FeedbackState title="Sin conexión" message="El estado de cuenta se calcula en el servidor con las cuentas confirmadas. Conéctate para verlo." tone="warning" actionLabel="Reintentar" onAction={() => void load()} /> : null}
     {error ? <FeedbackState title="No se pudo preparar el estado de cuenta" message={error} tone="error" actionLabel="Reintentar" onAction={() => void load()} /> : null}
     {statement ? <>

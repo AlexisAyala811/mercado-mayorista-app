@@ -43,7 +43,7 @@ Cada tarea se marca `[x]` solo con evidencia enlazable. Cada fase va en su propi
 
 ## Convergencia
 
-- [ ] **T1150** Verificación en tablet 1280 × 800 y 2560 × 1600, teléfono de 360 px, texto al 200 % y TalkBack; comparación final con Stitch; lista de convergencia y estado de la spec.
+- [ ] **T1150** Verificación en tablet 1280 × 800 y 2560 × 1600, teléfono de 360 px, texto al 200 % y TalkBack; comparación final con Stitch; lista de convergencia y estado de la spec. **Parcial (7 de noviembre de 2026):** en el emulador, las quince rutas a 1280 × 800, 2560 × 1600, 360 dp y texto al 200 %; corregidos la cabecera y la tarjeta de cuenta del teléfono y los pasos al 200 %. Faltan TalkBack (no está en la imagen del emulador), la comparación con Stitch y la lista de convergencia. Evidencia: [verificación en el emulador](../../docs/sdd/verificacion-emulador-manay-2026-11-07.md).
 
 ## Orden y dependencias
 
