@@ -22,7 +22,7 @@ export class ReportsService {
     const data = await loadReportExport(this.dataSource, businessId, query, query.report, query);
     return { report: query.report, operation: query.operation, period: data.overview.period,
       generatedAt: data.overview.generatedAt, limit: query.limit, offset: query.offset,
-      total: data.total, items: query.report === 'detail' ? data.rows : data.varieties };
+      total: data.total, items: query.report === 'detail' ? data.rows : query.report === 'daily' ? data.days : data.varieties };
   }
 
   async exportReport(businessId: string, businessName: string, query: OperationOverviewQuery & { report: ReportKind }) {

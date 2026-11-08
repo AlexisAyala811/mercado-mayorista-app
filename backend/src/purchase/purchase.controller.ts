@@ -24,6 +24,10 @@ import {
   VoidPurchaseDto,
 } from './http/settle-purchase.dto.js';
 import { PaymentStatusQueryDto } from './http/payment-status-query.dto.js';
+import {
+  PurchaseHistoryFilterDto,
+  PurchaseHistoryQueryDto,
+} from './http/purchase-history-query.dto.js';
 import { PurchaseService } from './purchase.service.js';
 
 @Controller('purchases')
@@ -36,6 +40,23 @@ export class PurchaseController {
     private readonly purchases: PurchaseService,
     private readonly audit: AuditService,
   ) {}
+
+  // Spec 011 (RQ-ST05): «Ver compras» list and its counts and totals.
+  @Get('history')
+  history(
+    @CurrentIdentity() identity: SessionIdentity,
+    @Query() query: PurchaseHistoryQueryDto,
+  ) {
+    return this.purchases.history(identity.businessId, query);
+  }
+
+  @Get('history/summary')
+  historySummary(
+    @CurrentIdentity() identity: SessionIdentity,
+    @Query() query: PurchaseHistoryFilterDto,
+  ) {
+    return this.purchases.historySummary(identity.businessId, query);
+  }
 
   // Spec 011 (CL-MD05): paid, debt or voided for one page of «Ver compras».
   @Get('payment-status')

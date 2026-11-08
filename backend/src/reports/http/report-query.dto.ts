@@ -22,8 +22,9 @@ export class ReportExportQueryDto extends OperationOverviewQueryDto {
 }
 
 export class ReportRowsQueryDto extends OperationOverviewQueryDto {
-  @IsIn(['detail', 'variety'])
-  report!: 'detail' | 'variety';
+  // Spec 011 (CL-ST10): 'daily' feeds the bars of Reportes; it is not exported.
+  @IsIn(['detail', 'variety', 'daily'])
+  report!: 'detail' | 'variety' | 'daily';
 
   @Type(() => Number)
   @IsInt()

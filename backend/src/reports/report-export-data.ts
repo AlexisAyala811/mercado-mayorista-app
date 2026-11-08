@@ -8,11 +8,14 @@ export interface OperationReportRow {
   gross: string; freight: string; discounts: string; advances: string;
   amount: string; balance: string; sacks: string; weight: string;
 }
+export interface DailyReportRow {
+  id: string; date: string; operations: string; sacks: string; weight: string; amount: string;
+}
 export interface VarietyReportRow {
   id: string; name: string; operations: string; sacks: string; weight: string; subtotal: string | null;
 }
 
-export async function loadReportExport(source: DataSource, businessId: string, period: OperationOverviewQuery, kind: ReportKind, page?: ReportPageRequest) {
+export async function loadReportExport(source: DataSource, businessId: string, period: OperationOverviewQuery, kind: ReportKind | 'daily', page?: ReportPageRequest) {
   return source.transaction('REPEATABLE READ', async (manager) => {
     await manager.query('SET TRANSACTION READ ONLY');
     const overview = await operationOverview(manager, businessId, period);
@@ -27,13 +30,25 @@ export async function loadReportExport(source: DataSource, businessId: string, p
       AND p.created_at < (($3::date + INTERVAL '1 day') AT TIME ZONE 'America/Lima')`;
     let rows: OperationReportRow[] = [];
     let varieties: VarietyReportRow[] = [];
+    let days: DailyReportRow[] = [];
     let total = '0';
+    const quantities = purchase
+      ? `SELECT o.id, COUNT(s.id)::text AS sacks, COALESCE(SUM(s.net_weight_kg),0)::text AS weight
+         FROM selected o LEFT JOIN reception_sacks s ON s.reception_id=o.reception_id AND s.business_id=$1 AND s.voided_at IS NULL GROUP BY o.id`
+      : `SELECT o.id, COALESCE(SUM(l.sacks),0)::text AS sacks, COALESCE(SUM(l.weight_kg),0)::text AS weight
+         FROM selected o LEFT JOIN sale_lines l ON l.sale_id=o.id GROUP BY o.id`;
+    if (kind === 'daily') {
+      const result = await readReportRows<DailyReportRow>(manager, `
+        WITH selected AS (${selected}${periodSql}), quantities AS (${quantities}), days AS (
+          SELECT to_char(o.created_at AT TIME ZONE 'America/Lima','YYYY-MM-DD') AS day, o.${purchase ? 'liquid_amount_cents' : 'total_amount_cents'} AS amount,
+            q.sacks::numeric AS sacks, q.weight::numeric AS weight
+          FROM selected o JOIN quantities q ON q.id=o.id
+        ) SELECT day AS id, day AS date, COUNT(*)::text AS operations, SUM(sacks)::text AS sacks,
+          SUM(weight)::text AS weight, SUM(amount)::text AS amount
+        FROM days GROUP BY day`, parameters, 'date, id', page);
+      days = result.items; total = result.total;
+    }
     if (kind === 'detail' || kind === 'counterparty') {
-      const quantities = purchase
-        ? `SELECT o.id, COUNT(s.id)::text AS sacks, COALESCE(SUM(s.net_weight_kg),0)::text AS weight
-           FROM selected o LEFT JOIN reception_sacks s ON s.reception_id=o.reception_id AND s.business_id=$1 AND s.voided_at IS NULL GROUP BY o.id`
-        : `SELECT o.id, COALESCE(SUM(l.sacks),0)::text AS sacks, COALESCE(SUM(l.weight_kg),0)::text AS weight
-           FROM selected o LEFT JOIN sale_lines l ON l.sale_id=o.id GROUP BY o.id`;
       const result = await readReportRows<OperationReportRow>(manager, `
         WITH selected AS (${selected}${periodSql}), quantities AS (${quantities}), balances AS (
           SELECT a.source_id, SUM(a.balance_cents)::text AS amount FROM accounts a JOIN selected o ON o.id=a.source_id
@@ -64,7 +79,7 @@ export async function loadReportExport(source: DataSource, businessId: string, p
         GROUP BY v.id,v.name ORDER BY v.name,v.id`, parameters, 'name, id', page);
       varieties = result.items; total = result.total;
     }
-    return { overview, rows, varieties, total };
+    return { overview, rows, varieties, days, total };
   });
 }
 

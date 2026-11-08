@@ -36,7 +36,15 @@ import {
   sameMembers,
 } from '../common/domain/operation-replay.js';
 import { toPage } from '../common/http/page-query.dto.js';
-import type { SalesHistoryQueryDto } from './http/sales-history-query.dto.js';
+import type {
+  SalesHistoryFilterDto,
+  SalesHistoryQueryDto,
+} from './http/sales-history-query.dto.js';
+import {
+  saleHistoryFacts,
+  salePaymentStateSql,
+  salesHistorySummary,
+} from './sales-history.js';
 import type { SessionIdentity } from '../identity/application/ports/session-identity-reader.js';
 import { UserRole } from '../identity/entities/user.entity.js';
 import {
@@ -101,17 +109,31 @@ export class SalesService {
       query.andWhere('sale.buyerId = :buyerId', { buyerId: page.buyerId });
     if (page.state)
       query.andWhere('sale.state = :state', { state: page.state });
+    if (page.paymentState)
+      query.andWhere(`${salePaymentStateSql('sale')} = :paymentState`, {
+        paymentState: page.paymentState,
+      });
     const [items, total] = await query
       .orderBy('sale.createdAt', 'DESC')
       .addOrderBy('sale.id', 'DESC')
       .skip(page.offset)
       .take(page.limit)
       .getManyAndCount();
+    // Spec 011 (RQ-ST05): varieties, sacks, kilos and payment state per sale.
+    const facts = await saleHistoryFacts(
+      this.dataSource,
+      businessId,
+      items.map((item) => item.id),
+    );
     const views = items.map((item) => {
       const { buyer, ...sale } = item as SaleEntity & { buyer?: BuyerEntity };
-      return { ...sale, buyerName: buyer?.name ?? null };
+      return { ...sale, ...facts.get(sale.id), buyerName: buyer?.name ?? null };
     });
     return toPage(views, total, page);
+  }
+
+  summary(businessId: string, filters: SalesHistoryFilterDto) {
+    return salesHistorySummary(this.dataSource, businessId, filters);
   }
 
   async get(businessId: string, id: string) {
