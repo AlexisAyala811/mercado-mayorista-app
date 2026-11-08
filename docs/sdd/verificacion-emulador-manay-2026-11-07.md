@@ -44,6 +44,6 @@ Tras las correcciones: `npm run typecheck`, `npm run lint` y `npm test -- --runI
 | --- | --- |
 | TalkBack | La imagen del emulador no trae TalkBack (`com.google.android.marvin.talkback` no está instalado) y no tiene Play Store para instalarlo |
 | Envío real por WhatsApp y correo (T944) | El emulador no tiene WhatsApp ni una cuenta de correo. La hoja de compartir con el PDF ya se verificó en la [fase 4](verificacion-manay-fase4-2026-11-06.md) |
-| Comparación final con Stitch | Necesita los diseños de Stitch; queda para la revisión con el usuario |
+| Comparación final con Stitch | Hecha después, el mismo día: [comparación con Stitch](comparacion-stitch-manay-2026-11-07.md) |
 
 Por eso T1150 y T944 siguen abiertas, con el avance anotado.

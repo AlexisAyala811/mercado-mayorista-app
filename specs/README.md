@@ -14,7 +14,7 @@ Este índice conecta la línea base documental, el diseño de Figma y el trabajo
 | 008 | Mensajería y notificaciones | RF16, RF23, RF25, RF26 | Backend y Android implementados; evidencia nativa pendiente | CL-MN01–03 resueltas |
 | 009 | Estado de cuenta del comprador | RF27 (HU16) | Backend y app implementados (T940–T943); verificación en dispositivo (T944) y Figma pendientes | Decisión del 29 de octubre de 2026 |
 | [010](010-purchase-lines-and-freight-choice/spec.md) | Lotes con precio propio y flete elegible en la compra | RF07 (HU02) | Convergida el 6 de noviembre de 2026 ([convergencia](../docs/sdd/convergencia-spec-010-2026-11-06.md)) | CL-FM08–10, CL-PL01–04 |
-| [011](011-manay-app-design/spec.md) | Diseño MAÑAY en la app | RF01–RF27 visibles (HU01–HU16) | Fases 1 a 5 implementadas; pendientes la verificación en dispositivo (T944) y la convergencia (T1150) | CL-FM01–20; CL-MD01–04 resueltas |
+| [011](011-manay-app-design/spec.md) | Diseño MAÑAY en la app | RF01–RF27 visibles (HU01–HU16) | Fases 1 a 5 implementadas; convergencia con Stitch especificada el 7 de noviembre de 2026 (T1160–T1171), plan por aprobar; pendientes T944 y T1150 | CL-FM01–20; CL-MD01–05; CL-ST01–10 |
 
 ## Artefactos transversales
 
