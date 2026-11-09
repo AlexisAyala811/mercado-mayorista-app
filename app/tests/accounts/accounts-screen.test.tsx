@@ -478,7 +478,7 @@ it("searches counterparties and preserves filters after opening and leaving deta
   ).toBe("JOSE");
   await act(async () => {
     root.root
-      .findAll((node) => node.props.label === "Pagada")[0]
+      .findAll((node) => node.props.accessibilityRole === "radio" && String(node.props.accessibilityLabel).startsWith("Al día"))[0]
       .props.onPress();
   });
   expect(
@@ -693,4 +693,49 @@ it("shows the installments of a voided credit sale as «Anulada» in Cobranzas",
   expect(text).not.toContain("Cobrada");
   expect(text).not.toContain("Pagado");
   await act(async () => { root.unmount(); });
+});
+
+// Spec 011 (RQ-ST06, RQ-ST05): totals on top, «Abonar» from the card and the
+// account opened from Ver compras by its settlement.
+describe("Stitch convergence of Deudas", () => {
+  const metric = (root: ReactTestRenderer, label: string) =>
+    root.root.findAll((node) => node.props.label === label && typeof node.props.value === "string")[0]?.props.value;
+
+  it("shows the open balance, the payments of the month and the overdue balance on top", async () => {
+    jest.mocked(listAccounts).mockResolvedValue({
+      items: [{ ...detail.account, nextDueOn: "2000-01-01" }, { ...detail.account, id: "paid", state: "paid", balanceCents: "0" }],
+      total: 2, limit: 100, offset: 0,
+    });
+    let root!: ReactTestRenderer;
+    await act(async () => { root = create(withChrome(<AccountsScreen kind="payable" />)); });
+    expect(metric(root, "Deuda pendiente")).toBe("S/ 80.00");
+    expect(metric(root, "Vencido")).toBe("S/ 80.00");
+    expect(metric(root, "Abonado este mes")).toBe("S/ 0.00");
+    expect(root.root.findAll((node) => (node.type as unknown) === "test-control" && node.props.accessibilityRole === "radio").map((node) => node.props.label)).toEqual(["Pendientes 1", "Todas 2", "Al día 1", "Anuladas 0"]);
+    expect(root.root.findAll((node) => (node.type as unknown) === "test-control" && node.props.label === "Abonar")).toHaveLength(1);
+    await act(async () => root.unmount());
+  });
+
+  it("opens the payment form of the account from «Abonar» with the amount focused", async () => {
+    let root!: ReactTestRenderer;
+    await act(async () => { root = create(withChrome(<AccountsScreen kind="payable" />)); });
+    await act(async () => { root.root.findAll((node) => node.props.label === "Abonar")[0]!.props.onPress(); });
+    expect(getAccount).toHaveBeenCalledWith("test-token", "account-id");
+    expect(root.root.findAll((node) => node.props.label === "Pago al proveedor (S/)")[0]!.props.autoFocus).toBe(true);
+    await act(async () => root.unmount());
+  });
+
+  it("opens the account of the settlement requested by Ver compras, or says it is not there", async () => {
+    let root!: ReactTestRenderer;
+    await act(async () => { root = create(withChrome(<AccountsScreen kind="payable" openSourceId="purchase-id" />)); });
+    await act(async () => { await Promise.resolve(); });
+    expect(getAccount).toHaveBeenCalledWith("test-token", "account-id");
+    expect(root.root.findAll((node) => node.props.label === "Pago al proveedor (S/)")[0]!.props.autoFocus).toBe(true);
+    await act(async () => root.unmount());
+    jest.mocked(getAccount).mockClear();
+    await act(async () => { root = create(withChrome(<AccountsScreen kind="payable" openSourceId="other-settlement" />)); });
+    expect(getAccount).not.toHaveBeenCalled();
+    expect(root.root.findAll((node) => (node.type as unknown) === "test-control" && node.props.title === "Cuenta no encontrada")).toHaveLength(1);
+    await act(async () => root.unmount());
+  });
 });

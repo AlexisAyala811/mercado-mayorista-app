@@ -1,14 +1,16 @@
 import React from 'react';
 import { act, create, type ReactTestRenderer } from 'react-test-renderer';
 import { PurchaseHistoryScreen } from '@/features/reception/screens/purchase-history-screen';
-import { getPurchasePaymentStatus, getPurchaseSettlement, getReception, getSacks, listReceptions } from '@/services/api/reception-api';
+import { getPurchaseSettlement, getReception, getSacks } from '@/services/api/reception-api';
+import { listPurchaseHistory, purchaseHistorySummary } from '@/services/api/history-api';
 import type { PurchaseSettlement, Reception } from '@/domain/reception/reception';
 
 const mockEnqueue = jest.fn();
 jest.mock('@/features/sync/sync-queue-provider', () => ({ useSyncQueue: () => ({ enqueue: mockEnqueue, sendQueued: jest.fn() }) }));
 jest.mock('@/features/auth/session/session-provider', () => ({ useSession: () => ({ session: { accessToken: 'test-token', user: { role: 'wholesaler' } } }) }));
 jest.mock('expo-router', () => ({ useRouter: () => ({ push: jest.fn(), back: jest.fn() }) }));
-jest.mock('@/services/api/reception-api', () => ({ getPurchasePaymentStatus: jest.fn(), getPurchaseSettlement: jest.fn(), getReception: jest.fn(), getSacks: jest.fn(), listReceptions: jest.fn() }));
+jest.mock('@/services/api/reception-api', () => ({ getPurchaseSettlement: jest.fn(), getReception: jest.fn(), getSacks: jest.fn() }));
+jest.mock('@/services/api/history-api', () => ({ listPurchaseHistory: jest.fn(), purchaseHistorySummary: jest.fn() }));
 jest.mock('@/domain/reception/reception', () => ({ ...jest.requireActual('@/domain/reception/reception'), createOperationId: () => 'detail-operation' }));
 jest.mock('@/ui/components', () => {
   const react = jest.requireActual('react'); const control = (props: object) => react.createElement('test-control', props);
@@ -27,8 +29,8 @@ const settlement: PurchaseSettlement = {
 beforeEach(() => {
   (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
   jest.clearAllMocks();
-  jest.mocked(listReceptions).mockResolvedValue({ items: [reception], total: 1, limit: 20, offset: 0 });
-  jest.mocked(getPurchasePaymentStatus).mockResolvedValue([]);
+  jest.mocked(listPurchaseHistory).mockResolvedValue({ items: [{ receptionId: reception.id, receivedOn: reception.receivedOn, receptionState: reception.state, providerId: reception.providerId, providerName: null, settlementId: 'purchase-id', varieties: ['Amarilla', 'Canchán'], sacks: 3, netWeightKg: '145.000', totalCents: '30000', paidCents: '0', balanceCents: '30000', paymentState: 'debt' }], total: 1, limit: 20, offset: 0 });
+  jest.mocked(purchaseHistorySummary).mockResolvedValue({ balanceCents: '30000', counts: { all: 1, debt: 1, paid: 0, unsettled: 0, voided: 0 }, paidCents: '0', totalCents: '30000' });
   jest.mocked(getReception).mockResolvedValue(reception);
   jest.mocked(getSacks).mockResolvedValue([{ id: 'sack-id', sequence: 1, varietyId: 'v', grossWeightKg: '51.400', tareKg: '1.000', netWeightKg: '50.400' }]);
   jest.mocked(getPurchaseSettlement).mockResolvedValue(settlement);
@@ -39,7 +41,7 @@ const texts = (root: ReactTestRenderer) => host(root, (props) => typeof props.ch
 async function openDetail() {
   let root!: ReactTestRenderer;
   await act(async () => { root = create(<PurchaseHistoryScreen />); });
-  await act(async () => { host(root, (props) => props.label === 'Abrir detalle')[0]!.props.onPress(); await Promise.resolve(); });
+  await act(async () => { host(root, (props) => props.label === 'Ver detalle')[0]!.props.onPress(); await Promise.resolve(); });
   return root;
 }
 

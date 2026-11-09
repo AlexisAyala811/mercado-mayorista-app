@@ -61,13 +61,14 @@ export type SalesHistoryQuery = {
   search?: string;
   buyerId?: string;
   state?: "confirmed" | "voided";
+  paymentState?: "paid" | "debt" | "voided";
 };
 export const listSales = (token: string, query: SalesHistoryQuery = {}) => {
   const params = new URLSearchParams({
     limit: String(query.limit ?? 100),
     offset: String(query.offset ?? 0),
   });
-  for (const key of ["from", "to", "search", "buyerId", "state"] as const)
+  for (const key of ["from", "to", "search", "buyerId", "state", "paymentState"] as const)
     if (query[key]) params.set(key, query[key]!);
   return apiRequest<Page<Sale>>(`/sales?${params.toString()}`, auth(token));
 };

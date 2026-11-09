@@ -1,9 +1,8 @@
 import { BottomNavSlots } from '@/ui/navigation/app-chrome';
-import { paymentStatusView, receptionsWithPayment } from "@/domain/reception/payment-status";
 import { formatKilograms, kilogramsDraft, validateSackWeights } from "@/domain/reception/whole-kilograms";
 import { freightLabel, SettlementLotList } from "@/features/reception/components/settlement-lot-list";
 import {commercialDescription} from '@/domain/catalog/commercial-characteristic';
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useRouter, type Href } from "expo-router";
 
@@ -19,10 +18,6 @@ import {
   getPurchaseSettlement,
   getReception,
   getSacks,
-  listReceptions,
-  getPurchasePaymentStatus,
-  type PurchasePaymentStatus,
-  type ReceptionsHistoryQuery,
 } from "@/services/api/reception-api";
 import {
   AppButton,
@@ -39,13 +34,10 @@ import {
 import { color, radius, spacing, typography } from "@/ui/tokens";
 
 import { useSyncQueue } from "@/features/sync/sync-queue-provider";
+import { CommercialHistoryList, type HistoryListState, type HistoryQuery } from "@/features/history/commercial-history-list";
+import { purchaseCard, type HistoryChip } from "@/domain/shared/history-cards";
+import { listPurchaseHistory, purchaseHistorySummary } from "@/services/api/history-api";
 
-import {
-  emptyReceptionsHistoryFilters,
-  receptionsHistoryQuery,
-  validateReceptionsHistoryFilters,
-  type ReceptionsHistoryFilters,
-} from "@/domain/reception/receptions-history";
 
 type Action =
   "void-reception" | "void-purchase" | "void-sack" | "correct-sack" | null;
@@ -54,9 +46,6 @@ export function PurchaseHistoryScreen() {
   const router = useRouter();
   const { session } = useSession();
   const token = session?.accessToken ?? "";
-  const [receptions, setReceptions] = useState<Reception[]>([]);
-  // Spec 011 (CL-MD05): server payment state per reception, or 'unavailable' offline.
-  const [paymentStatus, setPaymentStatus] = useState<Map<string, PurchasePaymentStatus> | 'unavailable' | null>(null);
   const [reception, setReception] = useState<Reception | null>(null);
   const [sacks, setSacks] = useState<ReceptionSack[]>([]);
   const [settlement, setSettlement] = useState<PurchaseSettlement | null>(null);
@@ -65,7 +54,6 @@ export function PurchaseHistoryScreen() {
   const [tare, setTare] = useState("");
   const [reason, setReason] = useState("");
   const [action, setAction] = useState<Action>(null);
-  const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -74,131 +62,15 @@ export function PurchaseHistoryScreen() {
   const submitting = useRef(false);
   const [needsRefresh, setNeedsRefresh] = useState(false);
 
-  const [filters, setFilters] = useState(emptyReceptionsHistoryFilters);
-  const [appliedQuery, setAppliedQuery] = useState<ReceptionsHistoryQuery>({});
-  const [pageOffset, setPageOffset] = useState(0);
-  const [total, setTotal] = useState(0);
-  const [listLoaded, setListLoaded] = useState(false);
+  // Spec 011 (RQ-ST05): the list keeps its search, chip and page while a
+  // detail is open, and reloads from the server when it comes back.
   const [detailLoading, setDetailLoading] = useState(false);
-  const [canRetryQuery, setCanRetryQuery] = useState(false);
-  const requestSequence = useRef(0);
-  const lastRequest = useRef<{ query: ReceptionsHistoryQuery; offset: number }>(
-    { query: {}, offset: 0 },
-  );
-  const invalidateRequests = useCallback(() => {
-    requestSequence.current++;
-  }, []);
-  const pageSize = 20;
-  const applyPage = useCallback(
-    (
-      value: Awaited<ReturnType<typeof listReceptions>>,
-      query: ReceptionsHistoryQuery,
-      offset: number,
-    ) => {
-      setReceptions(value.items);
-      setPaymentStatus(null);
-      const ids = receptionsWithPayment(value.items);
-      const request = requestSequence.current;
-      if (ids.length)
-        getPurchasePaymentStatus(token, ids)
-          .then((items) => { if (request === requestSequence.current) setPaymentStatus(new Map(items.map((item) => [item.receptionId, item]))); })
-          .catch(() => { if (request === requestSequence.current) setPaymentStatus('unavailable'); });
-      setTotal(value.total);
-      setAppliedQuery(query);
-      setPageOffset(offset);
-      setListLoaded(true);
-    },
-    [token],
-  );
-  async function loadList(
-    query: ReceptionsHistoryQuery = appliedQuery,
-    offset = pageOffset,
-  ) {
-    const request = ++requestSequence.current;
-    lastRequest.current = { query, offset };
-    setLoading(true);
-    setError(null);
-    setCanRetryQuery(false);
-    setReceptions([]);
-    setListLoaded(false);
-    try {
-      let value = await listReceptions(token, {
-        ...query,
-        limit: pageSize,
-        offset,
-      });
-      if (request !== requestSequence.current) return;
-      if (offset > 0 && !value.items.length) {
-        offset = 0;
-        lastRequest.current = { query, offset };
-        value = await listReceptions(token, {
-          ...query,
-          limit: pageSize,
-          offset,
-        });
-      }
-      if (request === requestSequence.current) applyPage(value, query, offset);
-    } catch (cause) {
-      if (request === requestSequence.current) {
-        setCanRetryQuery(true);
-        setError(
-          cause instanceof Error
-            ? cause.message
-            : "No se pudieron cargar las recepciones.",
-        );
-      }
-    } finally {
-      if (request === requestSequence.current) setLoading(false);
-    }
-  }
-  useEffect(() => {
-    const request = ++requestSequence.current;
-    listReceptions(token, { limit: 20, offset: 0 })
-      .then((value) => {
-        if (request === requestSequence.current) applyPage(value, {}, 0);
-      })
-      .catch((cause) => {
-        if (request === requestSequence.current) {
-          setCanRetryQuery(true);
-          setError(
-            cause instanceof Error
-              ? cause.message
-              : "No se pudieron cargar las recepciones.",
-          );
-        }
-      })
-      .finally(() => {
-        if (request === requestSequence.current) setLoading(false);
-      });
-    return invalidateRequests;
-  }, [applyPage, invalidateRequests, token]);
-  function changeFilter<Key extends keyof ReceptionsHistoryFilters>(
-    key: Key,
-    value: ReceptionsHistoryFilters[Key],
-  ) {
-    invalidateRequests();
-    setFilters((current) => ({ ...current, [key]: value }));
-    setReceptions([]);
-    setTotal(0);
-    setListLoaded(false);
-    setLoading(false);
-    setError(null);
-    setCanRetryQuery(false);
-  }
-  function search() {
-    const message = validateReceptionsHistoryFilters(filters);
-    if (message) {
-      setError(message);
-      setCanRetryQuery(false);
-      return;
-    }
-    void loadList(receptionsHistoryQuery(filters), 0);
-  }
-  function clearFilters() {
-    const next = emptyReceptionsHistoryFilters();
-    setFilters(next);
-    void loadList(receptionsHistoryQuery(next), 0);
-  }
+  const [listState, setListState] = useState<HistoryListState | undefined>(undefined);
+  const loadPage = useCallback(async (query: HistoryQuery, chip: HistoryChip, offset: number) => {
+    const value = await listPurchaseHistory(token, { ...query, limit: 20, offset, paymentState: chip === 'all' ? undefined : chip });
+    return { items: value.items.map(purchaseCard), total: value.total };
+  }, [token]);
+  const loadSummary = useCallback((query: HistoryQuery) => purchaseHistorySummary(token, query), [token]);
 
   async function readDetail(id: string) {
     const [current, bagRows] = await Promise.all([
@@ -214,14 +86,12 @@ export function PurchaseHistoryScreen() {
     setSettlement(purchase);
     setNeedsRefresh(false);
   }
-  async function open(value: Reception) {
-    invalidateRequests();
+  async function open(id: string) {
     setDetailLoading(true);
     setError(null);
     setSuccess(null);
-    setCanRetryQuery(false);
     try {
-      await readDetail(value.id);
+      await readDetail(id);
     } catch (cause) {
       setError(
         cause instanceof Error
@@ -238,7 +108,6 @@ export function PurchaseHistoryScreen() {
     setError(null);
     try {
       await readDetail(reception.id);
-      await loadList();
     } catch (cause) {
       setError(
         cause instanceof Error
@@ -356,7 +225,6 @@ export function PurchaseHistoryScreen() {
       setSack(null);
       setReason("");
       await readDetail(reception.id);
-      await loadList();
     } catch (cause) {
       if (saved) {
         setAction(null);
@@ -384,139 +252,19 @@ export function PurchaseHistoryScreen() {
     return (
       <AppScreen contentContainerStyle={styles.screen}>
         <ScreenHeader
-          eyebrow="COMPRAS"
-          title="Historial de recepciones"
-          description="Busca compras y pesajes por fecha de recepción o proveedor. Consulta el detalle y sus correcciones trazables."
+          eyebrow="COMPRA · COMPRAS PAGADAS Y CON DEUDA"
+          title="Ver compras"
         />
-        <View style={styles.top}><AppButton label="Actualizar" disabled={loading} onPress={search} tone="secondary" /></View>
-        <AppCard title="Buscar operaciones">
-          <View style={styles.filterFields}>
-            <View style={styles.filterField}>
-              <FormField
-                label="Desde"
-                placeholder="aaaa-mm-dd"
-                value={filters.from}
-                onChangeText={(value) => changeFilter("from", value)}
-              />
-            </View>
-            <View style={styles.filterField}>
-              <FormField
-                label="Hasta"
-                placeholder="aaaa-mm-dd"
-                value={filters.to}
-                onChangeText={(value) => changeFilter("to", value)}
-              />
-            </View>
-            <View style={styles.filterField}>
-              <FormField
-                label="Participante comercial"
-                placeholder="Nombre del proveedor"
-                value={filters.search}
-                onChangeText={(value) => changeFilter("search", value)}
-              />
-            </View>
-          </View>
-          <View style={styles.filterActions}>
-            {(
-              [
-                "all",
-                "draft",
-                "weighing",
-                "weighed",
-                "settled",
-                "voided",
-              ] as const
-            ).map((state) => (
-              <AppButton
-                key={state}
-                label={state === "all" ? "Todas" : stateName(state)}
-                accessibilityRole="radio"
-                accessibilityState={{ checked: filters.state === state }}
-                onPress={() => changeFilter("state", state)}
-                tone={filters.state === state ? "primary" : "secondary"}
-              />
-            ))}
-          </View>
-          <View style={styles.filterActions}>
-            <AppButton label="Buscar" onPress={search} />
-            <AppButton
-              label="Limpiar filtros"
-              onPress={clearFilters}
-              tone="secondary"
-            />
-          </View>
-        </AppCard>
-        {error ? (
-          <FeedbackState
-            title="No se pudo completar"
-            message={error}
-            tone="error"
-            actionLabel={canRetryQuery ? "Reintentar consulta" : undefined}
-            onAction={() =>
-              void loadList(
-                lastRequest.current.query,
-                lastRequest.current.offset,
-              )
-            }
-          />
-        ) : null}
-        {loading ? (
-          <LoadingState label="Consultando historial de compras" />
-        ) : null}
-        {!loading && listLoaded ? (
-          <Text accessibilityLiveRegion="polite">
-            {total
-              ? `${pageOffset + 1}–${pageOffset + receptions.length} de ${total} operaciones`
-              : "0 operaciones"}{" "}
-            · {appliedQuery.from ?? "Sin inicio"} /{" "}
-            {appliedQuery.to ?? "Sin límite"} ·{" "}
-            {appliedQuery.search ?? "Todos los proveedores"}
-          </Text>
-        ) : null}
-        {!loading &&
-          receptions.map((item) => (
-            <AppCard
-              key={item.id}
-              title={`${item.providerName ?? "Proveedor registrado"} · ${item.receivedOn}`}
-              description={`${stateName(item.state)} · ${item.driverName} · versión ${item.version}`}
-            >
-              <PaymentStatusLine reception={item} status={paymentStatus} />
-              <AppButton
-                label="Abrir detalle"
-                accessibilityLabel={`Abrir detalle de compra de ${item.providerName ?? 'proveedor registrado'}, ${item.receivedOn}, operación ${item.id}`}
-                onPress={() => void open(item)}
-                tone="secondary"
-              />
-            </AppCard>
-          ))}
-        {!loading && !error && !receptions.length ? (
-          <EmptyState
-            title={listLoaded ? "Sin resultados" : "Aplica los filtros"}
-            message={
-              listLoaded
-                ? "No hay recepciones que coincidan con esta búsqueda."
-                : "Pulsa Buscar para consultar el historial con estos criterios."
-            }
-          />
-        ) : null}
-        {!loading && listLoaded && total > pageSize ? (
-          <View style={styles.filterActions}>
-            <AppButton
-              label="Página anterior"
-              disabled={pageOffset === 0}
-              onPress={() =>
-                void loadList(appliedQuery, Math.max(0, pageOffset - pageSize))
-              }
-              tone="secondary"
-            />
-            <AppButton
-              label="Página siguiente"
-              disabled={pageOffset + receptions.length >= total}
-              onPress={() => void loadList(appliedQuery, pageOffset + pageSize)}
-              tone="secondary"
-            />
-          </View>
-        ) : null}
+        {error ? <FeedbackState title="No se pudo abrir la compra" message={error} tone="error" /> : null}
+        <CommercialHistoryList
+          kind="purchase"
+          initial={listState}
+          onStateChange={setListState}
+          loadPage={loadPage}
+          loadSummary={loadSummary}
+          onOpen={(card) => void open(card.id)}
+          onSettle={(card) => router.push({ pathname: '/debts', params: { sourceId: card.sourceId ?? '' } } as Href)}
+        />
       </AppScreen>
     );
 
@@ -706,27 +454,6 @@ export function PurchaseHistoryScreen() {
     </>
   );
 }
-
-function PaymentStatusLine({ reception, status }: { reception: Reception; status: Map<string, PurchasePaymentStatus> | "unavailable" | null }) {
-  if (reception.state !== "settled" && reception.state !== "voided") return null;
-  if (status === "unavailable") return <Text style={styles.paymentUnavailable}>Estado de pago no disponible sin conexión.</Text>;
-  const item = status?.get(reception.id);
-  if (!item) return status ? null : <Text style={styles.paymentUnavailable}>Consultando estado de pago…</Text>;
-  const view = paymentStatusView(item);
-  const tone = view.tone === "success" ? paymentTones.paid : view.tone === "danger" ? paymentTones.debt : paymentTones.voided;
-  return (
-    <View accessibilityLabel={`Estado de pago: ${view.label}${view.detail ? `, ${view.detail}` : ""}`} style={[styles.paymentBadge, tone.box]}>
-      <Text style={[styles.paymentLabel, tone.text]}>{view.label}</Text>
-      {view.detail ? <Text style={[styles.paymentDetail, tone.text]}>{view.detail}</Text> : null}
-    </View>
-  );
-}
-
-const paymentTones = {
-  paid: StyleSheet.create({ box: { backgroundColor: color.successMuted, borderColor: color.successAccent }, text: { color: color.success } }),
-  debt: StyleSheet.create({ box: { backgroundColor: color.dangerMuted, borderColor: color.dangerAccent }, text: { color: color.danger } }),
-  voided: StyleSheet.create({ box: { backgroundColor: color.surface, borderColor: color.border }, text: { color: color.textSecondary } }),
-};
 
 function stateName(value: Reception["state"]) {
   return (

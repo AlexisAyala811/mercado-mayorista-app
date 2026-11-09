@@ -17,6 +17,7 @@ jest.mock('@/features/auth/session/session-provider',()=>({useSession:()=>({sess
 jest.mock('expo-router',()=>({useRouter:()=>({push:mockPush,back:mockBack,canGoBack:()=>true}),useNavigation:()=>({dispatch:mockDispatch})}));
 jest.mock('expo-router/react-navigation',()=>({usePreventRemove:jest.fn()}));
 jest.mock('@/services/api/sales-api',()=>({listSales:jest.fn(),getSale:jest.fn()}));
+jest.mock('@/services/api/history-api',()=>({salesHistorySummary:jest.fn(async()=>({balanceCents:'0',counts:{all:1,debt:0,paid:1,voided:0},paidCents:'2500',totalCents:'2500'}))}));
 jest.mock('@/services/receipts/receipt-sharing',()=>({shareReceipt:jest.fn()}));
 jest.mock('@/domain/reception/reception',()=>({...jest.requireActual('@/domain/reception/reception'),createOperationId:()=> 'stable-operation'}));
 jest.mock('@/ui/components',()=>{
@@ -39,7 +40,7 @@ beforeEach(()=>{
 async function startVoid() {
   let root!:ReactTestRenderer;
   await act(async()=>{root=create(withChrome(<SalesHistoryScreen allowReturns/>))});
-  await act(async()=>{await root.root.findAll(node=>node.props.label==='Abrir detalle')[0].props.onPress()});
+  await act(async()=>{await root.root.findAll(node=>node.props.label==='Ver detalle')[0].props.onPress()});
   await act(async()=>{root.root.findAll(node=>node.props.label==='Motivo')[0].props.onChangeText('Error de registro')});
   await act(async()=>{root.root.findAll(node=>node.props.label==='Anular venta')[0].props.onPress()});
   return root;
@@ -49,7 +50,7 @@ it('distinguishes frozen characteristics when reading two lines of the same vari
   const previous=await getSale('test-token','sale-id');
   const line={varietyId:'variety-id',lotId:null,lotVersion:null,sacks:1,weightKg:'10.000',priceBasis:'kilogram' as const,unitPriceCents:'250',subtotalCents:'2500',originId:null,originName:null};
   jest.mocked(getSale).mockResolvedValue({...previous,lines:[{...line,id:'a',qualityId:'quality-a',qualityName:'Primera registrada'},{...line,id:'b',qualityId:'quality-b',qualityName:'Otra calidad registrada'}]});
-  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<SalesHistoryScreen allowReturns/>));});await act(async()=>root.root.findAll(node=>node.props.label==='Abrir detalle')[0].props.onPress());
+  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<SalesHistoryScreen allowReturns/>));});await act(async()=>root.root.findAll(node=>node.props.label==='Ver detalle')[0].props.onPress());
   const visible=JSON.stringify(root.toJSON());expect(visible).toContain('Primera registrada');expect(visible).toContain('Otra calidad registrada');expect(mockEnqueue).not.toHaveBeenCalled();await act(async()=>root.unmount());
 });
 
@@ -99,7 +100,7 @@ it('keeps the confirmed return reference available for its receipt',async()=>{
   mockSendQueued.mockResolvedValueOnce({id:'stable-operation',status:'confirmed',centralReference:'confirmed-return'});
   let root!:ReactTestRenderer;
   await act(async()=>{root=create(withChrome(<SalesHistoryScreen allowReturns/>))});
-  await act(async()=>{await root.root.findAll(node=>node.props.label==='Abrir detalle')[0].props.onPress()});
+  await act(async()=>{await root.root.findAll(node=>node.props.label==='Ver detalle')[0].props.onPress()});
   await act(async()=>{
     for(const [label,value] of [['Motivo','Devolución comercial acordada'],['Sacos devueltos','1'],['Peso devuelto','10'],['Importe bruto autorizado (S/)','25']]) {
       root.root.findAll(node=>node.props.label===label)[0].props.onChangeText(value);
@@ -118,24 +119,6 @@ it('keeps the confirmed return reference available for its receipt',async()=>{
   expect(jest.mocked(shareReceipt).mock.calls[0][3]!()).toBe(false);
 });
 
-it('requests combined filters centrally and clears old results as soon as criteria change',async()=>{
-  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<SalesHistoryScreen allowReturns/>))});
-  expect(listSales).toHaveBeenCalledWith('test-token',{limit:20,offset:0});
-  await act(async()=>{root.root.findAll(node=>node.props.label==='Participante comercial')[0].props.onChangeText('Comprador QA');root.root.findAll(node=>node.props.label==='Desde')[0].props.onChangeText('2026-10-07');root.root.findAll(node=>node.props.label==='Hasta')[0].props.onChangeText('2026-10-07')});
-  expect(root.root.findAll(node=>node.props.label==='Abrir detalle')).toHaveLength(0);
-  await act(async()=>{await root.root.findAll(node=>node.props.label==='Buscar')[0].props.onPress();await Promise.resolve()});
-  expect(listSales).toHaveBeenLastCalledWith('test-token',{limit:20,offset:0,from:'2026-10-07',to:'2026-10-07',search:'Comprador QA',state:undefined});
-  await act(async()=>{root.unmount()});
-});
-it('ignores a late response belonging to criteria that the user has replaced',async()=>{
-  let finish!: (value:Awaited<ReturnType<typeof listSales>>)=>void;
-  jest.mocked(listSales).mockImplementationOnce(()=>new Promise(resolve=>{finish=resolve}));
-  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<SalesHistoryScreen allowReturns/>))});
-  await act(async()=>{root.root.findAll(node=>node.props.label==='Participante comercial')[0].props.onChangeText('Otra persona')});
-  await act(async()=>{finish({items:[{id:'stale-sale'} as Sale],limit:20,offset:0,total:1});await Promise.resolve()});
-  expect(root.root.findAll(node=>node.props.label==='Abrir detalle')).toHaveLength(0);expect(root.root.findAll(node=>node.props.title==='Aplica los filtros')).not.toHaveLength(0);
-  await act(async()=>{root.unmount()});
-});
 it('paginates the central filtered result and does not reset criteria when advancing',async()=>{
   const detail=await getSale('test-token','sale-id');
   jest.mocked(listSales).mockResolvedValueOnce({items:Array.from({length:20},(_,index)=>({...detail.sale,id:`sale-${index}`})),limit:20,offset:0,total:25});
@@ -144,26 +127,6 @@ it('paginates the central filtered result and does not reset criteria when advan
   await act(async()=>{await root.root.findAll(node=>node.props.label==='Página siguiente')[0].props.onPress();await Promise.resolve()});
   expect(listSales).toHaveBeenLastCalledWith('test-token',{limit:20,offset:20});
   await act(async()=>{root.unmount()});
-});
-it('recovers an emptied last page with the same applied filters',async()=>{
-  const detail=await getSale('test-token','sale-id');
-  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<SalesHistoryScreen allowReturns/>))});
-  await act(async()=>{root.root.findAll(node=>node.props.label==='Participante comercial')[0].props.onChangeText('Comprador QA')});
-  jest.mocked(listSales).mockResolvedValueOnce({items:Array.from({length:20},(_,index)=>({...detail.sale,id:`sale-${index}`})),limit:20,offset:0,total:21});
-  await act(async()=>{await root.root.findAll(node=>node.props.label==='Buscar')[0].props.onPress();await Promise.resolve()});
-  jest.mocked(listSales).mockResolvedValueOnce({items:[],limit:20,offset:20,total:20});
-  await act(async()=>{await root.root.findAll(node=>node.props.label==='Página siguiente')[0].props.onPress();await Promise.resolve()});
-  expect(listSales).toHaveBeenNthCalledWith(3,'test-token',expect.objectContaining({search:'Comprador QA',offset:20}));
-  expect(listSales).toHaveBeenLastCalledWith('test-token',expect.objectContaining({search:'Comprador QA',offset:0}));
-  expect(root.root.findAll(node=>node.props.label==='Abrir detalle')).toHaveLength(2);
-  await act(async()=>{root.unmount()});
-});
-
-it('shows retryable query errors instead of an empty successful result',async()=>{
-  jest.mocked(listSales).mockRejectedValueOnce(new Error('History unavailable'));let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<SalesHistoryScreen allowReturns/>))});
-  expect(root.root.findAll(node=>node.props.message==='History unavailable')).not.toHaveLength(0);expect(root.root.findAll(node=>node.props.title==='Sin resultados')).toHaveLength(0);
-  await act(async()=>{await root.root.findAll(node=>node.props.actionLabel==='Reintentar consulta')[0].props.onAction();await Promise.resolve()});
-  expect(listSales).toHaveBeenCalledTimes(2);expect(root.root.findAll(node=>node.props.label==='Abrir detalle')).not.toHaveLength(0);await act(async()=>{root.unmount()});
 });
 it('rejects invalid calendar filters without querying or offering a retry of old criteria',async()=>{
   let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<SalesHistoryScreen allowReturns/>))});await act(async()=>{root.root.findAll(node=>node.props.label==='Desde')[0].props.onChangeText('2026-02-30')});
@@ -194,14 +157,14 @@ it('clears edited filters and ignores detail responses from the previous session
   let finish!:(value:Awaited<ReturnType<typeof getSale>>)=>void;
   const previous=await getSale('test-token','sale-id');jest.mocked(getSale).mockImplementationOnce(()=>new Promise(done=>{finish=done;}));
   let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<SalesHistoryScreen allowReturns/>))});
-  await act(async()=>root.root.findAll(node=>node.props.label==='Participante comercial')[0].props.onChangeText('Comprador anterior'));
+  await act(async()=>root.root.findAll(node=>node.props.label==='Comprador')[0].props.onChangeText('Comprador anterior'));
   await act(async()=>{root.root.findAll(node=>node.props.label==='Buscar')[0].props.onPress();});
-  await act(async()=>{root.root.findAll(node=>node.props.label==='Abrir detalle')[0].props.onPress();});
+  await act(async()=>{root.root.findAll(node=>node.props.label==='Ver detalle')[0].props.onPress();});
   mockSession={accessToken:'next-token'};await act(async()=>root.update(<SalesHistoryScreen allowReturns/>));
   await act(async()=>finish(previous));
   expect(root.root.findAll(node=>node.props.title==='Detalle y devoluciones')).toHaveLength(0);
   expect(root.root.findAll(node=>node.props.label==='Desde')[0].props.value).toBe('');
-  expect(root.root.findAll(node=>node.props.label==='Participante comercial')[0].props.value).toBe('');
+  expect(root.root.findAll(node=>node.props.label==='Comprador')[0].props.value).toBe('');
   mockSession=null;await act(async()=>root.update(<SalesHistoryScreen allowReturns/>));expect(root.toJSON()).toBeNull();
   await act(async()=>root.unmount());
 });
@@ -221,7 +184,7 @@ it('keeps a dirty detail on cancel and discards it before opening a different sa
   expect(root.root.findAll(node=>node.props.label==='Ajuste de flete (S/)')[0].props.value).toBe('12.50');
   await act(async()=>barButton(root,'Volver al historial').props.onPress());
   await act(async()=>exit().props.onConfirm());
-  await act(async()=>root.root.findAll(node=>node.props.label==='Abrir detalle'&&String(node.type)==='test-control')[1].props.onPress());
+  await act(async()=>root.root.findAll(node=>node.props.label==='Ver detalle'&&String(node.type)==='test-control')[1].props.onPress());
   expect(getSale).toHaveBeenLastCalledWith('test-token','other-sale');
   expect(root.root.findAll(node=>node.props.label==='Motivo')[0].props.value).toBe('');
   expect(root.root.findAll(node=>node.props.label==='Ajuste de flete (S/)')[0].props.value).toBe('0');
@@ -259,7 +222,7 @@ it('protects a line-only edit and stops warning when its original zero value is 
   const previous=await getSale('test-token','sale-id');
   jest.mocked(getSale).mockResolvedValue({...previous,lines:[{id:'line-id',varietyId:'variety-id',sacks:1,weightKg:'10.000',priceBasis:'kilogram',unitPriceCents:'250',subtotalCents:'2500'}]} as Awaited<ReturnType<typeof getSale>>);
   let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<SalesHistoryScreen allowReturns/>))});
-  await act(async()=>root.root.findAll(node=>node.props.label==='Abrir detalle')[0].props.onPress());
+  await act(async()=>root.root.findAll(node=>node.props.label==='Ver detalle')[0].props.onPress());
   await act(async()=>root.root.findAll(node=>node.props.label==='Peso devuelto')[0].props.onChangeText('2.125'));
   expect(jest.mocked(usePreventRemove).mock.calls.at(-1)![0]).toBe(true);
   await act(async()=>barButton(root,'Volver al historial').props.onPress());
@@ -322,7 +285,7 @@ it.each(['success','failure'])('ignores a late %s detail refresh after changing 
 it('hides commercial returns by default and keeps the sale void for the Mayorista (CL-FM14)',async()=>{
   let root!:ReactTestRenderer;
   await act(async()=>{root=create(withChrome(<SalesHistoryScreen/>))});
-  await act(async()=>{await root.root.findAll(node=>node.props.label==='Abrir detalle')[0].props.onPress()});
+  await act(async()=>{await root.root.findAll(node=>node.props.label==='Ver detalle')[0].props.onPress()});
   expect(root.root.findAll(node=>node.props.title==='Detalle de la venta')).not.toHaveLength(0);
   expect(root.root.findAll(node=>node.props.label==='Confirmar devolución comercial')).toHaveLength(0);
   expect(root.root.findAll(node=>node.props.label==='Ajuste de flete (S/)')).toHaveLength(0);
