@@ -83,3 +83,19 @@ T1167 ───────────┤
 T1168 ───────────┤
 T1170 ───────────┘
 ```
+
+## Igualdad con Stitch — 9 de noviembre de 2026
+
+Especificación: [RQ-ST10–RQ-ST14](spec.md#igualdad-con-stitch--9-de-noviembre-de-2026) · Plan: [sección del 9 de noviembre](plan.md#igualdad-con-stitch--9-de-noviembre-de-2026)
+
+- [ ] **T1180** Tokens tomados de las maquetas y su prueba de contraste. *Verificación:* `tests/ui/contrast.test.ts`.
+- [ ] **T1181** Menú con interruptor Compra / Venta, seis tarjetas por lado y «Más opciones». *Verificación:* pruebas por rol; captura junto a las dos maquetas del menú.
+- [ ] **T1182** Acceso con operadores recientes y «Mantener estación activa». *Verificación:* pruebas del almacenamiento local y del acceso; captura junto a la maqueta.
+- [ ] **T1183** Compra en una pantalla con cuadrícula, lotes, tabla, flete, resumen y «Guardar compra». *Verificación:* pruebas del flujo, de la cola y de 250 sacos; captura junto a las dos maquetas de registro de compra.
+- [ ] **T1184** Venta igual a «Anote de venta». *Verificación:* pruebas de venta; captura.
+- [ ] **T1185** Ver compras, Ver ventas, Deudas y Cobranzas iguales a sus maquetas. *Verificación:* capturas.
+- [ ] **T1186** Carros con botón flotante. *Verificación:* captura.
+- [ ] **T1187** Reportes de compras y de ventas iguales a sus maquetas. *Verificación:* pruebas; capturas.
+- [ ] **T1188** Analítica igual a su maqueta. *Verificación:* pruebas; captura.
+- [ ] **T1189** Guardado igual a su maqueta. *Verificación:* captura.
+- [ ] **T1190** Comparación final de las 16 maquetas con sus capturas en 1280 × 800, teléfono y texto al 200 %. *Verificación:* documento con capturas lado a lado.
