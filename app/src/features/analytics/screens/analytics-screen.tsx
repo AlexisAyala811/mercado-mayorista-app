@@ -12,6 +12,7 @@ import { EvaluationPanel } from './evaluation-panel';
 import { EvaluationHistory } from './evaluation-history';
 import { PublicationHistory } from './publication-history';
 import {PointSources} from './point-sources';
+import { PriceBoard } from './price-board';
 
 function filterName(options: AnalyticsFilterOption[], id: string) {
   if (id === 'unreported') return 'No informada';
@@ -19,12 +20,14 @@ function filterName(options: AnalyticsFilterOption[], id: string) {
   return selected ? analyticsFilterLabel(selected) : undefined;
 }
 
-export function AnalyticsScreen() {
+// priceBoard (spec 011, RQ-ST08): Analítica opens with the price board; false
+// leaves only the filtered analysis (used to test the descriptive queries).
+export function AnalyticsScreen({ priceBoard = true }: { priceBoard?: boolean }) {
   const { session } = useSession();
-  return session ? <AnalyticsContent key={session.accessToken} /> : null;
+  return session ? <AnalyticsContent key={session.accessToken} priceBoard={priceBoard} /> : null;
 }
 
-function AnalyticsContent() {
+function AnalyticsContent({ priceBoard }: { priceBoard: boolean }) {
   const { session, invalidateSession } = useSession();
   const token = session?.accessToken ?? '';
   const [period, setPeriod] = useState(() => { const to = formatLimaDateInput(); return { from: `${to.slice(0, 8)}01`, to }; });
@@ -98,6 +101,7 @@ function AnalyticsContent() {
   const selectedDialog = dialogs[dialog ?? 'variety'];
   return <><AppScreen contentContainerStyle={styles.screen}>
     <ScreenHeader eyebrow="ANALÍTICA" title="Tendencias comerciales" description="Precios pactados y cantidades de operaciones confirmadas, separados por semana y variedad." />
+    {priceBoard ? <PriceBoard token={token} /> : null}
     <AppCard title="Periodo, variedad y participantes">
       <View style={styles.fields}>
         <View style={styles.field}><FormField editable={!busy} label="Desde" value={period.from} onChangeText={from => { clearResult(); setPeriod(current => ({ ...current, from })); }} /></View>
@@ -142,13 +146,12 @@ function AnalyticsContent() {
       <Text style={styles.meta}>Periodo {data.filters.from} – {data.filters.to} · {data.timeZone}{'\n'}Actualizado {formatLimaDateTime(data.generatedAt)}</Text>
       <Text style={styles.meta}>Compras: {data.filters.providerId ? filterName(providers, data.filters.providerId) ?? data.filters.providerId : 'Todos los proveedores'} · Ventas: {data.filters.buyerId ? filterName(buyers, data.filters.buyerId) ?? data.filters.buyerId : 'Todos los compradores'}</Text>
       <Text style={styles.meta}>Calidad: {data.filters.qualityId ? filterName(qualities, data.filters.qualityId) ?? data.filters.qualityId : 'Todas las calidades'} · Procedencia: {data.filters.originId ? filterName(origins, data.filters.originId) ?? data.filters.originId : 'Todas las procedencias'}</Text>
-      <Text style={styles.text}>El precio por kg pondera el peso real. Corresponde a mercadería antes de descuentos, adelantos y flete. Las devoluciones comerciales reducen cantidades e importes al cierre consultado.</Text>
+      <Text style={styles.text}>El precio por kg pondera el peso real. Corresponde a mercadería antes de descuentos, adelantos y flete.</Text>
       {!data.points.length ? <EmptyState title="Sin operaciones analizables" message="No hay cantidades comerciales válidas en este periodo y variedad. Prueba otro periodo." /> : null}
       {data.points.slice().reverse().map(point => <AppCard key={`${point.operationType}:${point.varietyId}:${point.weekStart}`} title={`${point.operationType === 'purchase' ? 'Compras' : 'Ventas'} · ${point.varietyName}`} description={`${point.weekStart} – ${point.weekEnd} · ${point.complete ? 'Semana completa' : 'Semana parcial'}`}>
         <Text style={styles.price}>S/ {point.priceSolesPerKg} por kg</Text>
         <Text style={styles.text}>{point.operationCount} {point.operationCount === 1 ? 'operación' : 'operaciones'} · {point.sacks} {point.sacks === 1 ? 'saco' : 'sacos'} · {point.weightKg} kg</Text>
         <Text style={styles.meta}>{comparisons.get(analyticsPointKey(point))}</Text>
-        {point.compensationIds.length ? <Text style={styles.meta}>{point.compensationIds.length} devoluciones comerciales incorporadas</Text> : null}
         <PointSources point={point}/>
       </AppCard>)}
       {data.excluded.length ? <FeedbackState title="Operaciones excluidas" message={`${data.excluded.length} registros no aportan cantidades válidas o quedaron totalmente compensados. No se rellenaron precios ni pesos.`} tone="warning" /> : null}

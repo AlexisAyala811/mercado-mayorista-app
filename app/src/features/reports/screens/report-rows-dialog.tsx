@@ -56,7 +56,7 @@ export function ReportRowsDialog({ token, selection, report, onClose, onSessionE
             <Text style={styles.value}>{row.sacks} sacos · {row.weight} kg</Text>
             <Text style={styles.help}>Subtotal bruto asignado: {row.subtotal === null ? 'No distribuido' : formatMoney(row.subtotal)}</Text>
           </View>)}
-          <Text style={styles.help}>{report === 'variety' ? 'Una operación puede incluir varias variedades. No se distribuyen descuentos ni fletes comunes. En compras no existe importe asignado por saco.' : 'El saldo es actual, no histórico al cierre. El flete de venta informado no implica que se incluya en el total.'} Cantidades originales; devoluciones separadas en el resumen.</Text>
+          <Text style={styles.help}>{report === 'variety' ? 'Una operación puede incluir varias variedades. No se distribuyen descuentos ni fletes comunes. En compras no existe importe asignado por saco.' : 'El saldo es actual, no histórico al cierre. El flete de venta informado no implica que se incluya en el total.'} Cantidades originales de las operaciones.</Text>
         </ScrollView>
       </> : null}
       <View style={styles.navigation}>

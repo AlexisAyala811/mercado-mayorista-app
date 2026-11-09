@@ -62,7 +62,7 @@ it("keeps unavailable filters distinct from report generation and allows a compl
     .mockRejectedValueOnce(new Error("Later catalog page unavailable"));
   let root!: ReactTestRenderer;
   await act(async () => {
-    root = create(<ReportsScreen />);
+    root = create(<ReportsScreen autoQuery={false} />);
   });
   const control = (label: string) =>
     root.root.findAll((node) => node.props.label === label)[0];
@@ -142,7 +142,7 @@ it('downloads the consulted period and invalidates sharing after changing operat
 async function open() {
   let root!: ReactTestRenderer;
   await act(async () => {
-    root = create(<ReportsScreen />);
+    root = create(<ReportsScreen autoQuery={false} />);
   });
   return root;
 }
@@ -293,12 +293,12 @@ it('clears results, edited dates and the open filter dialog when the session cha
   await act(async()=>control(root,'Generar').props.onPress());
   expect(control(root,'Por pagar').props.value).toBe('S/ 70.00');
   mockSession={accessToken:'next-token'};
-  await act(async()=>root.update(<ReportsScreen/>));
+  await act(async()=>root.update(<ReportsScreen autoQuery={false}/>));
   expect(control(root,'Desde').props.value).toBe(initial);
   expect(root.root.findAll(node=>node.props.label==='Por pagar')).toHaveLength(0);
   expect(root.root.findAll(node=>typeof node.props.onSelect==='function')[0]!.props.visible).toBe(false);
   expect(loadCatalogs).toHaveBeenLastCalledWith('next-token');
-  mockSession=null;await act(async()=>root.update(<ReportsScreen/>));expect(root.toJSON()).toBeNull();
+  mockSession=null;await act(async()=>root.update(<ReportsScreen autoQuery={false}/>));expect(root.toJSON()).toBeNull();
   await act(async()=>root.unmount());
 });
 it('filters known and unreported characteristics, preserves original price labels and clears independently',async()=>{
@@ -321,7 +321,7 @@ it('does not expose a pending report from the previous session',async()=>{
   let resolve!:(value:typeof summary)=>void;
   jest.mocked(commercialSummary).mockReturnValueOnce(new Promise(done=>{resolve=done;}));
   const root=await open();await act(async()=>control(root,'Generar').props.onPress());
-  mockSession={accessToken:'next-token'};await act(async()=>root.update(<ReportsScreen/>));
+  mockSession={accessToken:'next-token'};await act(async()=>root.update(<ReportsScreen autoQuery={false}/>));
   await act(async()=>resolve(summary));
   expect(root.root.findAll(node=>node.props.label==='Por pagar')).toHaveLength(0);
   expect(control(root,'Generar').props.disabled).toBe(false);
@@ -341,4 +341,19 @@ it('does not mention returns in the sales summary even when the server reports t
       .map(node => [node.props.children].flat().join(''));
     expect(texts.some(text => /devoluci/i.test(text))).toBe(false);
   } finally { await act(async () => { root.unmount(); }); }
+});
+
+// Spec 011 (RQ-ST07): Reportes opens with the figures of the current period
+// and queries again when switching between Compra and Venta.
+it('queries the current period on opening and again after switching operation', async () => {
+  let root!: ReactTestRenderer;
+  await act(async () => { root = create(<ReportsScreen />); });
+  await act(async () => { await Promise.resolve(); });
+  expect(operationOverview).toHaveBeenCalledWith('test-token', 'purchase', expect.any(String), expect.any(String));
+  expect(root.root.findAll(node => node.props.label === 'Total de compras')[0]!.props.value).toBe('S/ 123.45');
+  expect(root.root.findAll(node => node.props.label === 'Precio promedio')[0]!.props.value).toBe('S/ 3.98 / kg');
+  await act(async () => { root.root.findAll(node => node.props.label === 'Venta')[0]!.props.onPress(); });
+  await act(async () => { await Promise.resolve(); });
+  expect(operationOverview).toHaveBeenLastCalledWith('test-token', 'sale', expect.any(String), expect.any(String));
+  await act(async () => { root.unmount(); });
 });

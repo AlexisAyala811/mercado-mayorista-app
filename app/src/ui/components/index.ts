@@ -13,3 +13,4 @@ export { StepProgress } from './step-progress';
 export { ChoiceDialog, type Choice } from './choice-dialog';
 export { ConfirmationDialog } from './confirmation-dialog';
 export { BrandMark } from './brand-mark';
+export { BarChart, type BarItem } from './bar-chart';

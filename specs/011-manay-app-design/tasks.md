@@ -43,7 +43,7 @@ Cada tarea se marca `[x]` solo con evidencia enlazable. Cada fase va en su propi
 
 ## Convergencia
 
-- [ ] **T1150** Verificación en tablet 1280 × 800 y 2560 × 1600, teléfono de 360 px, texto al 200 % y TalkBack; comparación final con Stitch; lista de convergencia y estado de la spec. **Parcial (7 de noviembre de 2026):** en el emulador, las quince rutas a 1280 × 800, 2560 × 1600, 360 dp y texto al 200 %; corregidos la cabecera y la tarjeta de cuenta del teléfono y los pasos al 200 %. Comparación con Stitch hecha el mismo día ([comparación](../../docs/sdd/comparacion-stitch-manay-2026-11-07.md)); sus brechas se cierran con T1160–T1171. Faltan TalkBack (no está en la imagen del emulador) y la lista de convergencia. Evidencia: [verificación en el emulador](../../docs/sdd/verificacion-emulador-manay-2026-11-07.md).
+- [ ] **T1150** Verificación en tablet 1280 × 800 y 2560 × 1600, teléfono de 360 px, texto al 200 % y TalkBack; comparación final con Stitch; lista de convergencia y estado de la spec. **Parcial (7 de noviembre de 2026):** en el emulador, las quince rutas a 1280 × 800, 2560 × 1600, 360 dp y texto al 200 %; corregidos la cabecera y la tarjeta de cuenta del teléfono y los pasos al 200 %. Comparación con Stitch hecha el mismo día ([comparación](../../docs/sdd/comparacion-stitch-manay-2026-11-07.md)); sus brechas quedaron cerradas el 9 de noviembre de 2026 con T1160–T1171 ([cierre](../../docs/sdd/verificacion-stitch-consultas-2026-11-09.md)). Faltan TalkBack en un dispositivo real (no está en la imagen del emulador) y la lista de convergencia. Evidencia: [verificación en el emulador](../../docs/sdd/verificacion-emulador-manay-2026-11-07.md).
 
 ## Orden y dependencias
 
@@ -68,10 +68,10 @@ Especificación: [RQ-ST01–RQ-ST09](spec.md#convergencia-con-stitch--7-de-novie
 - [x] **T1165** App: menú con número, ícono y dato vivo (B1). *Verificación:* pruebas con y sin conexión; captura junto a Stitch. **Hecho:** [verificación de la fase C](../../docs/sdd/verificacion-stitch-navegacion-2026-11-08.md).
 - [x] **T1166** App: Ver compras y Ver ventas con lista, filtros con conteo, totales y «Abonar» (B5). *Verificación:* pruebas de pantalla; captura junto a Stitch. **Hecho:** [verificación de la fase D](../../docs/sdd/verificacion-stitch-listas-2026-11-09.md).
 - [x] **T1167** App: Deudas y Cobranzas con totales arriba, filtros y «Abonar» (B6). *Verificación:* prueba del pago desde la tarjeta con idempotencia; captura junto a Stitch. **Hecho:** [verificación de la fase D](../../docs/sdd/verificacion-stitch-listas-2026-11-09.md).
-- [ ] **T1168** App: confirmación de compra y venta con resumen y compartir (B4). *Verificación:* pruebas; captura junto a Stitch.
-- [ ] **T1169** App: componente de barras y Reportes con indicadores y barras (B7). *Verificación:* pruebas del componente y de la pantalla; captura.
-- [ ] **T1170** App: Analítica con pizarra de 8 semanas (B8). *Verificación:* pruebas con y sin datos suficientes; captura.
-- [ ] **T1171** Verificación final en el emulador y comparación actualizada. *Verificación:* documento con capturas de cada pantalla junto a su maqueta.
+- [x] **T1168** App: confirmación de compra y venta con resumen y compartir (B4). *Verificación:* pruebas; captura junto a Stitch. **Hecho:** [verificación de la fase E y cierre](../../docs/sdd/verificacion-stitch-consultas-2026-11-09.md).
+- [x] **T1169** App: componente de barras y Reportes con indicadores y barras (B7). *Verificación:* pruebas del componente y de la pantalla; captura. **Hecho:** [verificación de la fase E y cierre](../../docs/sdd/verificacion-stitch-consultas-2026-11-09.md).
+- [x] **T1170** App: Analítica con pizarra de 8 semanas (B8). *Verificación:* pruebas con y sin datos suficientes; captura. **Hecho:** [verificación de la fase E y cierre](../../docs/sdd/verificacion-stitch-consultas-2026-11-09.md).
+- [x] **T1171** Verificación final en el emulador y comparación actualizada. *Verificación:* documento con capturas de cada pantalla junto a su maqueta. **Hecho:** [verificación de la fase E y cierre](../../docs/sdd/verificacion-stitch-consultas-2026-11-09.md).
 
 ```text
 T1160
