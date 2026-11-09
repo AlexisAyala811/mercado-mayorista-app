@@ -66,8 +66,8 @@ Especificación: [RQ-ST01–RQ-ST09](spec.md#convergencia-con-stitch--7-de-novie
 - [x] **T1163** Backend: `report=daily` en `/reports/rows`. *Verificación:* e2e con operaciones en tres días y cambio de día en hora de Lima. **Hecho:** [verificación de la fase B](../../docs/sdd/verificacion-stitch-backend-2026-11-07.md), `test/stitch-history.e2e-spec.ts` en PostgreSQL portable.
 - [x] **T1164** App: cabecera y barra inferior en todas las pantallas autenticadas (B2, B3). *Verificación:* pruebas de navegación; capturas de las quince rutas a 1280 × 800 y 360 dp. **Hecho:** [verificación de la fase C](../../docs/sdd/verificacion-stitch-navegacion-2026-11-08.md).
 - [x] **T1165** App: menú con número, ícono y dato vivo (B1). *Verificación:* pruebas con y sin conexión; captura junto a Stitch. **Hecho:** [verificación de la fase C](../../docs/sdd/verificacion-stitch-navegacion-2026-11-08.md).
-- [ ] **T1166** App: Ver compras y Ver ventas con lista, filtros con conteo, totales y «Abonar» (B5). *Verificación:* pruebas de pantalla; captura junto a Stitch.
-- [ ] **T1167** App: Deudas y Cobranzas con totales arriba, filtros y «Abonar» (B6). *Verificación:* prueba del pago desde la tarjeta con idempotencia; captura junto a Stitch.
+- [x] **T1166** App: Ver compras y Ver ventas con lista, filtros con conteo, totales y «Abonar» (B5). *Verificación:* pruebas de pantalla; captura junto a Stitch. **Hecho:** [verificación de la fase D](../../docs/sdd/verificacion-stitch-listas-2026-11-09.md).
+- [x] **T1167** App: Deudas y Cobranzas con totales arriba, filtros y «Abonar» (B6). *Verificación:* prueba del pago desde la tarjeta con idempotencia; captura junto a Stitch. **Hecho:** [verificación de la fase D](../../docs/sdd/verificacion-stitch-listas-2026-11-09.md).
 - [ ] **T1168** App: confirmación de compra y venta con resumen y compartir (B4). *Verificación:* pruebas; captura junto a Stitch.
 - [ ] **T1169** App: componente de barras y Reportes con indicadores y barras (B7). *Verificación:* pruebas del componente y de la pantalla; captura.
 - [ ] **T1170** App: Analítica con pizarra de 8 semanas (B8). *Verificación:* pruebas con y sin datos suficientes; captura.

@@ -192,7 +192,7 @@ function HistoryRow({ card, disabled, kind, onOpen, onSettle }: { card: HistoryC
     <View style={[styles.row, debt && styles.rowDebt]} testID={`history-${card.id}`}>
       <View style={styles.party}>
         <Text numberOfLines={2} style={styles.name}>{card.party}</Text>
-        <View accessibilityLabel={`Estado: ${state}`} style={[styles.badge, tone[card.state].box]}><Text style={[styles.badgeText, tone[card.state].text]}>{state}</Text></View>
+        <View accessibilityLabel={`Estado: ${state}`} style={[styles.badge, tone[card.state].box]}><Text numberOfLines={1} style={[styles.badgeText, tone[card.state].text]}>{state}</Text></View>
         <Text style={styles.meta}>{card.date}</Text>
       </View>
       <View style={styles.facts}>
@@ -200,10 +200,18 @@ function HistoryRow({ card, disabled, kind, onOpen, onSettle }: { card: HistoryC
         <Fact label="Volumen" value={historyVolume(card)} />
         <Fact label={purchase ? 'Total liquidado' : 'Total'} value={card.totalCents === null ? 'Sin liquidar' : formatMoney(card.totalCents)} />
       </View>
-      <View style={[styles.amountBox, debt ? styles.amountDebt : styles.amountPaid]}>
-        <Text style={[styles.amountLabel, debt ? styles.debtText : styles.paidText]}>{debt ? (purchase ? 'Saldo pendiente' : 'Saldo por cobrar') : purchase ? 'Total pagado' : 'Total cobrado'}</Text>
-        <Text accessibilityLabel={`${debt ? 'Saldo' : 'Pagado'}: ${formatMoney(debt ? card.balanceCents : card.paidCents)}`} style={[styles.amount, debt ? styles.debtText : styles.paidText]}>{formatMoney(debt ? card.balanceCents : card.paidCents)}</Text>
-      </View>
+      {/* Voided or not settled: no payment to show (spec 011, RQ-ST05). */}
+      {debt || card.state === 'paid' ? (
+        <View style={[styles.amountBox, debt ? styles.amountDebt : styles.amountPaid]}>
+          <Text style={[styles.amountLabel, debt ? styles.debtText : styles.paidText]}>{debt ? (purchase ? 'Saldo pendiente' : 'Saldo por cobrar') : purchase ? 'Total pagado' : 'Total cobrado'}</Text>
+          <Text accessibilityLabel={`${debt ? 'Saldo' : 'Pagado'}: ${formatMoney(debt ? card.balanceCents : card.paidCents)}`} style={[styles.amount, debt ? styles.debtText : styles.paidText]}>{formatMoney(debt ? card.balanceCents : card.paidCents)}</Text>
+        </View>
+      ) : (
+        <View style={[styles.amountBox, styles.amountNone]}>
+          <Text style={styles.amountLabel}>{card.state === 'voided' ? 'Sin efecto' : 'Sin liquidar'}</Text>
+          <Text style={[styles.amount, styles.noneText]}>—</Text>
+        </View>
+      )}
       <View style={styles.actions}>
         {debt && card.sourceId ? (
           <AppButton accessibilityLabel={`${purchase ? 'Abonar' : 'Cobrar'} a ${card.party}, ${card.date}`} disabled={disabled} label={purchase ? 'Abonar' : 'Cobrar'} onPress={() => onSettle(card)} />
@@ -237,8 +245,8 @@ const styles = StyleSheet.create({
   rowDebt: { borderColor: color.dangerAccent },
   party: { flexBasis: 200, flexGrow: 1, flexShrink: 1, gap: spacing.xs, minWidth: 0 },
   name: { color: color.textPrimary, fontSize: 18, fontWeight: '700', lineHeight: 24 },
-  badge: { alignSelf: 'flex-start', borderLeftWidth: 4, borderRadius: radius.sm, paddingHorizontal: spacing.sm, paddingVertical: 2 },
-  badgeText: { ...typography.bodySmall, fontWeight: '700' },
+  badge: { alignSelf: 'flex-start', borderLeftWidth: 4, flexShrink: 0, borderRadius: radius.sm, paddingHorizontal: spacing.sm, paddingVertical: 2 },
+  badgeText: { ...typography.bodySmall, flexShrink: 0, fontWeight: '700' },
   meta: { color: color.textSecondary, ...typography.bodySmall },
   facts: { backgroundColor: color.surface, borderRadius: radius.md, flexBasis: 300, flexDirection: 'row', flexGrow: 2, flexShrink: 1, flexWrap: 'wrap', gap: spacing.md, padding: spacing.sm },
   fact: { flexBasis: 90, flexGrow: 1, flexShrink: 1, minWidth: 0 },
@@ -249,6 +257,8 @@ const styles = StyleSheet.create({
   amountPaid: { backgroundColor: color.successMuted, borderColor: color.successAccent },
   amountLabel: { fontSize: 12, fontWeight: '700', lineHeight: 16 },
   amount: { fontSize: 20, fontWeight: '800', lineHeight: 26 },
+  amountNone: { backgroundColor: color.surface, borderColor: color.border },
+  noneText: { color: color.textSecondary },
   debtText: { color: color.danger },
   paidText: { color: color.success },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
