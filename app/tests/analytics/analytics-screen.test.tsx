@@ -22,7 +22,7 @@ beforeEach(() => {
   jest.mocked(listAnalyticsEvaluations).mockResolvedValue({items:[],total:0,limit:20,offset:0});
   jest.mocked(listPredictionPublications).mockResolvedValue({items:[],total:0,limit:20,offset:0});
 });
-async function open() { let root!: ReactTestRenderer; await act(async () => { root = create(<AnalyticsScreen />); }); return root; }
+async function open() { let root!: ReactTestRenderer; await act(async () => { root = create(<AnalyticsScreen priceBoard={false} />); }); return root; }
 const find = (root: ReactTestRenderer, name: string) => root.root.findAll(node => node.props.label === name)[0]!;
 async function selectParticipant(root: ReactTestRenderer, field: string, title: string, id: string) {
   await act(async () => { find(root, field).props.onPress(); });

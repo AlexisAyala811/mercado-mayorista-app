@@ -432,7 +432,7 @@ function SalesHistoryWorkspace({allowReturns}:{allowReturns:boolean}) {
           }
           visible={Boolean(action)}
         />
-        <ConfirmationDialog title="¿Descartar la edición de esta venta?" message="El motivo y los datos de devolución en edición se perderán. La venta y las operaciones ya conservadas en la cola no cambian." confirmLabel="Descartar edición" visible={exitAction!==null} onCancel={()=>setExitAction(null)} onConfirm={confirmExit}/>
+        <ConfirmationDialog title="¿Descartar la edición de esta venta?" message={allowReturns?"El motivo y los datos de devolución en edición se perderán. La venta y las operaciones ya conservadas en la cola no cambian.":"El motivo en edición se perderá. La venta y las operaciones ya conservadas en la cola no cambian."} confirmLabel="Descartar edición" visible={exitAction!==null} onCancel={()=>setExitAction(null)} onConfirm={confirmExit}/>
       </>
     );
   return (

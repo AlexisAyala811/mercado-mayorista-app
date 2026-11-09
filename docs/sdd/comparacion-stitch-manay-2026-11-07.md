@@ -49,3 +49,7 @@ Se aplican a todas las pantallas y la app ya los cumple.
 - **Se proponen aceptar:** selección rápida de operador en el acceso, pesaje y liquidación en dos pasos y el botón «Nuevo» de Carros.
 - **Resto de devoluciones (R1):** contradice CL-FM14 y se corrige sin decisión nueva.
 - **Brechas abiertas (B1–B8):** pendientes de la decisión del usuario. Cerrar B1, B5, B6, B7 y B8 cambia lo que muestra cada pantalla y necesita datos que hoy no pide (conteos y totales por estado), así que se especifica como enmienda de la spec 011 antes de implementarlo.
+
+## Cierre — 9 de noviembre de 2026
+
+Las brechas B1–B8 y R1 quedaron cerradas con las fases B a E; el estado de cada una está en la [verificación de cierre](verificacion-stitch-consultas-2026-11-09.md#estado-de-las-brechas-de-la-comparación).

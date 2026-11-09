@@ -15,7 +15,8 @@ it('reveals separate source references only when requested and keeps the central
   expect(rendered(root)).not.toContain('operation-01');
   await act(async()=>button(root,'Ver referencias del análisis').props.onPress());
   expect(button(root,'Ocultar referencias').props.accessibilityState).toEqual({expanded:true});
-  expect(rendered(root)).toContain('operation-01');expect(rendered(root)).toContain('return-01');
+  expect(rendered(root)).toContain('operation-01');// Spec 011 (CL-FM14): returns are not shown in the app.
+  expect(rendered(root)).not.toContain('return-01');
   expect(point.weightKg).toBe('210.000');expect(point.operationCount).toBe(21);
   await act(async()=>root.unmount());
 });
