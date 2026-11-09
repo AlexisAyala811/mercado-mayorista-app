@@ -2,11 +2,12 @@ import type { ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import type { AccountKindCopy } from '@/domain/accounts/account-kind';
+import type { AccountTotals } from '@/domain/accounts/account-totals';
 import { accountCounterpartyName } from '@/domain/accounts/account-filters';
 import { accountDueLabel, accountMovementLabel } from '@/domain/accounts/account-dates';
 import { formatMoney } from '@/domain/reception/reception';
 import type { Account } from '@/services/api/operations-api';
-import { AppButton, AppScreen, EmptyState, FormField } from '@/ui/components';
+import { AppButton, AppScreen, EmptyState, FormField, MetricTile } from '@/ui/components';
 import { AppHeader } from '@/ui/navigation/app-header';
 import { color, radius, spacing, typography } from '@/ui/tokens';
 
@@ -15,6 +16,12 @@ type Props = {
   accounts: Account[]; total: number; ready: boolean;
   search: string; onSearch: (value: string) => void;
   onOpen: (account: Account) => void;
+  // Spec 011 (RQ-ST06): totals on top, state chips and the payment from the card.
+  totals: AccountTotals | null;
+  stateFilter: 'all' | 'open' | 'paid' | 'voided'; onStateFilter: (state: 'all' | 'open' | 'paid' | 'voided') => void;
+  counts: Record<'all' | 'open' | 'paid' | 'voided', number>;
+  onSettle: (account: Account) => void;
+  onClearFilters: () => void;
   onRefresh: () => void; onNewSource: () => void;
   feedback: ReactNode; children: ReactNode;
 };
@@ -25,10 +32,13 @@ const stateTone = {
   voided: { label: 'Anulada', box: { backgroundColor: color.surface, borderColor: color.border }, text: { color: color.textSecondary } },
 } as const;
 
+const chips = [['open', 'Pendientes'], ['all', 'Todas'], ['paid', 'Al día'], ['voided', 'Anuladas']] as const;
+
 // MAÑAY Deudas / Cobranzas list (spec 011, T1130). Financial commands stay in
 // AccountsContent; this view only lists, searches and opens accounts.
 export function AccountsOverview(props: Props) {
   const { copy } = props;
+  const settleLabel = copy.originSource === 'purchase' ? 'Abonar' : 'Registrar cobro';
   return <AppScreen contentContainerStyle={styles.screen} testID="accounts-overview">
     <AppHeader eyebrow={copy.eyebrow} title={copy.title} />
     <View style={styles.toolbar}>
@@ -37,6 +47,15 @@ export function AccountsOverview(props: Props) {
       <AppButton label={copy.originLabel} tone="secondary" onPress={props.onNewSource} />
     </View>
     {props.feedback}
+    {props.ready && props.totals ? <View style={styles.totals}>
+      <View style={styles.total}><MetricTile label={copy.originSource === 'purchase' ? 'Deuda pendiente' : 'Saldo por cobrar'} value={formatMoney(props.totals.pendingCents)} /></View>
+      <View style={styles.total}><MetricTile label={copy.originSource === 'purchase' ? 'Abonado este mes' : 'Cobrado este mes'} value={formatMoney(props.totals.monthCents)} /></View>
+      <View style={styles.total}><MetricTile label="Vencido" value={formatMoney(props.totals.overdueCents)} description="Saldo de cuentas con un vencimiento pasado" /></View>
+    </View> : null}
+    {props.ready ? <View accessibilityRole="radiogroup" style={styles.chips}>
+      {chips.map(([state, label]) => <AppButton key={state} label={`${label} ${props.counts[state]}`} accessibilityLabel={`${label}: ${props.counts[state]}`} accessibilityRole="radio" accessibilityState={{ checked: props.stateFilter === state }} tone={props.stateFilter === state ? 'primary' : 'secondary'} onPress={() => props.onStateFilter(state)} />)}
+      <AppButton label="Limpiar búsqueda de cuentas" tone="secondary" onPress={props.onClearFilters} />
+    </View> : null}
     {props.ready ? <>
       <Text accessibilityLiveRegion="polite" style={styles.count}>{props.accounts.length} de {props.total} cuentas</Text>
       {!props.accounts.length ? <EmptyState title={props.total ? 'Sin resultados' : `Sin ${copy.title.toLowerCase()}`} message={props.total ? 'No hay cuentas que coincidan con la búsqueda y los filtros.' : copy.empty} /> : null}
@@ -54,7 +73,10 @@ export function AccountsOverview(props: Props) {
               <View accessibilityLabel={`Estado: ${tone.label}`} style={[styles.badge, tone.box]}><Text style={[styles.badgeText, tone.text]}>{tone.label}</Text></View>
               <Text accessibilityLabel={`Saldo: ${formatMoney(account.balanceCents)}`} style={styles.amount}>{formatMoney(account.balanceCents)}</Text>
             </View>
-            <AppButton label="Ver detalle" accessibilityLabel={`Ver detalle de ${name}, referencia ${account.id}`} tone="secondary" onPress={() => props.onOpen(account)} />
+            <View style={styles.actions}>
+              {account.state === 'open' ? <AppButton label={settleLabel} accessibilityLabel={`${settleLabel}: ${name}, referencia ${account.id}`} onPress={() => props.onSettle(account)} /> : null}
+              <AppButton label="Ver detalle" accessibilityLabel={`Ver detalle de ${name}, referencia ${account.id}`} tone="secondary" onPress={() => props.onOpen(account)} />
+            </View>
           </View>;
         })}
       </View>
@@ -67,6 +89,10 @@ const styles = StyleSheet.create({
   screen: { gap: spacing.lg, maxWidth: 1280 },
   toolbar: { alignItems: 'flex-end', flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   search: { flexBasis: 320, flexGrow: 1 },
+  totals: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
+  total: { flexBasis: 220, flexGrow: 1 },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  actions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   count: { color: color.textSecondary, ...typography.bodySmall },
   list: { gap: spacing.sm },
   row: { alignItems: 'center', backgroundColor: color.surfaceRaised, borderColor: color.border, borderRadius: radius.lg, borderWidth: 1, flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, padding: spacing.md },

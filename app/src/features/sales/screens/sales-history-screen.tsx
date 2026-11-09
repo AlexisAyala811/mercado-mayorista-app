@@ -1,3 +1,6 @@
+import { CommercialHistoryList, type HistoryListState, type HistoryQuery } from '@/features/history/commercial-history-list';
+import { saleCard, type HistoryChip } from '@/domain/shared/history-cards';
+import { salesHistorySummary } from '@/services/api/history-api';
 import { BottomNavSlots } from '@/ui/navigation/app-chrome';
 import {commercialDescription} from '@/domain/catalog/commercial-characteristic';
 import { useBrowserTraversalGuard } from '@/navigation/use-browser-traversal-guard';
@@ -11,20 +14,12 @@ import {
   formatMoney,
   moneyInputToCents,
 } from "@/domain/reception/reception";
-import type { Sale } from "@/domain/sales/sale";
-import {
-  emptySalesHistoryFilters,
-  formatSaleDate,
-  salesHistoryQuery,
-  validateSalesHistoryFilters,
-  type SalesHistoryFilters,
-} from "@/domain/sales/sales-history";
+import { formatSaleDate } from "@/domain/sales/sales-history";
 import { useSession } from "@/features/auth/session/session-provider";
 import {
   getSale,
   listSales,
   type SaleDetail,
-  type SalesHistoryQuery,
 } from "@/services/api/sales-api";
 
 import { shareReceipt } from "@/services/receipts/receipt-sharing";
@@ -33,7 +28,6 @@ import {
   AppCard,
   AppScreen,
   ConfirmationDialog,
-  EmptyState,
   FeedbackState,
   FormField,
   LoadingState,
@@ -57,34 +51,19 @@ function SalesHistoryWorkspace({allowReturns}:{allowReturns:boolean}) {
   const token = session?.accessToken ?? "";
   const active=useRef(true);const sharing=useRef(false);const [sharingBusy,setSharingBusy]=useState(false);
   useEffect(()=>{active.current=true;return()=>{active.current=false;};},[]);
-  const [sales, setSales] = useState<Sale[]>([]);
   const [detail, setDetail] = useState<SaleDetail | null>(null);
   const [drafts, setDrafts] = useState<Record<string, LineDraft>>({});
   const [reason, setReason] = useState("");
   const [freight, setFreight] = useState("0");
   const [action, setAction] = useState<"return" | "void" | null>(null);
-  const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
-  const [filters, setFilters] = useState(emptySalesHistoryFilters);
-  const [appliedQuery, setAppliedQuery] = useState<SalesHistoryQuery>({});
-  const [pageOffset, setPageOffset] = useState(0);
-  const [total, setTotal] = useState(0);
-  const [listLoaded, setListLoaded] = useState(false);
-  const requestSequence = useRef(0);
-  const lastRequest = useRef<{ query: SalesHistoryQuery; offset: number }>({
-    query: {},
-    offset: 0,
-  });
   const [busy, setBusy] = useState(false);
   const submitting = useRef(false);
   const pendingOperation = useRef<{ id: string; signature: string } | null>(
     null,
   );
   const [error, setError] = useState<string | null>(null);
-  const [canRetryQuery, setCanRetryQuery] = useState(false);
-  const invalidateRequests = useCallback(() => {
-    requestSequence.current++;
-  }, []);
+  const requestSequence = useRef(0);
   const [result, setResult] = useState<string | null>(null);
   const [returnReceiptId, setReturnReceiptId] = useState<string | null>(null);
   const [detailStale,setDetailStale]=useState(false);const [refreshError,setRefreshError]=useState<string|null>(null);
@@ -116,121 +95,27 @@ function SalesHistoryWorkspace({allowReturns}:{allowReturns:boolean}) {
     if(!active.current||submitting.current||sharing.current||!exitAction)return;
     const leave=exitAction;exitAllowed.current=true;setExitAction(null);closeDetail();leave();
   }
-  const pageSize = 20;
-  const applyPage = useCallback(
-    (
-      value: Awaited<ReturnType<typeof listSales>>,
-      query: SalesHistoryQuery,
-      offset: number,
-    ) => {
-      setSales(value.items);
-      setTotal(value.total);
-      setAppliedQuery(query);
-      setPageOffset(offset);
-      setListLoaded(true);
-    },
-    [],
-  );
-  async function load(
-    query: SalesHistoryQuery = appliedQuery,
-    offset = pageOffset,
-  ) {
-    const request = ++requestSequence.current;
-    lastRequest.current = { query, offset };
-    setLoading(true);
-    setCanRetryQuery(false);
-    setError(null);
-    setSales([]);
-    setListLoaded(false);
-    try {
-      let value = await listSales(token, {
-        ...query,
-        limit: pageSize,
-        offset,
-      });
-      if (request !== requestSequence.current) return;
-      // A concurrent cancellation can remove the last filtered page.
-      // Return to the first page once, preserving the user's criteria.
-      if (offset > 0 && value.items.length === 0) {
-        offset = 0;
-        lastRequest.current = { query, offset };
-        value = await listSales(token, { ...query, limit: pageSize, offset });
-      }
-      if (request === requestSequence.current) applyPage(value, query, offset);
-    } catch (cause) {
-      if (request === requestSequence.current) {
-        setCanRetryQuery(true);
-        setError(
-          cause instanceof Error
-            ? cause.message
-            : "No se pudieron cargar las ventas.",
-        );
-      }
-    } finally {
-      if (request === requestSequence.current) setLoading(false);
-    }
+  // Spec 011 (RQ-ST05): the list keeps its search, chip and page while a
+  // detail is open, and reloads from the server when it comes back.
+  const [listState, setListState] = useState<HistoryListState | undefined>(undefined);
+  const loadPage = useCallback(async (query: HistoryQuery, chip: HistoryChip, offset: number) => {
+    const value = await listSales(token, { ...query, limit: 20, offset, paymentState: chip === 'all' || chip === 'unsettled' ? undefined : chip });
+    return { items: value.items.map((sale) => saleCard(sale, formatSaleDate(sale.createdAt))), total: value.total };
+  }, [token]);
+  const loadSummary = useCallback((query: HistoryQuery) => salesHistorySummary(token, query), [token]);
+  function open(id: string) {
+    requestExit(()=>void readSale(id));
   }
-  useEffect(() => {
-    const request = ++requestSequence.current;
-    listSales(token, { limit: 20, offset: 0 })
-      .then((value) => {
-        if (request === requestSequence.current) applyPage(value, {}, 0);
-      })
-      .catch((cause) => {
-        if (request === requestSequence.current) {
-          setCanRetryQuery(true);
-          setError(
-            cause instanceof Error
-              ? cause.message
-              : "No se pudieron cargar las ventas.",
-          );
-        }
-      })
-      .finally(() => {
-        if (request === requestSequence.current) setLoading(false);
-      });
-    return invalidateRequests;
-  }, [applyPage, invalidateRequests, token]);
-  function changeFilter<Key extends keyof SalesHistoryFilters>(
-    key: Key,
-    value: SalesHistoryFilters[Key],
-  ) {
-    invalidateRequests();
-    setCanRetryQuery(false);
-    setFilters((current) => ({ ...current, [key]: value }));
-    setSales([]);
-    setTotal(0);
-    setListLoaded(false);
-    setLoading(false);
-    setError(null);
-  }
-  function search() {
-    const issue = validateSalesHistoryFilters(filters);
-    if (issue) {
-      setCanRetryQuery(false);
-      setError(issue);
-      return;
-    }
-    void load(salesHistoryQuery(filters), 0);
-  }
-  function clearFilters() {
-    setFilters(emptySalesHistoryFilters());
-    void load({}, 0);
-  }
-  async function open(sale: Sale) {
-    requestExit(()=>void readSale(sale));
-  }
-  async function readSale(sale:Sale){
+  async function readSale(id: string){
     if(!active.current||submitting.current||sharing.current)return;
     exitAllowed.current=false;
     const request = ++requestSequence.current;
     setDetailLoading(true);
-    setCanRetryQuery(false);
     setError(null);
     setReturnReceiptId(null);
     setResult(null);
     try {
-      const value = await getSale(token, sale.id);
+      const value = await getSale(token, id);
       if (request !== requestSequence.current) return;
       setDetail(value);
       setDetailStale(false);setRefreshError(null);
@@ -394,7 +279,7 @@ function SalesHistoryWorkspace({allowReturns}:{allowReturns:boolean}) {
     try{
       const value=await getSale(token,saleId);
       if(!active.current||request!==refreshRequest.current)return;
-      setDetail(value);setDetailStale(false);await load();
+      setDetail(value);setDetailStale(false);
     }catch(cause){if(active.current&&request===refreshRequest.current)setRefreshError(cause instanceof Error?cause.message:'No se pudo actualizar el detalle confirmado.');}
     finally{if(active.current&&request===refreshRequest.current){refreshingRef.current=false;setRefreshing(false);}}
   }
@@ -552,133 +437,18 @@ function SalesHistoryWorkspace({allowReturns}:{allowReturns:boolean}) {
     );
   return (
     <AppScreen contentContainerStyle={styles.screen}>
-      <ScreenHeader
-        eyebrow="VENTAS"
-        title="Historial de ventas"
-        description="Busca ventas y despachos por fecha o comprador. Fechas del registro central en hora de Lima."
+      <ScreenHeader eyebrow="VENTA · VENTAS COBRADAS Y CON DEUDA" title="Ver ventas" />
+      {error ? <FeedbackState title="No se pudo abrir la venta" message={error} tone="error" /> : null}
+      <CommercialHistoryList
+        kind="sale"
+        disabled={busy}
+        initial={listState}
+        onStateChange={setListState}
+        loadPage={loadPage}
+        loadSummary={loadSummary}
+        onOpen={(card) => open(card.id)}
+        onSettle={(card) => router.push({ pathname: '/collections', params: { sourceId: card.sourceId ?? '' } } as Href)}
       />
-      <View style={styles.top}><AppButton disabled={loading || busy} label="Actualizar" onPress={search} tone="secondary" /></View>
-      <AppCard title="Buscar operaciones">
-        <View style={styles.columns}>
-          <View style={styles.field}>
-            <FormField
-              label="Desde"
-              placeholder="aaaa-mm-dd"
-              value={filters.from}
-              onChangeText={(value) => changeFilter("from", value)}
-            />
-          </View>
-          <View style={styles.field}>
-            <FormField
-              label="Hasta"
-              placeholder="aaaa-mm-dd"
-              value={filters.to}
-              onChangeText={(value) => changeFilter("to", value)}
-            />
-          </View>
-          <View style={styles.field}>
-            <FormField
-              label="Participante comercial"
-              placeholder="Nombre del comprador"
-              value={filters.search}
-              onChangeText={(value) => changeFilter("search", value)}
-            />
-          </View>
-        </View>
-        <View style={styles.filterActions}>
-          {(
-            [
-              ["all", "Todas"],
-              ["confirmed", "Confirmadas"],
-              ["voided", "Anuladas"],
-            ] as const
-          ).map(([state, label]) => (
-            <AppButton
-              key={state}
-              label={label}
-              accessibilityRole="radio"
-              accessibilityState={{ checked: filters.state === state }}
-              onPress={() => changeFilter("state", state)}
-              tone={filters.state === state ? "primary" : "secondary"}
-            />
-          ))}
-        </View>
-        <View style={styles.filterActions}>
-          <AppButton label="Buscar" onPress={search} />
-          <AppButton
-            label="Limpiar filtros"
-            onPress={clearFilters}
-            tone="secondary"
-          />
-        </View>
-      </AppCard>
-      {error ? (
-        <FeedbackState
-          title="No se pudo completar"
-          message={error}
-          tone="error"
-          actionLabel={canRetryQuery ? "Reintentar consulta" : undefined}
-          onAction={() =>
-            void load(lastRequest.current.query, lastRequest.current.offset)
-          }
-        />
-      ) : null}
-      {loading ? (
-        <LoadingState label="Consultando historial de ventas" />
-      ) : null}
-      {!loading && listLoaded ? (
-        <Text accessibilityLiveRegion="polite">
-          {total
-            ? `${pageOffset + 1}–${pageOffset + sales.length} de ${total} operaciones`
-            : "0 operaciones"}{" "}
-          · {appliedQuery.from ?? "Sin inicio"} /{" "}
-          {appliedQuery.to ?? "Sin límite"} ·{" "}
-          {appliedQuery.search ?? "Todos los compradores"}
-        </Text>
-      ) : null}
-      {!loading &&
-        sales.map((sale) => (
-          <AppCard
-            key={sale.id}
-            title={`${sale.buyerName ?? "Comprador registrado"} · ${formatMoney(sale.totalAmountCents)}`}
-            description={`${sale.destinationDepartment} · ${formatSaleDate(sale.createdAt)} · ${sale.state === "confirmed" ? "Confirmada" : "Anulada"}`}
-          >
-            <AppButton
-              label="Abrir detalle"
-              accessibilityLabel={`Abrir detalle de venta de ${sale.buyerName ?? 'comprador registrado'}, ${formatSaleDate(sale.createdAt)}, operación ${sale.id}`}
-              onPress={() => void open(sale)}
-              tone="secondary"
-            />
-          </AppCard>
-        ))}
-      {!loading && !error && !sales.length ? (
-        <EmptyState
-          title={listLoaded ? "Sin resultados" : "Aplica los filtros"}
-          message={
-            listLoaded
-              ? "No hay ventas que coincidan con esta búsqueda."
-              : "Pulsa Buscar para consultar el historial con estos criterios."
-          }
-        />
-      ) : null}
-      {!loading && listLoaded && total > pageSize ? (
-        <View style={styles.filterActions}>
-          <AppButton
-            label="Página anterior"
-            disabled={pageOffset === 0}
-            onPress={() =>
-              void load(appliedQuery, Math.max(0, pageOffset - pageSize))
-            }
-            tone="secondary"
-          />
-          <AppButton
-            label="Página siguiente"
-            disabled={pageOffset + sales.length >= total}
-            onPress={() => void load(appliedQuery, pageOffset + pageSize)}
-            tone="secondary"
-          />
-        </View>
-      ) : null}
     </AppScreen>
   );
 }
