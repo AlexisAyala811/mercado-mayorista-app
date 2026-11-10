@@ -50,3 +50,9 @@ El usuario pidió el 10 de noviembre de 2026: «el frontend debe ser igual al st
 | ID | Pregunta | Respuesta literal | Decisión |
 | --- | --- | --- | --- |
 | CL-ST18 | ¿Qué se copia tal cual de Stitch? | «Todo lo visual (Recomendado)» | Reemplaza CL-ST14: la cabecera es la de Stitch (usuario con su estado de conexión, título o marca al centro, botón de sincronización) y la barra inferior es la de Stitch (Atrás, Menú principal y Siguiente con sus íconos, también en el menú). Tamaños de letra, colores y disposición iguales a cada maqueta. La barra de estado simulada (red, batería, hora) no se dibuja porque Android ya la muestra. Balanza, SUNAT y devoluciones siguen fuera (CL-ST12): la app no tiene esas funciones |
+
+### Propuesta adoptada sin pregunta (10 de noviembre de 2026)
+
+| ID | Tema | Decisión |
+| --- | --- | --- |
+| CL-ST19 | Sacos de la venta | La maqueta de venta pesa saco por saco. En tablet, cada lote se pesa así en kilos enteros y se envía como una línea con la cantidad de sacos y la suma de sus pesos; la API de ventas y sus reglas no cambian, y los pesos por saco no se guardan en el servidor |

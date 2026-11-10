@@ -130,6 +130,7 @@ it('downloads the consulted period and invalidates sharing after changing operat
   try {
     expect(root.root.findAll(node => node.props.title === 'Reportes disponibles')).toHaveLength(0);
     await act(async () => { control(root, 'Generar').props.onPress(); });
+    await act(async () => { control(root, 'Exportar PDF o Excel').props.onPress(); });
     await act(async () => { control(root, 'Descargar Resumen del período (PDF)').props.onPress(); });
     expect(shareReport).toHaveBeenCalledWith(expect.objectContaining({ operation: 'purchase' }), 'summary', 'test-token', expect.any(Function));
     expect(canContinue()).toBe(true);

@@ -100,7 +100,7 @@ function AnalyticsContent({ priceBoard }: { priceBoard: boolean }) {
   };
   const selectedDialog = dialogs[dialog ?? 'variety'];
   return <><AppScreen contentContainerStyle={styles.screen}>
-    <ScreenHeader eyebrow="ANALÍTICA" title="Tendencias comerciales" description="Precios pactados y cantidades de operaciones confirmadas, separados por semana y variedad." />
+    <ScreenHeader eyebrow="ANALÍTICA" subtitle="Pizarra de precios, volumen y tendencias de operaciones confirmadas" title="Analítica de mercado" />
     {priceBoard ? <PriceBoard token={token} /> : null}
     <AppCard title="Periodo, variedad y participantes">
       <View style={styles.fields}>

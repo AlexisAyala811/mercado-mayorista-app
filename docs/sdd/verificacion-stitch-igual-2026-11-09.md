@@ -53,3 +53,43 @@ Defecto corregido: Android cortaba la última palabra de «Guardar compra» en l
 - La cuadrícula con 250 sacos se probó con pruebas de componente, no en el emulador.
 - Teléfono, texto al 200 % y TalkBack (T1190).
 - Diferencias que se mantienen: sin «Carga rápida» ni «Quitar lote» (CL-ST12, regla de no borrar hechos); el saco se corrige, no se elimina.
+
+
+## Fase H — cabecera, barra y resto de pantallas (T1184–T1189, T1191)
+
+Rama `feat/011-stitch-pantallas`. Decisiones [CL-ST18 y CL-ST19](aclaraciones-convergencia-stitch-2026-11-07.md#igualdad-visual-completa--10-de-noviembre-de-2026).
+
+| Tarea | Cambio |
+| --- | --- |
+| T1191 | `ui/navigation/app-header.tsx`: cabecera de Stitch con el usuario, su rol y su estado («En línea», «Sin conexión», «Revisar»), el título con su insignia de módulo y una línea debajo, y el botón «En línea · Sincronizado» que abre Pendientes de envío. En el menú, la marca al centro y «Cerrar sesión» como ícono. Se retira la franja de sincronización: su estado pasa a la cabecera (`features/sync/use-sync-status.ts`). `ui/navigation/bottom-nav.tsx`: barra de Stitch con «Atrás», «Menú principal» y «Siguiente» con sus íconos en todas las pantallas, también en el menú («MENÚ»); «Siguiente» queda deshabilitado donde no hay paso. Campos, botones e indicadores con la variante `stitch` (etiqueta pequeña en mayúsculas, control relleno sin borde, fichas de estado verde y roja) y los tamaños de letra de las maquetas |
+| T1184 | `features/sales/screens/sale-sheet.tsx`: en tablet, la venta es una pantalla como «Registro de venta multilotes»: datos del comprador, pestañas por lote, sacos pesados uno a uno en cinco columnas, tabla con el precio de cada lote, flete con «separado» o «incluir en total», resumen y «Guardar venta». Cada lote se envía como una línea con sus sacos y la suma de sus pesos (CL-ST19); la API no cambia |
+| T1185 | `features/history/commercial-history-list.tsx` y `features/accounts/screens/accounts-overview.tsx`: barra de búsqueda con «+ Nueva compra / venta», fichas de estado con conteos, totales en blanco, verde y rojo, y tarjetas con avatar, estado, variedad, volumen, total y abonado, saldo y «Abonar / liquidar». Deudas y Cobranzas llevan el interruptor «Deudas a productores · Cuentas por cobrar» de la maqueta |
+| T1186 | `features/logistics/screens/reference-logistics-screen.tsx`: buscador redondeado, tarjetas con vehículo, placa y chofer, y botón flotante «+». El formulario se abre con «+» o «Editar», como en la maqueta |
+| T1187 | `features/reports`: tarjeta de cabecera con Compras / Ventas, «Hoy», «Esta semana», «Este mes» y «Personalizado» (cada ficha consulta al tocarla) y «+ Exportar PDF / Excel», que muestra las descargas; indicadores de Stitch; evolución por día en columnas, distribución por variedad, consolidado por variedad con precio promedio y principales proveedores o compradores (`domain/shared/report-board.ts`, a partir de las filas del informe) |
+| T1188 | `features/analytics/screens/price-board.tsx`: indicadores de precio de las dos variedades con más kilos y del volumen de la semana, una tarjeta de cotización por variedad con compra pactada, venta pactada y su diferencia, la evolución semanal de la variedad elegida y la variedad con mayor diferencia (`domain/analytics/price-board-summary.ts`). Sin precio sugerido ni margen: la diferencia no descuenta flete ni estiba (CL-FM20) |
+| T1189 | `features/receipts/components/confirmation-card.tsx`: tarjeta «Guardado exitosamente» con el documento y su número, los cuatro datos, la línea de flete, descuentos, pago y emisión, y «Compartir comprobante», «+ Nueva venta / compra», «Enviar WhatsApp», «Enviar correo» e «Imprimir»; los tres últimos abren la hoja de compartir del sistema con el PDF |
+
+| Verificación | Resultado |
+| --- | --- |
+| `npm run typecheck`, `npm run lint` | Sin errores ni avisos |
+| `npm test -- --runInBand` | 702 pruebas en 101 suites |
+| Pruebas nuevas o cambiadas | `tests/sales/sale-sheet.test.tsx` (suma de sacos por lote, corrección, lote repetido, lote vacío, tarjeta), `tests/ui/app-chrome.test.tsx` (cabecera con estado y marca, «Siguiente» deshabilitado), `tests/sync/sync-banner.test.tsx` (estado de la cola, nunca «Sincronizado» con error), `tests/reports/report-board.test.ts` (participación, precio promedio, ranking, «Hoy» y «Esta semana»), `tests/analytics/price-board.test.tsx` (diferencia, tendencia, volumen, sin margen ni precio sugerido), `tests/reception/purchase-confirmation.test.tsx` (tarjeta y línea de flete) |
+| Emulador 1280 × 800 | [Menú Compra](../../img/verificacion-stitch-igual-2026-11-09/menu-compra.png) y [Venta](../../img/verificacion-stitch-igual-2026-11-09/menu-venta.png) con la cabecera y la barra nuevas; venta real de 6 sacos: [datos](../../img/verificacion-stitch-igual-2026-11-09/venta-datos.png), [cuadrícula](../../img/verificacion-stitch-igual-2026-11-09/venta-cuadricula.png), [tabla](../../img/verificacion-stitch-igual-2026-11-09/venta-tabla.png), [flete](../../img/verificacion-stitch-igual-2026-11-09/venta-flete.png), [resumen](../../img/verificacion-stitch-igual-2026-11-09/venta-resumen.png) y [guardado](../../img/verificacion-stitch-igual-2026-11-09/venta-guardada.png); [Ver compras](../../img/verificacion-stitch-igual-2026-11-09/ver-compras.png), [Ver ventas](../../img/verificacion-stitch-igual-2026-11-09/ver-ventas.png), [Deudas](../../img/verificacion-stitch-igual-2026-11-09/deudas.png), [Cobranzas](../../img/verificacion-stitch-igual-2026-11-09/cobranzas.png), [Carros](../../img/verificacion-stitch-igual-2026-11-09/carros.png), [Reportes](../../img/verificacion-stitch-igual-2026-11-09/reportes-compras.png) y [su tablero](../../img/verificacion-stitch-igual-2026-11-09/reportes-tablero.png), [Analítica](../../img/verificacion-stitch-igual-2026-11-09/analitica.png) |
+
+Defectos encontrados en el emulador y corregidos:
+
+- Android cortaba el texto de algunos botones (por ejemplo «Todas 4» quedaba en «Todas» cuando el conteo llegaba después, y «VER DETALLE» en «VER»). Los botones de Stitch llevan ahora una línea y un ancho mínimo calculado a partir del texto.
+- El destino de la venta y las calidades de cada lote se mueven a la tarjeta del lote, como en la maqueta.
+
+### Diferencias con las maquetas que se mantienen
+
+- No se dibujan la barra de estado simulada (red, batería, hora), la balanza, las guías SUNAT ni las devoluciones (CL-ST12, CL-ST18). Donde la maqueta dice «Terminal Acopio Norte • Turno A», la cabecera muestra el rol.
+- La venta no tiene «Adelanto cobrado» ni «RUC / DNI»: la API de ventas no los registra. «Carga rápida» y «Quitar lote» con sacos tampoco se dibujan; un lote solo se quita mientras está vacío.
+- Analítica no tiene «Compra sugerida», «Margen bruto» ni el precio de otro mercado: se muestran precios pactados y su diferencia (CL-FM20). Las pestañas «Rendimiento por variedad» y «Márgenes» no existen; los filtros por periodo quedan debajo de la pizarra.
+- Reportes conserva debajo del tablero los filtros e historial de precios, el resumen general y las alertas, que la maqueta no dibuja.
+- En teléfono y con texto grande, compra y venta siguen el flujo por pasos.
+
+### No verificado en esta fase
+
+- T1190 queda abierta: comparación lado a lado en teléfono de 360 dp y con texto al 200 %.
+- TalkBack y envío real por WhatsApp o correo, por las mismas razones que en las fases anteriores.

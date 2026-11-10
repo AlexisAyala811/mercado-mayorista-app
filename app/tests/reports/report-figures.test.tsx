@@ -36,10 +36,14 @@ it('draws each bar with its label and value for the screen reader, and says when
 it('reads the daily and the variety reports of the consulted period and shows both charts', async () => {
   jest.mocked(listAllReportRows).mockImplementation(async (_token, _selection, report) => (report === 'daily'
     ? [{ amount: '42000', date: '2026-11-03', id: '2026-11-03', operations: '2', sacks: '8', weight: '400.000' }]
-    : [{ id: 'v', name: 'Canchán', operations: '2', sacks: '8', subtotal: null, weight: '400.000' }]) as never);
+    : report === 'detail'
+      ? [{ id: 'o1', date: '2026-11-03', counterpartyId: 'p1', counterparty: 'Aurelio', gross: '42000', freight: '0', discounts: '0', advances: '0', amount: '42000', balance: '0', sacks: '8', weight: '400.000' }]
+      : [{ id: 'v', name: 'Canchán', operations: '2', sacks: '8', subtotal: '42000', weight: '400.000' }]) as never);
   let root!: ReactTestRenderer;
   await act(async () => { root = create(<ReportCharts token="t" selection={{ from: '2026-11-01', operation: 'purchase', to: '2026-11-09' }} />); });
   expect(listAllReportRows).toHaveBeenCalledWith('t', { from: '2026-11-01', operation: 'purchase', to: '2026-11-09' }, 'daily');
-  expect(texts(root)).toEqual(expect.arrayContaining(['Compras por día', 'Distribución por variedad', 'S/ 420.00', '400 kg · 8 sacos']));
+  // CL-ST18: the board of the Stitch reports.
+  expect(listAllReportRows).toHaveBeenCalledWith('t', { from: '2026-11-01', operation: 'purchase', to: '2026-11-09' }, 'detail');
+  expect(texts(root)).toEqual(expect.arrayContaining(['Evolución de compras', '420.00', '03/11', 'Distribución por variedad', '400 kg', '(100.0%)', 'Consolidado por variedad de papa', 'S/ 1.05', 'S/ 420.00', 'Principales proveedores', 'Aurelio', 'Liquidado']));
   await act(async () => root.unmount());
 });
