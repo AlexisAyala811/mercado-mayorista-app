@@ -136,7 +136,7 @@ Cada fase pasa tipos, lint, pruebas, build y auditoría (backend o app), e2e cua
 
 ## Igualdad con Stitch — 9 de noviembre de 2026
 
-**Estado:** pendiente de aprobación · **Especificación:** [RQ-ST10–RQ-ST14](spec.md#igualdad-con-stitch--9-de-noviembre-de-2026)
+**Estado:** aprobado por el usuario el 9 de noviembre de 2026 («Sí, apruebo») · **Especificación:** [RQ-ST10–RQ-ST14](spec.md#igualdad-con-stitch--9-de-noviembre-de-2026)
 
 ### Diseño
 

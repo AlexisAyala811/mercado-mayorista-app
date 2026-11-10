@@ -45,12 +45,13 @@ type OperationFilter = "all" | "purchase" | "sale";
 
 // autoQuery (spec 011, RQ-ST07): Reportes opens with the figures of the period;
 // false keeps the screen empty until «Consultar» (used to test the manual query).
-export function ReportsScreen({ autoQuery = true }: { autoQuery?: boolean }) {
+// initialOperation (RQ-ST11): the side of the menu it was opened from.
+export function ReportsScreen({ autoQuery = true, initialOperation = 'purchase' }: { autoQuery?: boolean; initialOperation?: 'purchase' | 'sale' }) {
   const { session } = useSession();
-  return session ? <ReportsWorkspace key={session.accessToken} autoQuery={autoQuery} /> : null;
+  return session ? <ReportsWorkspace key={session.accessToken} autoQuery={autoQuery} initialOperation={initialOperation} /> : null;
 }
 
-function ReportsWorkspace({ autoQuery }: { autoQuery: boolean }) {
+function ReportsWorkspace({ autoQuery, initialOperation }: { autoQuery: boolean; initialOperation: 'purchase' | 'sale' }) {
   const { width, fontScale } = useWindowDimensions();
   const wide = width >= 1100 && fontScale <= 1.3;
   const reportFontsLoaded = useReportFonts();
@@ -64,7 +65,7 @@ function ReportsWorkspace({ autoQuery }: { autoQuery: boolean }) {
   const [to, setTo] = useState(initialPeriod.to);
   const [periodPreset, setPeriodPreset] = useState<ReportPeriodPreset>('current-month');
   const [data, setData] = useState<CommercialSummary | null>(null);
-  const [reportOperation, setReportOperation] = useState<'purchase' | 'sale'>('purchase');
+  const [reportOperation, setReportOperation] = useState<'purchase' | 'sale'>(initialOperation);
   const [overview, setOverview] = useState<OperationOverview | null>(null);
   const [alerts, setAlerts] = useState<ReportAlerts | null>(null);
   const [prices, setPrices] = useState<PriceHistory | null>(null);
