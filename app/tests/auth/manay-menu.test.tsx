@@ -69,7 +69,7 @@ it('gives the Encargado only Anote, Anote de venta and Pendientes de envío', as
 it('keeps logout available and presents an empty state without modules', async () => {
   let root!: ReactTestRenderer; await act(async () => { root = create(screen([])); });
   expect(root.root.findAll(node => node.props.title === 'Sin módulos disponibles')).not.toHaveLength(0);
-  await act(async () => { root.root.findAll(node => node.props.label === 'Cerrar sesión')[0]!.props.onPress(); });
+  await act(async () => { root.root.findAll(node => node.props.accessibilityLabel === 'Cerrar sesión' && typeof node.props.onPress === 'function')[0]!.props.onPress(); });
   expect(logout).toHaveBeenCalledTimes(1); expect(openModule).not.toHaveBeenCalled();
   await act(async () => root.unmount());
 });

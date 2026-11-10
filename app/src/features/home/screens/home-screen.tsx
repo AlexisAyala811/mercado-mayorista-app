@@ -5,8 +5,9 @@ import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-na
 import { ModuleCard } from '@/features/home/components/module-card';
 import type { MenuFacts } from '@/features/home/menu-facts';
 import { menuSides, type MenuModule, type MenuSide } from '@/features/home/menu-modules';
-import { AppButton, AppScreen, BrandMark, EmptyState } from '@/ui/components';
-import { accent, card, color, radius, spacing, typography } from '@/ui/tokens';
+import { AppScreen, EmptyState } from '@/ui/components';
+import { AppHeader } from '@/ui/navigation/app-header';
+import { accent, card, color, radius, spacing } from '@/ui/tokens';
 
 export type HomeScreenProps = {
   badges?: MenuFacts;
@@ -34,21 +35,15 @@ export function HomeScreen({ badges = {}, facts = {}, initialSide = 'purchase', 
 
   return (
     <AppScreen contentContainerStyle={[styles.screen, dense && styles.screenDense]} testID="home-screen">
-      <View style={[styles.header, dense && styles.headerDense]}>
-        <View style={styles.brand}>
-          <BrandMark size={56} />
-          <Text accessibilityRole="header" accessibilityLabel={`Menú principal de MAÑAY. Usuario ${userDisplayName}`} style={styles.brandName}>
-            MAÑAY
-          </Text>
-        </View>
-        <View style={styles.account}>
-          <View style={styles.identity}>
-            <Text numberOfLines={1} style={styles.user}>{userDisplayName}</Text>
-            <Text style={styles.role}>{roleLabel}</Text>
-          </View>
-          {onLogout ? <AppButton label="Cerrar sesión" onPress={onLogout} tone="secondary" /> : null}
-        </View>
-      </View>
+      <AppHeader
+        title={`Menú principal de MAÑAY. Usuario ${userDisplayName}, ${roleLabel}`}
+        trailing={onLogout ? (
+          <Pressable accessibilityLabel="Cerrar sesión" accessibilityRole="button" onPress={onLogout} style={({ pressed }) => [styles.logout, pressed && styles.logoutPressed]} testID="logout">
+            <SymbolView fallback={<Text style={styles.logoutText}>Salir</Text>} name={{ android: 'logout', ios: 'rectangle.portrait.and.arrow.right', web: 'logout' }} size={22} tintColor="#475569" />
+          </Pressable>
+        ) : null}
+        variant="brand"
+      />
 
       {modules.length ? (
         <>
@@ -133,25 +128,9 @@ export function HomeScreen({ badges = {}, facts = {}, initialSide = 'purchase', 
 const styles = StyleSheet.create({
   screen: { gap: spacing.md, maxWidth: 1280, paddingBottom: spacing.xl },
   screenDense: { gap: 12, paddingTop: spacing.sm },
-  headerDense: { paddingVertical: spacing.sm },
-  header: {
-    alignItems: 'center',
-    backgroundColor: color.surfaceRaised,
-    borderColor: '#DBE3EB',
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.md,
-    justifyContent: 'space-between',
-    padding: spacing.md,
-  },
-  brand: { alignItems: 'center', flexDirection: 'row', gap: spacing.md },
-  brandName: { color: color.brand, fontSize: 28, fontWeight: '800', letterSpacing: 1, lineHeight: 34 },
-  account: { alignItems: 'center', flexDirection: 'row', flexShrink: 1, flexWrap: 'wrap', gap: spacing.md },
-  identity: { flexShrink: 1 },
-  user: { color: color.textPrimary, ...typography.body, fontWeight: '700' },
-  role: { color: color.textSecondary, ...typography.bodySmall },
+  logout: { alignItems: 'center', borderColor: '#E2E8F0', borderRadius: radius.sm, borderWidth: 1, height: 44, justifyContent: 'center', width: 44 },
+  logoutPressed: { backgroundColor: '#F8FAFC', transform: [{ scale: 0.95 }] },
+  logoutText: { color: '#475569', fontSize: 13, fontWeight: '700' },
   switch: {
     alignSelf: 'center',
     backgroundColor: '#E2E8F0',

@@ -476,7 +476,7 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
         details={started ? { ...details, providerName: displayContext.providerName, providerPhone: displayContext.providerPhone, date: displayContext.receivedOn } : details} detailsLocked={started}
         onChangeDetail={(field, value) => setDetails((current) => ({ ...current, [field]: value }))}
         onSelectProvider={() => setDialog('provider')} onSelectVehicle={() => setDialog('vehicle')}
-        referenceActions={<>{referenceFeedback}<OperationReferenceActions kinds={['providers','varieties']} onManage={referenceManage} disabled={busy||isOfflineSession||Boolean(referenceKind)||referenceReloadBusy}/></>}
+        referenceActions={<>{referenceFeedback}<OperationReferenceActions compact kinds={['providers','varieties']} onManage={referenceManage} disabled={busy||isOfflineSession||Boolean(referenceKind)||referenceReloadBusy}/></>}
         varieties={expectedVarieties} activeVarietyId={captureVarietyId} onSelectVariety={setSackVarietyId}
         onAddVariety={started ? undefined : () => setDialog('varieties')}
         sacks={activeSacks.map((sack) => ({ id: sack.id, sequence: sack.sequence, varietyId: sack.varietyId, netDisplay: kilogramsDraft(sack.netWeightKg), detail: `Bruto ${formatKilograms(sack.grossWeightKg)}, tara ${formatKilograms(sack.tareKg)}. ${commercialDescription(sack)}` }))}
@@ -484,7 +484,7 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
         gross={gross} tare={tare} onGrossChange={setGross} onTareChange={setTare}
         editingSequence={editing?.sequence ?? null} onEditSack={editSack} onCancelEdit={() => { setEditingSackId(null); setGross(''); setTare('0'); }}
         onSaveSack={() => void saveSheetSack()}
-        characteristics={<CharacteristicFields value={{qualityId,originId}} qualities={qualities} origins={origins} disabled={busy} historical={editing} onChange={(field,id)=>{if(busy)return;if(field==='qualityId')setQualityId(id);else setOriginId(id);}}/>}
+        characteristics={<CharacteristicFields appearance="stitch" value={{qualityId,originId}} qualities={qualities} origins={origins} disabled={busy} historical={editing} onChange={(field,id)=>{if(busy)return;if(field==='qualityId')setQualityId(id);else setOriginId(id);}}/>}
         lots={purchaseLots ?? []} values={settlementDraft} preview={settlementPreview}
         onChange={(field, value) => setSettlementDraft((current) => ({ ...current, [field]: value }))}
         onChangeLot={(key, field, value) => setSettlementDraft((current) => ({ ...current, lots: { ...current.lots, [key]: { ...(current.lots[key] ?? emptyLotDraft), [field]: value } } }))}

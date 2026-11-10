@@ -34,14 +34,17 @@ type Registry = {
   register: (owner: symbol, slots: Slots, handlers: Handlers) => void;
   release: (owner: symbol) => void;
 };
-type ChromeView = { username: string | null; slots: Slots };
+// Spec 011 (CL-ST18): what the Stitch header shows next to the user: the
+// role and the state of the local queue, which opens «Pendientes de envío».
+export type ChromeConnection = { tone: 'ok' | 'pending' | 'warning'; title: string; detail: string; accessibilityLabel: string; onPress?: () => void };
+type ChromeView = { username: string | null; role: string | null; connection: ChromeConnection | null; slots: Slots };
 
 const RegistryContext = createContext<Registry | null>(null);
 const ViewContext = createContext<ChromeView | null>(null);
 // Unit tests may replace expo-router/react-navigation without NavigationContext.
 const noNavigation = createContext<undefined>(undefined);
 
-export function AppChromeProvider({ children, username }: { children: ReactNode; username: string | null }) {
+export function AppChromeProvider({ children, connection = null, role = null, username }: { children: ReactNode; connection?: ChromeConnection | null; role?: string | null; username: string | null }) {
   const [state, setState] = useState<{ owner: symbol | null; slots: Slots }>({ owner: null, slots: {} });
   const handlers = useRef<Handlers>({});
   const owner = useRef<symbol | null>(null);
@@ -63,7 +66,7 @@ export function AppChromeProvider({ children, username }: { children: ReactNode;
     return true;
   }, []);
   const registry = useMemo(() => ({ press, register, release }), [press, register, release]);
-  const view = useMemo(() => ({ slots: state.slots, username }), [state.slots, username]);
+  const view = useMemo(() => ({ connection, role, slots: state.slots, username }), [connection, role, state.slots, username]);
   return (
     <RegistryContext.Provider value={registry}>
       <ViewContext.Provider value={view}>{children}</ViewContext.Provider>

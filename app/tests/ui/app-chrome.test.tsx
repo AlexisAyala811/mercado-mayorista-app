@@ -2,7 +2,8 @@ import { Text } from 'react-native';
 import { act, create, type ReactTestRenderer } from 'react-test-renderer';
 
 import { AppHeader } from '@/ui/navigation/app-header';
-import { BottomNavSlots, useBottomNav } from '@/ui/navigation/app-chrome';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { AppChromeProvider, BottomNavSlots, useBottomNav } from '@/ui/navigation/app-chrome';
 import { barButton, withChrome } from '../shared/with-chrome';
 
 const mockBack = jest.fn();
@@ -42,7 +43,8 @@ describe('bottom bar', () => {
     expect(mockReplace).toHaveBeenLastCalledWith('/home');
     await act(async () => barButton(root, 'Menú principal').props.onPress());
     expect(mockReplace).toHaveBeenCalledTimes(2);
-    expect(root.root.findAll((node) => node.props.label === 'Siguiente')).toHaveLength(0);
+    // CL-ST18: «Siguiente» keeps its place, disabled, when the screen has no step.
+    expect(barButton(root, 'Siguiente').props.disabled).toBe(true);
   });
 
   it('uses the step back and the step action a screen declares, with their disabled state', async () => {
@@ -93,13 +95,35 @@ describe('bottom bar', () => {
   });
 });
 
-// Spec 011 (RQ-ST03).
+// Spec 011 (RQ-ST03, CL-ST18).
 describe('header', () => {
-  it('shows the logo, the eyebrow, the title as a header and the signed-in user', async () => {
-    const root = await render(<AppHeader eyebrow="VENTA · COBRANZAS" title="Cobranzas" />);
-    expect(root.root.findAll((node) => node.props.testID === 'brand-mark').length).toBeGreaterThan(0);
-    expect(texts(root)).toEqual(expect.arrayContaining(['VENTA · COBRANZAS', 'Cobranzas', 'mayorista']));
+  it('shows the user with the role, the title with its module pill and, on the menu, the brand', async () => {
+    const root = await render(<AppHeader eyebrow="VENTA · COBRANZAS" subtitle="Saldos por cobrar" title="Cobranzas" />);
+    expect(root.root.findAll((node) => node.props.testID === 'brand-mark')).toHaveLength(0);
+    expect(texts(root)).toEqual(expect.arrayContaining(['VENTA · COBRANZAS', 'Cobranzas', 'Saldos por cobrar', 'mayorista']));
     expect(root.root.findAll((node) => node.type === Text && node.props.accessibilityRole === 'header')[0]!.props.children).toBe('Cobranzas');
     expect(root.root.findAll((node) => node.props.accessibilityLabel === 'Usuario: mayorista').length).toBeGreaterThan(0);
+    await act(async () => root.update(withChrome(<AppHeader title="Menú principal" variant="brand" />, 'mayorista')));
+    expect(root.root.findAll((node) => node.props.testID === 'brand-mark').length).toBeGreaterThan(0);
+    expect(texts(root)).toEqual(expect.arrayContaining(['MAÑAY', 'GESTIÓN COMERCIAL DE PAPA']));
+  });
+
+  it('shows the state of the queue next to the user and opens it from the chip', async () => {
+    const open = jest.fn();
+    let root!: ReactTestRenderer;
+    const header = (tone: 'ok' | 'pending' | 'warning', title: string, detail: string) => (
+      <SafeAreaProvider initialMetrics={{ frame: { height: 800, width: 1280, x: 0, y: 0 }, insets: { bottom: 0, left: 0, right: 0, top: 0 } }}>
+        <AppChromeProvider connection={{ accessibilityLabel: `${title}, ${detail}`, detail, onPress: open, title, tone }} role="Mayorista" username="mayorista">
+          <AppHeader title="Compra" />
+        </AppChromeProvider>
+      </SafeAreaProvider>
+    );
+    await act(async () => { root = create(header('ok', 'En línea', 'Sincronizado')); });
+    expect(texts(root)).toEqual(expect.arrayContaining(['En línea', 'En línea · Sincronizado', 'Mayorista']));
+    await act(async () => root.root.findAll((node) => node.props.testID === 'sync-chip' && typeof node.props.onPress === 'function')[0]!.props.onPress());
+    expect(open).toHaveBeenCalledTimes(1);
+    await act(async () => root.update(header('warning', 'No se pudieron recuperar los pendientes', 'Revisar')));
+    expect(texts(root)).toEqual(expect.arrayContaining(['Revisar', 'No se pudieron recuperar los pendientes · Revisar']));
+    expect(texts(root)).not.toContain('En línea · Sincronizado');
   });
 });

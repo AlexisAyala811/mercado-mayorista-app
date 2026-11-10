@@ -134,26 +134,26 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
   }
 
   return (
-    <AppScreen contentContainerStyle={styles.screen} testID="purchase-sheet">
+    <AppScreen contentContainerStyle={sheetStyles.screen} testID="purchase-sheet">
       <AppHeader eyebrow="COMPRA · ANOTE" title="Compra" />
       {props.notice ? <FeedbackState title="Pendiente de confirmación central" message={props.notice} /> : null}
       {props.errorMessage ? <FeedbackState title="No se pudo completar la operación" message={props.errorMessage} tone="error" /> : null}
 
-      <View style={styles.card} testID="sheet-details">
-        <View style={styles.fields}>
-          <View style={styles.fieldWide}><SelectionField disabled={props.detailsLocked || locked} label="Nombre del proveedor" onPress={props.onSelectProvider} placeholder="Seleccionar proveedor" value={props.details.providerName} /></View>
-          <View style={styles.field}><FormField editable={!props.detailsLocked && !locked} keyboardType="phone-pad" label="N.° celular" onChangeText={(value) => props.onChangeDetail('providerPhone', value)} placeholder="Opcional" value={props.details.providerPhone} /></View>
-          <View style={styles.field}><FormField editable={!props.detailsLocked && !locked} label="Fecha de compra" onChangeText={(value) => props.onChangeDetail('date', value)} placeholder="aaaa-mm-dd" value={props.details.date} /></View>
+      <View style={sheetStyles.card} testID="sheet-details">
+        <View style={sheetStyles.fields}>
+          <View style={sheetStyles.fieldWide}><SelectionField appearance="stitch" disabled={props.detailsLocked || locked} label="Nombre del proveedor" onPress={props.onSelectProvider} placeholder="Seleccionar proveedor" value={props.details.providerName} /></View>
+          <View style={sheetStyles.field}><FormField appearance="stitch" editable={!props.detailsLocked && !locked} keyboardType="phone-pad" label="N.° celular" onChangeText={(value) => props.onChangeDetail('providerPhone', value)} placeholder="Opcional" value={props.details.providerPhone} /></View>
+          <View style={sheetStyles.field}><FormField appearance="stitch" editable={!props.detailsLocked && !locked} label="Fecha de compra" onChangeText={(value) => props.onChangeDetail('date', value)} placeholder="aaaa-mm-dd" value={props.details.date} /></View>
         </View>
-        <View style={styles.fields}>
-          <View style={styles.fieldWide}><FormField editable={!props.detailsLocked && !locked} label="Conductor" onChangeText={(value) => props.onChangeDetail('driverName', value)} placeholder="Nombre del conductor" value={props.details.driverName} /></View>
-          <View style={styles.fieldWide}><SelectionField disabled={props.detailsLocked || locked} label="Vehículo (opcional)" onPress={props.onSelectVehicle} placeholder="Seleccionar placa" value={props.details.vehiclePlate} /></View>
+        <View style={sheetStyles.fields}>
+          <View style={sheetStyles.fieldWide}><FormField appearance="stitch" editable={!props.detailsLocked && !locked} label="Conductor" onChangeText={(value) => props.onChangeDetail('driverName', value)} placeholder="Nombre del conductor" value={props.details.driverName} /></View>
+          <View style={sheetStyles.fieldWide}><SelectionField appearance="stitch" disabled={props.detailsLocked || locked} label="Vehículo (opcional)" onPress={props.onSelectVehicle} placeholder="Seleccionar placa" value={props.details.vehiclePlate} /></View>
         </View>
         {props.detailsLocked ? null : props.referenceActions}
       </View>
 
-      <View style={[styles.card, styles.tabsCard]}>
-        <View accessibilityRole="tablist" style={styles.tabs}>
+      <View style={[sheetStyles.card, sheetStyles.tabsCard]}>
+        <View accessibilityRole="tablist" style={sheetStyles.tabs}>
           {props.varieties.length ? props.varieties.map((variety, index) => {
             const selected = variety.id === active?.id;
             const total = count(variety.id);
@@ -164,47 +164,47 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
                 accessibilityState={{ selected }}
                 key={variety.id}
                 onPress={() => props.onSelectVariety(variety.id)}
-                style={[styles.tab, selected && styles.tabSelected]}
+                style={[sheetStyles.tab, selected && sheetStyles.tabSelected]}
                 testID={`lot-tab-${letter(index)}`}>
-                <View style={[styles.tabLetter, selected && styles.tabLetterSelected]}><Text style={[styles.tabLetterText, selected && styles.onBrand]}>{letter(index)}</Text></View>
-                <Text numberOfLines={1} style={[styles.tabName, selected && styles.onBrand]}>{variety.name}</Text>
-                <View style={[styles.tabCount, selected && styles.tabCountSelected]}><Text style={[styles.tabCountText, selected && styles.onBrand]}>{total} {sackWord(total)}</Text></View>
+                <View style={[sheetStyles.tabLetter, selected && sheetStyles.tabLetterSelected]}><Text style={[sheetStyles.tabLetterText, selected && sheetStyles.onBrand]}>{letter(index)}</Text></View>
+                <Text numberOfLines={1} style={[sheetStyles.tabName, selected && sheetStyles.onBrand]}>{variety.name}</Text>
+                <View style={[sheetStyles.tabCount, selected && sheetStyles.tabCountSelected]}><Text style={[sheetStyles.tabCountText, selected && sheetStyles.onBrand]}>{total} {sackWord(total)}</Text></View>
               </Pressable>
             );
-          }) : <Text style={styles.help}>Añade la primera variedad para empezar a pesar.</Text>}
+          }) : <Text style={sheetStyles.help}>Añade la primera variedad para empezar a pesar.</Text>}
         </View>
         {props.onAddVariety ? (
-          <Pressable accessibilityLabel="Añadir lote o variedad" accessibilityRole="button" disabled={locked} onPress={props.onAddVariety} style={({ pressed }) => [styles.addLot, (pressed || locked) && styles.dimmed]}>
+          <Pressable accessibilityLabel="Añadir lote o variedad" accessibilityRole="button" disabled={locked} onPress={props.onAddVariety} style={({ pressed }) => [sheetStyles.addLot, (pressed || locked) && sheetStyles.dimmed]}>
             <SymbolView fallback={null} name={{ android: 'add_circle', ios: 'plus.circle', web: 'add_circle' }} size={20} tintColor={color.textOnBrand} />
-            <Text style={styles.addLotText}>Añadir lote / variedad</Text>
+            <Text style={sheetStyles.addLotText}>Añadir lote / variedad</Text>
           </Pressable>
         ) : null}
       </View>
 
-      <View style={styles.card} testID="sheet-lot">
-        <View style={styles.lotHeader}>
-          <View style={styles.lotChip}>
+      <View style={sheetStyles.card} testID="sheet-lot">
+        <View style={sheetStyles.lotHeader}>
+          <View style={sheetStyles.lotChip}>
             <SymbolView fallback={null} name={{ android: 'inventory_2', ios: 'shippingbox', web: 'inventory_2' }} size={20} tintColor="#6EE7B7" />
-            <Text numberOfLines={1} style={styles.lotChipText}>{active?.name ?? 'Sin variedad'}</Text>
+            <Text numberOfLines={1} style={sheetStyles.lotChipText}>{active?.name ?? 'Sin variedad'}</Text>
           </View>
-          {active ? <View style={styles.lotBadge}><Text style={styles.lotBadgeText}>Lote {letter(activeIndex)}</Text></View> : null}
+          {active ? <View style={sheetStyles.lotBadge}><Text style={sheetStyles.lotBadgeText}>Lote {letter(activeIndex)}</Text></View> : null}
         </View>
 
-        <View style={styles.gridHeader}>
-          <View style={styles.gridTitles}>
-            <Text accessibilityRole="header" style={styles.overline}>PESAJE DE SACOS INDIVIDUALES (KG)</Text>
-            <Text style={styles.help}>{props.weighingLocked ? 'Pesaje cerrado: el detalle queda bloqueado.' : 'Toca un saco para corregir su bruto y su tara.'}</Text>
+        <View style={sheetStyles.gridHeader}>
+          <View style={sheetStyles.gridTitles}>
+            <Text accessibilityRole="header" style={sheetStyles.overline}>PESAJE DE SACOS INDIVIDUALES (KG)</Text>
+            <Text style={sheetStyles.help}>{props.weighingLocked ? 'Pesaje cerrado: el detalle queda bloqueado.' : 'Toca un saco para corregir su bruto y su tara.'}</Text>
           </View>
-          <View style={styles.goTo}>
-            <SheetInput accessibilityLabel="Número del saco" keyboardType="number-pad" onChangeText={(value) => { setTarget(value); setTargetMessage(null); }} onSubmitEditing={goToSack} placeholder="Ir al saco N.°" returnKeyType="go" style={styles.goToInput} value={target} />
-            <Pressable accessibilityLabel="Ir al saco" accessibilityRole="button" disabled={!props.sacks.length} onPress={goToSack} style={({ pressed }) => [styles.goToButton, (pressed || !props.sacks.length) && styles.dimmed]}><Text style={styles.goToButtonText}>Ir</Text></Pressable>
-            <View style={styles.countBadge}><Text style={styles.countBadgeText}>{activeSacks.length} {sackWord(activeSacks.length)} registrados</Text></View>
+          <View style={sheetStyles.goTo}>
+            <SheetInput accessibilityLabel="Número del saco" keyboardType="number-pad" onChangeText={(value) => { setTarget(value); setTargetMessage(null); }} onSubmitEditing={goToSack} placeholder="Ir al saco N.°" returnKeyType="go" style={sheetStyles.goToInput} value={target} />
+            <Pressable accessibilityLabel="Ir al saco" accessibilityRole="button" disabled={!props.sacks.length} onPress={goToSack} style={({ pressed }) => [sheetStyles.goToButton, (pressed || !props.sacks.length) && sheetStyles.dimmed]}><Text style={sheetStyles.goToButtonText}>Ir</Text></Pressable>
+            <View style={sheetStyles.countBadge}><Text style={sheetStyles.countBadgeText}>{activeSacks.length} {sackWord(activeSacks.length)} registrados</Text></View>
           </View>
         </View>
-        {targetMessage ? <Text accessibilityLiveRegion="polite" style={styles.targetMessage}>{targetMessage}</Text> : null}
+        {targetMessage ? <Text accessibilityLiveRegion="polite" style={sheetStyles.targetMessage}>{targetMessage}</Text> : null}
 
-        <View style={styles.gridBox}>
-          {rows.length ? null : <Text style={styles.empty}>{active ? 'Escribe el peso bruto del primer saco y añádelo.' : 'Todavía no hay variedades en esta compra.'}</Text>}
+        <View style={sheetStyles.gridBox}>
+          {rows.length ? null : <Text style={sheetStyles.empty}>{active ? 'Escribe el peso bruto del primer saco y añádelo.' : 'Todavía no hay variedades en esta compra.'}</Text>}
           <ScrollView
             keyboardShouldPersistTaps="handled"
             nestedScrollEnabled
@@ -214,11 +214,11 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
             }}
             ref={gridRef}
             scrollEventThrottle={32}
-            style={styles.grid}
+            style={sheetStyles.grid}
             testID="sack-grid">
             <View style={{ height: Math.max(0, windowStart) * sheetRowHeight }} />
             {rows.slice(windowStart, windowEnd).map((item) => (
-              <View key={item[0]!.id} style={styles.gridRow}>
+              <View key={item[0]!.id} style={sheetStyles.gridRow}>
                 {item.map((sack) => (
                   <Pressable
                     accessibilityHint={props.weighingLocked ? undefined : 'Corrige el bruto y la tara'}
@@ -227,14 +227,14 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
                     disabled={props.weighingLocked || locked}
                     key={sack.id}
                     onPress={() => props.onEditSack(sack.id)}
-                    style={({ pressed }) => [styles.cell, (sack.id === highlightedId || sack.sequence === props.editingSequence) && styles.cellHighlighted, pressed && styles.dimmed]}
+                    style={({ pressed }) => [sheetStyles.cell, (sack.id === highlightedId || sack.sequence === props.editingSequence) && sheetStyles.cellHighlighted, pressed && sheetStyles.dimmed]}
                     testID={`sack-${sack.sequence}`}>
-                    <View style={styles.cellNumber}><Text style={styles.cellNumberText}>{String(sack.sequence).padStart(2, '0')}</Text></View>
-                    <View style={styles.cellValue}><Text style={styles.cellValueText}>{sack.netDisplay}</Text></View>
-                    <Text style={styles.cellUnit}>kg</Text>
+                    <View style={sheetStyles.cellNumber}><Text style={sheetStyles.cellNumberText}>{String(sack.sequence).padStart(2, '0')}</Text></View>
+                    <View style={sheetStyles.cellValue}><Text style={sheetStyles.cellValueText}>{sack.netDisplay}</Text></View>
+                    <Text style={sheetStyles.cellUnit}>kg</Text>
                   </Pressable>
                 ))}
-                {Array.from({ length: sheetColumns - item.length }, (_, index) => <View key={`gap-${index}`} style={[styles.cell, styles.cellGap]} />)}
+                {Array.from({ length: sheetColumns - item.length }, (_, index) => <View key={`gap-${index}`} style={[sheetStyles.cell, sheetStyles.cellGap]} />)}
               </View>
             ))}
             <View style={{ height: Math.max(0, rows.length - windowEnd) * sheetRowHeight }} />
@@ -242,177 +242,177 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
         </View>
 
         {props.weighingLocked ? null : (
-          <View style={styles.capture} testID="sheet-capture">
-            <View style={styles.captureRow}>
-              <Text accessibilityRole="header" style={styles.captureTitle}>{props.editingSequence ? `Corregir saco ${props.editingSequence}` : `Saco ${nextSequence}`}</Text>
-              <View style={styles.captureField}>
-                <Text style={styles.captureLabel}>Peso bruto (kg)</Text>
-                <SheetInput accessibilityLabel="Peso bruto (kg)" editable={captureEditable} keyboardType="number-pad" onChangeText={props.onGrossChange} onSubmitEditing={canAdd ? props.onSaveSack : undefined} placeholder="52" returnKeyType="done" submitBehavior="submit" style={styles.captureInput} value={props.gross} />
+          <View style={sheetStyles.capture} testID="sheet-capture">
+            <View style={sheetStyles.captureRow}>
+              <Text accessibilityRole="header" style={sheetStyles.captureTitle}>{props.editingSequence ? `Corregir saco ${props.editingSequence}` : `Saco ${nextSequence}`}</Text>
+              <View style={sheetStyles.captureField}>
+                <Text style={sheetStyles.captureLabel}>Peso bruto (kg)</Text>
+                <SheetInput accessibilityLabel="Peso bruto (kg)" editable={captureEditable} keyboardType="number-pad" onChangeText={props.onGrossChange} onSubmitEditing={canAdd ? props.onSaveSack : undefined} placeholder="52" returnKeyType="done" submitBehavior="submit" style={sheetStyles.captureInput} value={props.gross} />
               </View>
-              <View style={styles.captureField}>
-                <Text style={styles.captureLabel}>Tara (kg)</Text>
-                <SheetInput accessibilityLabel="Tara (kg)" editable={captureEditable} keyboardType="number-pad" onChangeText={props.onTareChange} placeholder="0" style={styles.captureInput} value={props.tare} />
+              <View style={sheetStyles.captureField}>
+                <Text style={sheetStyles.captureLabel}>Tara (kg)</Text>
+                <SheetInput accessibilityLabel="Tara (kg)" editable={captureEditable} keyboardType="number-pad" onChangeText={props.onTareChange} placeholder="0" style={sheetStyles.captureInput} value={props.tare} />
               </View>
-              <Pressable accessibilityLabel={props.busy ? 'Guardando saco' : props.editingSequence ? 'Guardar corrección' : 'Añadir saco'} accessibilityRole="button" disabled={!canAdd} onPress={props.onSaveSack} style={({ pressed }) => [styles.addSack, (pressed || !canAdd) && styles.dimmed]} testID="add-sack">
+              <Pressable accessibilityLabel={props.busy ? 'Guardando saco' : props.editingSequence ? 'Guardar corrección' : 'Añadir saco'} accessibilityRole="button" disabled={!canAdd} onPress={props.onSaveSack} style={({ pressed }) => [sheetStyles.addSack, (pressed || !canAdd) && sheetStyles.dimmed]} testID="add-sack">
                 <SymbolView fallback={null} name={{ android: 'add_circle', ios: 'plus.circle', web: 'add_circle' }} size={20} tintColor={accent.emerald.ink} />
-                <Text style={styles.addSackText}>{props.busy ? 'Guardando…' : props.editingSequence ? 'Guardar corrección' : 'Añadir 1 saco'}</Text>
+                <Text style={sheetStyles.addSackText}>{props.busy ? 'Guardando…' : props.editingSequence ? 'Guardar corrección' : 'Añadir 1 saco'}</Text>
               </Pressable>
-              {props.editingSequence ? <Pressable accessibilityLabel="Cancelar corrección" accessibilityRole="button" disabled={locked} onPress={props.onCancelEdit} style={styles.cancelEdit}><Text style={styles.cancelEditText}>Cancelar</Text></Pressable> : null}
+              {props.editingSequence ? <Pressable accessibilityLabel="Cancelar corrección" accessibilityRole="button" disabled={locked} onPress={props.onCancelEdit} style={sheetStyles.cancelEdit}><Text style={sheetStyles.cancelEditText}>Cancelar</Text></Pressable> : null}
             </View>
-            <Text style={styles.help}>Kilos enteros. El neto se calcula como bruto menos tara.</Text>
+            <Text style={sheetStyles.help}>Kilos enteros. El neto se calcula como bruto menos tara.</Text>
             {props.characteristics}
           </View>
         )}
 
-        <View style={styles.subtotal}>
-          <View style={styles.subtotalCopy}>
+        <View style={sheetStyles.subtotal}>
+          <View style={sheetStyles.subtotalCopy}>
             <SymbolView fallback={null} name={{ android: 'scale', ios: 'scalemass', web: 'scale' }} size={22} tintColor={accent.emerald.ink} />
-            <Text style={styles.subtotalTitle}>SUBTOTAL LOTE {active ? letter(activeIndex) : ''}</Text>
-            <Text style={styles.help}>({activeSacks.length} {sackWord(activeSacks.length)} con peso)</Text>
+            <Text style={sheetStyles.subtotalTitle}>SUBTOTAL LOTE {active ? letter(activeIndex) : ''}</Text>
+            <Text style={sheetStyles.help}>({activeSacks.length} {sackWord(activeSacks.length)} con peso)</Text>
           </View>
-          <View style={styles.subtotalWeight}>
-            <Text style={styles.help}>Peso total lote:</Text>
-            <Text accessibilityLabel={`Peso total del lote: ${formatKilograms(gramsToKg(activeKilograms))}`} style={styles.subtotalValue}>{formatKilograms(gramsToKg(activeKilograms))}</Text>
+          <View style={sheetStyles.subtotalWeight}>
+            <Text style={sheetStyles.help}>Peso total lote:</Text>
+            <Text accessibilityLabel={`Peso total del lote: ${formatKilograms(gramsToKg(activeKilograms))}`} style={sheetStyles.subtotalValue}>{formatKilograms(gramsToKg(activeKilograms))}</Text>
           </View>
         </View>
       </View>
 
-      <View style={styles.card} testID="sheet-table">
-        <View style={styles.sectionHeader}>
-          <Text accessibilityRole="header" style={styles.sectionTitle}>Resultado de compra por variedad / lote</Text>
-          <Text style={styles.help}>Cálculos acumulados</Text>
+      <View style={sheetStyles.card} testID="sheet-table">
+        <View style={sheetStyles.sectionHeader}>
+          <Text accessibilityRole="header" style={sheetStyles.sectionTitle}>Resultado de compra por variedad / lote</Text>
+          <Text style={sheetStyles.help}>Cálculos acumulados</Text>
         </View>
-        <View style={styles.tableHead}>
-          <Text style={[styles.th, styles.colLot]}>LOTE</Text>
-          <Text style={[styles.th, styles.colVariety]}>VARIEDAD</Text>
-          <Text style={[styles.th, styles.colSacks]}>N.° SACOS</Text>
-          <Text style={[styles.th, styles.colWeight]}>PESO TOTAL (KG)</Text>
-          <Text style={[styles.th, styles.colPrice]}>PRECIO (S/)</Text>
-          <Text style={[styles.th, styles.colAmount]}>SUBTOTAL (S/)</Text>
+        <View style={sheetStyles.tableHead}>
+          <Text style={[sheetStyles.th, sheetStyles.colLot]}>LOTE</Text>
+          <Text style={[sheetStyles.th, sheetStyles.colVariety]}>VARIEDAD</Text>
+          <Text style={[sheetStyles.th, sheetStyles.colSacks]}>N.° SACOS</Text>
+          <Text style={[sheetStyles.th, sheetStyles.colWeight]}>PESO TOTAL (KG)</Text>
+          <Text style={[sheetStyles.th, sheetStyles.colPrice]}>PRECIO (S/)</Text>
+          <Text style={[sheetStyles.th, sheetStyles.colAmount]}>SUBTOTAL (S/)</Text>
         </View>
         {props.lots.length ? props.lots.map((lot) => {
           const draft = values.lots[lot.key] ?? emptyLotDraft;
           const amount = preview.kind === 'ready' ? preview.lots.find((item) => item.key === lot.key)?.amountCents : undefined;
           const described = `${lot.varietyName}${lot.qualityName ? ` · ${lot.qualityName}` : ''}`;
           return (
-            <View key={lot.key} style={styles.tableRow} testID={`lot-${lot.letter}`}>
-              <View style={styles.colLot}><View style={styles.lotTag}><Text style={styles.lotTagText}>Lote {lot.letter}</Text></View></View>
-              <View style={styles.colVariety}>
-                <SheetInput accessibilityLabel={`Nombre del lote ${lot.letter} (opcional)`} editable={!locked} maxLength={60} onChangeText={(value) => props.onChangeLot(lot.key, 'name', value)} placeholder={described} style={styles.tableInput} value={draft.name} />
+            <View key={lot.key} style={sheetStyles.tableRow} testID={`lot-${lot.letter}`}>
+              <View style={sheetStyles.colLot}><View style={sheetStyles.lotTag}><Text style={sheetStyles.lotTagText}>Lote {lot.letter}</Text></View></View>
+              <View style={sheetStyles.colVariety}>
+                <SheetInput accessibilityLabel={`Nombre del lote ${lot.letter} (opcional)`} editable={!locked} maxLength={60} onChangeText={(value) => props.onChangeLot(lot.key, 'name', value)} placeholder={described} style={sheetStyles.tableInput} value={draft.name} />
               </View>
-              <View style={styles.colSacks}><View style={styles.sacksPill}><Text style={styles.sacksPillText}>{lot.sacks} {sackWord(lot.sacks)}</Text></View></View>
-              <View style={styles.colWeight}><View style={styles.weightPill}><Text style={styles.weightPillText}>{formatKilograms(lot.netWeightKg)}</Text></View></View>
-              <View style={[styles.colPrice, styles.priceCell]}>
-                <View accessibilityRole="radiogroup" style={styles.basis}>
+              <View style={sheetStyles.colSacks}><View style={sheetStyles.sacksPill}><Text style={sheetStyles.sacksPillText}>{lot.sacks} {sackWord(lot.sacks)}</Text></View></View>
+              <View style={sheetStyles.colWeight}><View style={sheetStyles.weightPill}><Text style={sheetStyles.weightPillText}>{formatKilograms(lot.netWeightKg)}</Text></View></View>
+              <View style={[sheetStyles.colPrice, sheetStyles.priceCell]}>
+                <View accessibilityRole="radiogroup" style={sheetStyles.basis}>
                   {([['kilogram', 'kg', 'por kilogramo'], ['sack', 'saco', 'por saco']] as const).map(([value, short, long]) => (
-                    <Pressable accessibilityLabel={`Lote ${lot.letter}: ${long}`} accessibilityRole="radio" accessibilityState={{ checked: draft.priceBasis === value }} disabled={locked} key={value} onPress={() => props.onChangeLot(lot.key, 'priceBasis', value)} style={[styles.basisOption, draft.priceBasis === value && styles.basisSelected]}>
-                      <Text style={[styles.basisText, draft.priceBasis === value && styles.onBrand]}>{short}</Text>
+                    <Pressable accessibilityLabel={`Lote ${lot.letter}: ${long}`} accessibilityRole="radio" accessibilityState={{ checked: draft.priceBasis === value }} disabled={locked} key={value} onPress={() => props.onChangeLot(lot.key, 'priceBasis', value)} style={[sheetStyles.basisOption, draft.priceBasis === value && sheetStyles.basisSelected]}>
+                      <Text style={[sheetStyles.basisText, draft.priceBasis === value && sheetStyles.onBrand]}>{short}</Text>
                     </Pressable>
                   ))}
                 </View>
-                <SheetInput accessibilityLabel={draft.priceBasis === 'kilogram' ? `Precio por kilogramo, lote ${lot.letter} (S/)` : `Precio por saco, lote ${lot.letter} (S/)`} editable={!locked} keyboardType="decimal-pad" onChangeText={(value) => props.onChangeLot(lot.key, 'unitPrice', value)} placeholder="0.00" style={[styles.tableInput, styles.priceInput]} value={draft.unitPrice} />
+                <SheetInput accessibilityLabel={draft.priceBasis === 'kilogram' ? `Precio por kilogramo, lote ${lot.letter} (S/)` : `Precio por saco, lote ${lot.letter} (S/)`} editable={!locked} keyboardType="decimal-pad" onChangeText={(value) => props.onChangeLot(lot.key, 'unitPrice', value)} placeholder="0.00" style={[sheetStyles.tableInput, sheetStyles.priceInput]} value={draft.unitPrice} />
               </View>
-              <Text accessibilityLabel={`Importe del lote ${lot.letter}: ${amount ? formatPreviewMoney(amount) : 'Pendiente'}`} style={[styles.amount, styles.colAmount]}>{amount ? formatPreviewMoney(amount) : 'Pendiente'}</Text>
+              <Text accessibilityLabel={`Importe del lote ${lot.letter}: ${amount ? formatPreviewMoney(amount) : 'Pendiente'}`} style={[sheetStyles.amount, sheetStyles.colAmount]}>{amount ? formatPreviewMoney(amount) : 'Pendiente'}</Text>
             </View>
           );
-        }) : <Text style={styles.empty}>Los lotes aparecen al registrar el primer saco.</Text>}
-        <View style={styles.totals}>
+        }) : <Text style={sheetStyles.empty}>Los lotes aparecen al registrar el primer saco.</Text>}
+        <View style={sheetStyles.totals}>
           <Total label="Total sacos" value={`${totalSacks}`} />
           <Total label="Total kilaje" value={formatKilograms(gramsToKg(totalGrams))} />
           <Total label="Total compra" strong value={money('grossCents')} />
         </View>
       </View>
 
-      <View style={styles.card} testID="sheet-freight">
-        <View style={styles.sectionHeader}>
-          <View style={styles.sectionTitleRow}>
+      <View style={sheetStyles.card} testID="sheet-freight">
+        <View style={sheetStyles.sectionHeader}>
+          <View style={sheetStyles.sectionTitleRow}>
             <SymbolView fallback={null} name={{ android: 'local_shipping', ios: 'truck.box', web: 'local_shipping' }} size={22} tintColor={color.brand} />
-            <Text accessibilityRole="header" style={styles.sectionTitle}>Flete de transporte</Text>
+            <Text accessibilityRole="header" style={sheetStyles.sectionTitle}>Flete de transporte</Text>
           </View>
-          <View accessibilityRole="radiogroup" style={styles.options}>
+          <View accessibilityRole="radiogroup" style={sheetStyles.options}>
             {([['none', 'Sin flete'], ['sack', 'Por sacos'], ['kilogram', 'Por kilaje']] as const).map(([value, label]) => (
               <Option checked={values.freightBasis === value} disabled={locked} key={value} label={label} accessibilityLabel={`Flete: ${label.toLowerCase()}`} onPress={() => props.onChange('freightBasis', value)} />
             ))}
           </View>
         </View>
-        {values.freightBasis === 'none' ? <Text style={styles.help}>Esta compra no lleva flete.</Text> : (
+        {values.freightBasis === 'none' ? <Text style={sheetStyles.help}>Esta compra no lleva flete.</Text> : (
           <>
-            <View style={styles.freightRow}>
-              <View style={styles.freightChip}>
-                <Text style={styles.freightQuantity}>{values.freightBasis === 'sack' ? `${totalSacks} ${sackWord(totalSacks)}` : formatKilograms(gramsToKg(totalGrams))}</Text>
-                <Text style={styles.freightTimes}>× S/</Text>
-                <SheetInput accessibilityLabel="Tarifa de flete (S/)" editable={!locked} keyboardType="decimal-pad" onChangeText={(value) => props.onChange('freightRate', value)} placeholder="0.00" style={styles.freightInput} value={values.freightRate} />
+            <View style={sheetStyles.freightRow}>
+              <View style={sheetStyles.freightChip}>
+                <Text style={sheetStyles.freightQuantity}>{values.freightBasis === 'sack' ? `${totalSacks} ${sackWord(totalSacks)}` : formatKilograms(gramsToKg(totalGrams))}</Text>
+                <Text style={sheetStyles.freightTimes}>× S/</Text>
+                <SheetInput accessibilityLabel="Tarifa de flete (S/)" editable={!locked} keyboardType="decimal-pad" onChangeText={(value) => props.onChange('freightRate', value)} placeholder="0.00" style={sheetStyles.freightInput} value={values.freightRate} />
               </View>
-              <Text style={[styles.help, styles.grow]}>Tarifa por {values.freightBasis === 'sack' ? 'saco' : 'kilogramo'}</Text>
-              <Text style={styles.help}>SUBTOTAL FLETE:</Text>
-              <Text accessibilityLabel={`Subtotal de flete: ${money('freightCents')}`} style={styles.freightAmount}>{money('freightCents')}</Text>
+              <Text style={[sheetStyles.help, sheetStyles.grow]}>Tarifa por {values.freightBasis === 'sack' ? 'saco' : 'kilogramo'}</Text>
+              <Text style={sheetStyles.help}>SUBTOTAL FLETE:</Text>
+              <Text accessibilityLabel={`Subtotal de flete: ${money('freightCents')}`} style={sheetStyles.freightAmount}>{money('freightCents')}</Text>
             </View>
-            <View style={styles.freightRow}>
-              <Text style={styles.captureLabel}>¿Quién asume el flete?</Text>
-              <View accessibilityRole="radiogroup" style={styles.options}>
+            <View style={sheetStyles.freightRow}>
+              <Text style={sheetStyles.captureLabel}>¿Quién asume el flete?</Text>
+              <View accessibilityRole="radiogroup" style={sheetStyles.options}>
                 {([['provider', 'Se descuenta al proveedor'], ['wholesaler', 'Lo paga el Mayorista']] as const).map(([value, label]) => (
                   <Option checked={values.freightChargedTo === value} disabled={locked} key={value} label={label} onPress={() => props.onChange('freightChargedTo', value)} />
                 ))}
               </View>
             </View>
-            {values.freightChargedTo === 'wholesaler' ? <Text style={styles.help}>No se descuenta del proveedor; queda como flete pendiente con el transportista.</Text> : null}
+            {values.freightChargedTo === 'wholesaler' ? <Text style={sheetStyles.help}>No se descuenta del proveedor; queda como flete pendiente con el transportista.</Text> : null}
           </>
         )}
       </View>
 
-      <View style={styles.card} testID="sheet-summary">
-        <View style={styles.sectionHeader}>
-          <View style={styles.sectionTitleRow}>
+      <View style={sheetStyles.card} testID="sheet-summary">
+        <View style={sheetStyles.sectionHeader}>
+          <View style={sheetStyles.sectionTitleRow}>
             <SymbolView fallback={null} name={{ android: 'account_balance_wallet', ios: 'wallet.pass', web: 'account_balance_wallet' }} size={22} tintColor={color.brand} />
-            <Text accessibilityRole="header" style={styles.sectionTitle}>Resumen de liquidación</Text>
+            <Text accessibilityRole="header" style={sheetStyles.sectionTitle}>Resumen de liquidación</Text>
           </View>
-          <Text style={styles.balance}>BALANCE COMERCIAL</Text>
+          <Text style={sheetStyles.balance}>BALANCE COMERCIAL</Text>
         </View>
         <SummaryLine label="Total pago (producto)" value={money('grossCents')} />
         <SummaryLine label={values.freightBasis !== 'none' && values.freightChargedTo === 'wholesaler' ? 'Flete a cargo del Mayorista (no se descuenta)' : 'Total flete (descuento)'} value={values.freightBasis === 'none' ? 'S/ 0.00' : money('freightCents')} />
-        <View style={styles.summaryLine}>
-          <Text style={styles.summaryLabel}>Otros cargos / ajustes (S/)</Text>
-          <SheetInput accessibilityLabel="Otros descuentos (S/)" editable={!locked} keyboardType="decimal-pad" onChangeText={(value) => props.onChange('discounts', value)} placeholder="0.00" style={styles.summaryInput} value={values.discounts} />
+        <View style={sheetStyles.summaryLine}>
+          <Text style={sheetStyles.summaryLabel}>Otros cargos / ajustes (S/)</Text>
+          <SheetInput accessibilityLabel="Otros descuentos (S/)" editable={!locked} keyboardType="decimal-pad" onChangeText={(value) => props.onChange('discounts', value)} placeholder="0.00" style={sheetStyles.summaryInput} value={values.discounts} />
         </View>
-        <View style={styles.summaryLine}>
-          <Text style={styles.summaryLabel}>Adelanto entregado (S/)</Text>
-          <SheetInput accessibilityLabel="Adelantos (S/)" editable={!locked} keyboardType="decimal-pad" onChangeText={(value) => props.onChange('advances', value)} placeholder="0.00" style={styles.summaryInput} value={values.advances} />
+        <View style={sheetStyles.summaryLine}>
+          <Text style={sheetStyles.summaryLabel}>Adelanto entregado (S/)</Text>
+          <SheetInput accessibilityLabel="Adelantos (S/)" editable={!locked} keyboardType="decimal-pad" onChangeText={(value) => props.onChange('advances', value)} placeholder="0.00" style={sheetStyles.summaryInput} value={values.advances} />
         </View>
         <PaymentTermsFields isSubmitting={locked} onAddInstallment={props.onAddInstallment} onChange={props.onChange} onChangeInstallment={props.onChangeInstallment} onRemoveInstallment={props.onRemoveInstallment} values={values} />
-        <View style={styles.net}>
+        <View style={sheetStyles.net}>
           <View>
-            <Text style={styles.netTitle}>Total neto a liquidar</Text>
-            <Text style={styles.netHelp}>{values.paymentMode === 'cash' ? 'Saldo a pagar al contado' : 'Saldo a crédito, en cuotas'}</Text>
+            <Text style={sheetStyles.netTitle}>Total neto a liquidar</Text>
+            <Text style={sheetStyles.netHelp}>{values.paymentMode === 'cash' ? 'Saldo a pagar al contado' : 'Saldo a crédito, en cuotas'}</Text>
           </View>
-          <Text accessibilityLabel={`Total neto a liquidar: ${money('liquidCents')}`} style={styles.netValue}>{money('liquidCents')}</Text>
+          <Text accessibilityLabel={`Total neto a liquidar: ${money('liquidCents')}`} style={sheetStyles.netValue}>{money('liquidCents')}</Text>
         </View>
         {preview.kind !== 'ready' && props.sacks.length ? <FeedbackState title={preview.kind === 'invalid' ? 'Revisa la liquidación' : 'Importes pendientes'} message={preview.message} tone={preview.kind === 'invalid' ? 'error' : undefined} /> : null}
-        <Text style={styles.help}>Importes provisionales: el servidor los verifica al guardar y registra la compra, el flete y la caja o la cuenta por pagar.</Text>
+        <Text style={sheetStyles.help}>Importes provisionales: el servidor los verifica al guardar y registra la compra, el flete y la caja o la cuenta por pagar.</Text>
       </View>
 
-      <View style={styles.actions}>
+      <View style={sheetStyles.actions}>
         {props.onClear ? (
-          <Pressable accessibilityLabel="Limpiar registro" accessibilityRole="button" disabled={locked} onPress={props.onClear} style={({ pressed }) => [styles.clear, (pressed || locked) && styles.dimmed]}>
+          <Pressable accessibilityLabel="Limpiar registro" accessibilityRole="button" disabled={locked} onPress={props.onClear} style={({ pressed }) => [sheetStyles.clear, (pressed || locked) && sheetStyles.dimmed]}>
             <SymbolView fallback={null} name={{ android: 'restart_alt', ios: 'arrow.counterclockwise', web: 'restart_alt' }} size={22} tintColor={color.brand} />
-            <Text style={styles.clearText}>Limpiar registro</Text>
+            <Text style={sheetStyles.clearText}>Limpiar registro</Text>
           </Pressable>
         ) : null}
-        <Pressable accessibilityLabel="Guardar compra" accessibilityRole="button" disabled={!canSave} onPress={props.onSave} style={({ pressed }) => [styles.save, (pressed || !canSave) && styles.dimmed]} testID="save-purchase">
+        <Pressable accessibilityLabel="Guardar compra" accessibilityRole="button" disabled={!canSave} onPress={props.onSave} style={({ pressed }) => [sheetStyles.save, (pressed || !canSave) && sheetStyles.dimmed]} testID="save-purchase">
           <SymbolView fallback={null} name={{ android: 'check_circle', ios: 'checkmark.circle', web: 'check_circle' }} size={22} tintColor="#6EE7B7" />
-          <Text style={styles.saveText}>{props.busy ? 'Guardando…' : 'Guardar compra'}</Text>
+          <Text style={sheetStyles.saveText}>{props.busy ? 'Guardando…' : 'Guardar compra'}</Text>
         </Pressable>
       </View>
     </AppScreen>
   );
 }
 
-function gramsToKg(grams: bigint) {
+export function gramsToKg(grams: bigint) {
   return `${grams / 1000n}.${(grams % 1000n).toString().padStart(3, '0')}`;
 }
 
 // Text input of the sheet: registers with the screen so the keyboard never
 // covers it, like FormField.
-function SheetInput({ onFocus, style, ...props }: TextInputProps) {
+export function SheetInput({ onFocus, style, ...props }: TextInputProps) {
   const ref = useRef<TextInput>(null);
   const keyboard = useContext(KeyboardFocusContext);
   return (
@@ -424,34 +424,34 @@ function SheetInput({ onFocus, style, ...props }: TextInputProps) {
       placeholderTextColor="#64748B"
       ref={ref}
       selectTextOnFocus
-      style={[styles.input, props.editable === false && styles.inputDisabled, style]}
+      style={[sheetStyles.input, props.editable === false && sheetStyles.inputDisabled, style]}
       {...props}
     />
   );
 }
 
-function Option({ accessibilityLabel, checked, disabled, label, onPress }: { accessibilityLabel?: string; checked: boolean; disabled?: boolean; label: string; onPress: () => void }) {
+export function Option({ accessibilityLabel, checked, disabled, label, onPress }: { accessibilityLabel?: string; checked: boolean; disabled?: boolean; label: string; onPress: () => void }) {
   return (
-    <Pressable accessibilityLabel={accessibilityLabel ?? label} accessibilityRole="radio" accessibilityState={{ checked }} disabled={disabled} onPress={onPress} style={[styles.option, checked && styles.optionChecked]}>
-      <Text style={[styles.optionText, checked && styles.onBrand]}>{label}</Text>
+    <Pressable accessibilityLabel={accessibilityLabel ?? label} accessibilityRole="radio" accessibilityState={{ checked }} disabled={disabled} onPress={onPress} style={[sheetStyles.option, checked && sheetStyles.optionChecked]}>
+      <Text style={[sheetStyles.optionText, checked && sheetStyles.onBrand]}>{label}</Text>
     </Pressable>
   );
 }
 
-function Total({ label, strong, value }: { label: string; strong?: boolean; value: string }) {
+export function Total({ label, strong, value }: { label: string; strong?: boolean; value: string }) {
   return (
-    <View style={[styles.total, strong && styles.totalStrong]}>
-      <Text style={[styles.totalLabel, strong && styles.onBrand]}>{label}:</Text>
-      <Text accessibilityLabel={`${label}: ${value}`} style={[styles.totalValue, strong && styles.onBrand]}>{value}</Text>
+    <View style={[sheetStyles.total, strong && sheetStyles.totalStrong]}>
+      <Text style={[sheetStyles.totalLabel, strong && sheetStyles.onBrand]}>{label}:</Text>
+      <Text accessibilityLabel={`${label}: ${value}`} style={[sheetStyles.totalValue, strong && sheetStyles.onBrand]}>{value}</Text>
     </View>
   );
 }
 
-function SummaryLine({ label, value }: { label: string; value: string }) {
+export function SummaryLine({ label, value }: { label: string; value: string }) {
   return (
-    <View style={styles.summaryLine}>
-      <Text style={styles.summaryLabel}>{label}</Text>
-      <Text accessibilityLabel={`${label}: ${value}`} style={styles.summaryValue}>{value}</Text>
+    <View style={sheetStyles.summaryLine}>
+      <Text style={sheetStyles.summaryLabel}>{label}</Text>
+      <Text accessibilityLabel={`${label}: ${value}`} style={sheetStyles.summaryValue}>{value}</Text>
     </View>
   );
 }
@@ -459,7 +459,7 @@ function SummaryLine({ label, value }: { label: string; value: string }) {
 const line = '#E2E8F0';
 const soft = '#F1F5F9';
 
-const styles = StyleSheet.create({
+export const sheetStyles = StyleSheet.create({
   screen: { gap: spacing.md, maxWidth: 1280, paddingBottom: spacing.xl, paddingTop: spacing.sm },
   card: { backgroundColor: color.surfaceRaised, borderColor: line, borderRadius: radius.lg, borderWidth: 1, boxShadow: '0px 1px 2px rgba(15,23,42,0.06)', gap: spacing.md, padding: spacing.md },
   fields: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },

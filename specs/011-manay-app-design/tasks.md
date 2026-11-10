@@ -98,4 +98,5 @@ Especificación: [RQ-ST10–RQ-ST14](spec.md#igualdad-con-stitch--9-de-noviembre
 - [ ] **T1187** Reportes de compras y de ventas iguales a sus maquetas. *Verificación:* pruebas; capturas.
 - [ ] **T1188** Analítica igual a su maqueta. *Verificación:* pruebas; captura.
 - [ ] **T1189** Guardado igual a su maqueta. *Verificación:* captura.
+- [ ] **T1191** Cabecera y barra inferior de Stitch en todas las pantallas, con el estado de sincronización en la cabecera, y tamaños de letra de las maquetas (CL-ST18). *Verificación:* pruebas de la cabecera, la barra y la sincronización; capturas.
 - [ ] **T1190** Comparación final de las 16 maquetas con sus capturas en 1280 × 800, teléfono y texto al 200 %. *Verificación:* documento con capturas lado a lado.
