@@ -39,13 +39,18 @@ export function BottomNav() {
         onPress={home}
       />
       {slots.next ? (
-        <AppButton
-          accessibilityLabel={slots.next.accessibilityLabel ?? slots.next.label}
-          disabled={slots.next.disabled}
-          label={slots.next.label}
-          onPress={() => chrome?.press('next')}
-          tone="secondary"
-        />
+        // Fixed minimum width with the label filling it: sized by its own
+        // text, Android cut the last word of «Guardar compra».
+        <View style={styles.next}>
+          <AppButton
+            accessibilityLabel={slots.next.accessibilityLabel ?? slots.next.label}
+            disabled={slots.next.disabled}
+            expandLabel
+            label={slots.next.label}
+            onPress={() => chrome?.press('next')}
+            tone="secondary"
+          />
+        </View>
       ) : null}
     </View>
   );
@@ -65,4 +70,5 @@ const createStyles = (color: VisualPalette) =>
       paddingHorizontal: spacing.md,
       paddingTop: spacing.sm,
     },
+    next: { minWidth: 220 },
   });

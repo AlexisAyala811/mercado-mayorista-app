@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useNavigation, type Href } from 'expo-router';
 import { usePreventRemove } from 'expo-router/react-navigation';
 import {useBrowserTraversalGuard} from '@/navigation/use-browser-traversal-guard';
-import { Platform } from 'react-native';
+import { Platform, useWindowDimensions } from 'react-native';
 import { backOrHome } from '@/navigation/back-or-home';
 import { readInitialPurchaseDraft, rememberInitialPurchaseDraft, clearInitialPurchaseDraft } from '@/domain/reception/initial-purchase-draft';
 
@@ -19,6 +19,7 @@ import { ReceptionDetailsScreen, type ReceptionDetails } from '@/features/recept
 import { PurchaseConfirmationScreen } from '@/features/reception/screens/purchase-confirmation-screen';
 import { SettlementScreen, type SettlementDraft } from '@/features/reception/screens/settlement-screen';
 import { WeighingScreen } from '@/features/reception/screens/weighing-screen';
+import { PurchaseSheet } from '@/features/reception/screens/purchase-sheet';
 import {CharacteristicFields} from '@/features/catalog/components/characteristic-fields';
 import {OperationReferenceActions} from '@/features/catalog/components/operation-reference-actions';
 import {OperationReferenceEditor} from '@/features/catalog/screens/catalog-workspace';
@@ -51,6 +52,10 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
   const { invalidateSession, isOfflineSession, session } = useSession();
   const { enqueue, sendQueued, operations = [], isLoadingQueue = false, queueError } = useSyncQueue();
   const token = session?.accessToken ?? '';
+  // Spec 011 (RQ-ST13): on the tablet the whole purchase is one screen, as in
+  // Stitch; narrower screens and large text keep the step by step flow.
+  const { fontScale, width } = useWindowDimensions();
+  const sheet = width >= 1100 && fontScale <= 1.2;
   const [step, setStep] = useState<Step>('details');
   const [initialDraft] = useState(() => ({ baseline: initialDetails(), recovered: initialReceptionId ? null : readInitialPurchaseDraft(token) }));
   const [details, setDetails] = useState(initialDraft.recovered?.details ?? initialDraft.baseline);
@@ -126,9 +131,11 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
   const localRecovery = useMemo(() => localCreationId ? recoverLocalReception(operations, localCreationId, !isOfflineSession) : null, [localCreationId, operations, isOfflineSession]);
   const detailsChanged = JSON.stringify(details) !== JSON.stringify(originalDetails) || Boolean(providerId || vehicleId || expectedVarietyIds.length);
   const protectDetailsExit = Boolean(session) && step === 'details' && !reception && !initialReceptionId && !detailsDiscarded && !initialDetailsSaved && (detailsChanged || busy || referenceDirty || referenceBusy);
-  const stageChanged = step === 'weighing'
-    ? Boolean(qualityId!==captureBaseline.qualityId || originId!==captureBaseline.originId || gross.trim() || editingSackId || (tare.trim() && !/^0(?:[.,]0+)?$/.test(tare.trim())))
-    : step === 'settlement' && JSON.stringify(settlementDraft) !== JSON.stringify(initialSettlement);
+  const weighingChanged = Boolean(qualityId!==captureBaseline.qualityId || originId!==captureBaseline.originId || gross.trim() || editingSackId || (tare.trim() && !/^0(?:[.,]0+)?$/.test(tare.trim())));
+  const settlementChanged = JSON.stringify(settlementDraft) !== JSON.stringify(initialSettlement);
+  const stageChanged = sheet && (step === 'weighing' || step === 'settlement')
+    ? weighingChanged || settlementChanged
+    : step === 'weighing' ? weighingChanged : step === 'settlement' && settlementChanged;
   const protectStageExit = Boolean(session) && (step === 'weighing' || step === 'settlement') && (stageChanged || busy || referenceDirty || referenceBusy);
   const protectExit = protectDetailsExit || protectStageExit;
   useEffect(() => {
@@ -223,6 +230,9 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
   }, [invalidateSession, isLoadingQueue, localCreationId, localRecovery, token, session, catalogAttempt]);
 
   const expectedVarieties = reception?.expectedVarieties ?? varieties.filter((item) => expectedVarietyIds.includes(item.id));
+  const currentReception = reception;
+  // On the sheet the active tab is the variety of the next sack.
+  const captureVarietyId = sheet ? (expectedVarieties.some((item) => item.id === sackVarietyId) ? sackVarietyId : expectedVarieties[0]?.id ?? '') : sackVarietyId;
   const sackChoices = expectedVarieties.map(toChoice);
   const selectedSackVariety = expectedVarieties.find((item) => item.id === sackVarietyId);
   const activeSacks = useMemo(() => sacks.filter((sack) => !sack.voidedAt), [sacks]);
@@ -272,10 +282,10 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
     setError(messageForError(cause));
   }
 
-  async function submitDetails(){
-    if(capturing.current || busy || detailsExitAction)return;
+  async function submitDetails():Promise<Reception|null>{
+    if(capturing.current || busy || detailsExitAction)return null;
     setError(null);
-    if(!/^\d{4}-\d{2}-\d{2}$/.test(details.date)||!providerId||!details.driverName.trim()||!expectedVarietyIds.length){setError('Completa fecha, proveedor, conductor y al menos una variedad.');return;}
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(details.date)||!providerId||!details.driverName.trim()||!expectedVarietyIds.length){setError('Completa fecha, proveedor, conductor y al menos una variedad.');return null;}
     capturing.current=true;setBusy(true);createOperationRef.current??=createOperationId();
     const operationId=createOperationRef.current;
     const payload={clientOperationId:operationId,driverName:details.driverName,expectedVarietyIds,providerId,providerPhone:details.providerPhone.trim()||undefined,receivedOn:details.date,vehicleId:vehicleId||undefined};
@@ -288,16 +298,19 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
       const outcome=await sendQueued(operationId);
       if(outcome.status==='pending'){
         pendingReceptionWrites.current=true;
-        setReception({id:`local:${operationId}`,providerId,providerPhone:payload.providerPhone??null,vehicleId:vehicleId||null,driverName:details.driverName,receivedOn:details.date,state:'draft',version:0,expectedVarieties});
-        setStep('weighing');return;
+        const local:Reception={id:`local:${operationId}`,providerId,providerPhone:payload.providerPhone??null,vehicleId:vehicleId||null,driverName:details.driverName,receivedOn:details.date,state:'draft',version:0,expectedVarieties};
+        setReception(local);setStep('weighing');return local;
       }
-      if(outcome.status!=='confirmed'||!outcome.centralReference){router.replace('/sync-queue' as Href);return;}
-      setReception(await getReception(token,outcome.centralReference));setStep('weighing');
-    }catch(cause){if(saved){router.replace('/sync-queue' as Href);return;}await handleError(cause)}
+      if(outcome.status!=='confirmed'||!outcome.centralReference){router.replace('/sync-queue' as Href);return null;}
+      const created=await getReception(token,outcome.centralReference);
+      setReception(created);setStep('weighing');return created;
+    }catch(cause){if(saved){router.replace('/sync-queue' as Href);return null;}await handleError(cause);return null}
     finally{capturing.current=false;setBusy(false)}
   }
 
-  async function saveSack(){
+  async function saveSack(target?:Reception){
+    const reception=target??currentReception;
+    const sackVarietyId=captureVarietyId;
     if(!reception||!sackVarietyId||capturing.current)return;
     setError(null);
     const weights=validateSackWeights(gross,tare);
@@ -326,8 +339,8 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
   }
   function applyLocalSack(operationId:string,currentReception:Reception,input:CommercialInput&{grossWeightKg:string;tareKg?:string;varietyId:string},correctedId:string|null,characteristics:CommercialSnapshot){const original=sacks.find(x=>x.id===correctedId);const local={...characteristics,id:`local:${operationId}`,sequence:original?.sequence??Math.max(0,...sacks.map(sack=>sack.sequence))+1,varietyId:input.varietyId,grossWeightKg:Number(input.grossWeightKg).toFixed(3),tareKg:Number(input.tareKg??0).toFixed(3),netWeightKg:(Number(input.grossWeightKg)-Number(input.tareKg??0)).toFixed(3)};setSacks(current=>correctedId?current.map(x=>x.id===correctedId?local:x):[...current,local]);setReception({...currentReception,state:'weighing',version:currentReception.version+1});setGross('');setTare('0');setEditingSackId(null)}
 
-  async function confirmClose(){
-    if(!reception||capturing.current)return;
+  async function confirmClose():Promise<Reception|null>{
+    if(!reception||capturing.current)return null;
     capturing.current=true;setConfirmation(null);setBusy(true);setError(null);closeOperationRef.current??=createOperationId();
     const operationId=closeOperationRef.current;const reference=reception.id.startsWith('local:')?`@${reception.id.slice(6)}`:reception.id;
     const payload={clientOperationId:operationId,expectedReceptionVersion:reception.version};
@@ -335,12 +348,14 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
     try{
       await enqueue({body:payload,id:operationId,method:'POST',path:`/receptions/${reference}/close-weighing`,type:'reception.close'});
       saved=true;closeOperationRef.current=null;
-      if(pendingReceptionWrites.current||reception.id.startsWith('local:')){setReception({...reception,state:'weighed',version:reception.version+1});setStep('settlement');return;}
+      const closedLocally:Reception={...reception,state:'weighed',version:reception.version+1};
+      if(pendingReceptionWrites.current||reception.id.startsWith('local:')){setReception(closedLocally);setStep('settlement');return closedLocally;}
       const outcome=await sendQueued(operationId);
-      if(outcome.status==='pending'){pendingReceptionWrites.current=true;setReception({...reception,state:'weighed',version:reception.version+1});setStep('settlement');return;}
-      if(outcome.status!=='confirmed'){router.replace('/sync-queue' as Href);return;}
-      setReception(await getReception(token,reception.id));setStep('settlement');
-    }catch(cause){if(saved){router.replace('/sync-queue' as Href);return;}await handleError(cause)}
+      if(outcome.status==='pending'){pendingReceptionWrites.current=true;setReception(closedLocally);setStep('settlement');return closedLocally;}
+      if(outcome.status!=='confirmed'){router.replace('/sync-queue' as Href);return null;}
+      const closed=await getReception(token,reception.id);
+      setReception(closed);setStep('settlement');return closed;
+    }catch(cause){if(saved){router.replace('/sync-queue' as Href);return null;}await handleError(cause);return null}
     finally{capturing.current=false;setBusy(false)}
   }
   function requestSettlement() {
@@ -363,7 +378,8 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
     setConfirmation('settle');
   }
 
-  async function confirmSettlement() {
+  async function confirmSettlement(target?:Reception) {
+    const reception=target??currentReception;
     if(!reception||settling.current||confirmedPurchase||!purchaseLots)return;
     settling.current=true;setConfirmation(null);setBusy(true);setError(null);
     settlementOperationRef.current??=createOperationId();
@@ -397,6 +413,38 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
     catch(cause){await handleError(cause)}
     finally{setBusy(false)}
   }
+  // Spec 011 (RQ-ST13): handlers of the single screen. The first sack creates
+  // the reception with the data typed above; «Guardar compra» closes the
+  // weighing and settles in that order, through the same queued operations.
+  async function saveSheetSack(){
+    if(busy||capturing.current)return;
+    if(reception){await saveSack();return;}
+    const weights=validateSackWeights(gross,tare);
+    if(!weights.ok){setError(weights.message);return;}
+    const created=await submitDetails();
+    if(created)await saveSack(created);
+  }
+  function requestSheetSave(){
+    if(gross.trim()||editingSackId){setError('Añade o cancela el peso que estás escribiendo antes de guardar la compra.');return;}
+    requestSettlement();
+  }
+  async function confirmSheetSave(){
+    if(!reception)return;
+    if(reception.state==='weighed'){await confirmSettlement();return;}
+    const closed=await confirmClose();
+    if(closed)await confirmSettlement(closed);
+  }
+  function clearSheet(){
+    if(reception||busy)return;
+    clearInitialPurchaseDraft(token);
+    setDetails(initialDetails());setProviderId('');setVehicleId('');setExpectedVarietyIds([]);setSackVarietyId('');
+    setGross('');setTare('0');setQualityId(null);setOriginId(null);setSettlementDraft(initialSettlement);setError(null);
+  }
+  function editSack(id:string){
+    const sack=sacks.find((item)=>item.id===id);if(!sack)return;
+    setEditingSackId(sack.id);setGross(kilogramsDraft(sack.grossWeightKg));setTare(kilogramsDraft(sack.tareKg));setSackVarietyId(sack.varietyId);setQualityId(sack.qualityId??null);setOriginId(sack.originId??null);
+  }
+
   function selectChoice(choice: Choice) {
     if (dialog === 'provider') {
       const selected = providers.find((item) => item.id === choice.id)!;
@@ -416,6 +464,41 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
   if (initialReceptionId && !recoveryReady) return <AppScreen scrollable={false}><LoadingState label="Recuperando recepción y pesaje guardados" /></AppScreen>;
   if (loading) return <AppScreen contentContainerStyle={{ justifyContent: 'center' }} scrollable={false}><LoadingState label="Cargando proveedores, variedades y vehículos" /></AppScreen>;
   if(step==='details'&&!catalogLoaded)return <AppScreen><FeedbackState title="Catálogos no disponibles" message={error??'Consulta los catálogos antes de registrar una recepción.'} tone="error" actionLabel="Reintentar catálogos" onAction={()=>{setLoading(true);setError(null);setCatalogAttempt(value=>value+1);}}/></AppScreen>;
+  if (sheet && (step === 'details' || step === 'weighing' || step === 'settlement')) {
+    const started = Boolean(reception);
+    const editing = sacks.find((sack) => sack.id === editingSackId);
+    const leave = () => { if (step === 'details') requestDetailsExit(); else requestExit('home'); };
+    return <>
+      {referenceEditor}
+      <PurchaseSheet
+        notice={[started ? recoveryNotice : initialDraft.recovered ? 'Se conservaron tus datos durante esta sesión. La compra se registra al añadir el primer saco.' : undefined, catalogNotice].filter(Boolean).join(' ') || undefined}
+        errorMessage={error ?? undefined} busy={busy} blocked={Boolean(detailsExitAction || stageExitAction || referenceKind)}
+        details={started ? { ...details, providerName: displayContext.providerName, providerPhone: displayContext.providerPhone, date: displayContext.receivedOn } : details} detailsLocked={started}
+        onChangeDetail={(field, value) => setDetails((current) => ({ ...current, [field]: value }))}
+        onSelectProvider={() => setDialog('provider')} onSelectVehicle={() => setDialog('vehicle')}
+        referenceActions={<>{referenceFeedback}<OperationReferenceActions kinds={['providers','varieties']} onManage={referenceManage} disabled={busy||isOfflineSession||Boolean(referenceKind)||referenceReloadBusy}/></>}
+        varieties={expectedVarieties} activeVarietyId={captureVarietyId} onSelectVariety={setSackVarietyId}
+        onAddVariety={started ? undefined : () => setDialog('varieties')}
+        sacks={activeSacks.map((sack) => ({ id: sack.id, sequence: sack.sequence, varietyId: sack.varietyId, netDisplay: kilogramsDraft(sack.netWeightKg), detail: `Bruto ${formatKilograms(sack.grossWeightKg)}, tara ${formatKilograms(sack.tareKg)}. ${commercialDescription(sack)}` }))}
+        weighingLocked={reception?.state === 'weighed'}
+        gross={gross} tare={tare} onGrossChange={setGross} onTareChange={setTare}
+        editingSequence={editing?.sequence ?? null} onEditSack={editSack} onCancelEdit={() => { setEditingSackId(null); setGross(''); setTare('0'); }}
+        onSaveSack={() => void saveSheetSack()}
+        characteristics={<CharacteristicFields value={{qualityId,originId}} qualities={qualities} origins={origins} disabled={busy} historical={editing} onChange={(field,id)=>{if(busy)return;if(field==='qualityId')setQualityId(id);else setOriginId(id);}}/>}
+        lots={purchaseLots ?? []} values={settlementDraft} preview={settlementPreview}
+        onChange={(field, value) => setSettlementDraft((current) => ({ ...current, [field]: value }))}
+        onChangeLot={(key, field, value) => setSettlementDraft((current) => ({ ...current, lots: { ...current.lots, [key]: { ...(current.lots[key] ?? emptyLotDraft), [field]: value } } }))}
+        onAddInstallment={() => setSettlementDraft((current) => ({ ...current, installments: [...current.installments, { amount: '', dueOn: '', id: createOperationId() }] }))}
+        onChangeInstallment={(id, field, value) => setSettlementDraft((current) => ({ ...current, installments: current.installments.map((item) => item.id === id ? { ...item, [field]: value } : item) }))}
+        onRemoveInstallment={(id) => setSettlementDraft((current) => ({ ...current, installments: current.installments.filter((item) => item.id !== id) }))}
+        onClear={started ? undefined : clearSheet} onSave={requestSheetSave} onBack={leave} onGoHome={leave}
+      />
+      <ConfirmationDialog busy={busy} confirmLabel="Salir sin guardar la recepción" title="¿Salir de los datos de compra?" message="Los datos en edición todavía no se han guardado como recepción. Si sales, tendrás que ingresarlos nuevamente." visible={Boolean(detailsExitAction)} onCancel={() => setDetailsExitAction(null)} onConfirm={confirmDetailsExit} />
+      <ConfirmationDialog busy={busy} confirmLabel="Salir sin guardar estos datos" title="¿Salir de la compra?" message="El peso, los precios, las deducciones y las cuotas en edición todavía no se han guardado. Los sacos ya registrados se conservan en la recepción." visible={stageExitAction !== null} onCancel={() => setStageExitAction(null)} onConfirm={confirmStageExit} />
+      <ConfirmationDialog busy={busy} confirmLabel="Guardar compra" message={`${reception?.state === 'weighed' ? '' : 'Se cerrará el pesaje: después, cualquier corrección requiere autorización del Mayorista. '}${settlementConfirmationMessage}`} onCancel={() => setConfirmation(null)} onConfirm={() => void confirmSheetSave()} title="¿Guardar la compra?" visible={confirmation === 'settle'} />
+      <ChoiceDialog choices={dialog === 'provider' ? providers.map(toChoice) : dialog === 'vehicle' ? vehicles.map((item) => ({ id: item.id, label: item.plate, supportingText: item.description ?? undefined })) : varieties.map(toChoice)} multiple={dialog === 'varieties'} onClose={() => setDialog(null)} onSelect={selectChoice} selectedIds={dialog === 'varieties' ? expectedVarietyIds : [providerId, vehicleId]} title={dialog === 'provider' ? 'Seleccionar proveedor' : dialog === 'vehicle' ? 'Seleccionar vehículo' : 'Seleccionar variedades'} visible={dialog === 'provider' || dialog === 'vehicle' || dialog === 'varieties'} />
+    </>;
+  }
   if (step === 'details') return <>
     {referenceEditor}
     <ReceptionDetailsScreen referenceFeedback={referenceFeedback} referenceActions={<OperationReferenceActions kinds={['providers','varieties']} onManage={referenceManage} disabled={busy||isOfflineSession||Boolean(referenceKind)||referenceReloadBusy}/>} recoveryNotice={initialDraft.recovered ? "Se conservaron tus datos durante esta sesión. Todavía no hay una recepción guardada; continuar los registrará en la cola. Esta copia se pierde al cerrar o recargar la aplicación." : undefined} notice={catalogNotice} errorMessage={error ?? undefined} isSubmitting={busy} isInteractionBlocked={Boolean(detailsExitAction||referenceKind)} onBack={requestDetailsExit} onChange={(field, value) => setDetails((current) => ({ ...current, [field]: value }))} onContinue={() => void submitDetails()} onSelectProvider={() => setDialog('provider')} onSelectVarieties={() => setDialog('varieties')} onSelectVehicle={() => setDialog('vehicle')} values={details} />
