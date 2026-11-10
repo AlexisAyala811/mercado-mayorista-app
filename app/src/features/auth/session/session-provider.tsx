@@ -28,6 +28,7 @@ import {
   writeStoredSession,
 } from "@/services/storage/session-storage";
 
+import { recordOperatorSignIn } from "@/services/storage/recent-operators-storage";
 import { createSerialExecutor } from "@/domain/sync/serial-executor";
 
 type SessionContextValue = {
@@ -39,7 +40,8 @@ type SessionContextValue = {
   isClearingLocalSession: boolean;
   hasPendingSessionRemoval: boolean;
   retrySessionRemoval: () => Promise<void>;
-  login: (credentials: { password: string; username: string }) => Promise<void>;
+  // keepStation (spec 011, CL-ST16): remember the operator on this tablet.
+  login: (credentials: { password: string; username: string }, options?: { keepStation?: boolean }) => Promise<void>;
   loginError: string | null;
   logout: () => Promise<void>;
   invalidateSession: () => Promise<void>;
@@ -206,7 +208,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
   );
 
   const login = useCallback(
-    async (credentials: { password: string; username: string }) => {
+    async (credentials: { password: string; username: string }, options: { keepStation?: boolean } = {}) => {
       if (pendingSessionRemoval.current) {
         setLoginError("Reintenta el cierre para retirar la sesión anterior antes de ingresar.");
         return;
@@ -236,6 +238,8 @@ export function SessionProvider({ children }: PropsWithChildren) {
           setLoginError(null);
           setIsOfflineSession(false);
           commitSession(created);
+          if (options.keepStation !== undefined)
+            void recordOperatorSignIn({ role: created.user.role, username: created.user.username }, options.keepStation);
         }
       } catch (error) {
         if (request === generation.current)

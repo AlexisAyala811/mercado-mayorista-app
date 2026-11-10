@@ -1,4 +1,4 @@
-import { color } from '@/ui/tokens';
+import { accent, color } from '@/ui/tokens';
 import { reportVisual } from '@/ui/report-tokens';
 
 // Spec 011: the tablet is used mostly under direct sunlight, so every text
@@ -44,5 +44,12 @@ describe('MAÑAY contrast', () => {
     ['report details', reportVisual.secondary, reportVisual.surface],
   ])('keeps %s at AA', (_pair, foreground, background) => {
     expect(contrast(foreground, background)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  // Spec 011 (RQ-ST10): accent families taken from the Stitch mockups.
+  it.each(Object.entries(accent))('keeps the %s accent readable on its tint, its pill and white', (_name, family) => {
+    expect(contrast(family.ink, family.tint)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(family.ink, '#FFFFFF')).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(family.pillInk, family.pill)).toBeGreaterThanOrEqual(4.5);
   });
 });

@@ -211,7 +211,7 @@ Selección rápida de operador, pesaje y liquidación en una sola pantalla y bot
 
 ## Igualdad con Stitch — 9 de noviembre de 2026
 
-**Estado:** especificada el 9 de noviembre de 2026; plan pendiente de aprobación. **Origen:** pedido del usuario «el frontend hazlo igual a lo que te mande, igual al stich» y [aclaraciones CL-ST11–CL-ST17](../../docs/sdd/aclaraciones-convergencia-stitch-2026-11-07.md#igualdad-con-stitch--9-de-noviembre-de-2026).
+**Estado:** especificada el 9 de noviembre de 2026; plan aprobado por el usuario el mismo día («Sí, apruebo»). **Origen:** pedido del usuario «el frontend hazlo igual a lo que te mande, igual al stich» y [aclaraciones CL-ST11–CL-ST17](../../docs/sdd/aclaraciones-convergencia-stitch-2026-11-07.md#igualdad-con-stitch--9-de-noviembre-de-2026).
 
 ### Requisitos
 

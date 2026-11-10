@@ -15,12 +15,13 @@ export default function HomeRoute() {
   const modules = useMemo(() => (role ? modulesFor(role) : []), [role]);
   const ids = useMemo(() => modules.map((module) => module.id), [modules]);
   // Spec 011 (RQ-ST01, CL-ST08): the live lines are read again every time the menu is shown.
-  const { facts, reload } = useMenuFacts(session?.accessToken ?? null, ids, pendingCount);
+  const { badges, facts, reload } = useMenuFacts(session?.accessToken ?? null, ids, pendingCount);
   useFocusEffect(useCallback(() => reload(), [reload]));
   if (!session) return null;
   const isWholesaler = session.user.role === 'wholesaler';
   return (
     <HomeScreen
+      badges={badges}
       facts={facts}
       modules={modules}
       onOpenModule={(module) => router.push(module.route)}

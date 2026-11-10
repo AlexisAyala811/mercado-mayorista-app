@@ -2,12 +2,15 @@ import type { AndroidSymbol } from 'expo-symbols';
 import { SymbolView } from 'expo-symbols';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { radius, spacing, typography } from '@/ui/tokens';
-import { useVisualStyles, type VisualPalette } from '@/ui/visual-theme';
 import type { ModuleId } from '@/features/auth/authorization/permissions';
+import { accent, card, color, radius, spacing, type AccentName } from '@/ui/tokens';
 
 export type HomeModule = {
+  accent: AccentName;
+  // Pill at the top right and line at the foot when there is no live data.
+  badge: string;
   description: string;
+  foot: string;
   icon: AndroidSymbol;
   id: ModuleId;
   shortLabel: string;
@@ -15,79 +18,94 @@ export type HomeModule = {
 };
 
 type ModuleCardProps = {
+  // Live pill (for example "12 hoy"); replaces the static one.
+  badge?: string;
+  compact?: boolean;
+  // Short screens (tablet in landscape): tighter card so the six fit at once.
+  dense?: boolean;
   disabled?: boolean;
   // Live line of the card (spec 011, RQ-ST01); absent when it could not be read.
   fact?: string;
   module: HomeModule;
   onPress?: (module: HomeModule) => void;
-  // Position in its section, shown as 01, 02… as in Stitch.
+  // Position in its side, shown as 01, 02… as in Stitch.
   order: number;
 };
 
-export function ModuleCard({ disabled = false, fact, module, onPress, order }: ModuleCardProps) {
-  const styles = useVisualStyles(createStyles);
+// Card of the Stitch menu (spec 011, RQ-ST11): number, pill, coloured icon
+// tile, title in capitals, description and a foot line.
+export function ModuleCard({ badge, compact = false, dense = false, disabled = false, fact, module, onPress, order }: ModuleCardProps) {
+  const tone = accent[module.accent];
+  const pill = badge ?? module.badge;
+  const foot = fact ?? module.foot;
   return (
     <Pressable
-      accessibilityHint={fact ? `${module.description} ${fact}.` : module.description}
+      accessibilityHint={[module.description, badge, fact].filter(Boolean).join('. ')}
       accessibilityLabel={module.title}
       accessibilityRole="button"
       disabled={disabled}
       onPress={() => onPress?.(module)}
-      style={({ pressed }) => [styles.card, pressed && !disabled && styles.pressed, disabled && styles.disabled]}>
+      style={({ pressed }) => [styles.card, dense && styles.cardDense, compact && styles.cardCompact, pressed && !disabled && styles.pressed, disabled && styles.disabled]}>
       <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.top}>
-        <Text style={styles.order}>{String(order).padStart(2, '0')}</Text>
-        <View style={styles.icon}>
+        <View style={[styles.order, { backgroundColor: tone.tint }]}>
+          <Text style={[styles.orderText, { color: tone.ink }]}>{String(order).padStart(2, '0')}</Text>
+        </View>
+        {pill ? (
+          <View style={[styles.pill, { backgroundColor: tone.pill, borderColor: tone.line }]}>
+            <Text numberOfLines={1} style={[styles.pillText, { color: tone.pillInk }]} testID={`badge-${module.id}`}>{pill}</Text>
+          </View>
+        ) : null}
+      </View>
+      <View style={styles.middle}>
+        <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={[styles.icon, (compact || dense) && styles.iconCompact, { backgroundColor: tone.tint, borderColor: tone.line }]}>
           <SymbolView
-            fallback={<Text style={styles.iconText}>{module.shortLabel}</Text>}
+            fallback={<Text style={[styles.iconText, { color: tone.ink }]}>{module.shortLabel}</Text>}
             name={{ android: module.icon, ios: 'square.grid.2x2', web: module.icon }}
-            size={30}
-            tintColor={styles.iconText.color}
+            size={compact || dense ? 36 : 46}
+            tintColor={tone.ink}
           />
         </View>
+        <Text style={styles.title}>{module.title.toUpperCase()}</Text>
+        {compact ? null : <Text style={styles.description}>{module.description}</Text>}
       </View>
-      <View style={styles.copy}>
-        <Text style={styles.title}>{module.title}</Text>
-        <Text style={styles.description}>{module.description}</Text>
-      </View>
-      <View style={styles.footer}>
-        {fact ? <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.fact} testID={`fact-${module.id}`}>{fact}</Text> : <View />}
-        <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.arrow}>
-          →
-        </Text>
-      </View>
+      {foot ? (
+        <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.foot}>
+          <Text numberOfLines={1} style={[styles.footText, { color: tone.ink }]} testID={`fact-${module.id}`}>{foot}</Text>
+        </View>
+      ) : null}
     </Pressable>
   );
 }
 
-const createStyles = (color: VisualPalette) => StyleSheet.create({
+const styles = StyleSheet.create({
   card: {
-    backgroundColor: color.surfaceRaised,
-    borderColor: color.border,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    flex: 1,
-    gap: spacing.md,
-    minHeight: 190,
-    minWidth: 240,
-    padding: spacing.lg,
-  },
-  pressed: { borderColor: color.brand, transform: [{ scale: 0.99 }] },
-  disabled: { opacity: 0.45 },
-  top: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
-  order: { color: color.textSecondary, fontSize: 14, fontWeight: '700', letterSpacing: 0.6 },
-  icon: {
     alignItems: 'center',
-    backgroundColor: color.brandMuted,
-    borderRadius: radius.md,
-    height: 56,
-    justifyContent: 'center',
-    width: 56,
+    backgroundColor: color.surfaceRaised,
+    borderColor: card.borderColor,
+    borderRadius: radius.lg,
+    borderWidth: card.borderWidth,
+    boxShadow: card.boxShadow,
+    flex: 1,
+    gap: spacing.sm,
+    justifyContent: 'space-between',
+    minHeight: 200,
+    padding: 20,
   },
-  iconText: { color: color.brand, fontSize: 14, fontWeight: '800', letterSpacing: 0.6 },
-  copy: { flex: 1, gap: spacing.xs },
-  title: { color: color.textPrimary, ...typography.body, fontWeight: '700' },
-  description: { color: color.textSecondary, ...typography.bodySmall },
-  footer: { alignItems: 'center', borderColor: color.border, borderTopWidth: 1, flexDirection: 'row', gap: spacing.sm, justifyContent: 'space-between', paddingTop: spacing.sm },
-  fact: { color: color.brand, ...typography.bodySmall, flexShrink: 1, fontWeight: '700' },
-  arrow: { alignSelf: 'flex-end', color: color.brand, fontSize: 24, lineHeight: 24 },
+  cardDense: { gap: 6, minHeight: 0, paddingHorizontal: spacing.md, paddingVertical: 12 },
+  cardCompact: { minHeight: 168, padding: spacing.md },
+  pressed: { borderColor: color.successAccent, transform: [{ scale: 0.97 }] },
+  disabled: { opacity: 0.45 },
+  top: { alignItems: 'flex-start', flexDirection: 'row', gap: spacing.sm, justifyContent: 'space-between', width: '100%' },
+  order: { alignItems: 'center', borderRadius: radius.sm, height: 32, justifyContent: 'center', width: 32 },
+  orderText: { fontSize: 13, fontWeight: '700' },
+  pill: { borderRadius: 999, borderWidth: 1, flexShrink: 1, paddingHorizontal: 10, paddingVertical: 2 },
+  pillText: { fontSize: 13, fontWeight: '700', lineHeight: 18 },
+  middle: { alignItems: 'center', alignSelf: 'stretch', gap: 2 },
+  icon: { alignItems: 'center', borderRadius: radius.lg, borderWidth: 2, height: 80, justifyContent: 'center', marginBottom: spacing.sm, width: 80 },
+  iconCompact: { height: 64, width: 64 },
+  iconText: { fontSize: 16, fontWeight: '800', letterSpacing: 0.6 },
+  title: { alignSelf: 'stretch', color: '#0F172A', fontSize: 17, fontWeight: '900', letterSpacing: 0.4, lineHeight: 22, textAlign: 'center' },
+  description: { alignSelf: 'stretch', color: color.textSecondary, fontSize: 14, fontWeight: '500', lineHeight: 19, textAlign: 'center' },
+  foot: { alignItems: 'center', borderColor: '#F1F5F9', borderTopWidth: 1, paddingTop: 6, width: '100%' },
+  footText: { fontSize: 13, fontWeight: '700', lineHeight: 18 },
 });
