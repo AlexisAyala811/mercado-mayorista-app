@@ -42,3 +42,11 @@ El usuario pidió el 9 de noviembre de 2026: «el frontend hazlo igual a lo que 
 | CL-ST15 | Opciones sin lugar en el interruptor | Stitch pone seis tarjetas por lado y no tiene Pendientes de envío, Comprobantes, Mensajería, Usuarios y reemplazos, Auditoría ni Flete y estiba. Esas entradas van en una fila «Más opciones» bajo las tarjetas, con el mismo permiso por rol |
 | CL-ST16 | Selección rápida de operador | La lista sale de los usuarios que ya iniciaron sesión en esta tablet, guardada solo en el dispositivo; nunca de una consulta al servidor sin sesión. Tocar un operador llena el usuario; la contraseña se escribe siempre. «Mantener estación activa» recuerda al operador en la lista y se puede desmarcar para olvidarlo |
 | CL-ST17 | Peso por saco en la cuadrícula | Stitch tiene un solo campo por celda; la app necesita bruto y tara (CL-FM05). Cada celda muestra el neto en grande y, al tocarla, abre bruto y tara en kilos enteros |
+
+## Igualdad visual completa — 10 de noviembre de 2026
+
+El usuario pidió el 10 de noviembre de 2026: «el frontend debe ser igual al stich igual a las diferentes pantallas/vistas, debe ser importante igual no cambies nada». Respuesta con la herramienta de preguntas de la sesión:
+
+| ID | Pregunta | Respuesta literal | Decisión |
+| --- | --- | --- | --- |
+| CL-ST18 | ¿Qué se copia tal cual de Stitch? | «Todo lo visual (Recomendado)» | Reemplaza CL-ST14: la cabecera es la de Stitch (usuario con su estado de conexión, título o marca al centro, botón de sincronización) y la barra inferior es la de Stitch (Atrás, Menú principal y Siguiente con sus íconos, también en el menú). Tamaños de letra, colores y disposición iguales a cada maqueta. La barra de estado simulada (red, batería, hora) no se dibuja porque Android ya la muestra. Balanza, SUNAT y devoluciones siguen fuera (CL-ST12): la app no tiene esas funciones |

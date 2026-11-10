@@ -50,7 +50,19 @@ export type SaleLineDraft = Partial<CommercialSnapshot>&{
   weightKg: string;
   priceBasis: 'kilogram' | 'sack';
   unitPrice: string;
+  // Spec 011 (CL-ST19): sacks weighed one by one on the tablet sheet, in whole
+  // kilograms. The line is sent with their count and the sum of their weights.
+  weights?: string[];
 };
+
+export function saleLineGrams(line: Pick<SaleLineDraft, 'weights'>): bigint {
+  return (line.weights ?? []).reduce((total, weight) => total + BigInt(weight) * 1000n, 0n);
+}
+
+// Keeps sacks and weightKg equal to the weighed sacks.
+export function withWeights(line: SaleLineDraft, weights: string[]): SaleLineDraft {
+  return { ...line, weights, sacks: String(weights.length), weightKg: (saleLineGrams({ weights }) / 1000n).toString() };
+}
 
 export function validateSaleLine(line: SaleLineDraft, variety?: PotatoVariety) {
   const sacks = Number(line.sacks);

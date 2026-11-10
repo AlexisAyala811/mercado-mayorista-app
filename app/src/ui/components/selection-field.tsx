@@ -6,7 +6,7 @@ import { ReportAsset } from './report-asset';
 import { reportVisual } from '@/ui/report-tokens';
 
 type SelectionFieldProps = {
-  appearance?: 'default' | 'report';
+  appearance?: 'default' | 'report' | 'stitch';
   reportFontsLoaded?: boolean;
   disabled?: boolean;
   error?: string;
@@ -32,7 +32,7 @@ export function SelectionField({
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.label, appearance === 'report' && reportStyles.label, appearance === 'report' && reportFontsLoaded && {fontFamily:'ReportInterSemiBold'}]}>{label}</Text>
+      <Text style={[styles.label, appearance === 'report' && reportStyles.label, appearance === 'report' && reportFontsLoaded && {fontFamily:'ReportInterSemiBold'}, appearance === 'stitch' && stitchStyles.label]}>{label}</Text>
       <Pressable
         accessibilityHint={message ?? `Seleccionar ${label.toLocaleLowerCase()}`}
         accessibilityLabel={value ? `${label}: ${value}` : label}
@@ -42,11 +42,12 @@ export function SelectionField({
         style={({ pressed }) => [
           styles.control,
           appearance === 'report' && reportStyles.control,
+          appearance === 'stitch' && stitchStyles.control,
           error && styles.controlError,
           pressed && !disabled && styles.pressed,
           disabled && styles.disabled,
         ]}>
-        <Text style={[styles.value, !value && styles.placeholder, appearance === 'report' && reportStyles.value, appearance === 'report' && reportFontsLoaded && {fontFamily:'ReportInterRegular'}]}>{value || placeholder}</Text>
+        <Text style={[styles.value, !value && styles.placeholder, appearance === 'report' && reportStyles.value, appearance === 'report' && reportFontsLoaded && {fontFamily:'ReportInterRegular'}, appearance === 'stitch' && stitchStyles.value, appearance === 'stitch' && !value && styles.placeholder]}>{value || placeholder}</Text>
         {appearance === 'report' ? <ReportAsset kind="chevron" /> : <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.chevron}>
           ▾
         </Text>}
@@ -56,6 +57,11 @@ export function SelectionField({
   );
 }
 
+const stitchStyles = StyleSheet.create({
+  label: { color: '#64748B', fontSize: 12, fontWeight: '600', letterSpacing: 0.8, lineHeight: 16, textTransform: 'uppercase' },
+  control: { backgroundColor: '#EFF4FF', borderRadius: 12, borderWidth: 0, minHeight: 44, paddingHorizontal: 14 },
+  value: { color: '#0B1C30', fontSize: 14, fontWeight: '500', lineHeight: 20 },
+});
 const reportStyles = StyleSheet.create({
   label: {color:reportVisual.secondary,fontSize:12,lineHeight:18,fontWeight:'600'},
   value: {color:reportVisual.value,fontSize:14,lineHeight:20},

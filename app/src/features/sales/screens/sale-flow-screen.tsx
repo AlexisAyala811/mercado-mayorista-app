@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useNavigation, useRouter, type Href } from 'expo-router';
 import { usePreventRemove } from 'expo-router/react-navigation';
 import {useBrowserTraversalGuard} from '@/navigation/use-browser-traversal-guard';
@@ -7,7 +7,9 @@ import {useBrowserTraversalGuard} from '@/navigation/use-browser-traversal-guard
 import { createOperationId, formatMoney, moneyInputToCents, type PotatoVariety, type Vehicle } from '@/domain/reception/reception';
 import { calculateSalePreview } from '@/domain/sales/sale-preview';
 import { validateCreditSchedule } from '@/domain/reception/purchase-preview';
-import { validateSaleLine, type Buyer, type Sale, type SaleLineDraft } from '@/domain/sales/sale';
+import { validateSaleLine, withWeights, type Buyer, type Sale, type SaleLineDraft } from '@/domain/sales/sale';
+import { SaleSheet } from '@/features/sales/screens/sale-sheet';
+import { formatLocalDateInput } from '@/domain/shared/date';
 import { useSession } from '@/features/auth/session/session-provider';
 import { useSyncQueue } from '@/features/sync/sync-queue-provider';
 import type { InstallmentDraft } from '@/features/reception/screens/settlement-screen';
@@ -22,6 +24,7 @@ import { saleConfirmationSummary } from '@/domain/shared/confirmation-summary';
 import { ConfirmationCard } from '@/features/receipts/components/confirmation-card';
 import { AppButton, AppCard, AppScreen, ChoiceDialog, ConfirmationDialog, FeedbackState, FormField, LoadingState, MetricTile, ScreenHeader, SelectionField, StepProgress, type Choice } from '@/ui/components';
 import { useBottomNav } from '@/ui/navigation/app-chrome';
+import { AppHeader } from '@/ui/navigation/app-header';
 import { color, spacing, typography } from '@/ui/tokens';
 
 type Dialog = 'buyer' | 'vehicle' | 'variety' | null;
@@ -33,6 +36,12 @@ export function SaleFlowScreen() {
   const { invalidateSession, session, isOfflineSession } = useSession();
   const { enqueue, sendQueued } = useSyncQueue();
   const token = session?.accessToken ?? '';
+  // Spec 011 (RQ-ST14, CL-ST19): on the tablet the sale is one screen, as in
+  // Stitch; narrower screens and large text keep the form.
+  const { fontScale, width } = useWindowDimensions();
+  const sheet = width >= 1100 && fontScale <= 1.2;
+  const [activeLineId, setActiveLineId] = useState<string | null>(null);
+  const [dispatchDate] = useState(() => formatLocalDateInput());
   const [buyers, setBuyers] = useState<Buyer[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [varieties, setVarieties] = useState<PotatoVariety[]>([]);
@@ -154,7 +163,33 @@ export function SaleFlowScreen() {
       const selected = buyers.find((item) => item.id === choice.id)!;
       setBuyerId(selected.id); setDestination(selected.destinationDepartment ?? ''); setDialog(null);
     } else if (dialog === 'vehicle') { setVehicleId(choice.id); setDialog(null); }
+    else if (dialog === 'variety' && sheet) { addLot(choice.id); setDialog(null); }
     else if (dialog === 'variety') { setDraft((current) => ({ ...current, varietyId: choice.id })); setDialog(null); }
+  }
+
+  // Sheet: each lot is a line whose sacks are weighed one by one.
+  function addLot(varietyId: string) {
+    setError(null);
+    const line = withWeights({ id: createOperationId(), varietyId, priceBasis: 'kilogram', sacks: '0', unitPrice: '', weightKg: '0', qualityId: null, originId: null }, []);
+    if (lines.some((item) => commercialLineKey(item) === commercialLineKey(line))) { setError('Esta variedad ya tiene un lote; cambia su calidad o procedencia para añadir otro.'); return; }
+    setLines((current) => [...current, line]);
+    setActiveLineId(line.id);
+  }
+  function updateLine(id: string, change: (line: SaleLineDraft) => SaleLineDraft) {
+    setLines((current) => current.map((line) => (line.id === id ? change(line) : line)));
+  }
+  function changeLotCharacteristic(field: 'qualityId' | 'originId', id: string | null) {
+    const active = lines.find((line) => line.id === activeLineId);
+    if (!active || busy) return;
+    const next = { ...active, [field]: id };
+    if (lines.some((item) => item.id !== active.id && commercialLineKey(item) === commercialLineKey(next))) { setError('Esta combinación de variedad, calidad y procedencia ya está agregada.'); return; }
+    try { const snapshot = captureCommercialSnapshot(next, qualities, origins); setError(null); updateLine(active.id, () => ({ ...next, ...snapshot })); }
+    catch (cause) { setError(cause instanceof Error ? cause.message : 'Revisa calidad y procedencia.'); }
+  }
+  function clearSale() {
+    if (busy) return;
+    setBuyerId(''); setVehicleId(''); setDestination(''); setDriver(''); setLines([]); setActiveLineId(null);
+    setFreightBasis('none'); setFreightRate('0'); setFreightIncluded(false); setDiscounts('0'); setPaymentMode('cash'); setInstallments([]); setError(null);
   }
 
   function addLine() {
@@ -218,7 +253,7 @@ export function SaleFlowScreen() {
   }
   // Spec 011 (RQ-ST02, CL-ST07): while editing, the bottom bar leaves through
   // the unsaved-sale check and offers the review as its step action.
-  const editing = Boolean(session) && !loading && catalogLoaded && !sale && !confirmedSaleId;
+  const editing = Boolean(session) && !loading && catalogLoaded && !sale && !confirmedSaleId && !sheet;
   useBottomNav({
     back: editing ? { label: 'Atrás', disabled: busy, onPress: () => requestExit() } : null,
     home: editing ? { label: 'Menú principal', disabled: busy, onPress: () => requestExit('home') } : null,
@@ -227,13 +262,11 @@ export function SaleFlowScreen() {
   if (!session) return null;
   if (loading) return <AppScreen contentContainerStyle={{ justifyContent: 'center' }} scrollable={false}><LoadingState label="Cargando compradores y variedades" /></AppScreen>;
   if (!catalogLoaded) return <AppScreen><FeedbackState actionLabel="Reintentar" onAction={retryCatalogs} title="No se pudieron cargar los catálogos" message={error ?? 'Reintenta la consulta.'} tone="error" /></AppScreen>;
+  // Spec 011 (RQ-ST04, CL-ST18): the Stitch «Guardado exitosamente» screen.
   if (sale || confirmedSaleId) return (
-    <AppScreen contentContainerStyle={styles.screen}>
-      <ScreenHeader eyebrow="VENTAS Y DESPACHOS" title="Venta confirmada" description="La venta y su efecto financiero fueron registrados por el servidor." />
-      <StepProgress activeIndex={3} steps={steps} />
-      {sale ? <ConfirmationCard title="Venta guardada" party={sale.buyerName ?? buyer?.name ?? 'Comprador registrado'} summary={saleConfirmationSummary(sale, saleLines, (id) => varieties.find((item) => item.id === id)?.name)} receipt={{ kind: 'sales', id: sale.id }} newLabel="Nueva venta" onNew={() => router.replace({ pathname: '/sale-flow', params: { nueva: String(Date.now()) } } as Href)} /> : null}
-      <FeedbackState title="Operación confirmada" message="La venta fue registrada de forma idempotente." tone="success" />
-      {sale ? <View style={styles.metrics}><MetricTile label="Importe bruto" value={formatMoney(sale.grossAmountCents)} /><MetricTile label="Flete" value={formatMoney(sale.freightAmountCents)} /><MetricTile label="Descuentos" value={formatMoney(sale.discountsCents)} /><MetricTile label="Total" value={formatMoney(sale.totalAmountCents)} /></View> : null}
+    <AppScreen contentContainerStyle={styles.saved}>
+      <AppHeader eyebrow="DESPACHO" subtitle="Venta y despacho confirmados" title="Venta" />
+      {sale ? <ConfirmationCard documentLabel="NOTA DE VENTA" title="La venta" party={sale.buyerName ?? buyer?.name ?? 'Comprador registrado'} summary={saleConfirmationSummary(sale, saleLines, (id) => varieties.find((item) => item.id === id)?.name)} receipt={{ kind: 'sales', id: sale.id }} newLabel="Nueva venta" onNew={() => router.replace({ pathname: '/sale-flow', params: { nueva: String(Date.now()) } } as Href)} /> : <FeedbackState title="Venta confirmada" message="La venta fue registrada por el servidor. Falta cargar su detalle." tone="success" />}
       {error ? <FeedbackState title="No se pudo cargar el detalle de la venta confirmada" message={error} tone="error" /> : null}
       {!sale ? <AppButton disabled={busy} label={busy?'Cargando detalle…':'Reintentar consulta del detalle'} onPress={()=>void reloadConfirmedSale()} tone="secondary" /> : null}
     </AppScreen>
@@ -243,6 +276,39 @@ export function SaleFlowScreen() {
     const cents = moneyInputToCents(item.amount);
     return `Cuota ${index + 1}: ${item.dueOn || 'Fecha pendiente'} · ${cents === null ? 'Importe pendiente' : formatMoney(cents)}.`;
   }).join(' ') : '';
+  const dialogs = <>
+    <ChoiceDialog choices={dialog === 'buyer' ? buyers.map((item) => ({ id: item.id, label: item.name, supportingText: item.destinationDepartment ?? undefined })) : dialog === 'vehicle' ? vehicles.map((item) => ({ id: item.id, label: item.plate, supportingText: item.description ?? undefined })) : varietyChoices} onClose={() => setDialog(null)} onSelect={select} selectedIds={[buyerId, vehicleId, draft.varietyId]} title={dialog === 'buyer' ? 'Seleccionar comprador' : dialog === 'vehicle' ? 'Seleccionar vehículo' : 'Seleccionar variedad'} visible={dialog !== null} />
+    <ConfirmationDialog busy={busy} confirmLabel="Confirmar venta" message={preview.kind === 'ready' ? `${buyer?.name ?? 'Comprador'} · ${destination}. Bruto ${formatMoney(preview.grossCents)}, flete ${formatMoney(preview.freightCents)} (${freightIncluded ? 'incluido' : 'separado'}), descuento ${formatMoney(preview.discountsCents)} y total ${formatMoney(preview.totalCents)}. Pago ${paymentMode === 'cash' ? 'al contado' : 'a crédito'}. ${scheduleReview} Se registrará la venta y su efecto financiero.` : 'Revisa los datos de la venta.'} onCancel={() => setConfirming(false)} onConfirm={() => void submit()} title="¿Confirmar la venta?" visible={confirming} />
+    <ConfirmationDialog busy={busy} confirmLabel="Salir sin guardar" title="¿Salir de la venta?" message="Los datos en edición todavía no se han guardado. Si sales, perderás este borrador de venta." visible={exitAction !== null} onCancel={()=>setExitAction(null)} onConfirm={confirmExit} />
+  </>;
+  if (sheet) {
+    const activeLine = lines.find((line) => line.id === activeLineId) ?? lines[0];
+    const lineName = (line: SaleLineDraft) => { const name = varieties.find((item) => item.id === line.varietyId)?.name ?? 'Variedad'; return line.qualityName ? `${name} · ${line.qualityName}` : name; };
+    return <>
+      {referenceEditor}
+      <SaleSheet
+        errorMessage={error ?? undefined} busy={busy}
+        notice={<>{referenceFeedback}{catalogNotice ? <FeedbackState title="Datos de referencia" message={catalogNotice} /> : null}</>}
+        buyerName={buyer?.name} buyerPhone={buyer?.phone} dispatchDate={dispatchDate}
+        destination={destination} onDestinationChange={setDestination} vehiclePlate={vehicle?.plate} driver={driver} onDriverChange={setDriver}
+        onSelectBuyer={() => setDialog('buyer')} onSelectVehicle={() => setDialog('vehicle')}
+        referenceActions={<><OperationReferenceActions compact kinds={['buyers','varieties','qualities','origins']} onManage={referenceManage} disabled={busy||isOfflineSession||Boolean(referenceKind)||referenceReloadBusy}/></>}
+        lotCharacteristics={activeLine ? <CharacteristicFields appearance="stitch" value={activeLine} qualities={qualities} origins={origins} disabled={busy} onChange={changeLotCharacteristic}/> : null}
+        lines={lines} lineName={lineName} activeLineId={activeLine?.id ?? null} onSelectLine={setActiveLineId}
+        onAddLot={() => setDialog('variety')} onRemoveLot={(id) => { setLines((current) => current.filter((line) => line.id !== id)); setActiveLineId(null); }}
+        onAddSack={(weight) => activeLine && updateLine(activeLine.id, (line) => withWeights(line, [...(line.weights ?? []), weight]))}
+        onCorrectSack={(index, weight) => activeLine && updateLine(activeLine.id, (line) => withWeights(line, (line.weights ?? []).map((value, position) => (position === index ? weight : value))))}
+        onChangeLine={(id, field, value) => updateLine(id, (line) => ({ ...line, [field]: value }))}
+        preview={preview} freightBasis={freightBasis} freightRate={freightRate} freightIncluded={freightIncluded} discounts={discounts} paymentMode={paymentMode} installments={installments}
+        onChange={(field, value) => { if (field === 'freightBasis') setFreightBasis(value as typeof freightBasis); else if (field === 'freightRate') setFreightRate(value); else if (field === 'freightIncluded') setFreightIncluded(value === 'true'); else if (field === 'discounts') setDiscounts(value); else setPaymentMode(value as typeof paymentMode); }}
+        onAddInstallment={() => setInstallments((all) => [...all, { amount: '', dueOn: '', id: createOperationId() }])}
+        onChangeInstallment={(id, field, value) => setInstallments((all) => all.map((item) => (item.id === id ? { ...item, [field]: value } : item)))}
+        onRemoveInstallment={(id) => setInstallments((all) => all.filter((item) => item.id !== id))}
+        onClear={clearSale} onSave={requestConfirmation} onBack={() => requestExit()} onGoHome={() => requestExit('home')}
+      />
+      {dialogs}
+    </>;
+  }
   return <>
     {referenceEditor}
     <AppScreen contentContainerStyle={styles.screen}>
@@ -275,9 +341,7 @@ export function SaleFlowScreen() {
       {preview.kind === 'ready' ? <View style={styles.metrics}><MetricTile label="Bruto provisional" value={formatMoney(preview.grossCents)} /><MetricTile label="Flete provisional" value={formatMoney(preview.freightCents)} /><MetricTile label="Descuentos" value={formatMoney(preview.discountsCents)} /><MetricTile label="Total provisional" value={formatMoney(preview.totalCents)} /></View> : null}
       <View style={styles.actions}><AppButton disabled={busy} label={busy ? 'Confirmando…' : 'Revisar y confirmar'} onPress={requestConfirmation} /></View>
     </AppScreen>
-    <ChoiceDialog choices={dialog === 'buyer' ? buyers.map((item) => ({ id: item.id, label: item.name, supportingText: item.destinationDepartment ?? undefined })) : dialog === 'vehicle' ? vehicles.map((item) => ({ id: item.id, label: item.plate, supportingText: item.description ?? undefined })) : varietyChoices} onClose={() => setDialog(null)} onSelect={select} selectedIds={[buyerId, vehicleId, draft.varietyId]} title={dialog === 'buyer' ? 'Seleccionar comprador' : dialog === 'vehicle' ? 'Seleccionar vehículo' : 'Seleccionar variedad'} visible={dialog !== null} />
-    <ConfirmationDialog busy={busy} confirmLabel="Confirmar venta" message={preview.kind === 'ready' ? `${buyer?.name ?? 'Comprador'} · ${destination}. Bruto ${formatMoney(preview.grossCents)}, flete ${formatMoney(preview.freightCents)} (${freightIncluded ? 'incluido' : 'separado'}), descuento ${formatMoney(preview.discountsCents)} y total ${formatMoney(preview.totalCents)}. Pago ${paymentMode === 'cash' ? 'al contado' : 'a crédito'}. ${scheduleReview} Se registrará la venta y su efecto financiero.` : 'Revisa los datos de la venta.'} onCancel={() => setConfirming(false)} onConfirm={() => void submit()} title="¿Confirmar la venta?" visible={confirming} />
-    <ConfirmationDialog busy={busy} confirmLabel="Salir sin guardar" title="¿Salir de la venta?" message="Los datos en edición todavía no se han guardado. Si sales, perderás este borrador de venta." visible={exitAction !== null} onCancel={()=>setExitAction(null)} onConfirm={confirmExit} />
+    {dialogs}
   </>;
 }
 
@@ -289,7 +353,8 @@ function errorMessage(error: unknown) {
 
 const styles = StyleSheet.create({
   installmentFields: {flexGrow:1,flexBasis:400,minWidth:0,maxWidth:'100%'},
-  screen: { gap: spacing.xl }, columns: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }, column: { flexBasis: 230, flexGrow: 1 },
+  screen: { gap: spacing.xl },
+  saved: { gap: spacing.md, justifyContent: 'center', paddingBottom: spacing.md, paddingTop: spacing.sm }, columns: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }, column: { flexBasis: 230, flexGrow: 1 },
   toggle: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }, line: { alignItems: 'center', borderTopColor: color.border, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, paddingTop: spacing.md },
   lineTitle: { color: color.textPrimary, ...typography.bodySmall, fontWeight: '700' }, help: { color: color.textSecondary, ...typography.bodySmall }, actions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, justifyContent: 'flex-end' }, metrics: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
 });

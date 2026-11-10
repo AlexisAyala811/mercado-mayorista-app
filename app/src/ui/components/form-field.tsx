@@ -21,7 +21,7 @@ type FormFieldProps = TextInputProps & {
   error?: string;
   label: string;
   supportingText?: string;
-  appearance?: "default" | "login" | "report";
+  appearance?: "default" | "login" | "report" | "stitch";
   reportFontsLoaded?: boolean;
 };
 
@@ -49,7 +49,7 @@ export function FormField({
         appearance === "login" && loginStyles.container,
       ]}
     >
-      <Text style={[styles.label, appearance === "login" && loginStyles.label, appearance === 'report' && reportStyles.label, appearance === 'report' && reportFontsLoaded && {fontFamily:'ReportInterSemiBold'}]}>
+      <Text style={[styles.label, appearance === "login" && loginStyles.label, appearance === 'report' && reportStyles.label, appearance === 'report' && reportFontsLoaded && {fontFamily:'ReportInterSemiBold'}, appearance === 'stitch' && stitchStyles.label]}>
         {label}
       </Text>
       <View>
@@ -73,6 +73,8 @@ export function FormField({
           appearance === "login" && loginStyles.input,
           appearance === 'report' && reportStyles.input,
           appearance === 'report' && reportFontsLoaded && {fontFamily:'ReportInterRegular'},
+          appearance === 'stitch' && [stitchStyles.control, stitchStyles.value],
+          appearance === 'stitch' && props.editable === false && { color: '#475569' },
           error && styles.inputError,
         ]}
         {...props}
@@ -86,6 +88,11 @@ export function FormField({
   );
 }
 
+const stitchStyles = StyleSheet.create({
+  label: { color: '#64748B', fontSize: 12, fontWeight: '600', letterSpacing: 0.8, lineHeight: 16, textTransform: 'uppercase' },
+  control: { backgroundColor: '#EFF4FF', borderRadius: 12, borderWidth: 0, minHeight: 44, paddingHorizontal: 14 },
+  value: { color: '#0B1C30', fontSize: 14, fontWeight: '500', lineHeight: 20 },
+});
 const reportStyles = StyleSheet.create({
   label: {color:reportVisual.secondary,fontSize:12,lineHeight:18,fontWeight:'600'},
   input: {minHeight:48,paddingHorizontal:14,paddingRight:42,paddingVertical:8,borderRadius:10,borderWidth:1,borderColor:reportVisual.border,backgroundColor:reportVisual.surface,color:reportVisual.value,fontSize:14,lineHeight:20},

@@ -4,7 +4,7 @@ import type {CommercialCharacteristic,CommercialInput,CommercialSnapshot} from '
 import {ChoiceDialog,SelectionField,type Choice} from '@/ui/components';
 import {spacing} from '@/ui/tokens';
 
-export function CharacteristicFields({value,qualities,origins,onChange,disabled,historical}:{value:CommercialInput;qualities:readonly CommercialCharacteristic[];origins:readonly CommercialCharacteristic[];onChange:(field:'qualityId'|'originId',id:string|null)=>void;disabled?:boolean;historical?:Partial<CommercialSnapshot>}){
+export function CharacteristicFields({value,qualities,origins,onChange,disabled,historical,appearance}:{value:CommercialInput;qualities:readonly CommercialCharacteristic[];origins:readonly CommercialCharacteristic[];onChange:(field:'qualityId'|'originId',id:string|null)=>void;disabled?:boolean;historical?:Partial<CommercialSnapshot>;appearance?:'default'|'stitch'}){
   const [dialog,setDialog]=useState<'quality'|'origin'|null>(null);
   function label(kind:'quality'|'origin'){
     const id=value[`${kind}Id`];if(!id)return 'No informada';
@@ -18,8 +18,8 @@ export function CharacteristicFields({value,qualities,origins,onChange,disabled,
   if(selected&&!choices.some(item=>item.id===selected)&&selected===historical?.[`${kind}Id`])choices.push({id:selected,label:historical?.[`${kind}Name`]??'Referencia histórica',supportingText:'Opción histórica; no disponible para sacos nuevos.'});
   return <>
     <View style={styles.fields}>
-      <View style={styles.field}><SelectionField label="Calidad comercial" placeholder="No informada" value={label('quality')} disabled={disabled} onPress={()=>setDialog('quality')}/></View>
-      <View style={styles.field}><SelectionField label="Procedencia de la papa" placeholder="No informada" value={label('origin')} disabled={disabled} onPress={()=>setDialog('origin')}/></View>
+      <View style={styles.field}><SelectionField appearance={appearance} label="Calidad comercial" placeholder="No informada" value={label('quality')} disabled={disabled} onPress={()=>setDialog('quality')}/></View>
+      <View style={styles.field}><SelectionField appearance={appearance} label="Procedencia de la papa" placeholder="No informada" value={label('origin')} disabled={disabled} onPress={()=>setDialog('origin')}/></View>
     </View>
     <ChoiceDialog visible={dialog!==null&&!disabled} title={kind==='quality'?'Seleccionar calidad comercial':'Seleccionar procedencia de la papa'} choices={choices} selectedIds={[selected??'']} onClose={()=>setDialog(null)} onSelect={choice=>{if(disabled)return;onChange(`${kind}Id`,choice.id||null);setDialog(null);}}/>
   </>;
