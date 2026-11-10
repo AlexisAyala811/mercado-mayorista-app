@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 import { formatMoney } from "@/domain/reception/reception";
 import { formatLocalDateInput, isValidCivilDate } from "@/domain/shared/date";
@@ -28,7 +28,6 @@ import {
   FeedbackState,
   FormField,
   MetricTile,
-  ScreenHeader,
   SelectionField,
 } from "@/ui/components";
 import { AppHeader } from "@/ui/navigation/app-header";
@@ -36,9 +35,6 @@ import { color, spacing, typography } from "@/ui/tokens";
 import { ReportDownloads } from './report-downloads';
 import { ReportIndicators } from './report-indicators';
 import { ReportCharts } from './report-charts';
-import { useReportFonts } from '@/ui/report-fonts';
-import { reportVisual } from '@/ui/report-tokens';
-import { ReportAsset } from '@/ui/components/report-asset';
 
 type Dialog = "buyer" | "operation" | "provider" | "variety" | "quality" | "origin" | "period" | null;
 type OperationFilter = "all" | "purchase" | "sale";
@@ -52,9 +48,6 @@ export function ReportsScreen({ autoQuery = true, initialOperation = 'purchase' 
 }
 
 function ReportsWorkspace({ autoQuery, initialOperation }: { autoQuery: boolean; initialOperation: 'purchase' | 'sale' }) {
-  const { width, fontScale } = useWindowDimensions();
-  const wide = width >= 1100 && fontScale <= 1.3;
-  const reportFontsLoaded = useReportFonts();
   const { session, invalidateSession } = useSession();
   const token = session?.accessToken ?? '';
   const [initialPeriod] = useState(() => {
@@ -66,6 +59,9 @@ function ReportsWorkspace({ autoQuery, initialOperation }: { autoQuery: boolean;
   const [periodPreset, setPeriodPreset] = useState<ReportPeriodPreset>('current-month');
   const [data, setData] = useState<CommercialSummary | null>(null);
   const [reportOperation, setReportOperation] = useState<'purchase' | 'sale'>(initialOperation);
+  // Spec 011 (CL-ST18): a period chip queries at once; «Exportar» shows the downloads.
+  const [queryRevision, setQueryRevision] = useState(0);
+  const [exportVisible, setExportVisible] = useState(false);
   const [overview, setOverview] = useState<OperationOverview | null>(null);
   const [alerts, setAlerts] = useState<ReportAlerts | null>(null);
   const [prices, setPrices] = useState<PriceHistory | null>(null);
@@ -184,7 +180,7 @@ function ReportsWorkspace({ autoQuery, initialOperation }: { autoQuery: boolean;
   useEffect(() => {
     if (!token || !autoQuery) return;
     void Promise.resolve().then(() => autoRun.current());
-  }, [autoQuery, reportOperation, token]);
+  }, [autoQuery, reportOperation, token, queryRevision]);
 
   if (!session) return null;
 
@@ -231,74 +227,76 @@ function ReportsWorkspace({ autoQuery, initialOperation }: { autoQuery: boolean;
             ];
 
   return (
-    <AppScreen edgeToEdge contentContainerStyle={styles.screen}>
-      <View style={styles.headerWrap}>
-        <AppHeader eyebrow={reportOperation === 'purchase' ? 'COMPRA · REPORTES' : 'VENTA · REPORTES'} title="Reportes" />
-      </View>
-      <View style={styles.operationTabs} accessibilityRole="tablist">
-        {(['purchase', 'sale'] as const).map(kind => (
-          <AppButton key={kind} label={kind === 'purchase' ? 'Compra' : 'Venta'}
-            appearance="report-operation" reportFontsLoaded={reportFontsLoaded}
-            accessibilityRole="tab" accessibilityState={{ selected: reportOperation === kind }}
-            tone={reportOperation === kind ? 'primary' : 'secondary'}
-            onPress={() => { if (kind !== reportOperation) { invalidateResults(); setReportOperation(kind); } }} />
-        ))}
-      </View>
-      <View style={[styles.body, wide && styles.wideBody]}>
-      <ScreenHeader
-        appearance="report" reportFontsLoaded={reportFontsLoaded}
-        title="REPORTES"
-        description={`Consulta el resumen de tus ${reportOperation === 'purchase' ? 'compras' : 'ventas'} y descarga los reportes del período que necesites.`}
-      />
-      <View style={styles.periodPanel}>
+    <AppScreen contentContainerStyle={styles.screen}>
+      <AppHeader eyebrow={reportOperation === 'purchase' ? 'COMPRA' : 'VENTA'} subtitle="Consolidado del período y exportación" title="Reportes" />
+      {/* Spec 011 (CL-ST18): the hero of the Stitch reports: operation, title,
+          period chips and export. */}
+      <View style={styles.hero}>
+        <View style={styles.heroTop}>
+          <View style={styles.heroTitles}>
+            <View accessibilityRole="tablist" style={styles.operationTabs}>
+              {(['purchase', 'sale'] as const).map(kind => (
+                <AppButton key={kind} label={kind === 'purchase' ? 'Compra' : 'Venta'} displayLabel={kind === 'purchase' ? 'Compras' : 'Ventas'}
+                  appearance="stitch-chip"
+                  accessibilityRole="tab" accessibilityState={{ selected: reportOperation === kind }}
+                  tone={reportOperation === kind ? 'primary' : 'secondary'}
+                  onPress={() => { if (kind !== reportOperation) { invalidateResults(); setReportOperation(kind); } }} />
+              ))}
+            </View>
+            <View style={styles.heroTitleLine}>
+              <View style={styles.heroBar} />
+              <Text accessibilityRole="header" style={styles.heroTitle}>{reportOperation === 'purchase' ? 'Reportes de compras' : 'Reportes de ventas'}</Text>
+              <View style={styles.heroBadge}><Text style={styles.heroBadgeText}>{`RPT-${from.slice(0, 4)}-${reportOperation === 'purchase' ? 'C' : 'V'}`}</Text></View>
+            </View>
+            <Text style={styles.heroSubtitle}>{reportOperation === 'purchase' ? 'CONSOLIDADO DE ACOPIO, PROVEEDORES, LIQUIDACIONES Y KILAJES' : 'CONSOLIDADO DE VENTAS, COMPRADORES, DESPACHOS Y COBRANZAS'}</Text>
+          </View>
+          <View style={styles.heroSide}>
+            <View accessibilityRole="radiogroup" style={styles.presets}>
+              {(['today', 'this-week', 'current-month', 'custom'] as const).map(preset => (
+                <AppButton key={preset} appearance="stitch-chip" disabled={busy}
+                  label={preset === 'today' ? 'Hoy' : preset === 'this-week' ? 'Esta semana' : preset === 'current-month' ? 'Este mes' : 'Personalizado'}
+                  accessibilityRole="radio" accessibilityState={{ checked: periodPreset === preset }}
+                  tone={periodPreset === preset ? 'primary' : 'secondary'}
+                  onPress={() => {
+                    if (preset === 'custom') { setPeriodPreset('custom'); return; }
+                    invalidateResults();
+                    const period = reportPeriod(preset);
+                    setFrom(period.from); setTo(period.to); setPeriodPreset(preset);
+                    setQueryRevision(value => value + 1);
+                  }} />
+              ))}
+            </View>
+            <AppButton appearance="stitch-action" stitchTone="success" disabled={!overview}
+              label="Exportar PDF o Excel" displayLabel="+ EXPORTAR PDF / EXCEL"
+              onPress={() => setExportVisible(value => !value)} />
+          </View>
+        </View>
         <View style={styles.periodFields}>
-          <View style={[styles.periodField, wide && styles.presetField]}>
-            <SelectionField appearance="report" reportFontsLoaded={reportFontsLoaded} label="Período" placeholder="Seleccionar período" value={reportPeriodChoices.find(item => item.id === periodPreset)?.label} onPress={() => setDialog('period')} />
+          <View style={styles.periodField}>
+            <SelectionField appearance="stitch" label="Período" placeholder="Seleccionar período" value={reportPeriodChoices.find(item => item.id === periodPreset)?.label} onPress={() => setDialog('period')} />
           </View>
-          <View style={[styles.periodField, wide && styles.dateField]}>
-            <FormField
-              label="Desde"
-              appearance="report" reportFontsLoaded={reportFontsLoaded}
-              onChangeText={(value) => {
-                invalidateResults();
-                setFrom(value);
-                setPeriodPreset('custom');
-              }}
-              value={from}
-            />
+          <View style={styles.periodField}>
+            <FormField label="Desde" appearance="stitch" onChangeText={(value) => { invalidateResults(); setFrom(value); setPeriodPreset('custom'); }} value={from} />
           </View>
-          <View style={[styles.periodField, wide && styles.dateField]}>
-            <FormField
-              label="Hasta"
-              appearance="report" reportFontsLoaded={reportFontsLoaded}
-              onChangeText={(value) => {
-                invalidateResults();
-                setTo(value);
-                setPeriodPreset('custom');
-              }}
-              value={to}
-            />
+          <View style={styles.periodField}>
+            <FormField label="Hasta" appearance="stitch" onChangeText={(value) => { invalidateResults(); setTo(value); setPeriodPreset('custom'); }} value={to} />
           </View>
           <View style={styles.periodActions}>
-          <AppButton label="Restablecer período" displayLabel="Restablecer" appearance="report-link" reportFontsLoaded={reportFontsLoaded} tone="secondary" onPress={() => {
-            invalidateResults();
-            const period = reportPeriod('current-month');
-            setFrom(period.from); setTo(period.to); setPeriodPreset('current-month');
-          }} />
-          <AppButton
-            disabled={busy}
-            appearance="report-query" reportFontsLoaded={reportFontsLoaded}
-            leadingVisual={<ReportAsset kind="search" />} displayLabel={busy ? 'Consultando…' : 'Consultar'}
-            accessibilityLabel={busy ? 'Consultando…' : 'Consultar'}
-            label={busy ? "Generando…" : "Generar"}
-            onPress={() => void run()}
-          />
+            <AppButton label="Restablecer período" displayLabel="Restablecer" appearance="stitch-action" tone="secondary" onPress={() => {
+              invalidateResults();
+              const period = reportPeriod('current-month');
+              setFrom(period.from); setTo(period.to); setPeriodPreset('current-month');
+            }} />
+            <AppButton disabled={busy} appearance="stitch-action" stitchTone="brand"
+              displayLabel={busy ? 'Consultando…' : 'Consultar'} accessibilityLabel={busy ? 'Consultando…' : 'Consultar'}
+              label={busy ? "Generando…" : "Generar"} onPress={() => void run()} />
           </View>
         </View>
       </View>
+      <View style={styles.body}>
       {overview ? <ReportIndicators overview={overview} /> : null}
       {overview ? <ReportCharts key={`charts:${token}:${overview.operation}:${overview.period.from}:${overview.period.to}:${overview.generatedAt}`} token={token} selection={{ operation: overview.operation, ...overview.period }} /> : null}
-      {overview ? <ReportDownloads key={`${token}:${overview.operation}:${overview.period.from}:${overview.period.to}:${overview.generatedAt}`}
+      {overview && exportVisible ? <ReportDownloads key={`${token}:${overview.operation}:${overview.period.from}:${overview.period.to}:${overview.generatedAt}`}
         token={token} counts={overview} onSessionExpired={invalidateSession} selection={{ operation: overview.operation, ...overview.period }} /> : null}
       <AppCard
         title="Filtros de precios"
@@ -564,17 +562,23 @@ function ReportsWorkspace({ autoQuery, initialOperation }: { autoQuery: boolean;
 }
 
 const styles = StyleSheet.create({
-  screen: { gap:31, paddingTop:23,paddingBottom:28,paddingHorizontal:21,backgroundColor:reportVisual.surface },
-  headerWrap: {},
-  body: {gap:24},
-  wideBody: {paddingHorizontal:99,paddingTop:3},
-  periodField: {flexBasis:200,flexGrow:1,minWidth:0,maxWidth:'100%'},
-  presetField: {flexBasis:238,flexGrow:0},
-  dateField: {flexBasis:228,flexGrow:0},
-  periodActions: {flexGrow:1,flexDirection:'row',flexWrap:'wrap',justifyContent:'flex-end',alignItems:'center',gap:16},
-  periodPanel: {backgroundColor:reportVisual.control,borderRadius:20,padding:24},
-  periodFields: {flexDirection:'row',flexWrap:'wrap',gap:20,alignItems:'flex-end'},
-  operationTabs: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 70, rowGap: 16 },
+  screen: { gap: 16, maxWidth: 1280, paddingBottom: 28 },
+  body: { gap: 16 },
+  hero: { backgroundColor: color.surfaceRaised, borderColor: '#E2E8F0', borderRadius: 16, borderWidth: 1, boxShadow: '0px 1px 2px rgba(15,23,42,0.05)', gap: 16, padding: 20 },
+  heroTop: { flexDirection: 'row', flexWrap: 'wrap', gap: 16, justifyContent: 'space-between' },
+  heroTitles: { flexBasis: 380, flexGrow: 1, gap: 8 },
+  heroTitleLine: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  heroBar: { backgroundColor: '#047857', borderRadius: 3, height: 28, width: 6 },
+  heroTitle: { color: '#0F172A', fontSize: 26, fontWeight: '700', letterSpacing: -0.4 },
+  heroBadge: { backgroundColor: '#F1F5F9', borderColor: '#E2E8F0', borderRadius: 6, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 2 },
+  heroBadgeText: { color: '#334155', fontFamily: 'monospace', fontSize: 11, fontWeight: '700' },
+  heroSubtitle: { color: '#475569', fontSize: 11, fontWeight: '600', letterSpacing: 0.8 },
+  heroSide: { alignItems: 'flex-end', gap: 12 },
+  presets: { backgroundColor: '#F1F5F9', borderColor: '#E2E8F0', borderRadius: 12, borderWidth: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 4, padding: 4 },
+  periodField: { flexBasis: 180, flexGrow: 1, minWidth: 0, maxWidth: '100%' },
+  periodActions: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  periodFields: { alignItems: 'flex-end', borderTopColor: '#F1F5F9', borderTopWidth: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 12, paddingTop: 14 },
+  operationTabs: { alignSelf: 'flex-start', backgroundColor: '#F1F5F9', borderColor: '#E2E8F0', borderRadius: 12, borderWidth: 1, flexDirection: 'row', gap: 4, padding: 4 },
   top: { alignItems: "flex-start" },
   filters: {
     alignItems: "flex-end",

@@ -126,7 +126,7 @@ it('distinguishes a failed initial load from empty collections and retries witho
   (globalThis as typeof globalThis & {IS_REACT_ACT_ENVIRONMENT:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
   jest.mocked(listCarriers).mockRejectedValueOnce(new Error('network')).mockResolvedValue({items:[],total:0,offset:0,limit:100});
   jest.mocked(listVehicles).mockResolvedValue({items:[],total:0,offset:0,limit:100});
-  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});
+  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});await act(async()=>{root.root.findAll(node=>node.props.testID==='logistics-new'&&typeof node.props.onPress==='function')[0]?.props.onPress();});
   expect(JSON.stringify(root.toJSON())).toContain('Logística no disponible');expect(JSON.stringify(root.toJSON())).not.toContain('Sin registros de logística');
   await act(async()=>{root.root.findAll(node=>node.props.actionLabel==='Reintentar logística')[0]!.props.onAction();});
   expect(JSON.stringify(root.toJSON())).toContain('Sin registros de logística');expect(JSON.stringify(root.toJSON())).not.toContain('Logística no disponible');
@@ -137,7 +137,7 @@ it('drops a previous session response after remounting the workspace',async()=>{
   let resolveOld!:(value:Awaited<ReturnType<typeof listCarriers>>)=>void;
   jest.mocked(listCarriers).mockReturnValueOnce(new Promise(done=>{resolveOld=done;})).mockResolvedValue({items:[],total:0,offset:0,limit:100});
   jest.mocked(listVehicles).mockResolvedValue({items:[],total:0,offset:0,limit:100});
-  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});
+  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});await act(async()=>{root.root.findAll(node=>node.props.testID==='logistics-new'&&typeof node.props.onPress==='function')[0]?.props.onPress();});
   mockSession.accessToken='new-session';await act(async()=>root.update(<LogisticsScreen/>));
   await act(async()=>resolveOld({items:[{id:'old',name:'Previous session carrier',phone:null}],total:1,offset:0,limit:100}));
   expect(JSON.stringify(root.toJSON())).not.toContain('Previous session carrier');expect(JSON.stringify(root.toJSON())).toContain('Sin registros de logística');
@@ -148,7 +148,7 @@ it('invalidates an expired session without presenting failed catalogs as empty',
   (globalThis as typeof globalThis & {IS_REACT_ACT_ENVIRONMENT:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
   mockInvalidate.mockClear();jest.mocked(listCarriers).mockRejectedValueOnce(new ApiError('expired',401));
   jest.mocked(listVehicles).mockResolvedValue({items:[],total:0,offset:0,limit:100});
-  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});
+  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});await act(async()=>{root.root.findAll(node=>node.props.testID==='logistics-new'&&typeof node.props.onPress==='function')[0]?.props.onPress();});
   expect(mockInvalidate).toHaveBeenCalledTimes(1);expect(JSON.stringify(root.toJSON())).not.toContain('Sin registros de logística');
   await act(async()=>root.unmount());
 });
@@ -156,7 +156,7 @@ it('invalidates an expired session without presenting failed catalogs as empty',
 it('protects modified fields on return, preserves cancellation, and discards only after confirmation',async()=>{
   (globalThis as typeof globalThis & {IS_REACT_ACT_ENVIRONMENT:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
   mockBack.mockClear();jest.mocked(listCarriers).mockResolvedValue({items:[],total:0,offset:0,limit:100});jest.mocked(listVehicles).mockResolvedValue({items:[],total:0,offset:0,limit:100});
-  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});
+  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});await act(async()=>{root.root.findAll(node=>node.props.testID==='logistics-new'&&typeof node.props.onPress==='function')[0]?.props.onPress();});
   const field=()=>root.root.findAll(node=>node.props.label==='Nombre')[0]!;
   const dialog=()=>root.root.findAll(node=>node.props.title==='¿Salir de logística?')[0]!;
   const back=()=>barButton(root,'Atrás');
@@ -169,7 +169,7 @@ it('protects modified fields on return, preserves cancellation, and discards onl
 it('returns without warning when the forms remain unchanged',async()=>{
   (globalThis as typeof globalThis & {IS_REACT_ACT_ENVIRONMENT:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
   mockBack.mockClear();jest.mocked(listCarriers).mockResolvedValue({items:[],total:0,offset:0,limit:100});jest.mocked(listVehicles).mockResolvedValue({items:[],total:0,offset:0,limit:100});
-  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});
+  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});await act(async()=>{root.root.findAll(node=>node.props.testID==='logistics-new'&&typeof node.props.onPress==='function')[0]?.props.onPress();});
   await act(async()=>barButton(root,'Atrás').props.onPress());expect(mockBack).toHaveBeenCalledTimes(1);
   expect(root.root.findAll(node=>node.props.title==='¿Salir de logística?')[0]!.props.visible).toBe(false);await act(async()=>root.unmount());
 });
@@ -178,7 +178,7 @@ it('confirms replacing a modified carrier and keeps the separate vehicle draft',
   (globalThis as typeof globalThis & {IS_REACT_ACT_ENVIRONMENT:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
   jest.mocked(createCarrier).mockClear();jest.mocked(updateCarrier).mockClear();
   jest.mocked(listCarriers).mockResolvedValue({items:[{id:'c1',name:'Primer transportista',phone:null},{id:'c2',name:'Segundo transportista',phone:null}],total:2,limit:100,offset:0});jest.mocked(listVehicles).mockResolvedValue({items:[],total:0,limit:100,offset:0});
-  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});
+  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});await act(async()=>{root.root.findAll(node=>node.props.testID==='logistics-new'&&typeof node.props.onPress==='function')[0]?.props.onPress();});
   const field=(label:string)=>root.root.findAll(node=>node.props.label===label)[0]!;
   const dialog=()=>root.root.findAll(node=>node.props.title==='¿Reemplazar la edición?')[0]!;
   await act(async()=>root.root.findAll(node=>String(node.type)==='test-control'&&node.props.label==='Editar')[0]!.props.onPress());
@@ -198,7 +198,7 @@ it('keeps both drafts through pagination and search, and discards them only afte
   const carriers=Array.from({length:5},(_,i)=>({id:`c${i}`,name:`Transportista ${i}`,phone:null}));
   jest.mocked(listCarriers).mockResolvedValue({items:carriers,total:5,limit:100,offset:0});
   jest.mocked(listVehicles).mockResolvedValue({items:[],total:0,limit:100,offset:0});
-  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});
+  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});await act(async()=>{root.root.findAll(node=>node.props.testID==='logistics-new'&&typeof node.props.onPress==='function')[0]?.props.onPress();});
   const field=(label:string)=>root.root.findAll(node=>node.props.label===label)[0]!;
   const action=(label:string)=>root.root.findAll(node=>node.props.accessibilityLabel===label)[0]!;
   const dialog=()=>root.root.findAll(node=>node.props.title==='¿Abrir un registro nuevo?')[0]!;
@@ -229,7 +229,7 @@ it('reports a confirmed save separately from failed refresh and retries only the
   jest.mocked(listCarriers).mockResolvedValueOnce(page).mockRejectedValueOnce(new Error('Lectura interrumpida')).mockResolvedValue(page);
   jest.mocked(listVehicles).mockResolvedValue({items:[],total:0,limit:100,offset:0});
   jest.mocked(createCarrier).mockResolvedValue({id:'new',name:'Nuevo',phone:null});
-  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});
+  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});await act(async()=>{root.root.findAll(node=>node.props.testID==='logistics-new'&&typeof node.props.onPress==='function')[0]?.props.onPress();});
   const field=()=>root.root.findAll(node=>node.props.label==='Nombre')[0]!;
   await act(async()=>field().props.onChangeText('Nuevo'));
   await act(async()=>root.root.findAll(node=>node.props.label==='Registrar transportista')[0]!.props.onPress());
@@ -248,7 +248,7 @@ it('keeps failed deactivation open and preserves the other draft after a success
   jest.mocked(listCarriers).mockResolvedValue({items:[carrier],total:1,limit:100,offset:0});
   jest.mocked(listVehicles).mockResolvedValue({items:[],total:0,limit:100,offset:0});
   jest.mocked(deactivateCarrier).mockRejectedValueOnce(new Error('Servidor no disponible')).mockResolvedValueOnce(undefined);
-  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});
+  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});await act(async()=>{root.root.findAll(node=>node.props.testID==='logistics-new'&&typeof node.props.onPress==='function')[0]?.props.onPress();});
   const field=(label:string)=>root.root.findAll(node=>node.props.label===label)[0]!;
   const dialog=()=>root.root.findAll(node=>node.props.title==='¿Desactivar registro?')[0]!;
   await act(async()=>root.root.findAll(node=>node.props.accessibilityLabel==='Editar transportista Transportista activo')[0]!.props.onPress());
