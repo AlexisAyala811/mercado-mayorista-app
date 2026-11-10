@@ -1,4 +1,4 @@
-import { SymbolView } from 'expo-symbols';
+import { SymbolView } from '@/ui/components/symbol';
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
   title: { color: '#0F172A', fontSize: 20, fontWeight: '800' },
   note: { color: '#64748B', fontSize: 12 },
   kpis: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  kpi: { backgroundColor: color.surfaceRaised, borderBottomWidth: 4, borderColor: '#E2E8F0', borderRadius: 14, borderWidth: 1, boxShadow: '0px 1px 2px rgba(15,23,42,0.05)', flexBasis: 260, flexGrow: 1, gap: 8, padding: 16 },
+  kpi: { backgroundColor: color.surfaceRaised, borderBottomWidth: 4, borderColor: '#E2E8F0', borderRadius: 14, borderWidth: 1, boxShadow: '0px 1px 2px rgba(15,23,42,0.05)', flexBasis: 240, minWidth: 0, flexGrow: 1, gap: 8, padding: 16 },
   kpiGreen: { borderBottomColor: '#047857' },
   kpiDark: { borderBottomColor: '#0B2A1F' },
   kpiHead: { alignItems: 'center', flexDirection: 'row', gap: 8, justifyContent: 'space-between' },
@@ -183,8 +183,8 @@ const styles = StyleSheet.create({
   trendText: { color: accent.emerald.pillInk, fontSize: 10, fontWeight: '700' },
   trendTextDown: { color: '#991B1B' },
   columns: { flexDirection: 'row', flexWrap: 'wrap', gap: 16 },
-  left: { flexBasis: 560, flexGrow: 1.5, gap: 12 },
-  right: { flexBasis: 320, flexGrow: 1, gap: 12 },
+  left: { flexBasis: 300, flexGrow: 1.6, gap: 12, minWidth: 0 },
+  right: { flexBasis: 300, flexGrow: 1, gap: 12, minWidth: 0 },
   sectionHead: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
   section: { color: '#0F172A', fontSize: 15, fontWeight: '800', letterSpacing: 0.6 },
   quote: { backgroundColor: color.surfaceRaised, borderColor: '#E2E8F0', borderLeftColor: '#CBD5E1', borderLeftWidth: 4, borderRadius: 14, borderWidth: 1, boxShadow: '0px 1px 2px rgba(15,23,42,0.05)', gap: 10, padding: 14 },
@@ -198,11 +198,11 @@ const styles = StyleSheet.create({
   history: { backgroundColor: '#F1F5F9', borderRadius: 8, justifyContent: 'center', minHeight: 36, paddingHorizontal: 12 },
   historyText: { color: '#0F172A', fontSize: 12, fontWeight: '700' },
   quotePrices: { alignItems: 'stretch', backgroundColor: '#F1F5F9', borderRadius: 10, flexDirection: 'row', flexWrap: 'wrap', gap: 12, padding: 10 },
-  price: { flexBasis: 120, flexGrow: 1, gap: 2, justifyContent: 'center', paddingHorizontal: 4 },
+  price: { flexBasis: 110, flexGrow: 1, gap: 2, justifyContent: 'center', minWidth: 0, paddingHorizontal: 4 },
   priceLabel: { color: '#475569', fontSize: 11, fontWeight: '600' },
   priceValue: { color: '#0F172A', fontSize: 18, fontWeight: '800' },
   priceUnit: { color: '#64748B', fontSize: 11, fontWeight: '500' },
-  difference: { alignItems: 'flex-end', backgroundColor: '#D1FAE5', borderRadius: 8, flexBasis: 170, flexGrow: 1, gap: 2, justifyContent: 'center', padding: 10 },
+  difference: { alignItems: 'flex-end', backgroundColor: '#D1FAE5', borderRadius: 8, flexBasis: 150, flexGrow: 1, minWidth: 0, gap: 2, justifyContent: 'center', padding: 10 },
   differenceLabel: { color: '#065F46', fontSize: 11, fontWeight: '600' },
   differenceValue: { color: '#065F46', fontSize: 18, fontWeight: '800' },
   panel: { backgroundColor: color.surfaceRaised, borderColor: '#E2E8F0', borderRadius: 14, borderWidth: 1, gap: 8, padding: 16 },

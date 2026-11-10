@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Image } from "expo-image";
 import { useFonts } from "expo-font";
-import { SymbolView } from "expo-symbols";
+import { SymbolView } from "@/ui/components/symbol";
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 
 import {
