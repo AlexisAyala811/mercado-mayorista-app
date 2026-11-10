@@ -1,6 +1,5 @@
 import { useMemo, useRef,type ReactNode } from 'react';
-import { FlatList, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
-import { TabletWeighingWorkspace } from './tablet-weighing-workspace';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
 import type { PurchaseDisplayContext } from '../components/purchase-reference-elements';
 import { KeyboardFocusContext } from '@/ui/components/keyboard-focus-context';
 import { useKeyboardScrollFocus } from '@/ui/components/use-keyboard-scroll-focus';
@@ -76,7 +75,6 @@ export function WeighingScreen({
   characteristics,
 }: WeighingScreenProps) {
   const styles = useVisualStyles(createStyles);
-  const { width, fontScale } = useWindowDimensions();
   const canAdd = Boolean(onAddSack && selectedVariety && currentGrossWeight.trim() && !isSubmitting);
   const listRef = useRef<FlatList<SackEntryView>>(null);
   const scrollAdapter = useMemo(() => ({
@@ -88,7 +86,6 @@ export function WeighingScreen({
   }), []);
   const keyboard = useKeyboardScrollFocus(scrollAdapter);
 
-  if (width >= 1100 && fontScale <= 1.2) return <TabletWeighingWorkspace characteristics={characteristics} displayContext={displayContext} onGoHome={onGoHome} onGoHistory={onGoHistory} varietySummaries={varietySummaries} notice={notice} currentGrossWeight={currentGrossWeight} currentTare={currentTare} entries={entries} onAddSack={onAddSack} onBack={onBack} onContinue={onContinue} onEditEntry={onEditEntry} onSelectVariety={onSelectVariety} onGrossWeightChange={onGrossWeightChange} onTareChange={onTareChange} errorMessage={errorMessage} isSubmitting={isSubmitting} selectedVariety={selectedVariety} summary={summary} />;
 
   return (
     <AppScreen contentContainerStyle={styles.screen} scrollable={false} testID="weighing-screen">

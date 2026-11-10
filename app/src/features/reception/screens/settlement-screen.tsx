@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { FlatList, Modal, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { FlatList, Modal, StyleSheet, Text, View } from 'react-native';
 import { formatPreviewMoney, type FreightChargedTo, type LotDraft, type PurchaseLot, type PurchasePreview } from '@/domain/reception/purchase-preview';
 import type { ReceptionSack } from '@/domain/reception/reception';
 import type { SackEntryView } from '../components/sack-entry-row';
 import type { PurchaseDisplayContext } from '../components/purchase-reference-elements';
 import { PaymentTermsFields } from '../components/payment-terms-fields';
 import { AmountLine, SettlementFreight, SettlementLots, type LotField } from '../components/settlement-lots';
-import { TabletSettlementWorkspace } from './tablet-settlement-workspace';
 
 import { AppButton, AppCard, AppScreen, FeedbackState, FormField, ScreenHeader, StepProgress } from '@/ui/components';
 import { spacing } from '@/ui/tokens';
@@ -51,10 +50,8 @@ const steps = ['Datos', 'Pesaje', 'Liquidación', 'Confirmación'] as const;
 
 export function SettlementScreen(props: SettlementScreenProps) {
   const { notice, errorMessage, isSubmitting, onBack, onChange, onSubmit, values, preview } = props;
-  const { width, fontScale } = useWindowDimensions();
   const styles = useVisualStyles(createStyles);
   const [detailVisible, setDetailVisible] = useState(false);
-  if (width >= 1100 && fontScale <= 1.2 && props.sacks && props.sackEntries) return <TabletSettlementWorkspace {...props} sacks={props.sacks} sackEntries={props.sackEntries} />;
   return (
     <>
     <AppScreen contentContainerStyle={styles.screen} testID="settlement-screen">
