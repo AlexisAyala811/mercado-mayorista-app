@@ -1,5 +1,5 @@
 import type { AndroidSymbol } from 'expo-symbols';
-import { SymbolView } from 'expo-symbols';
+import { SymbolView } from '@/ui/components/symbol';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { ModuleId } from '@/features/auth/authorization/permissions';

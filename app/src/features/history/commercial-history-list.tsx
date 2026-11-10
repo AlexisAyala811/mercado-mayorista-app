@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { SymbolView } from 'expo-symbols';
-import { StyleSheet, Text, View } from 'react-native';
+import { SymbolView } from '@/ui/components/symbol';
+import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 import { formatMoney } from '@/domain/reception/reception';
 import {
@@ -197,9 +197,11 @@ function HistoryRow({ card, disabled, kind, onOpen, onSettle }: { card: HistoryC
   const purchase = kind === 'purchase';
   const debt = card.state === 'debt';
   const palette = stateTone[card.state];
+  // With large text the blocks need more room and wrap to their own lines (T1190).
+  const grow = Math.min(Math.max(useWindowDimensions().fontScale, 1), 2);
   return (
     <View style={styles.row} testID={`history-${card.id}`}>
-      <View style={styles.party}>
+      <View style={[styles.party, { flexBasis: 240 * grow }]}>
         <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={[styles.avatar, { backgroundColor: palette.tile, borderColor: palette.tileBorder }]}>
           <SymbolView fallback={null} name={{ android: 'person', ios: 'person.fill', web: 'person' }} size={24} tintColor={palette.ink} />
         </View>
@@ -211,7 +213,7 @@ function HistoryRow({ card, disabled, kind, onOpen, onSettle }: { card: HistoryC
           <Text style={styles.meta}>{`#${card.id.slice(0, 8).toUpperCase()} • ${card.date}`}</Text>
         </View>
       </View>
-      <View style={styles.facts}>
+      <View style={[styles.facts, { flexBasis: 320 * grow }]}>
         <Fact label="Variedad" value={historyVarieties(card)} />
         <Fact label="Volumen / peso" value={historyVolume(card)} />
         <Fact label={purchase ? 'Total / abonado' : 'Total / cobrado'} value={card.totalCents === null ? 'Sin liquidar' : `${formatMoney(card.totalCents)}${debt ? ` (Ab. ${formatMoney(card.paidCents)})` : ''}`} />

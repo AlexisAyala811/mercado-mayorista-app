@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
-import { SymbolView } from 'expo-symbols';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { SymbolView } from '@/ui/components/symbol';
+import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 import type { AccountKindCopy } from '@/domain/accounts/account-kind';
 import type { AccountTotals } from '@/domain/accounts/account-totals';
@@ -46,6 +46,8 @@ export function AccountsOverview(props: Props) {
   const { copy } = props;
   const purchase = copy.originSource === 'purchase';
   const settleLabel = purchase ? 'Abonar' : 'Registrar cobro';
+  // With large text the blocks need more room and wrap to their own lines (T1190).
+  const grow = Math.min(Math.max(useWindowDimensions().fontScale, 1), 2);
   return <AppScreen contentContainerStyle={styles.screen} testID="accounts-overview">
     <AppHeader eyebrow={purchase ? 'COMPRA' : 'VENTA'} subtitle="Control y cobranzas de saldos pendientes" title={copy.title} />
     <View style={styles.toolbar}>
@@ -82,7 +84,7 @@ export function AccountsOverview(props: Props) {
           const tone = stateTone[account.state];
           const paid = BigInt(account.initialAmountCents) - BigInt(account.balanceCents);
           return <View key={account.id} style={styles.row}>
-            <View style={styles.party}>
+            <View style={[styles.party, { flexBasis: 240 * grow }]}>
               <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={[styles.avatar, { backgroundColor: tone.tile, borderColor: tone.border }]}>
                 <SymbolView fallback={null} name={{ android: purchase ? 'person' : 'storefront', ios: 'person.fill', web: 'person' }} size={24} tintColor={tone.icon} />
               </View>
@@ -92,7 +94,7 @@ export function AccountsOverview(props: Props) {
                 <View accessibilityLabel={`Estado: ${tone.label}`} style={[styles.badge, { backgroundColor: tone.pill }]}><Text style={[styles.badgeText, { color: tone.ink }]}>{tone.label}</Text></View>
               </View>
             </View>
-            <View style={styles.facts}>
+            <View style={[styles.facts, { flexBasis: 300 * grow }]}>
               <Fact label="Origen" value={purchase ? 'Compra liquidada' : 'Venta a crédito'} />
               <Fact label="Último movimiento" value={accountMovementLabel(account.lastMovementAt)} />
               <Fact label="Total / abonado" value={`${formatMoney(account.initialAmountCents)}`} detail={`Ab. ${formatMoney(paid.toString())}`} />

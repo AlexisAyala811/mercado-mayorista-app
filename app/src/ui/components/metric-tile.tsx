@@ -1,5 +1,5 @@
 import { useVisualStyles, type VisualPalette } from '@/ui/visual-theme';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { radius, spacing, typography } from '@/ui/tokens';
 import { reportVisual } from '@/ui/report-tokens';
@@ -17,10 +17,12 @@ type MetricTileProps = {
 export function MetricTile({ label, value, description, appearance = 'default', reportFontsLoaded = false, tone = 'neutral' }: MetricTileProps) {
   const styles = useVisualStyles(createStyles);
   const report = appearance === 'report';
+  // Wider tiles with large text so labels never break mid-word (T1190).
+  const grow = Math.min(Math.max(useWindowDimensions().fontScale, 1), 2);
   if (appearance === 'stitch') {
     const palette = stitchTones[tone];
     return (
-      <View style={[stitchStyles.container, { backgroundColor: palette.background, borderColor: palette.border }]}>
+      <View style={[stitchStyles.container, { backgroundColor: palette.background, borderColor: palette.border, flexBasis: 220 * grow }]}>
         <View style={stitchStyles.copy}>
           <Text style={[stitchStyles.label, { color: palette.label }]}>{label}</Text>
           <Text accessibilityLabel={`${label}: ${value}`} style={[stitchStyles.value, { color: palette.value }]}>{value}</Text>

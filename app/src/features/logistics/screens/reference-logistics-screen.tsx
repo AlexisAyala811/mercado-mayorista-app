@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
-import { SymbolView } from 'expo-symbols';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { SymbolView } from '@/ui/components/symbol';
+import { Pressable, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import type { Carrier, LogisticsVehicle } from '@/services/api/operations-api';
 import { AppButton, AppScreen, EmptyState } from '@/ui/components';
 import { AppHeader } from '@/ui/navigation/app-header';
@@ -32,6 +32,8 @@ const pageSize = 4;
 // four records and the editor below; the commands stay in LogisticsScreen.
 export function ReferenceLogisticsScreen(props: Props) {
   const [page, setPage] = useState(0);
+  // On a phone the vehicle card drops the avatar and takes the whole width.
+  const narrow = useWindowDimensions().width < 600;
   // As in Stitch, the list stands alone; the form opens with «+» or «Editar».
   const [editorOpen, setEditorOpen] = useState(false);
   const rows = logisticsRecords(props.carriers, props.vehicles, props.search);
@@ -68,12 +70,12 @@ export function ReferenceLogisticsScreen(props: Props) {
               <Text numberOfLines={1} style={styles.name}>{row.vehicle?.description || row.name}</Text>
               {row.vehicle ? <View style={styles.plate}><Text style={styles.plateText}>{row.vehicle.plate}</Text></View> : null}
             </View>
-            <Text numberOfLines={1} style={styles.meta}>{row.vehicle ? `Chofer: ${row.name}` : 'Transportista sin vehículo'}{row.phone ? ` • ${row.phone}` : ''}</Text>
+            <Text numberOfLines={2} style={styles.meta}>{row.vehicle ? `Chofer: ${row.name}` : 'Transportista sin vehículo'}{row.phone ? ` • ${row.phone}` : ''}</Text>
           </View>;
-          return <View key={row.key} style={styles.row}>
-            <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.avatar}>
+          return <View key={row.key} style={[styles.row, narrow && styles.rowNarrow]}>
+            {narrow ? null : <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.avatar}>
               <SymbolView fallback={null} name={{ android: row.vehicle ? 'local_shipping' : 'person', ios: 'person', web: 'person' }} size={24} tintColor="#475569" />
-            </View>
+            </View>}
             <View style={styles.inner}>
               {props.canEdit && row.vehicle && row.carrier
                 ? <Pressable accessibilityRole="button" accessibilityLabel={`Editar transportista ${row.name} para ${row.vehicle.plate}`} accessibilityHint="Abre el formulario del transportista. La placa se edita por separado." disabled={disabled} onPress={() => { setEditorOpen(true); props.onEditCarrier(row.carrier!); }} style={({ pressed }) => [styles.identityButton, pressed && styles.dimmed]}>{identity}</Pressable>
@@ -113,14 +115,15 @@ const styles = StyleSheet.create({
   toolButtons: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   count: { color: '#64748B', fontSize: 13, fontWeight: '500' },
   list: { gap: 14 },
+  rowNarrow: { padding: 10 },
   row: { alignItems: 'center', backgroundColor: color.surfaceRaised, borderColor: '#E2E8F0', borderRadius: 16, borderWidth: 1, boxShadow: '0px 1px 2px rgba(15,23,42,0.05)', flexDirection: 'row', gap: 14, padding: 14 },
   avatar: { alignItems: 'center', backgroundColor: '#F1F5F9', borderColor: '#E2E8F0', borderRadius: 12, borderWidth: 1, height: 44, justifyContent: 'center', width: 44 },
-  inner: { alignItems: 'center', backgroundColor: '#F1F5F9', borderColor: '#E2E8F0', borderRadius: 12, borderWidth: 1, flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 12, paddingHorizontal: 14, paddingVertical: 10 },
-  identityButton: { flexBasis: 260, flexGrow: 1, justifyContent: 'center', minHeight: 44 },
+  inner: { alignItems: 'center', backgroundColor: '#F1F5F9', borderColor: '#E2E8F0', borderRadius: 12, borderWidth: 1, flex: 1, minWidth: 0, flexDirection: 'row', flexWrap: 'wrap', gap: 12, paddingHorizontal: 14, paddingVertical: 10 },
+  identityButton: { flexBasis: 200, flexGrow: 1, flexShrink: 1, justifyContent: 'center', minHeight: 44, minWidth: 0 },
   identity: { gap: 2, minWidth: 0 },
-  titleLine: { alignItems: 'center', flexDirection: 'row', gap: 10 },
+  titleLine: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   name: { color: '#0F172A', flexShrink: 1, fontSize: 16, fontWeight: '700' },
-  plate: { backgroundColor: '#E2E8F0', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 },
+  plate: { backgroundColor: '#E2E8F0', borderRadius: 6, flexShrink: 0, paddingHorizontal: 8, paddingVertical: 2 },
   plateText: { color: '#334155', fontFamily: 'monospace', fontSize: 12, fontWeight: '700' },
   meta: { color: '#475569', fontSize: 12 },
   tag: { backgroundColor: '#ECFDF5', borderColor: '#A7F3D0', borderRadius: 8, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 4 },

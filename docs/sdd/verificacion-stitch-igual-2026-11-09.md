@@ -93,3 +93,29 @@ Defectos encontrados en el emulador y corregidos:
 
 - T1190 queda abierta: comparación lado a lado en teléfono de 360 dp y con texto al 200 %.
 - TalkBack y envío real por WhatsApp o correo, por las mismas razones que en las fases anteriores.
+
+
+## T1190 — teléfono y texto al 200 % (10 de noviembre de 2026)
+
+Las diez pantallas principales (menú, compra, venta, Ver compras, Ver ventas, Deudas, Cobranzas, Carros, Reportes y Analítica) se capturaron en un teléfono de 360 dp (`wm size 720x1600`, `wm density 320`) y en la tablet de 1280 × 800 con el texto al 200 % (`font_scale 2.0`), arriba y tras desplazar.
+
+| Defecto | Dónde | Corrección |
+| --- | --- | --- |
+| La barra inferior se salía por los dos bordes y cortaba «Atrás» y «Siguiente» | Teléfono, todas las pantallas | En pantallas de menos de 600 dp, «Atrás» y un «Siguiente» sin acción quedan como flechas y «Menú principal» pasa a «Menú» |
+| La tarjeta del vehículo se apretaba: placa partida, nombre del vehículo oculto, chofer cortado | Teléfono, Carros | Sin avatar en el teléfono, la placa no se parte y el chofer ocupa dos líneas |
+| Las cotizaciones de Analítica y las columnas de Reportes salían por la derecha | Teléfono | Las columnas tienen base de 300 dp y se encogen |
+| Los íconos se recortaban | Texto al 200 % | `ui/components/symbol.tsx` dibuja el ícono a su tamaño dividido entre la escala de texto, dentro de una caja del tamaño original: queda entero, algo más pequeño que el texto |
+| El nombre del proveedor se cortaba en las tarjetas de Ver compras y Ver ventas, y las etiquetas de los indicadores se partían a mitad de palabra | Texto al 200 % | Las tarjetas y los indicadores crecen con la escala de texto y pasan a otra línea cuando no caben |
+
+| Evidencia | Capturas |
+| --- | --- |
+| Teléfono de 360 dp | [Menú](../../img/verificacion-stitch-igual-2026-11-09/telefono-home.png), [compra](../../img/verificacion-stitch-igual-2026-11-09/telefono-purchase-flow.png), [venta](../../img/verificacion-stitch-igual-2026-11-09/telefono-sale-flow.png), [Ver compras](../../img/verificacion-stitch-igual-2026-11-09/telefono-purchase-history.png) y [sus totales](../../img/verificacion-stitch-igual-2026-11-09/telefono-purchase-history-2.png), [Deudas](../../img/verificacion-stitch-igual-2026-11-09/telefono-debts-2.png), [Carros](../../img/verificacion-stitch-igual-2026-11-09/telefono-logistics-2.png), [Analítica](../../img/verificacion-stitch-igual-2026-11-09/telefono-analytics-2.png) |
+| Texto al 200 % | [Menú](../../img/verificacion-stitch-igual-2026-11-09/texto-200-home.png), [venta](../../img/verificacion-stitch-igual-2026-11-09/texto-200-sale-flow.png), [Ver compras](../../img/verificacion-stitch-igual-2026-11-09/texto-200-purchase-history-2.png), [Deudas](../../img/verificacion-stitch-igual-2026-11-09/texto-200-debts-2.png), [Carros](../../img/verificacion-stitch-igual-2026-11-09/texto-200-logistics.png), [Reportes](../../img/verificacion-stitch-igual-2026-11-09/texto-200-reports-2.png), [Analítica](../../img/verificacion-stitch-igual-2026-11-09/texto-200-analytics-2.png) |
+| Pruebas | `npm run typecheck` y `npm run lint` sin avisos; 702 pruebas en 101 suites |
+
+Con texto al 200 % y en el teléfono, compra y venta siguen el flujo por pasos, como se decidió en las fases G y H.
+
+### No verificado
+
+- TalkBack: la imagen del emulador no lo trae.
+- Una tablet física: todo se verificó en el emulador.

@@ -1,4 +1,4 @@
-import { SymbolView } from 'expo-symbols';
+import { SymbolView } from '@/ui/components/symbol';
 import type { AndroidSymbol } from 'expo-symbols';
 import { useEffect, useState, type ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
@@ -139,8 +139,8 @@ function Panel({ children, icon, subtitle, title, wide = false }: { children: Re
 const styles = StyleSheet.create({
   board: { gap: 16 },
   columns: { flexDirection: 'row', flexWrap: 'wrap', gap: 16 },
-  panel: { backgroundColor: color.surfaceRaised, borderColor: '#E2E8F0', borderRadius: 16, borderWidth: 1, boxShadow: '0px 1px 2px rgba(15,23,42,0.05)', flexBasis: 320, flexGrow: 1, gap: 14, padding: 20 },
-  panelWide: { flexBasis: 520, flexGrow: 1.4 },
+  panel: { backgroundColor: color.surfaceRaised, borderColor: '#E2E8F0', borderRadius: 16, borderWidth: 1, boxShadow: '0px 1px 2px rgba(15,23,42,0.05)', flexBasis: 300, minWidth: 0, flexGrow: 1, gap: 14, padding: 20 },
+  panelWide: { flexBasis: 340, flexGrow: 1.4 },
   panelHead: { alignItems: 'center', flexDirection: 'row', gap: 12 },
   panelIcon: { alignItems: 'center', backgroundColor: '#F1F5F9', borderRadius: 10, height: 36, justifyContent: 'center', width: 36 },
   panelTitles: { flexShrink: 1 },
