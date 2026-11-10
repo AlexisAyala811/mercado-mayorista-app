@@ -501,6 +501,7 @@ function AccountsContent({ kind, openSourceId }: { kind: AccountKind; openSource
       onStateFilter={(state) => setAccountFilters((current) => ({ ...current, state }))}
       onClearFilters={() => setAccountFilters({ search: "", kind, state: "all" })}
       onNewSource={() => router.push((copy.originSource === "purchase" ? "/purchase-flow" : "/sale-flow") as Href)}
+      onSwitchKind={() => router.replace((copy.originSource === "purchase" ? "/collections" : "/debts") as Href)}
       feedback={error || !collectionsReady || sourceMissing ? <>
         {sourceMissing ? <FeedbackState title="Cuenta no encontrada" message="No hay una cuenta abierta de esa operación. Puede estar saldada o anulada." tone="error" /> : null}
         {error ? <FeedbackState title="No se pudo completar" message={error} tone="error" /> : null}

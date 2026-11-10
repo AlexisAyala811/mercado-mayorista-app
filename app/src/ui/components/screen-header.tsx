@@ -10,6 +10,8 @@ type ScreenHeaderProps = {
   actions?: ReactNode;
   description?: string;
   eyebrow?: string;
+  // Line under the title in the Stitch header.
+  subtitle?: string;
   title: string;
   appearance?: 'default' | 'report';
   // 'section' titles a part of a screen that already shows the MAÑAY header.
@@ -17,12 +19,12 @@ type ScreenHeaderProps = {
   reportFontsLoaded?: boolean;
 };
 
-export function ScreenHeader({ actions, description, eyebrow, title, appearance = 'default', level = 'screen', reportFontsLoaded = false }: ScreenHeaderProps) {
+export function ScreenHeader({ actions, description, eyebrow, subtitle, title, appearance = 'default', level = 'screen', reportFontsLoaded = false }: ScreenHeaderProps) {
   const styles = useVisualStyles(createStyles);
   // Spec 011 (RQ-ST03): every screen opens with the shared MAÑAY header.
   if (appearance === 'default' && level === 'screen') return (
     <View style={styles.container}>
-      <AppHeader eyebrow={eyebrow} title={title} />
+      <AppHeader eyebrow={eyebrow} subtitle={subtitle} title={title} />
       {description ? <Text style={styles.description}>{description}</Text> : null}
       {actions ? <View style={styles.actions}>{actions}</View> : null}
     </View>

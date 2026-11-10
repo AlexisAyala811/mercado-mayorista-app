@@ -252,7 +252,8 @@ export function PurchaseHistoryScreen() {
     return (
       <AppScreen contentContainerStyle={styles.screen}>
         <ScreenHeader
-          eyebrow="COMPRA · COMPRAS PAGADAS Y CON DEUDA"
+          eyebrow="COMPRA"
+          subtitle="Control de compras y liquidaciones"
           title="Ver compras"
         />
         {error ? <FeedbackState title="No se pudo abrir la compra" message={error} tone="error" /> : null}
@@ -264,6 +265,7 @@ export function PurchaseHistoryScreen() {
           loadSummary={loadSummary}
           onOpen={(card) => void open(card.id)}
           onSettle={(card) => router.push({ pathname: '/debts', params: { sourceId: card.sourceId ?? '' } } as Href)}
+          onNew={() => router.push('/purchase-flow' as Href)}
         />
       </AppScreen>
     );

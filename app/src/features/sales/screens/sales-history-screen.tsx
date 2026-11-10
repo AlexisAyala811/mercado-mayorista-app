@@ -437,7 +437,7 @@ function SalesHistoryWorkspace({allowReturns}:{allowReturns:boolean}) {
     );
   return (
     <AppScreen contentContainerStyle={styles.screen}>
-      <ScreenHeader eyebrow="VENTA · VENTAS COBRADAS Y CON DEUDA" title="Ver ventas" />
+      <ScreenHeader eyebrow="VENTA" subtitle="Control de ventas y cobranzas" title="Ver ventas" />
       {error ? <FeedbackState title="No se pudo abrir la venta" message={error} tone="error" /> : null}
       <CommercialHistoryList
         kind="sale"
@@ -448,6 +448,7 @@ function SalesHistoryWorkspace({allowReturns}:{allowReturns:boolean}) {
         loadSummary={loadSummary}
         onOpen={(card) => open(card.id)}
         onSettle={(card) => router.push({ pathname: '/collections', params: { sourceId: card.sourceId ?? '' } } as Href)}
+        onNew={() => router.push('/sale-flow' as Href)}
       />
     </AppScreen>
   );

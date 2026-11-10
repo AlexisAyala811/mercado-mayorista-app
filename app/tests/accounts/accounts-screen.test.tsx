@@ -708,9 +708,9 @@ describe("Stitch convergence of Deudas", () => {
     });
     let root!: ReactTestRenderer;
     await act(async () => { root = create(withChrome(<AccountsScreen kind="payable" />)); });
-    expect(metric(root, "Deuda pendiente")).toBe("S/ 80.00");
-    expect(metric(root, "Vencido")).toBe("S/ 80.00");
-    expect(metric(root, "Abonado este mes")).toBe("S/ 0.00");
+    expect(metric(root, "Total deuda acumulada")).toBe("S/ 80.00");
+    expect(metric(root, "Saldo vencido")).toBe("S/ 80.00");
+    expect(metric(root, "Total abonado este mes")).toBe("S/ 0.00");
     expect(root.root.findAll((node) => (node.type as unknown) === "test-control" && node.props.accessibilityRole === "radio").map((node) => node.props.label)).toEqual(["Pendientes 1", "Todas 2", "Al día 1", "Anuladas 0"]);
     expect(root.root.findAll((node) => (node.type as unknown) === "test-control" && node.props.label === "Abonar")).toHaveLength(1);
     await act(async () => root.unmount());
