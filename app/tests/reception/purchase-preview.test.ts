@@ -80,7 +80,7 @@ it('preserves exact amounts beyond floating point precision', () => {
   const result = preview([sack('99999999999.999')], single('90000000000'));
   expect(result).toMatchObject({ kind: 'ready', grossCents: '899999999999991000000000' });
   if (result.kind !== 'ready') throw new Error('Expected valid preview');
-  expect(formatPreviewMoney(result.grossCents)).toBe('S/ 8999999999999910000000.00');
+  expect(formatPreviewMoney(result.grossCents)).toBe('S/ 8,999,999,999,999,910,000,000.00');
 });
 
 it('keeps missing prices pending and rejects over-limit or excessive deductions', () => {

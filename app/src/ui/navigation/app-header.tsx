@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { BrandMark } from '@/ui/components/brand-mark';
-import { accent, color } from '@/ui/tokens';
+import { accent, color, layout, spacing } from '@/ui/tokens';
 import { useAppChrome, type ChromeConnection } from './app-chrome';
 
 type AppHeaderProps = {
@@ -25,10 +25,13 @@ export function AppHeader({ eyebrow, subtitle, title, trailing, variant = 'scree
   const chrome = useAppChrome();
   const { width } = useWindowDimensions();
   const narrow = width < 760;
+  // The menu bar runs from edge to edge as in Stitch: it cancels the screen's
+  // side padding (the one AppScreen uses for this width).
+  const edge = width >= layout.tabletMinWidth ? spacing.xl : spacing.lg;
   const username = chrome?.username ?? null;
   const connection = chrome?.connection ?? null;
   return (
-    <View style={[styles.header, variant === 'brand' && styles.bar, narrow && styles.narrow]} testID="app-header">
+    <View style={[styles.header, variant === 'brand' && [styles.bar, { marginHorizontal: -edge, paddingHorizontal: edge }], narrow && styles.narrow]} testID="app-header">
       <View style={[styles.side, narrow && styles.sideNarrow]}>
         {username ? (
           <>
@@ -110,7 +113,7 @@ function toneOf(connection: ChromeConnection) {
 
 const styles = StyleSheet.create({
   header: { alignItems: 'center', flexDirection: 'row', gap: 12, justifyContent: 'space-between', paddingBottom: 8 },
-  bar: { backgroundColor: color.surfaceRaised, borderColor: '#DBE3EB', borderRadius: 16, borderWidth: 1, boxShadow: '0px 1px 2px rgba(15,23,42,0.06)', paddingHorizontal: 20, paddingVertical: 10 },
+  bar: { backgroundColor: color.surfaceRaised, borderBottomColor: '#E2E8F0', borderBottomWidth: 1, boxShadow: '0px 1px 2px rgba(15,23,42,0.05)', paddingVertical: 12 },
   narrow: { alignItems: 'flex-start', flexWrap: 'wrap' },
   side: { alignItems: 'center', flex: 1, flexDirection: 'row', gap: 12, minWidth: 0 },
   sideEnd: { justifyContent: 'flex-end' },

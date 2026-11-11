@@ -21,8 +21,8 @@ describe('reception presentation domain', () => {
   });
 
   it('preserves every cent of large confirmed amounts and negative cash balances', () => {
-    expect(formatMoney('9007199254740993')).toBe('S/ 90071992547409.93');
-    expect(formatMoney('-9007199254740993')).toBe('S/ -90071992547409.93');
+    expect(formatMoney('9007199254740993')).toBe('S/ 90,071,992,547,409.93');
+    expect(formatMoney('-9007199254740993')).toBe('S/ -90,071,992,547,409.93');
     expect(formatMoney(-1)).toBe('S/ -0.01');
     expect(() => formatMoney(Number.MAX_SAFE_INTEGER + 1)).toThrow();
   });

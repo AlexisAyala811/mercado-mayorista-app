@@ -149,3 +149,21 @@ El usuario indicó que la compra no era igual a su maqueta. La hoja de compra en
 ### No verificado
 
 - TalkBack y una tablet física.
+
+## Revisión pantalla por pantalla (T1193, 10 de noviembre de 2026)
+
+Cada pantalla se compara con su maqueta en el emulador de 1280 × 800 (CL-ST21). Pantallas revisadas en esta tanda:
+
+| Pantalla | Cambios | Evidencia |
+| --- | --- | --- |
+| Acceso | Rótulo «Centro de acopio», titular «de papa y tubérculos», dos tarjetas de datos, campos blancos con ícono, ojo de la contraseña, «¿Olvidó su clave?», tarjeta centrada y botón con ícono | [acceso](../../img/verificacion-stitch-igual-2026-11-09/revision-acceso.png) |
+| Menú, lado Compra | Barra blanca de borde a borde, NUEVO en verde, rayo, punto y descarga en los pies, descripciones de la maqueta | [menú Compra](../../img/verificacion-stitch-igual-2026-11-09/revision-menu-compra.png) |
+| Menú, lado Venta | DESPACHO en verde, «Anote», «Precios hoy» y descripciones de la maqueta | [menú Venta](../../img/verificacion-stitch-igual-2026-11-09/revision-menu-venta.png) |
+| Ver compras | Ancho completo, importes con separador de miles, fichas con conteo en burbuja dentro de la barra de búsqueda | [Ver compras](../../img/verificacion-stitch-igual-2026-11-09/revision-ver-compras.png) |
+
+| Verificación | Resultado |
+| --- | --- |
+| `npm run typecheck`, `npm run lint` | Sin errores ni avisos |
+| `npm test -- --runInBand` | 703 pruebas en 101 suites |
+
+Diferencia pendiente: en las maquetas de listas la cabecera es una barra blanca de borde a borde; en la app solo el menú la tiene.

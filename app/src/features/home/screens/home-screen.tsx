@@ -126,8 +126,8 @@ export function HomeScreen({ badges = {}, facts = {}, initialSide = 'purchase', 
 }
 
 const styles = StyleSheet.create({
-  screen: { gap: spacing.md, maxWidth: 1280, paddingBottom: spacing.xl },
-  screenDense: { gap: 12, paddingTop: spacing.sm },
+  screen: { gap: spacing.md, maxWidth: 1280, paddingBottom: spacing.xl, paddingTop: 0 },
+  screenDense: { gap: 12 },
   logout: { alignItems: 'center', borderColor: '#E2E8F0', borderRadius: radius.sm, borderWidth: 1, height: 44, justifyContent: 'center', width: 44 },
   logoutPressed: { backgroundColor: '#F8FAFC', transform: [{ scale: 0.95 }] },
   logoutText: { color: '#475569', fontSize: 13, fontWeight: '700' },

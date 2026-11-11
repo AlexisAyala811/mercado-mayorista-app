@@ -61,7 +61,7 @@ export const radius = {
 
 export const layout = {
   tabletMinWidth: 768,
-  contentMaxWidth: 1120,
+  contentMaxWidth: 1280,
   formMaxWidth: 480,
 } as const;
 
