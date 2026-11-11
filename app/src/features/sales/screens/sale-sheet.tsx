@@ -1,13 +1,13 @@
 import { SymbolView } from '@/ui/components/symbol';
 import { useMemo, useRef, useState, type ReactNode } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { formatMoney } from '@/domain/reception/reception';
 import type { SalePreview } from '@/domain/sales/sale-preview';
-import { saleLineGrams, type SaleLineDraft } from '@/domain/sales/sale';
+import { saleLineGrams, validSackWeight, type SaleLineDraft } from '@/domain/sales/sale';
 import { BigTotal, gramsToKg, Line, sheetColumns, sheetLayout as p, sheetRowHeight, SheetInput, sheetStyles as s } from '@/features/reception/screens/purchase-sheet';
 import type { InstallmentDraft } from '@/features/reception/screens/settlement-screen';
-import { AppButton, AppScreen, FeedbackState, FormField, SelectionField } from '@/ui/components';
+import { AppButton, AppScreen, ConfirmationDialog, FeedbackState, FormField, SelectionField } from '@/ui/components';
 import { useBottomNav } from '@/ui/navigation/app-chrome';
 import { AppHeader } from '@/ui/navigation/app-header';
 import { accent, color } from '@/ui/tokens';
@@ -23,17 +23,25 @@ export type SaleSheetProps = {
   notice?: ReactNode;
   busy?: boolean;
   // Buyer and dispatch.
-  buyerName?: string;
-  buyerPhone?: string | null;
+  // Buyer typed in its boxes (CL-ST23): matches of the catalog under the name.
+  buyerName: string;
+  onBuyerNameChange: (value: string) => void;
+  buyerSuggestions: { id: string; label: string; supportingText?: string }[];
+  onPickBuyer: (id: string) => void;
+  buyerNotice?: string;
+  buyerPhone: string;
+  onBuyerPhoneChange: (value: string) => void;
+  phoneEditable: boolean;
+  buyerDocument: string;
+  onBuyerDocumentChange: (value: string) => void;
   dispatchDate: string;
+  onDispatchDateChange: (value: string) => void;
   destination: string;
   onDestinationChange: (value: string) => void;
   vehiclePlate?: string;
   driver: string;
   onDriverChange: (value: string) => void;
-  onSelectBuyer: () => void;
   onSelectVehicle: () => void;
-  referenceActions?: ReactNode;
   // Quality and origin of the active lot.
   lotCharacteristics?: ReactNode;
   // Lots: one per variety, quality and origin.
@@ -43,10 +51,8 @@ export type SaleSheetProps = {
   onSelectLine: (id: string) => void;
   onAddLot: () => void;
   onRemoveLot?: (id: string) => void;
-  onAddSack: (weight: string) => void;
-  onCorrectSack: (index: number, weight: string) => void;
-  // Number of cells of the lot (CL-ST22): only how many boxes are drawn.
-  onPlanSacks: (id: string, count: number) => void;
+  // Cells of the lot (CL-ST22): typed weights or empty.
+  onChangeSlots: (id: string, slots: string[]) => void;
   onChangeLine: (id: string, field: 'priceBasis' | 'unitPrice', value: string) => void;
   // Settlement.
   preview: SalePreview;
@@ -66,7 +72,9 @@ export type SaleSheetProps = {
   onGoHome: () => void;
 };
 
-type Cell = { kind: 'sack'; index: number; value: string } | { kind: 'draft'; index: number } | { kind: 'empty'; index: number };
+type Cell = { index: number; value: string };
+const quickLoad = 10;
+const quickWeight = '50';
 
 // Venta on one screen (spec 011, RQ-ST14, CL-ST18, CL-ST19, CL-ST22): the
 // Stitch «Registro de venta multilotes» layout. Buyer data in one row, one tab
@@ -79,20 +87,19 @@ export function SaleSheet(props: SaleSheetProps) {
   const screenRef = useRef<ScrollView>(null);
   const tableY = useRef(0);
   const gridRef = useRef<ScrollView>(null);
-  const draftRef = useRef<TextInput>(null);
   const [firstRow, setFirstRow] = useState(0);
-  const [weight, setWeight] = useState('');
-  const [editing, setEditing] = useState<number | null>(null);
   const [characteristicsOpen, setCharacteristicsOpen] = useState(false);
+  // «Quitar lote» of the mockup asks before dropping weighed sacks.
+  const [removeAsked, setRemoveAsked] = useState(false);
   const busy = Boolean(props.busy);
   const activeIndex = Math.max(0, props.lines.findIndex((line) => line.id === props.activeLineId));
   const active = props.lines[activeIndex];
   const weights = useMemo(() => active?.weights ?? [], [active]);
-  // The lot shows its planned cells; there is always one free cell to type in.
-  const capacity = active ? Math.max(weights.length + 1, active.plannedSacks ?? 0) : 0;
-  const cells = useMemo<Cell[]>(() => Array.from({ length: capacity }, (_, index) => (
-    index < weights.length ? { kind: 'sack' as const, index, value: weights[index]! } : index === weights.length && editing === null ? { kind: 'draft' as const, index } : { kind: 'empty' as const, index }
-  )), [capacity, editing, weights]);
+  // The cells of the lot; a lot made before the cells existed shows its sacks.
+  const slots = useMemo(() => active?.slots ?? active?.weights ?? [], [active]);
+  // As in the mockup, a lot keeps at least ten cells; extra ones can go away.
+  const planned = quickLoad;
+  const cells = useMemo<Cell[]>(() => slots.map((value, index) => ({ index, value })), [slots]);
   const rows = useMemo(() => {
     const chunks: Cell[][] = [];
     for (let index = 0; index < cells.length; index += sheetColumns) chunks.push(cells.slice(index, index + sheetColumns));
@@ -103,7 +110,6 @@ export function SaleSheet(props: SaleSheetProps) {
   const totalSacks = props.lines.reduce((total, line) => total + (line.weights?.length ?? 0), 0);
   const totalGrams = props.lines.reduce((total, line) => total + saleLineGrams(line), 0n);
   const money = (field: 'grossCents' | 'freightCents' | 'discountsCents' | 'totalCents') => (preview.kind === 'ready' ? formatMoney(preview[field]) : 'Pendiente');
-  const canAdd = Boolean(active) && !busy && /^\d{1,7}$/.test(weight.trim()) && Number(weight) > 0;
   const canSave = !busy && totalSacks > 0 && preview.kind === 'ready';
 
   useBottomNav({
@@ -112,17 +118,26 @@ export function SaleSheet(props: SaleSheetProps) {
     next: { label: busy ? 'Guardando…' : 'Guardar venta', disabled: !canSave, onPress: props.onSave },
   });
 
-  function saveSack() {
-    if (!canAdd) return;
-    if (editing !== null) props.onCorrectSack(editing, weight.trim());
-    else props.onAddSack(weight.trim());
-    setWeight('');
-    setEditing(null);
+  function setSlots(next: string[]) {
+    if (active) props.onChangeSlots(active.id, next);
+  }
+  // Only whole kilograms are kept while typing.
+  function typeSlot(index: number, value: string) {
+    setSlots(slots.map((item, position) => (position === index ? value.replace(/[^0-9]/g, '').slice(0, 7) : item)));
+  }
+  // «×» of the mockup: clears the cell; an extra cell beyond the first ten goes away.
+  function clearSlot(index: number) {
+    setSlots(slots.length > planned ? slots.filter((_, position) => position !== index) : slots.map((item, position) => (position === index ? '' : item)));
+  }
+  // «+ Carga rápida (10 sacos a 50 kg)»: fills the empty cells first.
+  function quickFill() {
+    let left = quickLoad;
+    const next = slots.map((item) => (!validSackWeight(item) && left > 0 ? (left -= 1, quickWeight) : item));
+    while (left > 0) { next.push(quickWeight); left -= 1; }
+    setSlots(next);
   }
   function selectLine(id: string) {
     props.onSelectLine(id);
-    setEditing(null);
-    setWeight('');
   }
 
   return (
@@ -132,10 +147,24 @@ export function SaleSheet(props: SaleSheetProps) {
       {props.errorMessage ? <FeedbackState title="Revisa la operación" message={props.errorMessage} tone="error" /> : null}
 
       <View style={[s.card, p.details]} testID="sale-buyer">
-        <View style={p.detailWide}><SelectionField appearance="stitch" disabled={busy} label="Nombre del cliente / comprador" leadingIcon="domain" onPress={props.onSelectBuyer} placeholder="Selecciona un comprador" value={props.buyerName} /></View>
-        <View style={p.detail}><FormField appearance="stitch" editable={!busy} label="Destino" leadingIcon="place" onChangeText={props.onDestinationChange} placeholder="Departamento" value={props.destination} /></View>
-        <View style={p.detail}><FormField appearance="stitch" editable={false} label="N.° celular" leadingIcon="call" value={props.buyerPhone ?? '—'} /></View>
-        <View style={p.detail}><FormField appearance="stitch" editable={false} label="Fecha despacho" leadingIcon="calendar_today" value={props.dispatchDate} /></View>
+        <View style={p.detailWide}>
+          <FormField appearance="stitch" autoCorrect={false} editable={!busy} label="Nombre del cliente / comprador" leadingIcon="domain" maxLength={160} onChangeText={props.onBuyerNameChange} placeholder="Ingrese nombre o razón social…" value={props.buyerName} />
+          {props.buyerSuggestions.length ? (
+            <View accessibilityLabel="Compradores que coinciden" style={buyerStyles.suggestions}>
+              {props.buyerSuggestions.map((item) => (
+                <Pressable accessibilityHint="Completa el celular y el destino del comprador" accessibilityLabel={`Elegir ${item.label}`} accessibilityRole="button" key={item.id} onPress={() => props.onPickBuyer(item.id)} style={({ pressed }) => [buyerStyles.suggestion, pressed && s.dimmed]}>
+                  <SymbolView fallback={null} name={{ android: 'domain', ios: 'building.2', web: 'domain' }} size={16} tintColor="#727974" />
+                  <Text numberOfLines={1} style={buyerStyles.suggestionText}>{item.label}</Text>
+                  {item.supportingText ? <Text numberOfLines={1} style={buyerStyles.suggestionHint}>{item.supportingText}</Text> : null}
+                </Pressable>
+              ))}
+            </View>
+          ) : null}
+        </View>
+        <View style={buyerStyles.document}><FormField appearance="stitch" autoCapitalize="characters" editable={!busy} keyboardType="number-pad" label="RUC / DNI" leadingIcon="badge" maxLength={11} onChangeText={(value) => props.onBuyerDocumentChange(value.replace(/[^0-9]/g, ''))} placeholder="20…" value={props.buyerDocument} /></View>
+        <View style={p.detail}><FormField appearance="stitch" editable={!busy && props.phoneEditable} keyboardType="phone-pad" label="N.° celular" leadingIcon="call" maxLength={32} onChangeText={props.onBuyerPhoneChange} placeholder="999 000 000" value={props.buyerPhone} /></View>
+        <View style={buyerStyles.date}><FormField appearance="stitch" editable={!busy} label="Fecha despacho" leadingIcon="calendar_today" maxLength={10} onChangeText={props.onDispatchDateChange} placeholder="aaaa-mm-dd" value={props.dispatchDate} /></View>
+        {props.buyerNotice ? <Text accessibilityLiveRegion="polite" style={buyerStyles.notice}>{props.buyerNotice}</Text> : null}
       </View>
 
       <View style={[s.card, s.tabsCard]}>
@@ -152,7 +181,6 @@ export function SaleSheet(props: SaleSheetProps) {
             );
           }) : <Text style={s.help}>Añade el primer lote para empezar a pesar.</Text>}
         </View>
-        <View style={p.tabsLinks}>{props.referenceActions}</View>
         <Pressable accessibilityLabel="Añadir lote o variedad" accessibilityRole="button" disabled={busy} onPress={props.onAddLot} style={({ pressed }) => [s.addLot, (pressed || busy) && s.dimmed]}>
           <SymbolView fallback={null} name={{ android: 'add_circle', ios: 'plus.circle', web: 'add_circle' }} size={20} tintColor={color.textOnBrand} />
           <Text style={s.addLotText}>+ Añadir lote / variedad</Text>
@@ -173,8 +201,8 @@ export function SaleSheet(props: SaleSheetProps) {
             </View>
             <View style={p.lotEnd}>
               <View style={s.lotBadge}><Text style={s.lotBadgeText}>Lote {letter(activeIndex)}</Text></View>
-              {props.onRemoveLot && !weights.length ? (
-                <Pressable accessibilityLabel={`Quitar lote ${letter(activeIndex)}`} accessibilityRole="button" disabled={busy} onPress={() => props.onRemoveLot?.(active.id)} style={p.remove}>
+              {props.onRemoveLot ? (
+                <Pressable accessibilityLabel={`Quitar lote ${letter(activeIndex)}`} accessibilityRole="button" disabled={busy} onPress={() => { if (weights.length) setRemoveAsked(true); else props.onRemoveLot?.(active.id); }} style={p.remove}>
                   <SymbolView fallback={null} name={{ android: 'delete_sweep', ios: 'trash', web: 'delete_sweep' }} size={16} tintColor={color.danger} />
                   <Text style={p.removeText}>Quitar lote</Text>
                 </Pressable>
@@ -186,9 +214,9 @@ export function SaleSheet(props: SaleSheetProps) {
         <View style={s.gridHeader}>
           <View style={p.gridTitle}>
             <Text accessibilityRole="header" style={s.overline}>PESAJE DE SACOS INDIVIDUALES (KG)</Text>
-            <Text style={p.gridHint}>· Escribe el peso en la casilla; toca un saco para corregirlo</Text>
+            <Text style={p.gridHint}>· Escribe el peso en cada casilla; toca × para limpiar un saco</Text>
           </View>
-          <View style={s.countBadge}><Text style={s.countBadgeText}>{weights.length} de {Math.max(capacity, weights.length)} {sackWord(capacity)} registrados</Text></View>
+          <View style={s.countBadge}><Text style={s.countBadgeText}>{weights.length} de {slots.length} {sackWord(slots.length)} registrados</Text></View>
         </View>
 
         <View style={s.gridBox}>
@@ -199,30 +227,19 @@ export function SaleSheet(props: SaleSheetProps) {
               <View key={row[0]!.index} style={s.gridRow}>
                 {row.map((cell) => {
                   const number = String(cell.index + 1).padStart(2, '0');
-                  if (cell.kind === 'draft' || (cell.kind === 'sack' && editing === cell.index)) {
-                    return (
-                      <View key={cell.index} style={[s.cell, cell.kind === 'sack' ? s.cellHighlighted : sheetLayout2.cellFocus]} testID={cell.kind === 'draft' ? 'sale-sack-draft' : `sale-sack-${cell.index + 1}`}>
-                        <View style={[s.cellNumber, cell.kind === 'draft' && sheetLayout2.cellNumberEmpty]}><Text style={[s.cellNumberText, cell.kind === 'draft' && sheetLayout2.cellNumberEmptyText]}>{number}</Text></View>
-                        <SheetInput accessibilityLabel={cell.kind === 'draft' ? `Peso del saco ${cell.index + 1} (kg)` : `Corregir peso del saco ${cell.index + 1} (kg)`} autoFocus={cell.kind === 'sack'} editable={!busy} keyboardType="number-pad" onChangeText={setWeight} onSubmitEditing={saveSack} placeholder="0.0" ref={cell.kind === 'draft' ? draftRef : undefined} returnKeyType="done" style={p.cellInput} submitBehavior="submit" value={weight} />
-                        <Text style={s.cellUnit}>kg</Text>
-                      </View>
-                    );
-                  }
-                  if (cell.kind === 'empty') {
-                    return (
-                      <Pressable accessibilityHint="Escribe el peso en la siguiente casilla libre" accessibilityLabel={`Saco ${cell.index + 1}: sin peso`} accessibilityRole="button" disabled={busy} key={cell.index} onPress={() => draftRef.current?.focus()} style={[s.cell, sheetLayout2.cellEmpty]} testID={`sale-sack-empty-${cell.index + 1}`}>
-                        <View style={[s.cellNumber, sheetLayout2.cellNumberEmpty]}><Text style={[s.cellNumberText, sheetLayout2.cellNumberEmptyText]}>{number}</Text></View>
-                        <View style={[s.cellValue, sheetLayout2.cellValueEmpty]}><Text style={sheetLayout2.cellValueEmptyText}>0.0</Text></View>
-                        <Text style={s.cellUnit}>kg</Text>
-                      </Pressable>
-                    );
-                  }
+                  const filled = validSackWeight(cell.value);
+                  const invalid = cell.value.trim().length > 0 && !filled;
                   return (
-                    <Pressable accessibilityHint="Corrige el peso" accessibilityLabel={`Saco ${cell.index + 1}: ${cell.value} kilos`} accessibilityRole="button" disabled={busy} key={cell.index} onPress={() => { setEditing(cell.index); setWeight(cell.value); }} style={({ pressed }) => [s.cell, pressed && s.dimmed]} testID={`sale-sack-${cell.index + 1}`}>
-                      <View style={s.cellNumber}><Text style={s.cellNumberText}>{number}</Text></View>
-                      <View style={s.cellValue}><Text style={s.cellValueText}>{cell.value}</Text></View>
-                      <Text style={s.cellUnit}>kg</Text>
-                    </Pressable>
+                    <View key={cell.index} style={[s.cell, slotStyles.cell, filled ? slotStyles.cellFilled : slotStyles.cellEmpty, invalid && slotStyles.cellInvalid]} testID={`sale-sack-${cell.index + 1}`}>
+                      <View style={[slotStyles.number, filled && slotStyles.numberFilled]}><Text style={[slotStyles.numberText, filled && slotStyles.numberTextFilled]}>{number}</Text></View>
+                      <View style={slotStyles.right}>
+                        <SheetInput accessibilityHint={invalid ? 'Escribe kilos enteros mayores que cero' : undefined} accessibilityLabel={`Peso del saco ${cell.index + 1} (kg)`} editable={!busy} keyboardType="number-pad" onChangeText={(value) => typeSlot(cell.index, value)} placeholder="0.0" returnKeyType="next" style={slotStyles.input} value={cell.value} />
+                        <Text style={slotStyles.unit}>kg</Text>
+                        <Pressable accessibilityLabel={`Limpiar saco ${cell.index + 1}`} accessibilityRole="button" disabled={busy} hitSlop={6} onPress={() => clearSlot(cell.index)} style={({ pressed }) => [slotStyles.clear, pressed && s.dimmed]}>
+                          <SymbolView fallback={null} name={{ android: 'close', ios: 'xmark', web: 'close' }} size={14} tintColor="#727974" />
+                        </Pressable>
+                      </View>
+                    </View>
                   );
                 })}
                 {Array.from({ length: sheetColumns - row.length }, (_, index) => <View key={`gap-${index}`} style={[s.cell, s.cellGap]} />)}
@@ -234,15 +251,14 @@ export function SaleSheet(props: SaleSheetProps) {
 
         {active ? (
           <View style={p.addRow} testID="sale-capture">
-            <Pressable accessibilityLabel="Añadir 1 saco" accessibilityHint="Agrega una casilla vacía al lote" accessibilityRole="button" disabled={busy} onPress={() => props.onPlanSacks(active.id, capacity + 1)} style={({ pressed }) => [p.addSack, (pressed || busy) && s.dimmed]} testID="sale-add-cell">
+            <Pressable accessibilityHint="Agrega una casilla vacía al lote" accessibilityLabel="Añadir 1 saco" accessibilityRole="button" disabled={busy} onPress={() => setSlots([...slots, ''])} style={({ pressed }) => [p.addSack, (pressed || busy) && s.dimmed]} testID="sale-add-cell">
               <SymbolView fallback={null} name={{ android: 'add_circle', ios: 'plus.circle', web: 'add_circle' }} size={18} tintColor={accent.emerald.ink} />
               <Text style={p.addSackText}>+ Añadir 1 saco</Text>
             </Pressable>
-            <Pressable accessibilityLabel={editing !== null ? 'Guardar corrección' : 'Registrar peso'} accessibilityRole="button" disabled={!canAdd} onPress={saveSack} style={({ pressed }) => [p.tareBox, (pressed || !canAdd) && s.dimmed]} testID="sale-add-sack">
+            <Pressable accessibilityHint="Llena con 50 kilos las casillas vacías y agrega las que falten hasta 10 sacos; luego puedes corregir cada peso" accessibilityLabel="Carga rápida de 10 sacos a 50 kilos" accessibilityRole="button" disabled={busy} onPress={quickFill} style={({ pressed }) => [p.tareBox, (pressed || busy) && s.dimmed]} testID="sale-quick-load">
               <SymbolView fallback={null} name={{ android: 'library_add', ios: 'plus.square.on.square', web: 'library_add' }} size={18} tintColor={accent.emerald.pillInk} />
-              <Text style={p.tareLabel}>{editing !== null ? `Guardar corrección del saco ${editing + 1}` : `+ Registrar peso del saco ${weights.length + 1}`}</Text>
+              <Text style={p.tareLabel}>+ Carga rápida (10 sacos a 50 kg)</Text>
             </Pressable>
-            {editing !== null ? <Pressable accessibilityLabel="Cancelar corrección" accessibilityRole="button" onPress={() => { setEditing(null); setWeight(''); }} style={p.cancel}><Text style={p.cancelText}>Cancelar</Text></Pressable> : null}
           </View>
         ) : null}
 
@@ -287,19 +303,12 @@ export function SaleSheet(props: SaleSheetProps) {
           const current = index === activeIndex;
           return (
             <View key={line.id} style={[s.tableRow, current && p.rowActive]} testID={`sale-lot-${letter(index)}`}>
-              <View style={s.colLot}><View style={[s.lotTag, !current && p.lotTagIdle]}><Text style={[s.lotTagText, !current && p.lotTagTextIdle]}>Lote {letter(index)}</Text></View></View>
+              <View style={s.colLot}><Pressable accessibilityLabel={`Ir al lote ${letter(index)}`} accessibilityRole="button" disabled={busy || current} onPress={() => selectLine(line.id)} style={[s.lotTag, !current && p.lotTagIdle]}><Text style={[s.lotTagText, !current && p.lotTagTextIdle]}>Lote {letter(index)}</Text></Pressable></View>
               <View style={s.colVariety}><View style={sheetLayout2.nameBox}><Text numberOfLines={1} style={sheetLayout2.nameText}>{props.lineName(line)}</Text></View></View>
               <View style={s.colSacks}><View style={s.sacksPill}><Text style={s.sacksPillText}>{count} {sackWord(count)}</Text></View></View>
               <View style={s.colWeight}><View style={s.weightPill}><Text style={s.weightPillText}>{formatKilograms(gramsToKg(saleLineGrams(line)))}</Text></View></View>
               <View style={[s.colPrice, s.priceCell]}>
                 <SheetInput accessibilityLabel={`Precio ${line.priceBasis === 'kilogram' ? 'por kilogramo' : 'por saco'}, lote ${letter(index)} (S/)`} editable={!busy} keyboardType="decimal-pad" onChangeText={(value) => props.onChangeLine(line.id, 'unitPrice', value)} placeholder="0.00" style={[s.tableInput, s.priceInput]} value={line.unitPrice} />
-                <View accessibilityRole="radiogroup" style={p.basis}>
-                  {([['kilogram', 'kg', 'por kilogramo'], ['sack', 'saco', 'por saco']] as const).map(([value, short, long]) => (
-                    <Pressable accessibilityLabel={`Lote ${letter(index)}: ${long}`} accessibilityRole="radio" accessibilityState={{ checked: line.priceBasis === value }} disabled={busy} key={value} onPress={() => props.onChangeLine(line.id, 'priceBasis', value)} style={[p.basisOption, line.priceBasis === value && s.basisSelected]}>
-                      <Text style={[p.basisText, line.priceBasis === value && s.onBrand]}>{short}</Text>
-                    </Pressable>
-                  ))}
-                </View>
               </View>
               <Text accessibilityLabel={`Importe del lote ${letter(index)}: ${amount === null ? (count ? 'Pendiente' : 'S/ 0.00') : formatMoney(amount.toString())}`} style={[s.amount, s.colAmount]}>{amount === null ? (count ? 'Pendiente' : 'S/ 0.00') : formatMoney(amount.toString())}</Text>
             </View>
@@ -319,14 +328,14 @@ export function SaleSheet(props: SaleSheetProps) {
             <Text accessibilityRole="header" style={s.sectionTitle}>Flete / estiba de carga (despacho)</Text>
           </View>
           <View accessibilityRole="radiogroup" style={p.segment}>
-            {([['none', 'Sin flete'], ['sack', 'Por sacos'], ['kilogram', 'Por kilaje']] as const).map(([value, label]) => (
+            {([['sack', 'Por sacos'], ['kilogram', 'Por kilaje']] as const).map(([value, label]) => (
               <Pressable accessibilityLabel={`Flete: ${label.toLowerCase()}`} accessibilityRole="radio" accessibilityState={{ checked: props.freightBasis === value }} disabled={busy} key={value} onPress={() => props.onChange('freightBasis', value)} style={[p.segmentOption, props.freightBasis === value && p.segmentSelected]}>
                 <Text style={[p.segmentText, props.freightBasis === value && s.onBrand]}>{label}</Text>
               </Pressable>
             ))}
           </View>
         </View>
-        {props.freightBasis === 'none' ? <Text style={s.help}>Esta venta no lleva flete.</Text> : (
+        {(
           <View style={s.freightRow}>
             <View style={s.freightChip}>
               <Text style={s.freightQuantity}>{props.freightBasis === 'sack' ? `${totalSacks}` : formatKilograms(gramsToKg(totalGrams)).replace(' kg', '')}</Text>
@@ -334,7 +343,7 @@ export function SaleSheet(props: SaleSheetProps) {
               <Text style={s.freightTimes}>× S/</Text>
               <SheetInput accessibilityLabel="Tarifa de flete (S/)" editable={!busy} keyboardType="decimal-pad" onChangeText={(value) => props.onChange('freightRate', value)} placeholder="0.00" style={s.freightInput} value={props.freightRate} />
             </View>
-            <Text style={[s.help, s.grow]}>Tarifa por unidad seleccionada</Text>
+            <Text style={[s.help, s.grow]}>{props.freightRate.trim() && Number(props.freightRate.replace(',', '.')) > 0 ? 'Tarifa por unidad seleccionada' : 'Tarifa 0: la venta va sin flete'}</Text>
             <Text style={p.freightLabel}>SUBTOTAL FLETE:</Text>
             <Text accessibilityLabel={`Subtotal de flete: ${money('freightCents')}`} style={s.freightAmount}>{money('freightCents')}</Text>
           </View>
@@ -342,7 +351,8 @@ export function SaleSheet(props: SaleSheetProps) {
         <View style={p.freightMore}>
           <View style={p.vehicle}><SelectionField appearance="stitch" disabled={busy} label="Vehículo (opcional)" leadingIcon="local_shipping" onPress={props.onSelectVehicle} placeholder="Seleccionar placa" value={props.vehiclePlate} /></View>
           <View style={p.vehicle}><FormField appearance="stitch" editable={!busy} label="Conductor" leadingIcon="badge" onChangeText={props.onDriverChange} placeholder="Nombre del conductor" value={props.driver} /></View>
-          {props.freightBasis !== 'none' ? (
+          <View style={p.vehicle}><FormField appearance="stitch" editable={!busy} label="Destino" leadingIcon="place" onChangeText={props.onDestinationChange} placeholder="Departamento" value={props.destination} /></View>
+          {(
             <View style={p.payer}>
               <Text style={p.payerLabel}>¿CÓMO SE COBRA EL FLETE?</Text>
               <View accessibilityRole="radiogroup" style={p.segment}>
@@ -353,7 +363,7 @@ export function SaleSheet(props: SaleSheetProps) {
                 ))}
               </View>
             </View>
-          ) : null}
+          )}
         </View>
       </View>
 
@@ -422,6 +432,7 @@ export function SaleSheet(props: SaleSheetProps) {
         </Pressable>
       </View>
 
+      <ConfirmationDialog confirmLabel="Quitar lote" message={active ? `Se quitará el lote ${letter(activeIndex)} (${props.lineName(active)}) con sus ${weights.length} ${sackWord(weights.length)} pesados. La venta todavía no se ha guardado.` : ''} onCancel={() => setRemoveAsked(false)} onConfirm={() => { setRemoveAsked(false); if (active) props.onRemoveLot?.(active.id); }} title="¿Quitar el lote?" visible={removeAsked} />
       <Modal animationType="fade" onRequestClose={() => setCharacteristicsOpen(false)} transparent visible={characteristicsOpen}>
         <View style={p.modalBackdrop}>
           <View style={p.modal}>
@@ -435,14 +446,34 @@ export function SaleSheet(props: SaleSheetProps) {
   );
 }
 
-// Empty cells of the mockup: light number and «0.0»; the free one is outlined.
+// Cells of the mockup: number on the left, the weight, «kg» and «×»; empty
+// cells are dashed with a light number, weighed ones solid with a dark one.
+const slotStyles = StyleSheet.create({
+  cell: { justifyContent: 'space-between', paddingHorizontal: 8 },
+  cellFilled: { backgroundColor: '#EFF4FF', borderColor: '#D3E4FE', borderStyle: 'solid', borderWidth: 1 },
+  cellEmpty: { backgroundColor: '#F8F9FF', borderColor: '#C2C8C3', borderStyle: 'dashed', borderWidth: 1 },
+  cellInvalid: { borderColor: '#BA1A1A', borderStyle: 'solid' },
+  number: { alignItems: 'center', backgroundColor: '#E5EEFF', borderRadius: 6, height: 26, justifyContent: 'center', width: 28 },
+  numberFilled: { backgroundColor: '#08241A' },
+  numberText: { color: '#727974', fontFamily: 'monospace', fontSize: 11, fontWeight: '700' },
+  numberTextFilled: { color: '#FFFFFF' },
+  right: { alignItems: 'center', flexDirection: 'row', gap: 4 },
+  input: { backgroundColor: '#FFFFFF', borderColor: '#C2C8C3', borderRadius: 6, borderWidth: 1, fontSize: 14, fontWeight: '800', minHeight: 34, paddingHorizontal: 6, paddingVertical: 2, textAlign: 'right', width: 72 },
+  unit: { color: '#727974', fontSize: 11, fontWeight: '500' },
+  clear: { alignItems: 'center', borderRadius: 6, height: 32, justifyContent: 'center', width: 28 },
+});
+
+const buyerStyles = StyleSheet.create({
+  document: { flexBasis: 150, flexGrow: 0.8, minWidth: 0 },
+  date: { flexBasis: 150, flexGrow: 0.8, minWidth: 0 },
+  suggestions: { backgroundColor: '#FFFFFF', borderColor: '#D3E4FE', borderRadius: 10, borderWidth: 1, marginTop: 6, overflow: 'hidden' },
+  suggestion: { alignItems: 'center', borderBottomColor: '#EFF4FF', borderBottomWidth: 1, flexDirection: 'row', gap: 8, minHeight: 44, paddingHorizontal: 12 },
+  suggestionText: { color: '#0B1C30', flexShrink: 1, fontSize: 14, fontWeight: '600' },
+  suggestionHint: { color: '#727974', fontSize: 12, marginLeft: 'auto' },
+  notice: { color: '#424844', flexBasis: '100%', fontSize: 12 },
+});
+
 const sheetLayout2 = StyleSheet.create({
-  cellEmpty: { backgroundColor: '#F8FAFC' },
-  cellFocus: { borderColor: '#10B981', borderStyle: 'dashed' as const, borderWidth: 1.5 },
-  cellNumberEmpty: { backgroundColor: '#E2E8F0' },
-  cellNumberEmptyText: { color: '#64748B' },
-  cellValueEmpty: { backgroundColor: '#FFFFFF' },
-  cellValueEmptyText: { color: '#94A3B8', fontSize: 15, fontWeight: '700' as const, textAlign: 'right' as const },
   nameBox: { backgroundColor: '#FFFFFF', borderColor: '#E2E8F0', borderRadius: 8, borderWidth: 1, justifyContent: 'center', minHeight: 40, paddingHorizontal: 12 },
   nameText: { color: '#0F172A', fontSize: 15, fontWeight: '600' as const },
 });

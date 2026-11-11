@@ -6,6 +6,7 @@ import { saleConfirmationSummary } from '@/domain/shared/confirmation-summary';
 import { SaleFlowScreen } from '@/features/sales/screens/sale-flow-screen';
 import { LotDialog } from '@/features/sales/components/lot-dialog';
 import { getSale, loadSaleCatalogs } from '@/services/api/sales-api';
+import { createCatalogItem } from '@/services/api/catalog-api';
 import { withChrome } from '../shared/with-chrome';
 
 // Spec 011 (RQ-ST14, CL-ST19): on the tablet the sale is one screen and each
@@ -27,6 +28,7 @@ jest.mock('expo-router', () => ({ useNavigation: () => mockNavigation, useRouter
 jest.mock('expo-router/react-navigation', () => ({ usePreventRemove: jest.fn() }));
 jest.mock('@/navigation/use-browser-traversal-guard', () => ({ useBrowserTraversalGuard: jest.fn() }));
 jest.mock('@/services/api/sales-api', () => ({ getSale: jest.fn(), loadSaleCatalogs: jest.fn() }));
+jest.mock('@/services/api/catalog-api', () => ({ createCatalogItem: jest.fn(), updateCatalogItem: jest.fn() }));
 jest.mock('@/services/receipts/receipt-sharing', () => ({ shareReceipt: jest.fn() }));
 jest.mock('@/domain/reception/reception', () => ({ ...jest.requireActual('@/domain/reception/reception'), createOperationId: () => `id-${++mockId}` }));
 jest.mock('@/ui/components', () => {
@@ -47,13 +49,19 @@ const press = (root: ReactTestRenderer, label: string) => root.root.findAll((nod
 const type = (root: ReactTestRenderer, label: string, value: string) => root.root.findAll((node) => node.props.accessibilityLabel === label && typeof node.props.onChangeText === 'function')[0]!.props.onChangeText(value);
 const dialog = (root: ReactTestRenderer, title: string) => root.root.findAll((node) => node.props.title === title)[0]!;
 
-const typeDraft = (root: ReactTestRenderer, value: string) => root.root.findAll((node) => String(node.props.accessibilityLabel ?? '').startsWith('Peso del saco') && typeof node.props.onChangeText === 'function')[0]!.props.onChangeText(value);
-
-async function weigh(root: ReactTestRenderer, weights: string[]) {
-  for (const weight of weights) {
-    await act(async () => { typeDraft(root, weight); });
-    await act(async () => { press(root, 'Registrar peso'); });
+// Each cell is typed directly, as in the mockup (CL-ST22).
+async function weigh(root: ReactTestRenderer, weights: string[], first = 1) {
+  for (const [offset, weight] of weights.entries()) {
+    await act(async () => { type(root, `Peso del saco ${first + offset} (kg)`, weight); });
   }
+}
+const cells = (root: ReactTestRenderer) => root.root.findAll((node) => typeof node.type === 'string' && /^sale-sack-\d+$/.test(String(node.props.testID ?? ''))).length;
+const badge = (root: ReactTestRenderer, text: string) => root.root.findAll((node) => typeof node.type === 'string' && [node.props.children].flat().join('') === text);
+
+// CL-ST23: the buyer is typed in its box and picked from the matches.
+async function pickBuyer(root: ReactTestRenderer) {
+  await act(async () => { root.root.findAll((node) => node.props.label === 'Nombre del cliente / comprador' && typeof node.props.onChangeText === 'function')[0]!.props.onChangeText('Compr'); });
+  await act(async () => { press(root, 'Elegir Comprador'); });
 }
 
 // «Añadir nuevo lote / variedad» (CL-ST22).
@@ -67,15 +75,12 @@ it('sums the weighed sacks into each line and sends the same sale as the form', 
   let root!: ReactTestRenderer;
   await act(async () => { root = create(withChrome(<SaleFlowScreen />)); });
   expect(root.root.findAll((node) => node.props.testID === 'sale-sheet')).not.toHaveLength(0);
-  await act(async () => { root.root.findAll((node) => node.props.label === 'Nombre del cliente / comprador')[0]!.props.onPress(); });
-  await act(async () => { dialog(root, 'Seleccionar comprador').props.onSelect({ id: 'buyer' }); });
+  await pickBuyer(root);
   expect(root.root.findAll((node) => node.props.label === 'N.° celular')[0]!.props.value).toBe('999');
   await createLot(root, 'canchan');
   await weigh(root, ['50', '51', '49']);
-  // A sack is corrected from the grid.
-  await act(async () => { press(root, 'Saco 2: 51 kilos'); });
-  await act(async () => { type(root, 'Corregir peso del saco 2 (kg)', '52'); });
-  await act(async () => { press(root, 'Guardar corrección'); });
+  // A sack is corrected in its own cell.
+  await act(async () => { type(root, 'Peso del saco 2 (kg)', '52'); });
   await act(async () => { type(root, 'Precio por kilogramo, lote A (S/)', '2.00'); });
   expect(root.root.findAll((node) => node.props.accessibilityLabel === 'Importe del lote A: S/ 302.00')).not.toHaveLength(0);
   // The same variety cannot get a second lot without another quality or origin.
@@ -94,8 +99,7 @@ it('sums the weighed sacks into each line and sends the same sale as the form', 
 it('blocks saving while a lot has no sacks and lets the empty lot be removed', async () => {
   let root!: ReactTestRenderer;
   await act(async () => { root = create(withChrome(<SaleFlowScreen />)); });
-  await act(async () => { root.root.findAll((node) => node.props.label === 'Nombre del cliente / comprador')[0]!.props.onPress(); });
-  await act(async () => { dialog(root, 'Seleccionar comprador').props.onSelect({ id: 'buyer' }); });
+  await pickBuyer(root);
   await createLot(root, 'peruanita');
   expect(root.root.findAll((node) => node.props.accessibilityLabel === 'Guardar venta' && node.props.onPress)[0]!.props.disabled).toBe(true);
   await act(async () => { press(root, 'Quitar lote A'); });
@@ -104,19 +108,74 @@ it('blocks saving while a lot has no sacks and lets the empty lot be removed', a
   await act(async () => root.unmount());
 });
 
-it('starts the lot with its price and numbered empty cells, and adds one more cell', async () => {
+it('starts the lot with its price and empty cells, types, clears with × and loads 10 sacks of 50 kg', async () => {
   let root!: ReactTestRenderer;
   await act(async () => { root = create(withChrome(<SaleFlowScreen />)); });
-  await createLot(root, 'canchan', '1.45', 5);
-  const cells = () => root.root.findAll((node) => typeof node.type === 'string' && /^sale-sack-(draft|empty-\d+)$/.test(String(node.props.testID ?? ''))).map((node) => node.props.testID);
-  expect(cells()).toEqual(['sale-sack-draft', 'sale-sack-empty-2', 'sale-sack-empty-3', 'sale-sack-empty-4', 'sale-sack-empty-5']);
-  expect(root.root.findAll((node) => node.props.children?.join?.('') === '0 de 5 sacos registrados')).not.toHaveLength(0);
+  await createLot(root, 'canchan', '1.45', 10);
+  expect(cells(root)).toBe(10);
+  expect(badge(root, '0 de 10 sacos registrados')).not.toHaveLength(0);
   await weigh(root, ['50', '52']);
-  expect(root.root.findAll((node) => node.props.accessibilityLabel === 'Importe del lote A: S/ 147.90')).not.toHaveLength(0);
-  expect(cells()).toEqual(['sale-sack-draft', 'sale-sack-empty-4', 'sale-sack-empty-5']);
+  await act(async () => { type(root, 'Peso del saco 7 (kg)', '49'); });
+  expect(badge(root, '3 de 10 sacos registrados')).not.toHaveLength(0);
+  expect(root.root.findAll((node) => node.props.accessibilityLabel === 'Importe del lote A: S/ 218.95')).not.toHaveLength(0);
+  // Decimals are not kept: the cell holds whole kilograms only.
+  await act(async () => { type(root, 'Peso del saco 3 (kg)', '50.5'); });
+  expect(root.root.findAll((node) => node.props.accessibilityLabel === 'Peso del saco 3 (kg)' && typeof node.props.onChangeText === 'function')[0]!.props.value).toBe('505');
+  await act(async () => { press(root, 'Limpiar saco 3'); });
+  await act(async () => { press(root, 'Limpiar saco 7'); });
+  expect(badge(root, '2 de 10 sacos registrados')).not.toHaveLength(0);
+  expect(cells(root)).toBe(10);
+  // «+ Añadir 1 saco» adds an empty cell; «×» on an extra cell removes it.
   await act(async () => { press(root, 'Añadir 1 saco'); });
-  expect(cells()).toContain('sale-sack-empty-6');
+  expect(cells(root)).toBe(11);
+  await act(async () => { press(root, 'Limpiar saco 11'); });
+  expect(cells(root)).toBe(10);
+  // Quick load fills the 8 empty cells and adds 2 more, all at 50 kg.
+  await act(async () => { press(root, 'Carga rápida de 10 sacos a 50 kilos'); });
+  expect(cells(root)).toBe(12);
+  expect(badge(root, '12 de 12 sacos registrados')).not.toHaveLength(0);
   await act(async () => root.unmount());
+});
+
+it('registers a new buyer typed in the sheet before sending the sale, and keeps RUC and date on the tablet', async () => {
+  jest.mocked(createCatalogItem).mockResolvedValue({ id: 'new-buyer', name: 'Mercado Nuevo', phone: '988', destinationDepartment: 'Junín', creditLimitCents: null });
+  let root!: ReactTestRenderer;
+  await act(async () => { root = create(withChrome(<SaleFlowScreen />)); });
+  const field = (label: string) => root.root.findAll((node) => node.props.label === label && typeof node.props.onChangeText === 'function')[0]!;
+  await act(async () => { field('Nombre del cliente / comprador').props.onChangeText('Mercado Nuevo'); });
+  expect(root.root.findAll((node) => String(node.props.accessibilityLabel ?? '').startsWith('Elegir '))).toHaveLength(0);
+  await act(async () => { field('N.° celular').props.onChangeText('988'); field('RUC / DNI').props.onChangeText('20608945123'); field('Destino').props.onChangeText('Junín'); });
+  expect(root.root.findAll((node) => typeof node.props.children === 'string' && node.props.children.includes('Comprador nuevo: se registrará al guardar la venta.'))).not.toHaveLength(0);
+  await createLot(root, 'canchan', '2.00');
+  await weigh(root, ['50']);
+  await act(async () => { press(root, 'Guardar venta'); });
+  await act(async () => { dialog(root, '¿Confirmar la venta?').props.onConfirm(); await Promise.resolve(); });
+  expect(createCatalogItem).toHaveBeenCalledWith('test-token', 'buyers', { name: 'Mercado Nuevo', phone: '988', destinationDepartment: 'Junín' });
+  expect(mockEnqueue.mock.calls[0]![0].body).toMatchObject({ buyerId: 'new-buyer', destinationDepartment: 'Junín' });
+  expect(JSON.stringify(mockEnqueue.mock.calls[0]![0].body)).not.toContain('20608945123');
+  await act(async () => root.unmount());
+});
+
+it('asks before removing a lot with weighed sacks and sends no freight while the rate is 0 (CL-ST23)', async () => {
+  let root!: ReactTestRenderer;
+  await act(async () => { root = create(withChrome(<SaleFlowScreen />)); });
+  await pickBuyer(root);
+  await createLot(root, 'canchan', '2.00');
+  await weigh(root, ['50']);
+  expect(root.root.findAll((node) => String(node.props.accessibilityLabel ?? '').startsWith('Lote A: por'))).toHaveLength(0);
+  await act(async () => { press(root, 'Guardar venta'); });
+  await act(async () => { dialog(root, '¿Confirmar la venta?').props.onConfirm(); await Promise.resolve(); });
+  expect(mockEnqueue.mock.calls[0]![0].body.freightBasis).toBeUndefined();
+  await act(async () => root.unmount());
+  let second!: ReactTestRenderer;
+  await act(async () => { second = create(withChrome(<SaleFlowScreen />)); });
+  await createLot(second, 'canchan', '2.00');
+  await weigh(second, ['50']);
+  await act(async () => { press(second, 'Quitar lote A'); });
+  expect(dialog(second, '¿Quitar el lote?').props.visible).toBe(true);
+  await act(async () => { dialog(second, '¿Quitar el lote?').props.onConfirm(); });
+  expect(second.root.findAll((node) => String(node.props.testID ?? '').startsWith('sale-lot-'))).toHaveLength(0);
+  await act(async () => second.unmount());
 });
 
 it('keeps sacks and weight equal to the weighed sacks and sums the card facts', () => {
