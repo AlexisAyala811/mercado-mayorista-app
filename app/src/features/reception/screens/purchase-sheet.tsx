@@ -45,6 +45,8 @@ export type PurchaseSheetProps = {
   onAddVariety?: () => void;
   // Removes a variety without sacks before the reception exists.
   onRemoveVariety?: (id: string) => void;
+  // Why «Añadir lote» is disabled (the reception already has sacks).
+  addVarietyLockedReason?: string;
   // Quality of the next sacks, shown in the lot chip.
   qualityName?: string | null;
   // Weighing.
@@ -183,8 +185,10 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
         {/* Edit providers / varieties sit by «Añadir lote» so the details
             stay one row, as in the mockup. */}
         {props.detailsLocked ? null : <View style={p.tabsLinks}>{props.referenceActions}</View>}
-        {props.onAddVariety ? (
-          <Pressable accessibilityLabel="Añadir lote o variedad" accessibilityRole="button" disabled={locked} onPress={props.onAddVariety} style={({ pressed }) => [s.addLot, (pressed || locked) && s.dimmed]}>
+        {/* After the first sack the server only takes the varieties chosen
+            at the start: the button stays, disabled, with the reason. */}
+        {props.onAddVariety || props.addVarietyLockedReason ? (
+          <Pressable accessibilityHint={props.addVarietyLockedReason} accessibilityLabel="Añadir lote o variedad" accessibilityRole="button" accessibilityState={{ disabled: locked || !props.onAddVariety }} disabled={locked || !props.onAddVariety} onPress={props.onAddVariety} style={({ pressed }) => [s.addLot, (pressed || locked || !props.onAddVariety) && s.dimmed]}>
             <SymbolView fallback={null} name={{ android: 'add_circle', ios: 'plus.circle', web: 'add_circle' }} size={20} tintColor={color.textOnBrand} />
             <Text style={s.addLotText}>+ Añadir lote / variedad</Text>
           </Pressable>
@@ -366,7 +370,19 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
               <Text accessibilityLabel={`Importe del lote ${lot.letter}: ${amount ? formatPreviewMoney(amount) : 'Pendiente'}`} style={[s.amount, s.colAmount]}>{amount ? formatPreviewMoney(amount) : 'Pendiente'}</Text>
             </View>
           );
-        }) : <Text style={s.empty}>Los lotes aparecen al registrar el primer saco.</Text>}
+        }) : null}
+        {/* Varieties still without sacks, as the «0 sacos» row of the mockup. */}
+        {props.varieties.filter((variety) => !props.lots.some((lot) => lot.varietyId === variety.id)).map((variety) => (
+          <View key={`empty-${variety.id}`} style={s.tableRow} testID={`lot-empty-${variety.id}`}>
+            <View style={s.colLot}><View style={[s.lotTag, p.lotTagIdle]}><Text style={[s.lotTagText, p.lotTagTextIdle]}>Sin sacos</Text></View></View>
+            <View style={s.colVariety}><Text numberOfLines={1} style={p.emptyVariety}>{variety.name}</Text></View>
+            <View style={s.colSacks}><View style={s.sacksPill}><Text style={s.sacksPillText}>0 sacos</Text></View></View>
+            <View style={s.colWeight}><View style={s.weightPill}><Text style={s.weightPillText}>0 kg</Text></View></View>
+            <View style={[s.colPrice, s.priceCell]}><Text style={p.emptyPrice}>Precio al pesar</Text></View>
+            <Text accessibilityLabel={`${variety.name}: sin sacos, S/ 0.00`} style={[s.amount, s.colAmount]}>S/ 0.00</Text>
+          </View>
+        ))}
+        {props.lots.length || props.varieties.length ? null : <Text style={s.empty}>Los lotes aparecen al registrar el primer saco.</Text>}
         <View style={p.totals}>
           <BigTotal label="TOTAL SACOS ACOPIADOS:" unit="uds" value={`${totalSacks}`} />
           <BigTotal label="TOTAL KILAJE GENERAL:" unit="kg" value={formatKilograms(gramsToKg(totalGrams)).replace(' kg', '')} />
@@ -520,6 +536,8 @@ const p = StyleSheet.create({
   detailWide: { flexBasis: 360, flexGrow: 2, minWidth: 0 },
   detail: { flexBasis: 170, flexGrow: 1, minWidth: 0 },
   tabsLinks: { marginRight: 8 },
+  emptyVariety: { color: '#475569', fontSize: 15, fontWeight: '600', paddingHorizontal: 12 },
+  emptyPrice: { color: '#94A3B8', fontSize: 12, fontWeight: '600' },
   quality: { backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 2 },
   qualityText: { color: color.textOnBrand, fontSize: 12, fontWeight: '600' },
   edit: { alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 8, height: 32, justifyContent: 'center', width: 32 },
