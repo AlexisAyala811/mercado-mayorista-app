@@ -1,5 +1,5 @@
 import { SymbolView } from '@/ui/components/symbol';
-import { useContext, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useContext, useMemo, useRef, useState, type ReactNode, type Ref } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native';
 
 import { emptyLotDraft, formatPreviewMoney, previewLotAmount, type PurchaseLot, type PurchasePreview } from '@/domain/reception/purchase-preview';
@@ -154,11 +154,11 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
       {props.notice ? <FeedbackState title="Pendiente de confirmación central" message={props.notice} /> : null}
       {props.errorMessage ? <FeedbackState title="No se pudo completar la operación" message={props.errorMessage} tone="error" /> : null}
 
-      <View style={[s.card, p.details]} testID="sheet-details">
-        <View style={p.detailWide}><SelectionField appearance="stitch" disabled={props.detailsLocked || locked} label="Nombre del proveedor / productor" leadingIcon="person" onPress={props.onSelectProvider} placeholder="Nombre del productor o comunidad…" value={props.details.providerName} /></View>
-        <View style={p.detail}><FormField appearance="stitch" editable={!props.detailsLocked && !locked} keyboardType="phone-pad" label="N.° celular" leadingIcon="call" onChangeText={(value) => props.onChangeDetail('providerPhone', value)} placeholder="999 000 000" value={props.details.providerPhone} /></View>
-        <View style={p.detail}><FormField appearance="stitch" editable={!props.detailsLocked && !locked} label="Conductor" leadingIcon="badge" onChangeText={(value) => props.onChangeDetail('driverName', value)} placeholder="Nombre del conductor" value={props.details.driverName} /></View>
-        <View style={p.detail}><FormField appearance="stitch" editable={!props.detailsLocked && !locked} label="Fecha de acopio" leadingIcon="calendar_today" onChangeText={(value) => props.onChangeDetail('date', value)} placeholder="aaaa-mm-dd" value={props.details.date} /></View>
+      <View style={[s.card, sheetLayout.details]} testID="sheet-details">
+        <View style={sheetLayout.detailWide}><SelectionField appearance="stitch" disabled={props.detailsLocked || locked} label="Nombre del proveedor / productor" leadingIcon="person" onPress={props.onSelectProvider} placeholder="Nombre del productor o comunidad…" value={props.details.providerName} /></View>
+        <View style={sheetLayout.detail}><FormField appearance="stitch" editable={!props.detailsLocked && !locked} keyboardType="phone-pad" label="N.° celular" leadingIcon="call" onChangeText={(value) => props.onChangeDetail('providerPhone', value)} placeholder="999 000 000" value={props.details.providerPhone} /></View>
+        <View style={sheetLayout.detail}><FormField appearance="stitch" editable={!props.detailsLocked && !locked} label="Conductor" leadingIcon="badge" onChangeText={(value) => props.onChangeDetail('driverName', value)} placeholder="Nombre del conductor" value={props.details.driverName} /></View>
+        <View style={sheetLayout.detail}><FormField appearance="stitch" editable={!props.detailsLocked && !locked} label="Fecha de acopio" leadingIcon="calendar_today" onChangeText={(value) => props.onChangeDetail('date', value)} placeholder="aaaa-mm-dd" value={props.details.date} /></View>
       </View>
 
       <View style={[s.card, s.tabsCard]}>
@@ -184,7 +184,7 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
         </View>
         {/* Edit providers / varieties sit by «Añadir lote» so the details
             stay one row, as in the mockup. */}
-        {props.detailsLocked ? null : <View style={p.tabsLinks}>{props.referenceActions}</View>}
+        {props.detailsLocked ? null : <View style={sheetLayout.tabsLinks}>{props.referenceActions}</View>}
         {/* After the first sack the server only takes the varieties chosen
             at the start: the button stays, disabled, with the reason. */}
         {props.onAddVariety || props.addVarietyLockedReason ? (
@@ -201,19 +201,19 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
           <View style={s.lotChip}>
             <SymbolView fallback={null} name={{ android: 'inventory_2', ios: 'shippingbox', web: 'inventory_2' }} size={20} tintColor="#6EE7B7" />
             <Text numberOfLines={1} style={s.lotChipText}>{active?.name ?? 'Sin variedad'}</Text>
-            {props.qualityName ? <View style={p.quality}><Text style={p.qualityText}>{props.qualityName}</Text></View> : null}
+            {props.qualityName ? <View style={sheetLayout.quality}><Text style={sheetLayout.qualityText}>{props.qualityName}</Text></View> : null}
             {props.characteristics && !props.weighingLocked ? (
-              <Pressable accessibilityLabel="Cambiar calidad y procedencia de los próximos sacos" accessibilityRole="button" disabled={locked} onPress={() => setCharacteristicsOpen(true)} style={p.edit}>
+              <Pressable accessibilityLabel="Cambiar calidad y procedencia de los próximos sacos" accessibilityRole="button" disabled={locked} onPress={() => setCharacteristicsOpen(true)} style={sheetLayout.edit}>
                 <SymbolView fallback={null} name={{ android: 'edit', ios: 'pencil', web: 'edit' }} size={17} tintColor="#6EE7B7" />
               </Pressable>
             ) : null}
           </View>
-          <View style={p.lotEnd}>
+          <View style={sheetLayout.lotEnd}>
             {active ? <View style={s.lotBadge}><Text style={s.lotBadgeText}>Lote {letter(activeIndex)}</Text></View> : null}
             {props.onRemoveVariety && active && !activeSacks.length ? (
-              <Pressable accessibilityLabel={`Quitar lote ${letter(activeIndex)}`} accessibilityRole="button" disabled={locked} onPress={() => props.onRemoveVariety?.(active.id)} style={p.remove}>
+              <Pressable accessibilityLabel={`Quitar lote ${letter(activeIndex)}`} accessibilityRole="button" disabled={locked} onPress={() => props.onRemoveVariety?.(active.id)} style={sheetLayout.remove}>
                 <SymbolView fallback={null} name={{ android: 'delete_sweep', ios: 'trash', web: 'delete_sweep' }} size={16} tintColor={color.danger} />
-                <Text style={p.removeText}>Quitar lote</Text>
+                <Text style={sheetLayout.removeText}>Quitar lote</Text>
               </Pressable>
             ) : null}
           </View>
@@ -221,13 +221,13 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
         ) : null}
 
         <View style={s.gridHeader}>
-          <View style={p.gridTitle}>
+          <View style={sheetLayout.gridTitle}>
             <Text accessibilityRole="header" style={s.overline}>PESAJE DE SACOS INDIVIDUALES (KG)</Text>
-            <Text style={p.gridHint}>{props.weighingLocked ? '· Pesaje cerrado: el detalle queda bloqueado' : '· Escribe el peso bruto en la celda; toca un saco para corregirlo'}</Text>
+            <Text style={sheetLayout.gridHint}>{props.weighingLocked ? '· Pesaje cerrado: el detalle queda bloqueado' : '· Escribe el peso bruto en la celda; toca un saco para corregirlo'}</Text>
           </View>
           <View style={s.goTo}>
-            <SheetInput accessibilityLabel="Número del saco" keyboardType="number-pad" onChangeText={(value) => { setTarget(value); setTargetMessage(null); }} onSubmitEditing={goToSack} placeholder="Ir al saco N.°" returnKeyType="go" style={p.goToInput} value={target} />
-            <Pressable accessibilityLabel="Ir al saco" accessibilityRole="button" disabled={!props.sacks.length} onPress={goToSack} style={({ pressed }) => [p.goToButton, (pressed || !props.sacks.length) && s.dimmed]}><SymbolView fallback={null} name={{ android: 'search', ios: 'magnifyingglass', web: 'search' }} size={18} tintColor={color.brand} /></Pressable>
+            <SheetInput accessibilityLabel="Número del saco" keyboardType="number-pad" onChangeText={(value) => { setTarget(value); setTargetMessage(null); }} onSubmitEditing={goToSack} placeholder="Ir al saco N.°" returnKeyType="go" style={sheetLayout.goToInput} value={target} />
+            <Pressable accessibilityLabel="Ir al saco" accessibilityRole="button" disabled={!props.sacks.length} onPress={goToSack} style={({ pressed }) => [sheetLayout.goToButton, (pressed || !props.sacks.length) && s.dimmed]}><SymbolView fallback={null} name={{ android: 'search', ios: 'magnifyingglass', web: 'search' }} size={18} tintColor={color.brand} /></Pressable>
             <View style={s.countBadge}><Text style={s.countBadgeText}>{activeSacks.length} de {activeSacks.length} {sackWord(activeSacks.length)} registrados</Text></View>
           </View>
         </View>
@@ -252,9 +252,9 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
                 {row.map((cell) => {
                   if (cell.kind === 'draft') {
                     return (
-                      <View key="draft" style={[s.cell, p.cellDraft]} testID="sack-draft">
-                        <View style={[s.cellNumber, p.cellNumberDraft]}><Text style={s.cellNumberText}>{String(nextSequence).padStart(2, '0')}</Text></View>
-                        <SheetInput accessibilityLabel="Peso bruto (kg)" editable={captureEditable} keyboardType="number-pad" onChangeText={props.onGrossChange} onSubmitEditing={canAdd ? props.onSaveSack : undefined} placeholder="0" returnKeyType="done" style={p.cellInput} submitBehavior="submit" value={props.gross} />
+                      <View key="draft" style={[s.cell, sheetLayout.cellDraft]} testID="sack-draft">
+                        <View style={[s.cellNumber, sheetLayout.cellNumberDraft]}><Text style={s.cellNumberText}>{String(nextSequence).padStart(2, '0')}</Text></View>
+                        <SheetInput accessibilityLabel="Peso bruto (kg)" editable={captureEditable} keyboardType="number-pad" onChangeText={props.onGrossChange} onSubmitEditing={canAdd ? props.onSaveSack : undefined} placeholder="0" returnKeyType="done" style={sheetLayout.cellInput} submitBehavior="submit" value={props.gross} />
                         <Text style={s.cellUnit}>kg</Text>
                       </View>
                     );
@@ -265,7 +265,7 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
                     return (
                       <View key={sack.id} style={[s.cell, s.cellHighlighted]} testID={`sack-${sack.sequence}`}>
                         <View style={s.cellNumber}><Text style={s.cellNumberText}>{String(sack.sequence).padStart(2, '0')}</Text></View>
-                        <SheetInput accessibilityLabel="Peso bruto (kg)" autoFocus editable={captureEditable} keyboardType="number-pad" onChangeText={props.onGrossChange} onSubmitEditing={canAdd ? props.onSaveSack : undefined} returnKeyType="done" style={p.cellInput} submitBehavior="submit" value={props.gross} />
+                        <SheetInput accessibilityLabel="Peso bruto (kg)" autoFocus editable={captureEditable} keyboardType="number-pad" onChangeText={props.onGrossChange} onSubmitEditing={canAdd ? props.onSaveSack : undefined} returnKeyType="done" style={sheetLayout.cellInput} submitBehavior="submit" value={props.gross} />
                         <Text style={s.cellUnit}>kg</Text>
                       </View>
                     );
@@ -294,22 +294,22 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
         </View>
 
         {props.weighingLocked ? null : (
-          <View style={p.addRow} testID="sheet-capture">
-            <Pressable accessibilityLabel={props.busy ? 'Guardando saco' : editing ? 'Guardar corrección' : 'Añadir saco'} accessibilityRole="button" disabled={!canAdd} onPress={props.onSaveSack} style={({ pressed }) => [p.addSack, (pressed || !canAdd) && s.dimmed]} testID="add-sack">
+          <View style={sheetLayout.addRow} testID="sheet-capture">
+            <Pressable accessibilityLabel={props.busy ? 'Guardando saco' : editing ? 'Guardar corrección' : 'Añadir saco'} accessibilityRole="button" disabled={!canAdd} onPress={props.onSaveSack} style={({ pressed }) => [sheetLayout.addSack, (pressed || !canAdd) && s.dimmed]} testID="add-sack">
               <SymbolView fallback={null} name={{ android: 'add_circle', ios: 'plus.circle', web: 'add_circle' }} size={18} tintColor={accent.emerald.ink} />
-              <Text style={p.addSackText}>{props.busy ? 'Guardando…' : editing ? `Guardar corrección del saco ${props.editingSequence}` : '+ Añadir 1 saco'}</Text>
+              <Text style={sheetLayout.addSackText}>{props.busy ? 'Guardando…' : editing ? `Guardar corrección del saco ${props.editingSequence}` : '+ Añadir 1 saco'}</Text>
             </Pressable>
-            <View style={p.tareBox}>
+            <View style={sheetLayout.tareBox}>
               <SymbolView fallback={null} name={{ android: 'scale', ios: 'scalemass', web: 'scale' }} size={18} tintColor={accent.emerald.pillInk} />
-              <Text style={p.tareLabel}>{editing ? `Tara del saco ${props.editingSequence}` : 'Tara por saco'}</Text>
-              <SheetInput accessibilityLabel="Tara (kg)" editable={captureEditable} keyboardType="number-pad" onChangeText={props.onTareChange} placeholder="0" style={p.tareInput} value={props.tare} />
-              <Text style={p.tareUnit}>kg</Text>
-              {editing ? <Pressable accessibilityLabel="Cancelar corrección" accessibilityRole="button" disabled={locked} onPress={props.onCancelEdit} style={p.cancel}><Text style={p.cancelText}>Cancelar</Text></Pressable> : null}
+              <Text style={sheetLayout.tareLabel}>{editing ? `Tara del saco ${props.editingSequence}` : 'Tara por saco'}</Text>
+              <SheetInput accessibilityLabel="Tara (kg)" editable={captureEditable} keyboardType="number-pad" onChangeText={props.onTareChange} placeholder="0" style={sheetLayout.tareInput} value={props.tare} />
+              <Text style={sheetLayout.tareUnit}>kg</Text>
+              {editing ? <Pressable accessibilityLabel="Cancelar corrección" accessibilityRole="button" disabled={locked} onPress={props.onCancelEdit} style={sheetLayout.cancel}><Text style={sheetLayout.cancelText}>Cancelar</Text></Pressable> : null}
             </View>
           </View>
         )}
 
-        <View style={p.subtotal}>
+        <View style={sheetLayout.subtotal}>
           <View style={s.subtotalCopy}>
             <SymbolView fallback={null} name={{ android: 'scale', ios: 'scalemass', web: 'scale' }} size={22} tintColor={accent.emerald.ink} />
             <Text style={s.subtotalTitle}>SUBTOTAL LOTE {active ? letter(activeIndex) : ''}</Text>
@@ -318,20 +318,20 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
           <View style={s.subtotalWeight}>
             <Text style={s.help}>Peso total lote:</Text>
             <Text accessibilityLabel={`Peso total del lote: ${formatKilograms(gramsToKg(activeKilograms))}`} style={s.subtotalValue}>{formatKilograms(gramsToKg(activeKilograms)).replace(' kg', '')}</Text>
-            <Text style={p.kgUnit}>kg</Text>
+            <Text style={sheetLayout.kgUnit}>kg</Text>
           </View>
         </View>
       </View>
 
-      <Pressable accessibilityLabel="Ver cálculo consolidado y liquidación comercial" accessibilityRole="button" onPress={() => screenRef.current?.scrollTo({ animated: true, y: tableY.current })} style={({ pressed }) => [p.jump, pressed && s.dimmed]}>
-        <Text style={p.jumpText}>VER CÁLCULO CONSOLIDADO Y LIQUIDACIÓN COMERCIAL</Text>
+      <Pressable accessibilityLabel="Ver cálculo consolidado y liquidación comercial" accessibilityRole="button" onPress={() => screenRef.current?.scrollTo({ animated: true, y: tableY.current })} style={({ pressed }) => [sheetLayout.jump, pressed && s.dimmed]}>
+        <Text style={sheetLayout.jumpText}>VER CÁLCULO CONSOLIDADO Y LIQUIDACIÓN COMERCIAL</Text>
         <SymbolView fallback={null} name={{ android: 'arrow_downward', ios: 'arrow.down', web: 'arrow_downward' }} size={18} tintColor={accent.emerald.pillInk} />
       </Pressable>
 
       <View onLayout={(event) => { tableY.current = event.nativeEvent.layout.y; }} style={s.card} testID="sheet-table">
         <View style={s.sectionHeader}>
           <View style={s.sectionTitleRow}>
-            <View style={p.bullet} />
+            <View style={sheetLayout.bullet} />
             <Text accessibilityRole="header" style={s.sectionTitle}>Resultado de compra por variedad / lote</Text>
           </View>
           <Text style={s.help}>Cálculos automáticos acumulados</Text>
@@ -350,8 +350,8 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
           const described = `${lot.varietyName}${lot.qualityName ? ` · ${lot.qualityName}` : ''}`;
           const current = lot.varietyId === active?.id;
           return (
-            <View key={lot.key} style={[s.tableRow, current && p.rowActive]} testID={`lot-${lot.letter}`}>
-              <View style={s.colLot}><View style={[s.lotTag, !current && p.lotTagIdle]}><Text style={[s.lotTagText, !current && p.lotTagTextIdle]}>Lote {lot.letter}</Text></View></View>
+            <View key={lot.key} style={[s.tableRow, current && sheetLayout.rowActive]} testID={`lot-${lot.letter}`}>
+              <View style={s.colLot}><View style={[s.lotTag, !current && sheetLayout.lotTagIdle]}><Text style={[s.lotTagText, !current && sheetLayout.lotTagTextIdle]}>Lote {lot.letter}</Text></View></View>
               <View style={s.colVariety}>
                 <SheetInput accessibilityLabel={`Nombre del lote ${lot.letter} (opcional)`} editable={!locked} maxLength={60} onChangeText={(value) => props.onChangeLot(lot.key, 'name', value)} placeholder={described} style={s.tableInput} value={draftLot.name} />
               </View>
@@ -359,10 +359,10 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
               <View style={s.colWeight}><View style={s.weightPill}><Text style={s.weightPillText}>{formatKilograms(lot.netWeightKg)}</Text></View></View>
               <View style={[s.colPrice, s.priceCell]}>
                 <SheetInput accessibilityLabel={draftLot.priceBasis === 'kilogram' ? `Precio por kilogramo, lote ${lot.letter} (S/)` : `Precio por saco, lote ${lot.letter} (S/)`} editable={!locked} keyboardType="decimal-pad" onChangeText={(value) => props.onChangeLot(lot.key, 'unitPrice', value)} placeholder="0.00" style={[s.tableInput, s.priceInput]} value={draftLot.unitPrice} />
-                <View accessibilityRole="radiogroup" style={p.basis}>
+                <View accessibilityRole="radiogroup" style={sheetLayout.basis}>
                   {([['kilogram', 'kg', 'por kilogramo'], ['sack', 'saco', 'por saco']] as const).map(([value, short, long]) => (
-                    <Pressable accessibilityLabel={`Lote ${lot.letter}: ${long}`} accessibilityRole="radio" accessibilityState={{ checked: draftLot.priceBasis === value }} disabled={locked} key={value} onPress={() => props.onChangeLot(lot.key, 'priceBasis', value)} style={[p.basisOption, draftLot.priceBasis === value && s.basisSelected]}>
-                      <Text style={[p.basisText, draftLot.priceBasis === value && s.onBrand]}>{short}</Text>
+                    <Pressable accessibilityLabel={`Lote ${lot.letter}: ${long}`} accessibilityRole="radio" accessibilityState={{ checked: draftLot.priceBasis === value }} disabled={locked} key={value} onPress={() => props.onChangeLot(lot.key, 'priceBasis', value)} style={[sheetLayout.basisOption, draftLot.priceBasis === value && s.basisSelected]}>
+                      <Text style={[sheetLayout.basisText, draftLot.priceBasis === value && s.onBrand]}>{short}</Text>
                     </Pressable>
                   ))}
                 </View>
@@ -374,16 +374,16 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
         {/* Varieties still without sacks, as the «0 sacos» row of the mockup. */}
         {props.varieties.filter((variety) => !props.lots.some((lot) => lot.varietyId === variety.id)).map((variety) => (
           <View key={`empty-${variety.id}`} style={s.tableRow} testID={`lot-empty-${variety.id}`}>
-            <View style={s.colLot}><View style={[s.lotTag, p.lotTagIdle]}><Text style={[s.lotTagText, p.lotTagTextIdle]}>Sin sacos</Text></View></View>
-            <View style={s.colVariety}><Text numberOfLines={1} style={p.emptyVariety}>{variety.name}</Text></View>
+            <View style={s.colLot}><View style={[s.lotTag, sheetLayout.lotTagIdle]}><Text style={[s.lotTagText, sheetLayout.lotTagTextIdle]}>Sin sacos</Text></View></View>
+            <View style={s.colVariety}><Text numberOfLines={1} style={sheetLayout.emptyVariety}>{variety.name}</Text></View>
             <View style={s.colSacks}><View style={s.sacksPill}><Text style={s.sacksPillText}>0 sacos</Text></View></View>
             <View style={s.colWeight}><View style={s.weightPill}><Text style={s.weightPillText}>0 kg</Text></View></View>
-            <View style={[s.colPrice, s.priceCell]}><Text style={p.emptyPrice}>Precio al pesar</Text></View>
+            <View style={[s.colPrice, s.priceCell]}><Text style={sheetLayout.emptyPrice}>Precio al pesar</Text></View>
             <Text accessibilityLabel={`${variety.name}: sin sacos, S/ 0.00`} style={[s.amount, s.colAmount]}>S/ 0.00</Text>
           </View>
         ))}
         {props.lots.length || props.varieties.length ? null : <Text style={s.empty}>Los lotes aparecen al registrar el primer saco.</Text>}
-        <View style={p.totals}>
+        <View style={sheetLayout.totals}>
           <BigTotal label="TOTAL SACOS ACOPIADOS:" unit="uds" value={`${totalSacks}`} />
           <BigTotal label="TOTAL KILAJE GENERAL:" unit="kg" value={formatKilograms(gramsToKg(totalGrams)).replace(' kg', '')} />
           <BigTotal accessibilityLabel={`Total compra: ${money('grossCents')}`} label="TOTAL COMPRA (S/):" strong value={money('grossCents')} />
@@ -396,10 +396,10 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
             <SymbolView fallback={null} name={{ android: 'local_shipping', ios: 'truck.box', web: 'local_shipping' }} size={22} tintColor={color.brand} />
             <Text accessibilityRole="header" style={s.sectionTitle}>Flete de transporte (descuento / acopio)</Text>
           </View>
-          <View accessibilityRole="radiogroup" style={p.segment}>
+          <View accessibilityRole="radiogroup" style={sheetLayout.segment}>
             {([['none', 'Sin flete'], ['sack', 'Por sacos'], ['kilogram', 'Por kilaje']] as const).map(([value, label]) => (
-              <Pressable accessibilityLabel={`Flete: ${label.toLowerCase()}`} accessibilityRole="radio" accessibilityState={{ checked: values.freightBasis === value }} disabled={locked} key={value} onPress={() => props.onChange('freightBasis', value)} style={[p.segmentOption, values.freightBasis === value && p.segmentSelected]}>
-                <Text style={[p.segmentText, values.freightBasis === value && s.onBrand]}>{label}</Text>
+              <Pressable accessibilityLabel={`Flete: ${label.toLowerCase()}`} accessibilityRole="radio" accessibilityState={{ checked: values.freightBasis === value }} disabled={locked} key={value} onPress={() => props.onChange('freightBasis', value)} style={[sheetLayout.segmentOption, values.freightBasis === value && sheetLayout.segmentSelected]}>
+                <Text style={[sheetLayout.segmentText, values.freightBasis === value && s.onBrand]}>{label}</Text>
               </Pressable>
             ))}
           </View>
@@ -408,24 +408,24 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
           <View style={s.freightRow}>
             <View style={s.freightChip}>
               <Text style={s.freightQuantity}>{values.freightBasis === 'sack' ? `${totalSacks}` : formatKilograms(gramsToKg(totalGrams)).replace(' kg', '')}</Text>
-              <Text style={p.freightUnit}>{values.freightBasis === 'sack' ? sackWord(totalSacks) : 'kg'}</Text>
+              <Text style={sheetLayout.freightUnit}>{values.freightBasis === 'sack' ? sackWord(totalSacks) : 'kg'}</Text>
               <Text style={s.freightTimes}>× S/</Text>
               <SheetInput accessibilityLabel="Tarifa de flete (S/)" editable={!locked} keyboardType="decimal-pad" onChangeText={(value) => props.onChange('freightRate', value)} placeholder="0.00" style={s.freightInput} value={values.freightRate} />
             </View>
             <Text style={[s.help, s.grow]}>Tarifa por unidad seleccionada</Text>
-            <Text style={p.freightLabel}>SUBTOTAL FLETE:</Text>
+            <Text style={sheetLayout.freightLabel}>SUBTOTAL FLETE:</Text>
             <Text accessibilityLabel={`Subtotal de flete: ${money('freightCents')}`} style={s.freightAmount}>{money('freightCents')}</Text>
           </View>
         )}
-        <View style={p.freightMore}>
-          <View style={p.vehicle}><SelectionField appearance="stitch" disabled={props.detailsLocked || locked} label="Vehículo (opcional)" leadingIcon="local_shipping" onPress={props.onSelectVehicle} placeholder="Seleccionar placa" value={props.details.vehiclePlate} /></View>
+        <View style={sheetLayout.freightMore}>
+          <View style={sheetLayout.vehicle}><SelectionField appearance="stitch" disabled={props.detailsLocked || locked} label="Vehículo (opcional)" leadingIcon="local_shipping" onPress={props.onSelectVehicle} placeholder="Seleccionar placa" value={props.details.vehiclePlate} /></View>
           {values.freightBasis !== 'none' ? (
-            <View style={p.payer}>
-              <Text style={p.payerLabel}>¿QUIÉN ASUME EL FLETE?</Text>
-              <View accessibilityRole="radiogroup" style={p.segment}>
+            <View style={sheetLayout.payer}>
+              <Text style={sheetLayout.payerLabel}>¿QUIÉN ASUME EL FLETE?</Text>
+              <View accessibilityRole="radiogroup" style={sheetLayout.segment}>
                 {([['provider', 'Se descuenta al proveedor'], ['wholesaler', 'Lo paga el Mayorista']] as const).map(([value, label]) => (
-                  <Pressable accessibilityLabel={label} accessibilityRole="radio" accessibilityState={{ checked: values.freightChargedTo === value }} disabled={locked} key={value} onPress={() => props.onChange('freightChargedTo', value)} style={[p.segmentOption, values.freightChargedTo === value && p.segmentSelected]}>
-                    <Text style={[p.segmentText, values.freightChargedTo === value && s.onBrand]}>{label}</Text>
+                  <Pressable accessibilityLabel={label} accessibilityRole="radio" accessibilityState={{ checked: values.freightChargedTo === value }} disabled={locked} key={value} onPress={() => props.onChange('freightChargedTo', value)} style={[sheetLayout.segmentOption, values.freightChargedTo === value && sheetLayout.segmentSelected]}>
+                    <Text style={[sheetLayout.segmentText, values.freightChargedTo === value && s.onBrand]}>{label}</Text>
                   </Pressable>
                 ))}
               </View>
@@ -436,42 +436,42 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
       </View>
 
       <View style={s.card} testID="sheet-summary">
-        <View style={[s.sectionHeader, p.summaryHead]}>
+        <View style={[s.sectionHeader, sheetLayout.summaryHead]}>
           <View style={s.sectionTitleRow}>
             <SymbolView fallback={null} name={{ android: 'account_balance_wallet', ios: 'wallet.pass', web: 'account_balance_wallet' }} size={22} tintColor={color.brand} />
             <Text accessibilityRole="header" style={s.sectionTitle}>Resumen de liquidación</Text>
           </View>
           <Text style={s.balance}>BALANCE COMERCIAL</Text>
         </View>
-        <View style={p.summary}>
-          <View style={p.summaryLeft}>
+        <View style={sheetLayout.summary}>
+          <View style={sheetLayout.summaryLeft}>
             <Line label="Total pago (producto):" value={money('grossCents')} />
             <Line label={wholesalerFreight ? 'Flete a cargo del Mayorista (no se descuenta)' : 'Total flete (descuento):'} value={values.freightBasis === 'none' ? 'S/ 0.00' : wholesalerFreight || preview.kind !== 'ready' ? money('freightCents') : `- ${money('freightCents')}`} />
-            <View style={p.line}>
-              <Text style={p.lineLabel}>Otros cargos / ajustes:</Text>
-              <Text style={p.currency}>S/</Text>
-              <SheetInput accessibilityLabel="Otros descuentos (S/)" editable={!locked} keyboardType="decimal-pad" onChangeText={(value) => props.onChange('discounts', value)} placeholder="0.00" style={p.lineInput} value={values.discounts} />
+            <View style={sheetLayout.line}>
+              <Text style={sheetLayout.lineLabel}>Otros cargos / ajustes:</Text>
+              <Text style={sheetLayout.currency}>S/</Text>
+              <SheetInput accessibilityLabel="Otros descuentos (S/)" editable={!locked} keyboardType="decimal-pad" onChangeText={(value) => props.onChange('discounts', value)} placeholder="0.00" style={sheetLayout.lineInput} value={values.discounts} />
             </View>
           </View>
-          <View style={p.summaryRight}>
-            <View style={p.advance}>
-              <Text style={p.payerLabel}>ADELANTO ENTREGADO:</Text>
-              <Text style={p.currency}>S/</Text>
-              <SheetInput accessibilityLabel="Adelantos (S/)" editable={!locked} keyboardType="decimal-pad" onChangeText={(value) => props.onChange('advances', value)} placeholder="0.00" style={p.lineInput} value={values.advances} />
+          <View style={sheetLayout.summaryRight}>
+            <View style={sheetLayout.advance}>
+              <Text style={sheetLayout.payerLabel}>ADELANTO ENTREGADO:</Text>
+              <Text style={sheetLayout.currency}>S/</Text>
+              <SheetInput accessibilityLabel="Adelantos (S/)" editable={!locked} keyboardType="decimal-pad" onChangeText={(value) => props.onChange('advances', value)} placeholder="0.00" style={sheetLayout.lineInput} value={values.advances} />
             </View>
-            <View style={p.net}>
+            <View style={sheetLayout.net}>
               <View>
-                <Text style={p.netTitle}>TOTAL NETO A LIQUIDAR</Text>
-                <Text style={p.netHelp}>{values.paymentMode === 'cash' ? 'Saldo a pagar en mano' : 'Saldo a crédito, en cuotas'}</Text>
+                <Text style={sheetLayout.netTitle}>TOTAL NETO A LIQUIDAR</Text>
+                <Text style={sheetLayout.netHelp}>{values.paymentMode === 'cash' ? 'Saldo a pagar en mano' : 'Saldo a crédito, en cuotas'}</Text>
               </View>
-              <Text accessibilityLabel={`Total neto a liquidar: ${money('liquidCents')}`} style={p.netValue}>{money('liquidCents')}</Text>
+              <Text accessibilityLabel={`Total neto a liquidar: ${money('liquidCents')}`} style={sheetLayout.netValue}>{money('liquidCents')}</Text>
             </View>
-            <View style={p.payment}>
-              <Text style={p.payerLabel}>FORMA DE PAGO</Text>
-              <View accessibilityRole="radiogroup" style={p.segment}>
+            <View style={sheetLayout.payment}>
+              <Text style={sheetLayout.payerLabel}>FORMA DE PAGO</Text>
+              <View accessibilityRole="radiogroup" style={sheetLayout.segment}>
                 {([['cash', 'Contado'], ['credit', 'Crédito']] as const).map(([value, label]) => (
-                  <Pressable accessibilityLabel={label} accessibilityRole="radio" accessibilityState={{ checked: values.paymentMode === value }} disabled={locked} key={value} onPress={() => props.onChange('paymentMode', value)} style={[p.segmentOption, values.paymentMode === value && p.segmentSelected]}>
-                    <Text style={[p.segmentText, values.paymentMode === value && s.onBrand]}>{label}</Text>
+                  <Pressable accessibilityLabel={label} accessibilityRole="radio" accessibilityState={{ checked: values.paymentMode === value }} disabled={locked} key={value} onPress={() => props.onChange('paymentMode', value)} style={[sheetLayout.segmentOption, values.paymentMode === value && sheetLayout.segmentSelected]}>
+                    <Text style={[sheetLayout.segmentText, values.paymentMode === value && s.onBrand]}>{label}</Text>
                   </Pressable>
                 ))}
               </View>
@@ -497,11 +497,11 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
       </View>
 
       <Modal animationType="fade" onRequestClose={() => setCharacteristicsOpen(false)} transparent visible={characteristicsOpen}>
-        <View style={p.modalBackdrop}>
-          <View style={p.modal}>
+        <View style={sheetLayout.modalBackdrop}>
+          <View style={sheetLayout.modal}>
             <Text accessibilityRole="header" style={s.sectionTitle}>Calidad y procedencia de los próximos sacos</Text>
             {props.characteristics}
-            <Pressable accessibilityLabel="Listo" accessibilityRole="button" onPress={() => setCharacteristicsOpen(false)} style={[s.save, p.modalDone]}><Text style={s.saveText}>Listo</Text></Pressable>
+            <Pressable accessibilityLabel="Listo" accessibilityRole="button" onPress={() => setCharacteristicsOpen(false)} style={[s.save, sheetLayout.modalDone]}><Text style={s.saveText}>Listo</Text></Pressable>
           </View>
         </View>
       </Modal>
@@ -509,29 +509,29 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
   );
 }
 
-function BigTotal({ accessibilityLabel, label, strong = false, unit, value }: { accessibilityLabel?: string; label: string; strong?: boolean; unit?: string; value: string }) {
+export function BigTotal({ accessibilityLabel, label, strong = false, unit, value }: { accessibilityLabel?: string; label: string; strong?: boolean; unit?: string; value: string }) {
   return (
-    <View accessibilityLabel={accessibilityLabel ?? `${label} ${value}${unit ? ` ${unit}` : ''}`} accessible style={[p.bigTotal, strong && p.bigTotalStrong]}>
-      <Text style={[p.bigTotalLabel, strong && p.bigTotalLabelStrong]}>{label}</Text>
-      <View style={p.bigTotalValueLine}>
-        <Text style={[p.bigTotalValue, strong && p.bigTotalValueStrong]}>{value}</Text>
-        {unit ? <Text style={p.bigTotalUnit}>{unit}</Text> : null}
+    <View accessibilityLabel={accessibilityLabel ?? `${label} ${value}${unit ? ` ${unit}` : ''}`} accessible style={[sheetLayout.bigTotal, strong && sheetLayout.bigTotalStrong]}>
+      <Text style={[sheetLayout.bigTotalLabel, strong && sheetLayout.bigTotalLabelStrong]}>{label}</Text>
+      <View style={sheetLayout.bigTotalValueLine}>
+        <Text style={[sheetLayout.bigTotalValue, strong && sheetLayout.bigTotalValueStrong]}>{value}</Text>
+        {unit ? <Text style={sheetLayout.bigTotalUnit}>{unit}</Text> : null}
       </View>
     </View>
   );
 }
 
-function Line({ label, value }: { label: string; value: string }) {
+export function Line({ label, value }: { label: string; value: string }) {
   return (
-    <View style={p.line}>
-      <Text style={p.lineLabel}>{label}</Text>
-      <View style={p.lineValueBox}><Text accessibilityLabel={`${label.replace(/:$/, "")}: ${value}`} style={p.lineValue}>{value}</Text></View>
+    <View style={sheetLayout.line}>
+      <Text style={sheetLayout.lineLabel}>{label}</Text>
+      <View style={sheetLayout.lineValueBox}><Text accessibilityLabel={`${label.replace(/:$/, "")}: ${value}`} style={sheetLayout.lineValue}>{value}</Text></View>
     </View>
   );
 }
 
 // Styles of the purchase sheet that the sale sheet does not share.
-const p = StyleSheet.create({
+export const sheetLayout = StyleSheet.create({
   details: { flexDirection: 'row', flexWrap: 'wrap', gap: 16 },
   detailWide: { flexBasis: 360, flexGrow: 2, minWidth: 0 },
   detail: { flexBasis: 170, flexGrow: 1, minWidth: 0 },
@@ -617,7 +617,7 @@ export function gramsToKg(grams: bigint) {
 
 // Text input of the sheet: registers with the screen so the keyboard never
 // covers it, like FormField.
-export function SheetInput({ onFocus, style, ...props }: TextInputProps) {
+export function SheetInput({ onFocus, ref: outerRef, style, ...props }: TextInputProps & { ref?: Ref<TextInput> }) {
   const ref = useRef<TextInput>(null);
   const keyboard = useContext(KeyboardFocusContext);
   return (
@@ -627,7 +627,11 @@ export function SheetInput({ onFocus, style, ...props }: TextInputProps) {
         onFocus?.(event);
       }}
       placeholderTextColor="#64748B"
-      ref={ref}
+      ref={(node) => {
+        ref.current = node;
+        if (typeof outerRef === 'function') outerRef(node);
+        else if (outerRef) outerRef.current = node;
+      }}
       selectTextOnFocus
       style={[sheetStyles.input, props.editable === false && sheetStyles.inputDisabled, style]}
       {...props}
