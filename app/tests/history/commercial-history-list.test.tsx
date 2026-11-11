@@ -21,6 +21,8 @@ beforeEach(() => {
 
 const controls = (root: ReactTestRenderer, predicate: (props: Record<string, unknown>) => boolean) =>
   root.root.findAll((node) => (node.type as unknown) === 'test-control' && predicate(node.props));
+// Status chips (Pressable with a count bubble, spec 011 CL-ST18).
+const radios = (root: ReactTestRenderer) => root.root.findAll((node) => node.props.accessibilityRole === 'radio' && typeof node.props.onPress === 'function');
 const control = (root: ReactTestRenderer, label: string) => controls(root, (props) => props.label === label)[0]!;
 const texts = (root: ReactTestRenderer) => root.root.findAll((node) => (node.type as unknown) === 'Text').map((node) => [node.props.children].flat().join(''));
 
@@ -41,7 +43,7 @@ it('opens with the list, the chips with server counts and the three totals of th
   const { loadPage, loadSummary, root } = await render();
   expect(loadPage).toHaveBeenCalledWith({}, 'all', 0);
   expect(loadSummary).toHaveBeenCalledWith({});
-  expect(controls(root, (props) => props.accessibilityRole === 'radio').map((props) => props.props.label)).toEqual(['Todas 3', 'Pagadas 1', 'Con deuda 1', 'Sin liquidar 1', 'Anuladas 0']);
+  expect(radios(root).map((node) => node.props.accessibilityLabel)).toEqual(['Todas: 3', 'Pagadas: 1', 'Con deuda: 1', 'Sin liquidar: 1', 'Anuladas: 0']);
   expect(controls(root, (props) => typeof props.value === 'string' && String(props.label).startsWith('Total')).map((node) => [node.props.label, node.props.value])).toEqual([
     ['Total compras', 'S/ 400.00'], ['Total pagado', 'S/ 200.00'],
   ]);
@@ -64,7 +66,7 @@ it('offers «Abonar» only on a card with debt and opens the detail of any card'
 
 it('filters by chip in the server without asking for the totals again, and searches with dates and name', async () => {
   const { loadPage, loadSummary, root } = await render();
-  await act(async () => controls(root, (props) => props.label === 'Con deuda 1')[0]!.props.onPress());
+  await act(async () => radios(root).find((node) => node.props.accessibilityLabel === 'Con deuda: 1')!.props.onPress());
   expect(loadPage).toHaveBeenLastCalledWith({}, 'debt', 0);
   expect(loadSummary).toHaveBeenCalledTimes(1);
   await act(async () => {
@@ -122,12 +124,12 @@ it('pages through the result and restores search, chip and page when shown again
   await act(async () => control(root, 'Página siguiente').props.onPress());
   expect(loadPage).toHaveBeenLastCalledWith({}, 'all', 20);
   expect(control(root, 'Página siguiente').props.disabled).toBe(true);
-  await act(async () => controls(root, (props) => props.label === 'Pagadas 1')[0]!.props.onPress());
+  await act(async () => radios(root).find((node) => node.props.accessibilityLabel === 'Pagadas: 1')!.props.onPress());
   await act(async () => control(root, 'Página siguiente').props.onPress());
   expect(saved).toMatchObject({ chip: 'paid', offset: 20 });
   await act(async () => root.unmount());
   const again = await render({ initial: saved, loadPage });
   expect(loadPage).toHaveBeenLastCalledWith({}, 'paid', 20);
-  expect(controls(again.root, (props) => props.accessibilityRole === 'radio' && (props.accessibilityState as { checked: boolean }).checked)[0]!.props.label).toBe('Pagadas 1');
+  expect(radios(again.root).find((node) => node.props.accessibilityState.checked)!.props.accessibilityLabel).toBe('Pagadas: 1');
   await act(async () => again.root.unmount());
 });

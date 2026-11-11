@@ -14,6 +14,8 @@ type AppButtonProps = Omit<PressableProps, "children" | "style"> & {
   expandLabel?: boolean;
   displayLabel?: string;
   leadingVisual?: ReactNode;
+  // Icon after the label (the «entrar» arrow of the Stitch login).
+  trailingVisual?: ReactNode;
   reportFontsLoaded?: boolean;
 };
 
@@ -27,6 +29,7 @@ export function AppButton({
   expandLabel = false,
   displayLabel,
   leadingVisual,
+  trailingVisual,
   reportFontsLoaded = false,
   stitchTone = "neutral",
   ...props
@@ -87,6 +90,7 @@ export function AppButton({
       >
         {displayLabel ?? label}
       </Text>
+      {trailingVisual}
     </Pressable>
   );
 }
@@ -142,7 +146,7 @@ const createStyles = (color: VisualPalette) =>
   });
 
 const loginStyles = StyleSheet.create({
-  base: { minHeight: 56 },
+  base: { flexDirection: 'row', gap: 10, minHeight: 52 },
   label: {
     fontFamily: "LoginInterSemiBold",
     fontSize: 17,

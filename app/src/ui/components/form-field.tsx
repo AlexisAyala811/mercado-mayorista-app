@@ -3,7 +3,7 @@ import {
   useVisualStyles,
   type VisualPalette,
 } from "@/ui/visual-theme";
-import { useContext, useRef } from "react";
+import { useContext, useRef, type ReactNode } from "react";
 import {
   StyleSheet,
   Text,
@@ -12,7 +12,7 @@ import {
   type TextInputProps,
 } from "react-native";
 
-import { spacing, typography, color as tokenColor } from "@/ui/tokens";
+import { spacing, typography } from "@/ui/tokens";
 import { KeyboardFocusContext } from "./keyboard-focus-context";
 import type { AndroidSymbol } from "expo-symbols";
 import { SymbolView } from "./symbol";
@@ -27,6 +27,10 @@ type FormFieldProps = TextInputProps & {
   reportFontsLoaded?: boolean;
   // Material symbol drawn at the start of the control (Stitch fields).
   leadingIcon?: AndroidSymbol;
+  // Control drawn at the end of the input (the eye of a password) and one
+  // next to the label (a link such as «¿Olvidó su clave?»).
+  trailing?: ReactNode;
+  labelAction?: ReactNode;
 };
 
 export function FormField({
@@ -39,6 +43,8 @@ export function FormField({
   appearance = "default",
   reportFontsLoaded = false,
   leadingIcon,
+  trailing,
+  labelAction,
   ...props
 }: FormFieldProps) {
   const styles = useVisualStyles(createStyles);
@@ -54,9 +60,12 @@ export function FormField({
         appearance === "login" && loginStyles.container,
       ]}
     >
+      <View style={labelAction ? loginStyles.labelRow : null}>
       <Text style={[styles.label, appearance === "login" && loginStyles.label, appearance === 'report' && reportStyles.label, appearance === 'report' && reportFontsLoaded && {fontFamily:'ReportInterSemiBold'}, appearance === 'stitch' && stitchStyles.label]}>
         {label}
       </Text>
+      {labelAction}
+      </View>
       <View>
       <TextInput
         ref={inputRef}
@@ -81,12 +90,14 @@ export function FormField({
           appearance === 'stitch' && [stitchStyles.control, stitchStyles.value],
           appearance === 'stitch' && props.editable === false && { color: '#475569' },
           leadingIcon && { paddingLeft: 42 },
+          trailing ? { paddingRight: 52 } : null,
           error && styles.inputError,
         ]}
         {...props}
       />
       {appearance === 'report' ? <View pointerEvents="none" style={reportStyles.icon}><ReportAsset kind="calendar" /></View> : null}
       {leadingIcon ? <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" pointerEvents="none" style={leadingStyles.icon}><SymbolView fallback={null} name={{ android: leadingIcon, ios: 'circle', web: leadingIcon }} size={20} tintColor="#74777F" /></View> : null}
+      {trailing ? <View style={loginStyles.trailing}>{trailing}</View> : null}
       </View>
       {message ? (
         <Text style={error ? styles.error : styles.supporting}>{message}</Text>
@@ -128,20 +139,30 @@ const createStyles = (color: VisualPalette) =>
     error: { color: color.danger, ...typography.bodySmall },
   });
 
+// Login fields of the Stitch mockup: label in sentence case, white input
+// with a thin border, icon at the start (CL-ST18).
 const loginStyles = StyleSheet.create({
-  container: { gap: 10 },
+  container: { gap: 8 },
+  labelRow: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
   label: {
-    color: tokenColor.textPrimary,
+    color: '#1E293B',
     fontFamily: "LoginInterSemiBold",
-    fontSize: 15,
-    lineHeight: 18,
+    fontSize: 14,
     fontWeight: "600",
+    letterSpacing: 0,
+    lineHeight: 18,
+    textTransform: 'none',
   },
   input: {
-    fontFamily: "LoginInterRegular",
+    backgroundColor: '#FFFFFF',
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    borderWidth: 1,
+    color: '#0F172A',
+    fontFamily: "LoginInterSemiBold",
     fontSize: 16,
     lineHeight: 20,
-    minHeight: 56,
-    borderRadius: 12,
+    minHeight: 52,
   },
+  trailing: { bottom: 0, justifyContent: 'center', position: 'absolute', right: 4, top: 0 },
 });

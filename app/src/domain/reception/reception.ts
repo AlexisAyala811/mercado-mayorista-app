@@ -76,5 +76,7 @@ export function formatMoney(cents: string | number) {
   if ((typeof cents === 'number' && !Number.isSafeInteger(cents)) || (typeof cents === 'string' && !/^-?\d+$/.test(cents))) throw new Error('El importe debe expresarse en centavos enteros válidos.');
   const value = BigInt(cents);
   const absolute = value < 0n ? -value : value;
-  return `S/ ${value < 0n ? '-' : ''}${absolute / 100n}.${(absolute % 100n).toString().padStart(2, '0')}`;
+  // Thousands grouped with commas as in the Stitch mockups (S/ 11,273.48).
+  const whole = (absolute / 100n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return `S/ ${value < 0n ? '-' : ''}${whole}.${(absolute % 100n).toString().padStart(2, '0')}`;
 }

@@ -293,9 +293,9 @@ it("renders exact cash totals beyond the safe integer limit while every movement
     root.root.findAll(
       (node) => node.props.label === label && node.props.value,
     )[0].props.value;
-  expect(metric("Entradas")).toBe("S/ 90090000000000.01");
+  expect(metric("Entradas")).toBe("S/ 90,090,000,000,000.01");
   expect(metric("Salidas")).toBe("S/ 0.02");
-  expect(metric("Neto")).toBe("S/ 90089999999999.99");
+  expect(metric("Neto")).toBe("S/ 90,089,999,999,999.99");
   await act(async () => {
     root.unmount();
   });

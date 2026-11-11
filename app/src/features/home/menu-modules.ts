@@ -31,21 +31,28 @@ const entry = (
   description: string,
   badge: string,
   foot: string,
-): MenuModule => ({ accent, badge, description, foot, icon, id, route, section, shortLabel, title });
+  look: Pick<HomeModule, 'badgeAccent' | 'footAccent' | 'footIcon'> = {},
+): MenuModule => ({ accent, badge, description, foot, icon, id, route, section, shortLabel, title, ...look });
+
+// Stitch details of the cards: the Anote pill and foot are green with a bolt,
+// Carros has a green dot and Reportes an icon before the foot line.
+const anote = { badgeAccent: 'emerald', footAccent: 'emerald', footIcon: 'bolt' } as const;
+const carros = { footIcon: 'dot' } as const;
+const reportes = { footIcon: 'download' } as const;
 
 export const menuModules: MenuModule[] = [
-  entry('purchase', 'purchases', 'amber', 'menu_book', '/purchase-flow', 'AN', 'Anote', 'Pesaje por saco y liquidación de la compra', 'Nuevo', 'Registrar compra'),
-  entry('purchase', 'purchase-history', 'sky', 'fact_check', '/purchase-history', 'VC', 'Ver compras', 'Compras pagadas y con deuda', 'Compras', 'Historial de compras'),
-  entry('purchase', 'logistics', 'indigo', 'local_shipping', '/logistics', 'CA', 'Carros', 'Transportistas y vehículos', 'Flota', 'Placas y conductores'),
-  entry('purchase', 'debts', 'rose', 'payments', '/debts', 'DE', 'Deudas', 'Adelantos y saldos a proveedores', 'Proveedores', 'Saldos por pagar'),
+  entry('purchase', 'purchases', 'amber', 'menu_book', '/purchase-flow', 'AN', 'Anote', 'Pesaje de bultos y sacos en cancha', 'NUEVO', 'Pesaje inmediato', anote),
+  entry('purchase', 'purchase-history', 'sky', 'fact_check', '/purchase-history', 'VC', 'Ver compras', 'Historial de tickets y entregas', 'Compras', 'Historial de compras'),
+  entry('purchase', 'logistics', 'indigo', 'local_shipping', '/logistics', 'CA', 'Carros', 'Transportistas y vehículos', 'Flota', 'Placas y conductores', carros),
+  entry('purchase', 'debts', 'rose', 'payments', '/debts', 'DE', 'Deudas', 'Adelantos y saldos a productores', 'Proveedores', 'Saldos por pagar'),
   entry('purchase', 'analytics', 'teal', 'monitoring', '/analytics', 'AL', 'Analítica', 'Pizarra de precios pactados', 'Variedades', 'Últimas 8 semanas'),
-  entry('purchase', 'reports', 'purple', 'description', '/reports', 'RE', 'Reportes', 'Compras del periodo y exportación', 'Mes actual', 'PDF y Excel'),
-  entry('sale', 'sales', 'amber', 'menu_book', '/sale-flow', 'VE', 'Anote de venta', 'Venta y despacho a compradores', 'Despacho', 'Registrar venta'),
-  entry('sale', 'sales-history', 'sky', 'receipt_long', '/sales-history', 'VV', 'Ver ventas', 'Ventas cobradas y con deuda', 'Ventas', 'Historial de ventas'),
-  entry('sale', 'logistics', 'indigo', 'local_shipping', '/logistics', 'CA', 'Carros', 'Transportistas y vehículos', 'Flota', 'Placas y conductores'),
-  entry('sale', 'collections', 'rose', 'point_of_sale', '/collections', 'CO', 'Cobranzas', 'Créditos y saldos por cobrar', 'Compradores', 'Saldos por cobrar'),
-  entry('sale', 'analytics', 'teal', 'query_stats', '/analytics', 'AL', 'Analítica', 'Pizarra de precios pactados', 'Variedades', 'Últimas 8 semanas'),
-  entry('sale', 'reports', 'purple', 'description', { pathname: '/reports', params: { lado: 'venta' } }, 'RE', 'Reportes', 'Ventas del periodo y exportación', 'Mes actual', 'PDF y Excel'),
+  entry('purchase', 'reports', 'purple', 'description', '/reports', 'RE', 'Reportes', 'Compras del periodo y exportación', 'Mes actual', 'PDF y Excel', reportes),
+  entry('sale', 'sales', 'amber', 'menu_book', '/sale-flow', 'VE', 'Anote', 'Registro de pesaje y despacho a clientes', 'DESPACHO', 'Venta inmediata', anote),
+  entry('sale', 'sales-history', 'sky', 'receipt_long', '/sales-history', 'VV', 'Ver ventas', 'Historial de notas de venta y despachos', 'Ventas', 'Historial de ventas'),
+  entry('sale', 'logistics', 'indigo', 'local_shipping', '/logistics', 'CA', 'Carros', 'Transportistas y vehículos', 'Flota', 'Placas y conductores', carros),
+  entry('sale', 'collections', 'rose', 'point_of_sale', '/collections', 'CO', 'Cobranzas', 'Créditos, adelantos y saldos por cobrar', 'Compradores', 'Saldos por cobrar'),
+  entry('sale', 'analytics', 'teal', 'query_stats', '/analytics', 'AL', 'Analítica', 'Pizarra de precios pactados y cotización', 'Precios hoy', 'Últimas 8 semanas'),
+  entry('sale', 'reports', 'purple', 'description', { pathname: '/reports', params: { lado: 'venta' } }, 'RE', 'Reportes', 'Ventas del periodo y exportación', 'Mes actual', 'PDF y Excel', reportes),
   entry('more', 'sync-queue', 'slate', 'cloud_upload', '/sync-queue', 'PE', 'Pendientes de envío', 'Operaciones guardadas en la tablet y su estado', '', ''),
   entry('more', 'logistics-costs', 'slate', 'forklift', '/cost-settlements', 'FE', 'Flete y estiba', 'Registros pendientes y liquidaciones', '', ''),
   entry('more', 'receipts', 'slate', 'picture_as_pdf', '/receipts', 'PDF', 'Comprobantes', 'Documentos generados y su compartición', '', ''),
