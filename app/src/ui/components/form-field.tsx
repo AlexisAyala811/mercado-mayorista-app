@@ -12,7 +12,7 @@ import {
   type TextInputProps,
 } from "react-native";
 
-import { radius, spacing, typography, color as tokenColor } from "@/ui/tokens";
+import { spacing, typography, color as tokenColor } from "@/ui/tokens";
 import { KeyboardFocusContext } from "./keyboard-focus-context";
 import { ReportAsset } from './report-asset';
 import { reportVisual } from '@/ui/report-tokens';
@@ -101,20 +101,17 @@ const reportStyles = StyleSheet.create({
 const createStyles = (color: VisualPalette) =>
   StyleSheet.create({
     container: { gap: spacing.sm },
-    label: {
-      color: color.textPrimary,
-      ...typography.bodySmall,
-      fontWeight: "700",
-    },
+    label: { color: '#64748B', fontSize: 12, fontWeight: '600', letterSpacing: 0.8, lineHeight: 16, textTransform: 'uppercase' },
     input: {
-      backgroundColor: color.controlSurface ?? color.surfaceRaised,
-      borderColor: color.border,
-      borderRadius: color.cornerRadius ?? radius.md,
-      borderWidth: color.fieldBorderWidth ?? 1,
+      backgroundColor: '#EFF4FF',
+      borderColor: 'transparent',
+      borderRadius: 12,
+      borderWidth: 1,
       color: color.textPrimary,
-      minHeight: 52,
-      paddingHorizontal: spacing.md,
-      ...typography.bodySmall,
+      fontSize: 15,
+      fontWeight: '500',
+      minHeight: 48,
+      paddingHorizontal: 14,
     },
     inputError: { borderColor: color.danger, borderWidth: 2 },
     supporting: { color: color.textSecondary, ...typography.bodySmall },

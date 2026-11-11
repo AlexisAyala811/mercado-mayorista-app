@@ -1,7 +1,7 @@
 import { useVisualStyles, type VisualPalette } from '@/ui/visual-theme';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
-import { radius, spacing, typography } from '@/ui/tokens';
+
 import { reportVisual } from '@/ui/report-tokens';
 
 type MetricTileProps = {
@@ -72,13 +72,17 @@ const reportStyles = StyleSheet.create({
 
 const createStyles = (color: VisualPalette) => StyleSheet.create({
   container: {
-    backgroundColor: color.brandMuted,
-    borderRadius: radius.md,
+    backgroundColor: color.surfaceRaised,
+    borderColor: '#E2E8F0',
+    borderRadius: 16,
+    borderWidth: 1,
+    boxShadow: '0px 1px 2px rgba(15,23,42,0.05)',
     flexGrow: 1,
-    gap: spacing.xs,
+    gap: 2,
     minWidth: 150,
-    padding: spacing.md,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
-  label: { color: color.textSecondary, ...typography.bodySmall },
-  value: { color: color.textPrimary, fontSize: 24, fontWeight: '700', lineHeight: 30 },
+  label: { color: '#475569', fontSize: 11, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase' },
+  value: { color: '#1E293B', fontSize: 22, fontWeight: '800', letterSpacing: -0.3, lineHeight: 28 },
 });
