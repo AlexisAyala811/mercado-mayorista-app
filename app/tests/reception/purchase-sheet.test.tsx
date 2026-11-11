@@ -199,6 +199,15 @@ describe('lots, freight and settlement on the same screen', () => {
     expect(root.root.findAll((node) => node.props.accessibilityLabel === 'Añadir lote o variedad')).toHaveLength(0);
   });
 
+  it('keeps «Añadir lote» visible but disabled after the first sack and lists varieties without sacks (CL-ST21)', async () => {
+    const root = await render({ onAddVariety: undefined, addVarietyLockedReason: 'Las variedades se eligen antes del primer saco.' });
+    const add = root.root.findAll((node) => node.props.accessibilityLabel === 'Añadir lote o variedad' && typeof node.props.disabled === 'boolean')[0]!;
+    expect(add.props.disabled).toBe(true);
+    expect(add.props.accessibilityHint).toBe('Las variedades se eligen antes del primer saco.');
+    expect(labelled(root, 'Peruanita: sin sacos, S/ 0.00')).not.toHaveLength(0);
+    expect(labelled(root, 'Canchán: sin sacos, S/ 0.00')).toHaveLength(0);
+  });
+
   it('never draws a scale, an automatic load or the removal of a sack', async () => {
     const root = await render({ sacks: cells(10) });
     expect(JSON.stringify(root.toJSON())).not.toMatch(/balanza|báscula|carga rápida|quitar lote|eliminar/i);

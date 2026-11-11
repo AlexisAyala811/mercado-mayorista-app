@@ -481,6 +481,7 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
         referenceActions={<>{referenceFeedback}<OperationReferenceActions compact kinds={['providers','varieties']} onManage={referenceManage} disabled={busy||isOfflineSession||Boolean(referenceKind)||referenceReloadBusy}/></>}
         varieties={expectedVarieties} activeVarietyId={captureVarietyId} onSelectVariety={setSackVarietyId}
         onAddVariety={started ? undefined : () => setDialog('varieties')}
+        addVarietyLockedReason={started ? 'Las variedades se eligen antes del primer saco.' : undefined}
         onRemoveVariety={started ? undefined : (id) => { const next = expectedVarietyIds.filter((item) => item !== id); setExpectedVarietyIds(next); setDetails((current) => ({ ...current, expectedVarieties: varieties.filter((item) => next.includes(item.id)).map((item) => item.name).join(', ') })); }}
         qualityName={qualities.find((item) => item.id === qualityId)?.name ?? null}
         sacks={activeSacks.map((sack) => ({ id: sack.id, sequence: sack.sequence, varietyId: sack.varietyId, netDisplay: kilogramsDraft(sack.netWeightKg), grossDisplay: kilogramsDraft(sack.grossWeightKg), detail: `Bruto ${formatKilograms(sack.grossWeightKg)}, tara ${formatKilograms(sack.tareKg)}. ${commercialDescription(sack)}` }))}
