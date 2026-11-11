@@ -81,11 +81,11 @@ describe('grid of sacks', () => {
     expect(drawn.slice(0, sheetColumns)).toEqual([1, 2, 3, 4, 5]);
     expect(drawn.length).toBeGreaterThan(0);
     expect(drawn.length).toBeLessThan(100);
-    // The spacer after the drawn rows keeps the height of the 50 rows.
+    // The spacers keep the height of the 50 rows of sacks plus the row of the next one.
     const grid = root.root.findAll((node) => node.props.testID === 'sack-grid' && typeof node.props.onScroll === 'function')[0]!;
     const spacers = grid.findAll((node) => typeof node.type === 'string' && typeof node.props.style?.height === 'number' && node.props.children === undefined);
     const drawnRows = drawn.length / sheetColumns;
-    expect(spacers.reduce((total, node) => total + node.props.style.height, 0)).toBe((50 - drawnRows) * sheetRowHeight);
+    expect(spacers.reduce((total, node) => total + node.props.style.height, 0)).toBe((51 - drawnRows) * sheetRowHeight);
     expect(labelled(root, 'Lote A: Canchán, 250 sacos')).not.toHaveLength(0);
     // Scrolling moves the window.
     await act(async () => { grid.props.onScroll({ nativeEvent: { contentOffset: { y: 40 * sheetRowHeight } } }); });
@@ -107,13 +107,15 @@ describe('grid of sacks', () => {
     expect(handlers.onSelectVariety).toHaveBeenCalledTimes(1);
   });
 
-  it('shows the net weight in the cell and corrects gross and tare from the capture bar', async () => {
-    const root = await render({ sacks: cells(7) });
+  it('shows the gross weight in the cell and corrects it in place with the tare of the capture bar', async () => {
+    const root = await render({ sacks: cells(7).map((sack) => ({ ...sack, grossDisplay: '51' })) });
+    // CL-ST20: the cell shows the gross weight as typed, like the mockup.
+    expect(root.root.findAll((node) => typeof node.type === 'string' && node.props.children === '51')).toHaveLength(7);
     const cell = button(root, 'Saco 7: 50 kilos netos. Bruto 50 kg, tara 0 kg.');
     await act(async () => { cell.props.onPress(); });
     expect(handlers.onEditSack).toHaveBeenCalledWith('sack-7');
     await act(async () => { root.update(<Harness sacks={cells(7)} editingSequence={7} gross="51" tare="1" />); });
-    expect(root.root.findAll((node) => node.props.children === 'Corregir saco 7')).not.toHaveLength(0);
+    expect(root.root.findAll((node) => node.props.children === 'Guardar corrección del saco 7')).not.toHaveLength(0);
     await act(async () => { button(root, 'Guardar corrección').props.onPress(); });
     expect(handlers.onSaveSack).toHaveBeenCalledTimes(1);
     await act(async () => { button(root, 'Cancelar corrección').props.onPress(); });
@@ -164,7 +166,7 @@ describe('lots, freight and settlement on the same screen', () => {
 
   it('edits credit installments in the summary through the same draft', async () => {
     const root = await render();
-    await act(async () => { control(root, 'Crédito').props.onPress(); });
+    await act(async () => { button(root, 'Crédito').props.onPress(); });
     await act(async () => { control(root, 'Agregar cuota').props.onPress(); });
     await act(async () => { control(root, 'Vence el').props.onChangeText('2030-03-01'); control(root, 'Importe (S/)').props.onChangeText('125'); });
     expect(root.root.findByType(PurchaseSheet).props.values).toMatchObject({ paymentMode: 'credit', installments: [{ id: 'installment', dueOn: '2030-03-01', amount: '125' }] });
@@ -185,10 +187,10 @@ describe('lots, freight and settlement on the same screen', () => {
 
   it('locks the provider data once the reception exists and offers Limpiar registro only before', async () => {
     const root = await render();
-    expect(control(root, 'Nombre del proveedor').props.disabled).toBe(true);
+    expect(control(root, 'Nombre del proveedor / productor').props.disabled).toBe(true);
     expect(control(root, 'Conductor').props.editable).toBe(false);
     await act(async () => { root.update(<Harness detailsLocked={false} />); });
-    expect(control(root, 'Nombre del proveedor').props.disabled).toBe(false);
+    expect(control(root, 'Nombre del proveedor / productor').props.disabled).toBe(false);
     await act(async () => { button(root, 'Limpiar registro').props.onPress(); button(root, 'Añadir lote o variedad').props.onPress(); });
     expect(handlers.onClear).toHaveBeenCalledTimes(1);
     expect(handlers.onAddVariety).toHaveBeenCalledTimes(1);

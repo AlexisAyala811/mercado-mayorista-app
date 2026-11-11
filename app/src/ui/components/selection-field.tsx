@@ -2,7 +2,9 @@ import { useVisualStyles, type VisualPalette } from '@/ui/visual-theme';
 import { Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { spacing, typography } from '@/ui/tokens';
+import type { AndroidSymbol } from 'expo-symbols';
 import { ReportAsset } from './report-asset';
+import { SymbolView } from './symbol';
 import { reportVisual } from '@/ui/report-tokens';
 
 type SelectionFieldProps = {
@@ -15,6 +17,8 @@ type SelectionFieldProps = {
   placeholder: string;
   supportingText?: string;
   value?: string;
+  // Material symbol drawn at the start of the control (Stitch fields).
+  leadingIcon?: AndroidSymbol;
 };
 
 export function SelectionField({
@@ -26,6 +30,7 @@ export function SelectionField({
   placeholder,
   supportingText,
   value,
+  leadingIcon,
 }: SelectionFieldProps) {
   const styles = useVisualStyles(createStyles);
   const message = error ?? supportingText;
@@ -47,6 +52,7 @@ export function SelectionField({
           pressed && !disabled && styles.pressed,
           disabled && styles.disabled,
         ]}>
+        {leadingIcon ? <SymbolView fallback={null} name={{ android: leadingIcon, ios: "circle", web: leadingIcon }} size={20} tintColor="#74777F" /> : null}
         <Text style={[styles.value, !value && styles.placeholder, appearance === 'report' && reportStyles.value, appearance === 'report' && reportFontsLoaded && {fontFamily:'ReportInterRegular'}, appearance === 'stitch' && stitchStyles.value, appearance === 'stitch' && !value && styles.placeholder]}>{value || placeholder}</Text>
         {appearance === 'report' ? <ReportAsset kind="chevron" /> : <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.chevron}>
           ▾

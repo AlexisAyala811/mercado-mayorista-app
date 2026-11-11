@@ -1,4 +1,4 @@
-import { calculatePurchasePreview, formatPreviewMoney, groupPurchaseLots, lotKey, settlementLotsPayload, validateCreditSchedule, type LotDraft, type PurchasePreviewInput } from '@/domain/reception/purchase-preview';
+import { calculatePurchasePreview, formatPreviewMoney, groupPurchaseLots, lotKey, previewLotAmount, settlementLotsPayload, validateCreditSchedule, type LotDraft, type PurchasePreviewInput } from '@/domain/reception/purchase-preview';
 import type { ReceptionSack } from '@/domain/reception/reception';
 
 const names: Record<string, string> = { v1: 'Canchán', v2: 'Amarilla', v3: 'Canchán' };
@@ -99,4 +99,14 @@ it('requires a calendar-valid credit schedule that equals the exact liquid amoun
 it('waits for the freight rate after choosing a freight basis', () => {
   expect(preview([sack('50')], { ...single('2.50'), freightBasis: 'sack', freightRate: '' })).toEqual({ kind: 'pending', message: 'Ingresa la tarifa de flete o elige «Sin flete».' });
   expect(preview([sack('50')], { ...single('2.50'), freightBasis: 'none', freightRate: '' }).kind).toBe('ready');
+});
+
+it('gives each lot its own subtotal while another lot still has no price (CL-ST20)', () => {
+  const lots = groupPurchaseLots([sack('349'), sack('121', { id: 'b', varietyId: 'v2' })], (id) => (id === 'v1' ? 'Canchán' : 'Peruanita'))!;
+  const [canchan, peruanita] = lots;
+  expect(previewLotAmount(canchan!, { priceBasis: 'kilogram', unitPrice: '1.45', name: '' })).toBe('50605');
+  expect(previewLotAmount(canchan!, { priceBasis: 'sack', unitPrice: '80', name: '' })).toBe('8000');
+  expect(previewLotAmount(peruanita!, undefined)).toBeNull();
+  expect(previewLotAmount(peruanita!, { priceBasis: 'kilogram', unitPrice: '0', name: '' })).toBeNull();
+  expect(previewLotAmount(peruanita!, { priceBasis: 'kilogram', unitPrice: '1.234', name: '' })).toBeNull();
 });

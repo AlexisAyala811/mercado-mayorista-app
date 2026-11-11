@@ -129,3 +129,23 @@ Pendientes de envío, Comprobantes, Mensajería, Usuarios y reemplazos, Auditor�
 | `npm run typecheck`, `npm run lint` | Sin errores ni avisos |
 | `npm test -- --runInBand` | 702 pruebas en 101 suites |
 | Emulador 1280 × 800 | [Pendientes de envío](../../img/verificacion-stitch-igual-2026-11-09/otras-sync-queue.png), [Comprobantes](../../img/verificacion-stitch-igual-2026-11-09/otras-receipts.png), [Mensajería](../../img/verificacion-stitch-igual-2026-11-09/otras-messaging.png), [Usuarios y reemplazos](../../img/verificacion-stitch-igual-2026-11-09/otras-administration.png), [Auditoría](../../img/verificacion-stitch-igual-2026-11-09/otras-audit.png), [Flete y estiba](../../img/verificacion-stitch-igual-2026-11-09/otras-cost-settlements.png), [estado de cuenta](../../img/verificacion-stitch-igual-2026-11-09/otras-buyer-statement.png) y [detalle de compra](../../img/verificacion-stitch-igual-2026-11-09/otras-detalle-compra.png) |
+
+## Anote de compra (T1192, 10 de noviembre de 2026)
+
+El usuario indicó que la compra no era igual a su maqueta. La hoja de compra en tablet se rehízo sobre «registro de compra multilotes, tablet 2» (CL-ST20): datos del proveedor en una fila con íconos, pestañas de lote, cuadrícula de cinco sacos por fila donde se escribe el peso bruto en la celda, tara por lote, subtotal del lote, botón «Ver cálculo consolidado», tabla por lote con su subtotal, tres totales, flete con el vehículo y quién lo asume, resumen en dos columnas y «Guardar compra».
+
+| Verificación | Resultado |
+| --- | --- |
+| `npm run typecheck`, `npm run lint` | Sin errores ni avisos |
+| `npm test -- --runInBand` | 703 pruebas en 101 suites |
+| Emulador 1280 × 800 | Compra real de 9 sacos en dos lotes (349 kg de Canchán a S/ 1.45 y 121 kg de Peruanita a S/ 1.80, flete por sacos a S/ 2.50): [lotes](../../img/verificacion-stitch-igual-2026-11-09/anote-compra-lotes.png), [cuadrícula](../../img/verificacion-stitch-igual-2026-11-09/anote-compra-cuadricula.png), [corrección del saco 3 en su celda](../../img/verificacion-stitch-igual-2026-11-09/anote-compra-correccion.png), [tabla con subtotal por lote](../../img/verificacion-stitch-igual-2026-11-09/anote-compra-tabla.png), [resumen](../../img/verificacion-stitch-igual-2026-11-09/anote-compra-resumen.png), [confirmación](../../img/verificacion-stitch-igual-2026-11-09/anote-compra-confirmar.png) y [compra guardada por el servidor con S/ 701.35](../../img/verificacion-stitch-igual-2026-11-09/anote-compra-guardada.png) |
+
+### Diferencias con la maqueta que se mantienen
+
+- Pesos en kilos enteros: la maqueta muestra decimales, pero la API solo acepta kilos enteros.
+- No se dibujan «Carga rápida (10 sacos a 50 kg)» ni el aspa para borrar un saco: la app no rellena pesos y no borra hechos.
+- Una vez creada la recepción no se añaden ni se quitan lotes, y los datos del proveedor quedan bloqueados.
+
+### No verificado
+
+- TalkBack y una tablet física.

@@ -14,6 +14,8 @@ import {
 
 import { spacing, typography, color as tokenColor } from "@/ui/tokens";
 import { KeyboardFocusContext } from "./keyboard-focus-context";
+import type { AndroidSymbol } from "expo-symbols";
+import { SymbolView } from "./symbol";
 import { ReportAsset } from './report-asset';
 import { reportVisual } from '@/ui/report-tokens';
 
@@ -23,6 +25,8 @@ type FormFieldProps = TextInputProps & {
   supportingText?: string;
   appearance?: "default" | "login" | "report" | "stitch";
   reportFontsLoaded?: boolean;
+  // Material symbol drawn at the start of the control (Stitch fields).
+  leadingIcon?: AndroidSymbol;
 };
 
 export function FormField({
@@ -34,6 +38,7 @@ export function FormField({
   onBlur,
   appearance = "default",
   reportFontsLoaded = false,
+  leadingIcon,
   ...props
 }: FormFieldProps) {
   const styles = useVisualStyles(createStyles);
@@ -75,11 +80,13 @@ export function FormField({
           appearance === 'report' && reportFontsLoaded && {fontFamily:'ReportInterRegular'},
           appearance === 'stitch' && [stitchStyles.control, stitchStyles.value],
           appearance === 'stitch' && props.editable === false && { color: '#475569' },
+          leadingIcon && { paddingLeft: 42 },
           error && styles.inputError,
         ]}
         {...props}
       />
       {appearance === 'report' ? <View pointerEvents="none" style={reportStyles.icon}><ReportAsset kind="calendar" /></View> : null}
+      {leadingIcon ? <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" pointerEvents="none" style={leadingStyles.icon}><SymbolView fallback={null} name={{ android: leadingIcon, ios: 'circle', web: leadingIcon }} size={20} tintColor="#74777F" /></View> : null}
       </View>
       {message ? (
         <Text style={error ? styles.error : styles.supporting}>{message}</Text>
@@ -88,6 +95,9 @@ export function FormField({
   );
 }
 
+const leadingStyles = StyleSheet.create({
+  icon: { bottom: 0, justifyContent: 'center', left: 13, position: 'absolute', top: 0 },
+});
 const stitchStyles = StyleSheet.create({
   label: { color: '#64748B', fontSize: 12, fontWeight: '600', letterSpacing: 0.8, lineHeight: 16, textTransform: 'uppercase' },
   control: { backgroundColor: '#EFF4FF', borderRadius: 12, borderWidth: 0, minHeight: 44, paddingHorizontal: 14 },
