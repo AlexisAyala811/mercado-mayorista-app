@@ -38,15 +38,15 @@ const stateTone = {
 } as const;
 
 function stateLabel(state: 'open' | 'paid' | 'voided', purchase: boolean) {
-  if (state === 'open') return purchase ? 'Falta pagar' : 'Falta cobrar';
+  if (state === 'open') return purchase ? 'Falta pagar' : 'Saldo pendiente';
   return state === 'paid' ? 'Al día' : 'Anulada';
 }
 
 function chipLabels(purchase: boolean) {
   return [
-    ['open', purchase ? 'Pendientes de abono / Falta pagar' : 'Pendientes de cobro / Falta cobrar', 'danger'],
+    ['open', purchase ? 'Pendientes de abono / Falta pagar' : 'Pendientes de cobro', 'danger'],
     ['all', 'Todos', 'neutral'],
-    ['paid', purchase ? 'Abonados / Al día' : 'Cobrados / Al día', 'success'],
+    ['paid', purchase ? 'Abonados / Al día' : 'Cobradas / Al día', 'success'],
     ['voided', 'Anulados', 'neutral'],
   ] as const;
 }
@@ -63,7 +63,7 @@ export function AccountsOverview(props: Props) {
   // With large text the blocks need more room and wrap to their own lines (T1190).
   const grow = Math.min(Math.max(useWindowDimensions().fontScale, 1), 2);
   return <AppScreen contentContainerStyle={styles.screen} testID="accounts-overview">
-    <AppHeader eyebrow={purchase ? 'COMPRA' : 'VENTA'} subtitle="Control y cobranzas de saldos pendientes" title={copy.title} />
+    <AppHeader eyebrow={purchase ? 'COMPRA' : 'VENTA'} subtitle={purchase ? 'Control y cobranzas de saldos pendientes' : 'Control y recuperación de saldos pendientes - clientes'} title={copy.title} />
     <View style={styles.toolbar}>
       <View style={styles.search}><FormField appearance="search" hideLabel label={copy.searchLabel} leadingIcon="search" value={props.search} onChangeText={props.onSearch} placeholder={purchase ? 'Buscar productor o referencia…' : 'Buscar comprador o referencia…'} autoCorrect={false} /></View>
       <AppButton appearance="stitch-action" label="Actualizar" tone="secondary" onPress={props.onRefresh} />
@@ -98,7 +98,7 @@ export function AccountsOverview(props: Props) {
           return <View key={account.id} style={styles.row}>
             <View style={[styles.party, { flexBasis: 240 * grow }]}>
               <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.avatar}>
-                <SymbolView fallback={null} name={{ android: purchase ? 'person' : 'storefront', ios: 'person.fill', web: 'person' }} size={24} tintColor="#475569" />
+                <SymbolView fallback={null} name={{ android: purchase ? 'person' : 'domain', ios: 'person.fill', web: 'person' }} size={24} tintColor="#475569" />
               </View>
               <View style={styles.partyCopy}>
                 <Text numberOfLines={2} style={styles.name}>{name}</Text>
@@ -109,14 +109,14 @@ export function AccountsOverview(props: Props) {
             <View style={[styles.facts, { flexBasis: 300 * grow }]}>
               <Fact label="Origen" value={purchase ? 'Compra liquidada' : 'Venta a crédito'} />
               <Fact label="Último movimiento" value={accountMovementLabel(account.lastMovementAt)} />
-              <Fact label={purchase ? 'Total / abonado' : 'Total / cobrado'} value={`${formatMoney(account.initialAmountCents)}`} detail={paid === 0n ? (purchase ? '(Sin abono previo)' : '(Sin adelanto)') : `(Ab. ${formatMoney(paid.toString())})`} detailTone={paid === 0n ? 'danger' : 'success'} />
+              <Fact label={purchase ? 'Total / abonado' : 'Total / adelanto'} value={`${formatMoney(account.initialAmountCents)}`} detail={paid === 0n ? (purchase ? '(Sin abono previo)' : '(Sin adelanto)') : `(${purchase ? 'Ab.' : 'Adel.'} ${formatMoney(paid.toString())})`} detailTone={paid === 0n ? 'danger' : 'success'} />
             </View>
             <View style={styles.balance}>
-              <Text style={styles.balanceLabel}>{account.state === 'open' ? (purchase ? 'SALDO PENDIENTE' : 'SALDO POR COBRAR') : 'SALDO'}</Text>
+              <Text style={styles.balanceLabel}>{account.state === 'open' ? 'SALDO PENDIENTE' : 'SALDO'}</Text>
               <Text accessibilityLabel={`Saldo: ${formatMoney(account.balanceCents)}`} style={styles.amount}>{formatMoney(account.balanceCents)}</Text>
             </View>
             <View style={styles.actions}>
-              {account.state === 'open' ? <AppButton appearance="stitch-action" label={settleLabel} displayLabel={purchase ? 'ABONAR / LIQUIDAR' : 'COBRAR / REGISTRAR'} accessibilityLabel={`${settleLabel}: ${name}, referencia ${account.id}`} onPress={() => props.onSettle(account)} stitchTone={purchase ? 'success' : 'neutral'} /> : null}
+              {account.state === 'open' ? <AppButton appearance="stitch-action" label={settleLabel} displayLabel={purchase ? 'ABONAR / LIQUIDAR' : 'Registrar cobro'} accessibilityLabel={`${settleLabel}: ${name}, referencia ${account.id}`} onPress={() => props.onSettle(account)} stitchTone="success" /> : null}
               <AppButton appearance="stitch-action" label="Ver detalle" displayLabel="DETALLE" accessibilityLabel={`Ver detalle de ${name}, referencia ${account.id}`} tone="secondary" onPress={() => props.onOpen(account)} />
             </View>
           </View>;
