@@ -119,3 +119,13 @@ Con texto al 200 % y en el teléfono, compra y venta siguen el flujo por pasos, 
 
 - TalkBack: la imagen del emulador no lo trae.
 - Una tablet física: todo se verificó en el emulador.
+
+## Pantallas sin maqueta propia (10 de noviembre de 2026)
+
+Pendientes de envío, Comprobantes, Mensajería, Usuarios y reemplazos, Auditoría, Flete y estiba, el estado de cuenta y los detalles de compra, venta y cuenta no tienen maqueta en Stitch. Toman su estilo de los componentes compartidos, que ahora usan por defecto el de las maquetas (CL-ST18): tarjetas blancas con borde fino y sombra suave, etiquetas pequeñas en mayúsculas, campos rellenos sin borde, botones de 12 px de radio e indicadores blancos con etiqueta en mayúsculas. Reportes y el acceso conservan sus variantes.
+
+| Verificación | Resultado |
+| --- | --- |
+| `npm run typecheck`, `npm run lint` | Sin errores ni avisos |
+| `npm test -- --runInBand` | 702 pruebas en 101 suites |
+| Emulador 1280 × 800 | [Pendientes de envío](../../img/verificacion-stitch-igual-2026-11-09/otras-sync-queue.png), [Comprobantes](../../img/verificacion-stitch-igual-2026-11-09/otras-receipts.png), [Mensajería](../../img/verificacion-stitch-igual-2026-11-09/otras-messaging.png), [Usuarios y reemplazos](../../img/verificacion-stitch-igual-2026-11-09/otras-administration.png), [Auditoría](../../img/verificacion-stitch-igual-2026-11-09/otras-audit.png), [Flete y estiba](../../img/verificacion-stitch-igual-2026-11-09/otras-cost-settlements.png), [estado de cuenta](../../img/verificacion-stitch-igual-2026-11-09/otras-buyer-statement.png) y [detalle de compra](../../img/verificacion-stitch-igual-2026-11-09/otras-detalle-compra.png) |

@@ -1,7 +1,7 @@
 import { useVisualStyles, type VisualPalette } from "@/ui/visual-theme";
 import { Pressable, StyleSheet, Text, type PressableProps } from "react-native";
 
-import { color as brandColor, radius, spacing, typography } from "@/ui/tokens";
+import { color as brandColor } from "@/ui/tokens";
 import type { ReactNode } from 'react';
 import { reportVisual } from '@/ui/report-tokens';
 
@@ -122,23 +122,23 @@ const createStyles = (color: VisualPalette) =>
   StyleSheet.create({
     base: {
       alignItems: "center",
-      borderRadius: radius.lg,
+      borderRadius: 12,
       justifyContent: "center",
-      minHeight: 52,
-      paddingHorizontal: spacing.lg,
+      minHeight: 48,
+      paddingHorizontal: 20,
     },
-    primary: { backgroundColor: color.brand },
+    primary: { backgroundColor: color.brand, boxShadow: '0px 2px 4px rgba(15,23,42,0.15)' },
     secondary: {
       backgroundColor: color.surfaceRaised,
-      borderColor: color.brand,
+      borderColor: '#CBD5E1',
       borderWidth: 1,
     },
     pressed: { opacity: 0.84 },
     disabled: { opacity: 0.46 },
-    label: { ...typography.bodySmall, fontWeight: "700" },
+    label: { fontSize: 15, fontWeight: "700", lineHeight: 21 },
     expandedLabel: { width: "100%", textAlign: "center" },
     primaryLabel: { color: color.textOnBrand },
-    secondaryLabel: { color: color.brand },
+    secondaryLabel: { color: '#1E293B' },
   });
 
 const loginStyles = StyleSheet.create({

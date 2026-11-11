@@ -1,7 +1,7 @@
 import { useVisualStyles, type VisualPalette } from '@/ui/visual-theme';
 import { Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { radius, spacing, typography } from '@/ui/tokens';
+import { spacing, typography } from '@/ui/tokens';
 import { ReportAsset } from './report-asset';
 import { reportVisual } from '@/ui/report-tokens';
 
@@ -69,22 +69,22 @@ const reportStyles = StyleSheet.create({
 });
 const createStyles = (color: VisualPalette) => StyleSheet.create({
   container: { gap: spacing.sm },
-  label: { color: color.textPrimary, ...typography.bodySmall, fontWeight: '700' },
+  label: { color: '#64748B', fontSize: 12, fontWeight: '600', letterSpacing: 0.8, lineHeight: 16, textTransform: 'uppercase' },
   control: {
     alignItems: 'center',
-    backgroundColor: color.controlSurface ?? color.surfaceRaised,
-    borderColor: color.border,
-    borderRadius: color.cornerRadius ?? radius.md,
-    borderWidth: color.fieldBorderWidth ?? 1,
+    backgroundColor: '#EFF4FF',
+    borderColor: 'transparent',
+    borderRadius: 12,
+    borderWidth: 1,
     flexDirection: 'row',
     gap: spacing.sm,
-    minHeight: 52,
-    paddingHorizontal: spacing.md,
+    minHeight: 48,
+    paddingHorizontal: 14,
   },
   controlError: { borderColor: color.danger, borderWidth: 2 },
   pressed: { borderColor: color.brand },
   disabled: { opacity: 0.56 },
-  value: { color: color.textPrimary, flex: 1, ...typography.bodySmall },
+  value: { color: color.textPrimary, flex: 1, fontSize: 15, fontWeight: '500', lineHeight: 21 },
   placeholder: { color: color.textSecondary },
   chevron: { color: color.brand, fontSize: 18 },
   supporting: { color: color.textSecondary, ...typography.bodySmall },
