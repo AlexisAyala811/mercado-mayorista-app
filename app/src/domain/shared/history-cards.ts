@@ -22,8 +22,9 @@ export type HistoryCard = {
 };
 
 const labels: Record<HistoryKind, Record<HistoryState, string>> = {
-  purchase: { debt: 'Con deuda', paid: 'Pagada', unsettled: 'Sin liquidar', voided: 'Anulada' },
-  sale: { debt: 'Con deuda', paid: 'Cobrada', unsettled: 'Sin liquidar', voided: 'Anulada' },
+  // Words of the Stitch mockups (CL-ST21).
+  purchase: { debt: 'Falta pagar', paid: 'Pagado', unsettled: 'Sin liquidar', voided: 'Anulado' },
+  sale: { debt: 'Por cobrar', paid: 'Cobrado', unsettled: 'Sin liquidar', voided: 'Anulado' },
 };
 
 export function historyStateLabel(kind: HistoryKind, state: HistoryState) {
@@ -33,21 +34,26 @@ export function historyStateLabel(kind: HistoryKind, state: HistoryState) {
 // Chips in Stitch order; a purchase also has «Sin liquidar» (receptions not settled yet).
 export function historyChips(kind: HistoryKind, counts: Partial<Record<HistoryChip, number>> | null) {
   const states: HistoryState[] = kind === 'purchase' ? ['paid', 'debt', 'unsettled', 'voided'] : ['paid', 'debt', 'voided'];
-  const chips: { id: HistoryChip; label: string; count: number | null }[] = [{ count: counts?.all ?? null, id: 'all', label: 'Todas' }];
+  const chips: { id: HistoryChip; label: string; count: number | null }[] = [{ count: counts?.all ?? null, id: 'all', label: 'Todos' }];
   for (const state of states) chips.push({ count: counts?.[state] ?? null, id: state, label: historyChipLabel(kind, state) });
   return chips;
 }
 
 function historyChipLabel(kind: HistoryKind, state: HistoryState) {
-  if (state === 'paid') return kind === 'purchase' ? 'Pagadas' : 'Cobradas';
-  if (state === 'voided') return 'Anuladas';
+  if (state === 'paid') return kind === 'purchase' ? 'Pagados' : 'Cobradas';
+  if (state === 'voided') return kind === 'purchase' ? 'Anulados' : 'Anuladas';
   if (state === 'unsettled') return 'Sin liquidar';
-  return 'Con deuda';
+  return kind === 'purchase' ? 'Falta pagar' : 'Por cobrar / Deuda';
+}
+
+// «60 sacos (3,050 kg)» as in the mockups; the card draws the weight in grey.
+export function historyVolumeParts(card: Pick<HistoryCard, 'sacks' | 'weightKg'>) {
+  return { sacks: `${card.sacks} ${card.sacks === 1 ? 'saco' : 'sacos'}`, weight: `(${formatKilograms(card.weightKg)})` };
 }
 
 export function historyVolume(card: Pick<HistoryCard, 'sacks' | 'weightKg'>) {
-  const sacks = `${card.sacks} ${card.sacks === 1 ? 'saco' : 'sacos'}`;
-  return `${sacks} · ${formatKilograms(card.weightKg)}`;
+  const parts = historyVolumeParts(card);
+  return `${parts.sacks} ${parts.weight}`;
 }
 
 export function historyVarieties(card: Pick<HistoryCard, 'varieties'>) {

@@ -160,6 +160,8 @@ Cada pantalla se compara con su maqueta en el emulador de 1280 × 800 (CL-ST21).
 | Menú, lado Compra | Barra blanca de borde a borde, NUEVO en verde, rayo, punto y descarga en los pies, descripciones de la maqueta | [menú Compra](../../img/verificacion-stitch-igual-2026-11-09/revision-menu-compra.png) |
 | Menú, lado Venta | DESPACHO en verde, «Anote», «Precios hoy» y descripciones de la maqueta | [menú Venta](../../img/verificacion-stitch-igual-2026-11-09/revision-menu-venta.png) |
 | Ver compras | Ancho completo, importes con separador de miles, fichas con conteo en burbuja dentro de la barra de búsqueda | [Ver compras](../../img/verificacion-stitch-igual-2026-11-09/revision-ver-compras.png) |
+| Ver ventas | Borde verde o rojo según el estado, estado con punto bajo el nombre, «Por cobrar / Deuda», volumen «6 sacos (300 kg)», abono en segunda línea, «Cobrar / liquidar»; Ver compras con «Pagado» y «Falta pagar» | [Ver ventas](../../img/verificacion-stitch-igual-2026-11-09/revision-ver-ventas.png) |
+| Compra (maqueta de venta, tablet 1) | Datos en una fila; «Editar proveedores / variedades» junto a «Añadir lote»; el bloque del lote solo aparece con un lote. Aprobada por el usuario el 10 nov 2026 | [compra vacía](../../img/verificacion-stitch-igual-2026-11-09/revision-compra-vacia.png) |
 
 | Verificación | Resultado |
 | --- | --- |

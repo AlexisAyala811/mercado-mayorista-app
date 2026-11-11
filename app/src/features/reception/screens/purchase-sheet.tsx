@@ -157,7 +157,6 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
         <View style={p.detail}><FormField appearance="stitch" editable={!props.detailsLocked && !locked} keyboardType="phone-pad" label="N.° celular" leadingIcon="call" onChangeText={(value) => props.onChangeDetail('providerPhone', value)} placeholder="999 000 000" value={props.details.providerPhone} /></View>
         <View style={p.detail}><FormField appearance="stitch" editable={!props.detailsLocked && !locked} label="Conductor" leadingIcon="badge" onChangeText={(value) => props.onChangeDetail('driverName', value)} placeholder="Nombre del conductor" value={props.details.driverName} /></View>
         <View style={p.detail}><FormField appearance="stitch" editable={!props.detailsLocked && !locked} label="Fecha de acopio" leadingIcon="calendar_today" onChangeText={(value) => props.onChangeDetail('date', value)} placeholder="aaaa-mm-dd" value={props.details.date} /></View>
-        {props.detailsLocked ? null : <View style={p.detailLinks}>{props.referenceActions}</View>}
       </View>
 
       <View style={[s.card, s.tabsCard]}>
@@ -181,6 +180,9 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
             );
           }) : <Text style={s.help}>Añade la primera variedad para empezar a pesar.</Text>}
         </View>
+        {/* Edit providers / varieties sit by «Añadir lote» so the details
+            stay one row, as in the mockup. */}
+        {props.detailsLocked ? null : <View style={p.tabsLinks}>{props.referenceActions}</View>}
         {props.onAddVariety ? (
           <Pressable accessibilityLabel="Añadir lote o variedad" accessibilityRole="button" disabled={locked} onPress={props.onAddVariety} style={({ pressed }) => [s.addLot, (pressed || locked) && s.dimmed]}>
             <SymbolView fallback={null} name={{ android: 'add_circle', ios: 'plus.circle', web: 'add_circle' }} size={20} tintColor={color.textOnBrand} />
@@ -190,6 +192,7 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
       </View>
 
       <View style={s.card} testID="sheet-lot">
+        {active ? (
         <View style={s.lotHeader}>
           <View style={s.lotChip}>
             <SymbolView fallback={null} name={{ android: 'inventory_2', ios: 'shippingbox', web: 'inventory_2' }} size={20} tintColor="#6EE7B7" />
@@ -211,6 +214,7 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
             ) : null}
           </View>
         </View>
+        ) : null}
 
         <View style={s.gridHeader}>
           <View style={p.gridTitle}>
@@ -226,7 +230,7 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
         {targetMessage ? <Text accessibilityLiveRegion="polite" style={s.targetMessage}>{targetMessage}</Text> : null}
 
         <View style={s.gridBox}>
-          {rows.length ? null : <Text style={s.empty}>{active ? 'Escribe el peso bruto del primer saco.' : 'Todavía no hay variedades en esta compra.'}</Text>}
+          {rows.length ? null : <Text style={s.empty}>{active ? 'Escribe el peso bruto del primer saco.' : 'Elige el proveedor y añade un lote o variedad para empezar a pesar.'}</Text>}
           <ScrollView
             keyboardShouldPersistTaps="handled"
             nestedScrollEnabled
@@ -515,7 +519,7 @@ const p = StyleSheet.create({
   details: { flexDirection: 'row', flexWrap: 'wrap', gap: 16 },
   detailWide: { flexBasis: 360, flexGrow: 2, minWidth: 0 },
   detail: { flexBasis: 170, flexGrow: 1, minWidth: 0 },
-  detailLinks: { flexBasis: '100%' },
+  tabsLinks: { marginRight: 8 },
   quality: { backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 2 },
   qualityText: { color: color.textOnBrand, fontSize: 12, fontWeight: '600' },
   edit: { alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 8, height: 32, justifyContent: 'center', width: 32 },
@@ -654,7 +658,7 @@ export const sheetStyles = StyleSheet.create({
   onBrand: { color: color.textOnBrand },
 
   tabsCard: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
-  tabs: { alignItems: 'center', flexDirection: 'row', flexShrink: 1, flexWrap: 'wrap', gap: 10 },
+  tabs: { alignItems: 'center', flexDirection: 'row', flexGrow: 1, flexShrink: 1, flexWrap: 'wrap', gap: 10 },
   tab: { alignItems: 'center', backgroundColor: soft, borderColor: line, borderRadius: radius.md, borderWidth: 1, flexDirection: 'row', gap: spacing.sm, minHeight: 48, paddingHorizontal: spacing.md },
   tabSelected: { backgroundColor: color.brand, borderColor: color.brand, boxShadow: '0px 0px 0px 2px rgba(31,58,47,0.2)' },
   tabLetter: { alignItems: 'center', backgroundColor: color.brandMuted, borderRadius: 6, height: 24, justifyContent: 'center', width: 24 },

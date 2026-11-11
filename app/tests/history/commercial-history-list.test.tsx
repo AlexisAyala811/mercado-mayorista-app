@@ -43,7 +43,7 @@ it('opens with the list, the chips with server counts and the three totals of th
   const { loadPage, loadSummary, root } = await render();
   expect(loadPage).toHaveBeenCalledWith({}, 'all', 0);
   expect(loadSummary).toHaveBeenCalledWith({});
-  expect(radios(root).map((node) => node.props.accessibilityLabel)).toEqual(['Todas: 3', 'Pagadas: 1', 'Con deuda: 1', 'Sin liquidar: 1', 'Anuladas: 0']);
+  expect(radios(root).map((node) => node.props.accessibilityLabel)).toEqual(['Todos: 3', 'Pagados: 1', 'Falta pagar: 1', 'Sin liquidar: 1', 'Anulados: 0']);
   expect(controls(root, (props) => typeof props.value === 'string' && String(props.label).startsWith('Total')).map((node) => [node.props.label, node.props.value])).toEqual([
     ['Total compras', 'S/ 400.00'], ['Total pagado', 'S/ 200.00'],
   ]);
@@ -60,13 +60,14 @@ it('offers «Abonar» only on a card with debt and opens the detail of any card'
   expect(onSettle).toHaveBeenCalledWith(expect.objectContaining({ id: 'a', sourceId: 's-a' }));
   await act(async () => controls(root, (props) => props.label === 'Ver detalle')[1]!.props.onPress());
   expect(onOpen).toHaveBeenCalledWith(expect.objectContaining({ id: 'b' }));
-  expect(texts(root)).toEqual(expect.arrayContaining(['Con deuda', 'Pagada', 'Sin liquidar', '2 sacos · 100 kg', 'Canchán']));
+  expect(texts(root)).toEqual(expect.arrayContaining(['Falta pagar', 'Pagado', 'Sin liquidar', 'Canchán']));
+  expect(root.root.findAll((node) => node.props.accessibilityLabel === 'Volumen / peso: 2 sacos (100 kg)').length).toBeGreaterThan(0);
   await act(async () => root.unmount());
 });
 
 it('filters by chip in the server without asking for the totals again, and searches with dates and name', async () => {
   const { loadPage, loadSummary, root } = await render();
-  await act(async () => radios(root).find((node) => node.props.accessibilityLabel === 'Con deuda: 1')!.props.onPress());
+  await act(async () => radios(root).find((node) => node.props.accessibilityLabel === 'Falta pagar: 1')!.props.onPress());
   expect(loadPage).toHaveBeenLastCalledWith({}, 'debt', 0);
   expect(loadSummary).toHaveBeenCalledTimes(1);
   await act(async () => {
@@ -124,12 +125,12 @@ it('pages through the result and restores search, chip and page when shown again
   await act(async () => control(root, 'Página siguiente').props.onPress());
   expect(loadPage).toHaveBeenLastCalledWith({}, 'all', 20);
   expect(control(root, 'Página siguiente').props.disabled).toBe(true);
-  await act(async () => radios(root).find((node) => node.props.accessibilityLabel === 'Pagadas: 1')!.props.onPress());
+  await act(async () => radios(root).find((node) => node.props.accessibilityLabel === 'Pagados: 1')!.props.onPress());
   await act(async () => control(root, 'Página siguiente').props.onPress());
   expect(saved).toMatchObject({ chip: 'paid', offset: 20 });
   await act(async () => root.unmount());
   const again = await render({ initial: saved, loadPage });
   expect(loadPage).toHaveBeenLastCalledWith({}, 'paid', 20);
-  expect(radios(again.root).find((node) => node.props.accessibilityState.checked)!.props.accessibilityLabel).toBe('Pagadas: 1');
+  expect(radios(again.root).find((node) => node.props.accessibilityState.checked)!.props.accessibilityLabel).toBe('Pagados: 1');
   await act(async () => again.root.unmount());
 });
