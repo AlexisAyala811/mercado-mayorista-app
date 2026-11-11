@@ -8,6 +8,7 @@ import {
   historyStateLabel,
   historyVarieties,
   historyVolume,
+  historyVolumeParts,
   type HistoryCard,
   type HistoryChip,
   type HistoryKind,
@@ -219,27 +220,35 @@ function HistoryRow({ card, disabled, kind, onOpen, onSettle }: { card: HistoryC
   // With large text the blocks need more room and wrap to their own lines (T1190).
   const grow = Math.min(Math.max(useWindowDimensions().fontScale, 1), 2);
   return (
-    <View style={styles.row} testID={`history-${card.id}`}>
+    <View style={[styles.row, !purchase && (debt ? styles.rowDebt : card.state === 'paid' ? styles.rowPaid : null)]} testID={`history-${card.id}`}>
       <View style={[styles.party, { flexBasis: 240 * grow }]}>
         <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={[styles.avatar, { backgroundColor: palette.tile, borderColor: palette.tileBorder }]}>
           <SymbolView fallback={null} name={{ android: 'person', ios: 'person.fill', web: 'person' }} size={24} tintColor={palette.ink} />
         </View>
         <View style={styles.partyCopy}>
-          <View style={styles.nameLine}>
+          {/* Purchases: pill next to the name; sales: pill with a dot under it (mockups). */}
+          <View style={[styles.nameLine, !purchase && styles.nameStack]}>
             <Text numberOfLines={2} style={styles.name}>{card.party}</Text>
-            <View accessibilityLabel={`Estado: ${state}`} style={[styles.badge, { backgroundColor: palette.pill }]}><Text numberOfLines={1} style={[styles.badgeText, { color: palette.pillInk }]}>{state}</Text></View>
+            <View accessibilityLabel={`Estado: ${state}`} style={[styles.badge, { backgroundColor: palette.pill }]}>
+              {purchase ? null : <View style={[styles.badgeDot, { backgroundColor: palette.ink }]} />}
+              <Text numberOfLines={1} style={[styles.badgeText, { color: palette.pillInk }]}>{state}</Text>
+            </View>
           </View>
           <Text style={styles.meta}>{`#${card.id.slice(0, 8).toUpperCase()} • ${card.date}`}</Text>
         </View>
       </View>
       <View style={[styles.facts, { flexBasis: 320 * grow }]}>
         <Fact label="Variedad" value={historyVarieties(card)} />
-        <Fact label="Volumen / peso" value={historyVolume(card)} />
-        <Fact label={purchase ? 'Total / abonado' : 'Total / cobrado'} value={card.totalCents === null ? 'Sin liquidar' : `${formatMoney(card.totalCents)}${debt ? ` (Ab. ${formatMoney(card.paidCents)})` : ''}`} />
+        <Fact accessibilityValue={historyVolume(card)} label="Volumen / peso" value={historyVolumeParts(card).sacks} after={historyVolumeParts(card).weight} />
+        <Fact
+          label={purchase ? 'Total / abonado' : 'Total / cobrado'}
+          note={debt ? (card.paidCents === '0' ? { text: purchase ? '(Sin abono previo)' : '(Sin adelanto)', tone: 'danger' } : { text: `(Ab. ${formatMoney(card.paidCents)})`, tone: 'success' }) : undefined}
+          value={card.totalCents === null ? 'Sin liquidar' : formatMoney(card.totalCents)}
+        />
       </View>
       {/* Voided or not settled: no payment to show (spec 011, RQ-ST05). */}
       {debt || card.state === 'paid' ? (
-        <View style={[styles.amountBox, { backgroundColor: debt ? '#FEF2F2' : '#FFFFFF', borderColor: debt ? '#FECACA' : '#E2E8F0' }]}>
+        <View style={[styles.amountBox, { backgroundColor: debt ? '#FEF2F2' : purchase ? '#FFFFFF' : '#ECFDF5', borderColor: debt ? '#FECACA' : purchase ? '#E2E8F0' : '#A7F3D0' }]}>
           <Text style={[styles.amountLabel, { color: debt ? '#B91C1C' : '#64748B' }]}>{debt ? (purchase ? 'SALDO PENDIENTE' : 'SALDO POR COBRAR') : purchase ? 'TOTAL PAGADO' : 'TOTAL COBRADO'}</Text>
           <Text accessibilityLabel={`${debt ? 'Saldo' : 'Pagado'}: ${formatMoney(debt ? card.balanceCents : card.paidCents)}`} style={[styles.amount, { color: debt ? '#B91C1C' : '#047857' }]}>{formatMoney(debt ? card.balanceCents : card.paidCents)}</Text>
         </View>
@@ -251,7 +260,7 @@ function HistoryRow({ card, disabled, kind, onOpen, onSettle }: { card: HistoryC
       )}
       <View style={styles.actions}>
         {debt && card.sourceId ? (
-          <AppButton accessibilityLabel={`${purchase ? 'Abonar' : 'Cobrar'} a ${card.party}, ${card.date}`} appearance="stitch-action" disabled={disabled} displayLabel={purchase ? 'ABONAR / LIQUIDAR' : 'REGISTRAR COBRO'} label={purchase ? 'Abonar' : 'Cobrar'} onPress={() => onSettle(card)} stitchTone="danger" />
+          <AppButton accessibilityLabel={`${purchase ? 'Abonar' : 'Cobrar'} a ${card.party}, ${card.date}`} appearance="stitch-action" disabled={disabled} displayLabel={purchase ? 'ABONAR / LIQUIDAR' : 'COBRAR / LIQUIDAR'} label={purchase ? 'Abonar' : 'Cobrar'} onPress={() => onSettle(card)} stitchTone="danger" />
         ) : null}
         <AppButton accessibilityLabel={`Ver detalle de ${card.party}, ${card.date}, operación ${card.id}`} appearance="stitch-action" disabled={disabled} displayLabel="VER DETALLE" label="Ver detalle" onPress={() => onOpen(card)} stitchTone={debt ? 'neutral' : 'success'} tone="secondary" />
       </View>
@@ -259,11 +268,12 @@ function HistoryRow({ card, disabled, kind, onOpen, onSettle }: { card: HistoryC
   );
 }
 
-function Fact({ label, value }: { label: string; value: string }) {
+function Fact({ accessibilityValue, after, label, note, value }: { accessibilityValue?: string; after?: string; label: string; note?: { text: string; tone: 'success' | 'danger' }; value: string }) {
   return (
-    <View style={styles.fact}>
+    <View accessibilityLabel={`${label}: ${accessibilityValue ?? value}${note ? ` ${note.text}` : ''}`} accessible style={styles.fact}>
       <Text style={styles.factLabel}>{label.toUpperCase()}</Text>
-      <Text numberOfLines={2} style={styles.factValue}>{value}</Text>
+      <Text numberOfLines={2} style={styles.factValue}>{value}{after ? <Text style={styles.factAfter}>{` ${after}`}</Text> : null}</Text>
+      {note ? <Text style={[styles.factNote, { color: note.tone === 'success' ? '#047857' : '#B91C1C' }]}>{note.text}</Text> : null}
     </View>
   );
 }
@@ -290,8 +300,14 @@ const styles = StyleSheet.create({
   avatar: { alignItems: 'center', borderRadius: 12, borderWidth: 1, height: 48, justifyContent: 'center', width: 48 },
   partyCopy: { flexShrink: 1, gap: 4, minWidth: 0 },
   nameLine: { alignItems: 'center', flexDirection: 'row', gap: 8, minWidth: 0 },
+  nameStack: { alignItems: 'flex-start', flexDirection: 'column', gap: 4 },
+  rowPaid: { borderColor: '#A7F3D0', borderWidth: 2 },
+  rowDebt: { borderColor: '#FCA5A5', borderWidth: 2 },
+  badgeDot: { borderRadius: 3, height: 6, width: 6 },
+  factAfter: { color: '#64748B', fontSize: 12, fontWeight: '500' },
+  factNote: { fontSize: 11, fontWeight: '700' },
   name: { color: '#0F172A', flexShrink: 1, fontSize: 16, fontWeight: '700', lineHeight: 22, minWidth: 0 },
-  badge: { borderRadius: 999, flexShrink: 0, paddingHorizontal: 8, paddingVertical: 2 },
+  badge: { alignItems: 'center', borderRadius: 999, flexDirection: 'row', flexShrink: 0, gap: 5, paddingHorizontal: 8, paddingVertical: 2 },
   badgeText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.4, textTransform: 'uppercase' },
   meta: { color: '#64748B', fontSize: 12, fontWeight: '500' },
   facts: { backgroundColor: '#F8FAFC', borderColor: '#E2E8F0', borderRadius: 12, borderWidth: 1, flexBasis: 320, flexDirection: 'row', flexGrow: 2, flexShrink: 1, flexWrap: 'wrap', gap: 12, padding: 12 },
