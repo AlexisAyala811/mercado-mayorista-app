@@ -23,7 +23,9 @@ type FormFieldProps = TextInputProps & {
   error?: string;
   label: string;
   supportingText?: string;
-  appearance?: "default" | "login" | "report" | "stitch";
+  appearance?: "default" | "login" | "report" | "stitch" | "search";
+  // The label is read by TalkBack but not drawn (Stitch search boxes).
+  hideLabel?: boolean;
   reportFontsLoaded?: boolean;
   // Material symbol drawn at the start of the control (Stitch fields).
   leadingIcon?: AndroidSymbol;
@@ -45,6 +47,7 @@ export function FormField({
   leadingIcon,
   trailing,
   labelAction,
+  hideLabel = false,
   ...props
 }: FormFieldProps) {
   const styles = useVisualStyles(createStyles);
@@ -60,12 +63,12 @@ export function FormField({
         appearance === "login" && loginStyles.container,
       ]}
     >
-      <View style={labelAction ? loginStyles.labelRow : null}>
+      {hideLabel ? null : <View style={labelAction ? loginStyles.labelRow : null}>
       <Text style={[styles.label, appearance === "login" && loginStyles.label, appearance === 'report' && reportStyles.label, appearance === 'report' && reportFontsLoaded && {fontFamily:'ReportInterSemiBold'}, appearance === 'stitch' && stitchStyles.label]}>
         {label}
       </Text>
       {labelAction}
-      </View>
+      </View>}
       <View>
       <TextInput
         ref={inputRef}
@@ -89,6 +92,7 @@ export function FormField({
           appearance === 'report' && reportFontsLoaded && {fontFamily:'ReportInterRegular'},
           appearance === 'stitch' && [stitchStyles.control, stitchStyles.value],
           appearance === 'stitch' && props.editable === false && { color: '#475569' },
+          appearance === 'search' && loginStyles.search,
           leadingIcon && { paddingLeft: 42 },
           trailing ? { paddingRight: 52 } : null,
           error && styles.inputError,
@@ -164,5 +168,6 @@ const loginStyles = StyleSheet.create({
     lineHeight: 20,
     minHeight: 52,
   },
+  search: { backgroundColor: '#FFFFFF', borderColor: '#CBD5E1', borderRadius: 12, borderWidth: 1, fontSize: 15, minHeight: 50 },
   trailing: { bottom: 0, justifyContent: 'center', position: 'absolute', right: 4, top: 0 },
 });

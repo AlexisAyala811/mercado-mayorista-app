@@ -9,6 +9,7 @@ import { accountDueLabel, accountMovementLabel } from '@/domain/accounts/account
 import { formatMoney } from '@/domain/reception/reception';
 import type { Account } from '@/services/api/operations-api';
 import { AppButton, AppScreen, EmptyState, FormField, MetricTile } from '@/ui/components';
+import { CountChips } from '@/ui/components/count-chips';
 import { AppHeader } from '@/ui/navigation/app-header';
 import { color, spacing } from '@/ui/tokens';
 
@@ -29,13 +30,26 @@ type Props = {
   feedback: ReactNode; children: ReactNode;
 };
 
+// Grey pill with a coloured dot, as in the Stitch «Deudas» mockup (CL-ST21).
 const stateTone = {
-  open: { label: 'Pendiente', pill: '#FEE2E2', ink: '#991B1B', tile: '#FEF2F2', border: '#FECACA', icon: '#B91C1C' },
-  paid: { label: 'Pagada', pill: '#D1FAE5', ink: '#065F46', tile: '#ECFDF5', border: '#A7F3D0', icon: '#047857' },
-  voided: { label: 'Anulada', pill: '#E2E8F0', ink: '#334155', tile: '#F8FAFC', border: '#E2E8F0', icon: '#475569' },
+  open: { dot: '#DC2626' },
+  paid: { dot: '#10B981' },
+  voided: { dot: '#94A3B8' },
 } as const;
 
-const chips = [['open', 'Pendientes'], ['all', 'Todas'], ['paid', 'Al día'], ['voided', 'Anuladas']] as const;
+function stateLabel(state: 'open' | 'paid' | 'voided', purchase: boolean) {
+  if (state === 'open') return purchase ? 'Falta pagar' : 'Falta cobrar';
+  return state === 'paid' ? 'Al día' : 'Anulada';
+}
+
+function chipLabels(purchase: boolean) {
+  return [
+    ['open', purchase ? 'Pendientes de abono / Falta pagar' : 'Pendientes de cobro / Falta cobrar', 'danger'],
+    ['all', 'Todos', 'neutral'],
+    ['paid', purchase ? 'Abonados / Al día' : 'Cobrados / Al día', 'success'],
+    ['voided', 'Anulados', 'neutral'],
+  ] as const;
+}
 
 // MAÑAY Deudas / Cobranzas list (spec 011, T1130, CL-ST18): the layout of the
 // Stitch «Deudas» mockup: search and actions on top, state chips with counts
@@ -51,16 +65,14 @@ export function AccountsOverview(props: Props) {
   return <AppScreen contentContainerStyle={styles.screen} testID="accounts-overview">
     <AppHeader eyebrow={purchase ? 'COMPRA' : 'VENTA'} subtitle="Control y cobranzas de saldos pendientes" title={copy.title} />
     <View style={styles.toolbar}>
-      <View style={styles.search}><FormField appearance="stitch" label={copy.searchLabel} value={props.search} onChangeText={props.onSearch} placeholder="Buscar productor, comprador o referencia…" autoCorrect={false} /></View>
+      <View style={styles.search}><FormField appearance="search" hideLabel label={copy.searchLabel} leadingIcon="search" value={props.search} onChangeText={props.onSearch} placeholder={purchase ? 'Buscar productor o referencia…' : 'Buscar comprador o referencia…'} autoCorrect={false} /></View>
       <AppButton appearance="stitch-action" label="Actualizar" tone="secondary" onPress={props.onRefresh} />
+      {props.ready ? <AppButton appearance="stitch-action" label="Limpiar búsqueda de cuentas" displayLabel="Limpiar filtros" tone="secondary" onPress={props.onClearFilters} /> : null}
       <AppButton appearance="stitch-action" displayLabel={purchase ? '+ NUEVA COMPRA' : '+ NUEVA VENTA'} label={copy.originLabel} onPress={props.onNewSource} stitchTone="success" />
     </View>
     {props.feedback}
     {props.ready ? <View style={styles.filters}>
-      <View accessibilityRole="radiogroup" style={styles.chips}>
-        {chips.map(([state, label]) => <AppButton key={state} appearance="stitch-chip" label={`${label} ${props.counts[state]}`} accessibilityLabel={`${label}: ${props.counts[state]}`} accessibilityRole="radio" accessibilityState={{ checked: props.stateFilter === state }} stitchTone={state === 'open' ? 'danger' : state === 'paid' ? 'success' : 'neutral'} tone={props.stateFilter === state ? 'primary' : 'secondary'} onPress={() => props.onStateFilter(state)} />)}
-        <AppButton appearance="stitch-chip" label="Limpiar búsqueda de cuentas" displayLabel="Limpiar filtros" tone="secondary" onPress={props.onClearFilters} />
-      </View>
+      <CountChips chips={chipLabels(purchase).map(([id, label, tone]) => ({ count: props.counts[id], id, label, tone }))} onSelect={props.onStateFilter} selected={props.stateFilter} />
       {props.onSwitchKind ? (
         <View accessibilityRole="tablist" style={styles.kinds}>
           {([['purchase', 'Deudas a productores (compras)'], ['sale', 'Cuentas por cobrar (clientes)']] as const).map(([kind, label]) => {
@@ -85,19 +97,19 @@ export function AccountsOverview(props: Props) {
           const paid = BigInt(account.initialAmountCents) - BigInt(account.balanceCents);
           return <View key={account.id} style={styles.row}>
             <View style={[styles.party, { flexBasis: 240 * grow }]}>
-              <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={[styles.avatar, { backgroundColor: tone.tile, borderColor: tone.border }]}>
-                <SymbolView fallback={null} name={{ android: purchase ? 'person' : 'storefront', ios: 'person.fill', web: 'person' }} size={24} tintColor={tone.icon} />
+              <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.avatar}>
+                <SymbolView fallback={null} name={{ android: purchase ? 'person' : 'storefront', ios: 'person.fill', web: 'person' }} size={24} tintColor="#475569" />
               </View>
               <View style={styles.partyCopy}>
                 <Text numberOfLines={2} style={styles.name}>{name}</Text>
                 <Text ellipsizeMode="middle" numberOfLines={1} style={styles.reference}>{`#${account.id.slice(0, 8).toUpperCase()} • ${accountDueLabel(account.nextDueOn)}`}</Text>
-                <View accessibilityLabel={`Estado: ${tone.label}`} style={[styles.badge, { backgroundColor: tone.pill }]}><Text style={[styles.badgeText, { color: tone.ink }]}>{tone.label}</Text></View>
+                <View accessibilityLabel={`Estado: ${stateLabel(account.state, purchase)}`} style={styles.badge}><View style={[styles.badgeDot, { backgroundColor: tone.dot }]} /><Text style={styles.badgeText}>{stateLabel(account.state, purchase)}</Text></View>
               </View>
             </View>
             <View style={[styles.facts, { flexBasis: 300 * grow }]}>
               <Fact label="Origen" value={purchase ? 'Compra liquidada' : 'Venta a crédito'} />
               <Fact label="Último movimiento" value={accountMovementLabel(account.lastMovementAt)} />
-              <Fact label="Total / abonado" value={`${formatMoney(account.initialAmountCents)}`} detail={`Ab. ${formatMoney(paid.toString())}`} />
+              <Fact label={purchase ? 'Total / abonado' : 'Total / cobrado'} value={`${formatMoney(account.initialAmountCents)}`} detail={paid === 0n ? (purchase ? '(Sin abono previo)' : '(Sin adelanto)') : `(Ab. ${formatMoney(paid.toString())})`} detailTone={paid === 0n ? 'danger' : 'success'} />
             </View>
             <View style={styles.balance}>
               <Text style={styles.balanceLabel}>{account.state === 'open' ? (purchase ? 'SALDO PENDIENTE' : 'SALDO POR COBRAR') : 'SALDO'}</Text>
@@ -115,20 +127,19 @@ export function AccountsOverview(props: Props) {
   </AppScreen>;
 }
 
-function Fact({ detail, label, value }: { detail?: string; label: string; value: string }) {
+function Fact({ detail, detailTone = 'success', label, value }: { detail?: string; detailTone?: 'success' | 'danger'; label: string; value: string }) {
   return <View style={styles.fact}>
     <Text style={styles.factLabel}>{label.toUpperCase()}</Text>
     <Text numberOfLines={2} style={styles.factValue}>{value}</Text>
-    {detail ? <Text style={styles.factDetail}>{detail}</Text> : null}
+    {detail ? <Text style={[styles.factDetail, detailTone === 'danger' && styles.factDetailDanger]}>{detail}</Text> : null}
   </View>;
 }
 
 const styles = StyleSheet.create({
   screen: { gap: spacing.md, maxWidth: 1280 },
-  toolbar: { alignItems: 'flex-end', flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  toolbar: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   search: { flexBasis: 320, flexGrow: 1 },
   filters: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', gap: 12, justifyContent: 'space-between' },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   kinds: { backgroundColor: '#F1F5F9', borderColor: '#E2E8F0', borderRadius: 12, borderWidth: 1, flexDirection: 'row', padding: 4 },
   kind: { borderRadius: 8, justifyContent: 'center', minHeight: 40, paddingHorizontal: 12 },
   kindSelected: { backgroundColor: color.surfaceRaised, boxShadow: '0px 1px 2px rgba(15,23,42,0.08)' },
@@ -140,17 +151,19 @@ const styles = StyleSheet.create({
   list: { gap: 12 },
   row: { alignItems: 'center', backgroundColor: color.surfaceRaised, borderColor: '#E2E8F0', borderRadius: 16, borderWidth: 1, boxShadow: '0px 1px 2px rgba(15,23,42,0.05)', flexDirection: 'row', flexWrap: 'wrap', gap: 16, padding: 16 },
   party: { alignItems: 'center', flexBasis: 240, flexDirection: 'row', flexGrow: 1, flexShrink: 1, gap: 12, minWidth: 0 },
-  avatar: { alignItems: 'center', borderRadius: 12, borderWidth: 1, height: 48, justifyContent: 'center', width: 48 },
+  avatar: { alignItems: 'center', backgroundColor: '#F1F5F9', borderColor: '#E2E8F0', borderRadius: 12, borderWidth: 1, height: 48, justifyContent: 'center', width: 48 },
   partyCopy: { flexShrink: 1, gap: 4, minWidth: 0 },
   name: { color: '#0F172A', fontSize: 16, fontWeight: '700', lineHeight: 22 },
   reference: { color: '#64748B', fontSize: 12, fontWeight: '500' },
-  badge: { alignSelf: 'flex-start', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 },
-  badgeText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.4, textTransform: 'uppercase' },
+  badge: { alignItems: 'center', alignSelf: 'flex-start', backgroundColor: '#F1F5F9', borderColor: '#CBD5E1', borderRadius: 6, borderWidth: 1, flexDirection: 'row', gap: 6, paddingHorizontal: 8, paddingVertical: 2 },
+  badgeDot: { borderRadius: 3, height: 6, width: 6 },
+  badgeText: { color: '#334155', fontSize: 11, fontWeight: '700', letterSpacing: 0.4, textTransform: 'uppercase' },
   facts: { backgroundColor: '#F8FAFC', borderColor: '#E2E8F0', borderRadius: 12, borderWidth: 1, flexBasis: 300, flexDirection: 'row', flexGrow: 2, flexShrink: 1, flexWrap: 'wrap', gap: 12, padding: 12 },
   fact: { flexBasis: 90, flexGrow: 1, flexShrink: 1, gap: 2, minWidth: 0 },
   factLabel: { color: '#64748B', fontSize: 10, fontWeight: '700', letterSpacing: 0.6 },
   factValue: { color: '#0F172A', fontSize: 13, fontWeight: '700' },
   factDetail: { color: '#047857', fontSize: 11, fontWeight: '600' },
+  factDetailDanger: { color: '#B91C1C' },
   balance: { alignItems: 'flex-end', backgroundColor: color.surfaceRaised, borderColor: '#E2E8F0', borderRadius: 12, borderWidth: 1, flexBasis: 150, gap: 2, padding: 10 },
   balanceLabel: { color: '#64748B', fontSize: 10, fontWeight: '700', letterSpacing: 0.6 },
   amount: { color: '#0F172A', fontFamily: 'monospace', fontSize: 18, fontWeight: '800' },

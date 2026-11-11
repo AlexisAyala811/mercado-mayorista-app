@@ -163,6 +163,7 @@ Cada pantalla se compara con su maqueta en el emulador de 1280 × 800 (CL-ST21).
 | Ver ventas | Borde verde o rojo según el estado, estado con punto bajo el nombre, «Por cobrar / Deuda», volumen «6 sacos (300 kg)», abono en segunda línea, «Cobrar / liquidar»; Ver compras con «Pagado» y «Falta pagar» | [Ver ventas](../../img/verificacion-stitch-igual-2026-11-09/revision-ver-ventas.png) |
 | Compra (maqueta de venta, tablet 1) | Datos en una fila; «Editar proveedores / variedades» junto a «Añadir lote»; el bloque del lote solo aparece con un lote. Aprobada por el usuario el 10 nov 2026 | [compra vacía](../../img/verificacion-stitch-igual-2026-11-09/revision-compra-vacia.png) |
 | Anote de compra con lotes | «Añadir lote / variedad» visible y desactivado tras el primer saco (el servidor solo acepta las variedades elegidas al crear la recepción); la tabla muestra las variedades sin sacos con «0 sacos». Aprobado por el usuario el 10 nov 2026 | [lotes](../../img/verificacion-stitch-igual-2026-11-09/revision-anote-lotes.png), [tabla](../../img/verificacion-stitch-igual-2026-11-09/revision-anote-tabla.png) |
+| Deudas | Buscador blanco con lupa, fichas «Pendientes de abono / Falta pagar», «Todos», «Abonados / Al día» con conteo en burbuja y el selector en la misma fila, etiqueta gris con punto, «(Sin abono previo)» en rojo. Aprobada por el usuario el 10 nov 2026 | [Deudas](../../img/verificacion-stitch-igual-2026-11-09/revision-deudas.png) |
 
 | Verificación | Resultado |
 | --- | --- |

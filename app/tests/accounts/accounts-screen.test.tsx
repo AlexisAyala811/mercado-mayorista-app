@@ -478,7 +478,7 @@ it("searches counterparties and preserves filters after opening and leaving deta
   ).toBe("JOSE");
   await act(async () => {
     root.root
-      .findAll((node) => node.props.accessibilityRole === "radio" && String(node.props.accessibilityLabel).startsWith("Al día"))[0]
+      .findAll((node) => node.props.accessibilityRole === "radio" && String(node.props.accessibilityLabel).startsWith("Abonados / Al día"))[0]
       .props.onPress();
   });
   expect(
@@ -711,7 +711,7 @@ describe("Stitch convergence of Deudas", () => {
     expect(metric(root, "Total deuda acumulada")).toBe("S/ 80.00");
     expect(metric(root, "Saldo vencido")).toBe("S/ 80.00");
     expect(metric(root, "Total abonado este mes")).toBe("S/ 0.00");
-    expect(root.root.findAll((node) => (node.type as unknown) === "test-control" && node.props.accessibilityRole === "radio").map((node) => node.props.label)).toEqual(["Pendientes 1", "Todas 2", "Al día 1", "Anuladas 0"]);
+    expect(root.root.findAll((node) => node.props.accessibilityRole === "radio" && typeof node.props.onPress === "function").map((node) => node.props.accessibilityLabel)).toEqual(["Pendientes de abono / Falta pagar: 1", "Todos: 2", "Abonados / Al día: 1", "Anulados: 0"]);
     expect(root.root.findAll((node) => (node.type as unknown) === "test-control" && node.props.label === "Abonar")).toHaveLength(1);
     await act(async () => root.unmount());
   });
