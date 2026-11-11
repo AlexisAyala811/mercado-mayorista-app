@@ -9,6 +9,7 @@ import { calculateSalePreview } from '@/domain/sales/sale-preview';
 import { validateCreditSchedule } from '@/domain/reception/purchase-preview';
 import { validateSaleLine, withWeights, type Buyer, type Sale, type SaleLineDraft } from '@/domain/sales/sale';
 import { SaleSheet } from '@/features/sales/screens/sale-sheet';
+import { LotDialog, type NewLot } from '@/features/sales/components/lot-dialog';
 import { formatLocalDateInput } from '@/domain/shared/date';
 import { useSession } from '@/features/auth/session/session-provider';
 import { useSyncQueue } from '@/features/sync/sync-queue-provider';
@@ -163,17 +164,21 @@ export function SaleFlowScreen() {
       const selected = buyers.find((item) => item.id === choice.id)!;
       setBuyerId(selected.id); setDestination(selected.destinationDepartment ?? ''); setDialog(null);
     } else if (dialog === 'vehicle') { setVehicleId(choice.id); setDialog(null); }
-    else if (dialog === 'variety' && sheet) { addLot(choice.id); setDialog(null); }
     else if (dialog === 'variety') { setDraft((current) => ({ ...current, varietyId: choice.id })); setDialog(null); }
   }
 
   // Sheet: each lot is a line whose sacks are weighed one by one.
-  function addLot(varietyId: string) {
+  // «Crear lote» of the sheet (CL-ST22): variety, quality, price and the
+  // number of empty cells the lot starts with.
+  function addLot(lot: NewLot) {
     setError(null);
-    const line = withWeights({ id: createOperationId(), varietyId, priceBasis: 'kilogram', sacks: '0', unitPrice: '', weightKg: '0', qualityId: null, originId: null }, []);
-    if (lines.some((item) => commercialLineKey(item) === commercialLineKey(line))) { setError('Esta variedad ya tiene un lote; cambia su calidad o procedencia para añadir otro.'); return; }
+    let line = withWeights({ id: createOperationId(), varietyId: lot.varietyId, priceBasis: 'kilogram', sacks: '0', unitPrice: lot.unitPrice, weightKg: '0', qualityId: lot.qualityId, originId: null, plannedSacks: lot.plannedSacks }, []);
+    if (lines.some((item) => commercialLineKey(item) === commercialLineKey(line))) { setError('Esta variedad ya tiene un lote con esa calidad; cambia la calidad o la procedencia para añadir otro.'); return false; }
+    try { line = { ...line, ...captureCommercialSnapshot(line, qualities, origins) }; }
+    catch (cause) { setError(cause instanceof Error ? cause.message : 'Revisa la calidad del lote.'); return false; }
     setLines((current) => [...current, line]);
     setActiveLineId(line.id);
+    return true;
   }
   function updateLine(id: string, change: (line: SaleLineDraft) => SaleLineDraft) {
     setLines((current) => current.map((line) => (line.id === id ? change(line) : line)));
@@ -277,7 +282,8 @@ export function SaleFlowScreen() {
     return `Cuota ${index + 1}: ${item.dueOn || 'Fecha pendiente'} · ${cents === null ? 'Importe pendiente' : formatMoney(cents)}.`;
   }).join(' ') : '';
   const dialogs = <>
-    <ChoiceDialog choices={dialog === 'buyer' ? buyers.map((item) => ({ id: item.id, label: item.name, supportingText: item.destinationDepartment ?? undefined })) : dialog === 'vehicle' ? vehicles.map((item) => ({ id: item.id, label: item.plate, supportingText: item.description ?? undefined })) : varietyChoices} onClose={() => setDialog(null)} onSelect={select} selectedIds={[buyerId, vehicleId, draft.varietyId]} title={dialog === 'buyer' ? 'Seleccionar comprador' : dialog === 'vehicle' ? 'Seleccionar vehículo' : 'Seleccionar variedad'} visible={dialog !== null} />
+    <ChoiceDialog choices={dialog === 'buyer' ? buyers.map((item) => ({ id: item.id, label: item.name, supportingText: item.destinationDepartment ?? undefined })) : dialog === 'vehicle' ? vehicles.map((item) => ({ id: item.id, label: item.plate, supportingText: item.description ?? undefined })) : varietyChoices} onClose={() => setDialog(null)} onSelect={select} selectedIds={[buyerId, vehicleId, draft.varietyId]} title={dialog === 'buyer' ? 'Seleccionar comprador' : dialog === 'vehicle' ? 'Seleccionar vehículo' : 'Seleccionar variedad'} visible={dialog !== null && !(sheet && dialog === 'variety')} />
+    <LotDialog onCancel={() => setDialog(null)} onCreate={(lot) => { if (addLot(lot)) setDialog(null); }} qualities={qualities.filter((item) => item.isActive).map((item) => ({ id: item.id, label: item.name }))} varieties={varietyChoices.map((item) => ({ id: item.id, label: item.label }))} visible={sheet && dialog === 'variety'} />
     <ConfirmationDialog busy={busy} confirmLabel="Confirmar venta" message={preview.kind === 'ready' ? `${buyer?.name ?? 'Comprador'} · ${destination}. Bruto ${formatMoney(preview.grossCents)}, flete ${formatMoney(preview.freightCents)} (${freightIncluded ? 'incluido' : 'separado'}), descuento ${formatMoney(preview.discountsCents)} y total ${formatMoney(preview.totalCents)}. Pago ${paymentMode === 'cash' ? 'al contado' : 'a crédito'}. ${scheduleReview} Se registrará la venta y su efecto financiero.` : 'Revisa los datos de la venta.'} onCancel={() => setConfirming(false)} onConfirm={() => void submit()} title="¿Confirmar la venta?" visible={confirming} />
     <ConfirmationDialog busy={busy} confirmLabel="Salir sin guardar" title="¿Salir de la venta?" message="Los datos en edición todavía no se han guardado. Si sales, perderás este borrador de venta." visible={exitAction !== null} onCancel={()=>setExitAction(null)} onConfirm={confirmExit} />
   </>;
@@ -296,6 +302,7 @@ export function SaleFlowScreen() {
         lotCharacteristics={activeLine ? <CharacteristicFields appearance="stitch" value={activeLine} qualities={qualities} origins={origins} disabled={busy} onChange={changeLotCharacteristic}/> : null}
         lines={lines} lineName={lineName} activeLineId={activeLine?.id ?? null} onSelectLine={setActiveLineId}
         onAddLot={() => setDialog('variety')} onRemoveLot={(id) => { setLines((current) => current.filter((line) => line.id !== id)); setActiveLineId(null); }}
+        onPlanSacks={(id, count) => updateLine(id, (line) => ({ ...line, plannedSacks: count }))}
         onAddSack={(weight) => activeLine && updateLine(activeLine.id, (line) => withWeights(line, [...(line.weights ?? []), weight]))}
         onCorrectSack={(index, weight) => activeLine && updateLine(activeLine.id, (line) => withWeights(line, (line.weights ?? []).map((value, position) => (position === index ? weight : value))))}
         onChangeLine={(id, field, value) => updateLine(id, (line) => ({ ...line, [field]: value }))}

@@ -53,6 +53,8 @@ export type SaleLineDraft = Partial<CommercialSnapshot>&{
   // Spec 011 (CL-ST19): sacks weighed one by one on the tablet sheet, in whole
   // kilograms. The line is sent with their count and the sum of their weights.
   weights?: string[];
+  // Cells drawn for the lot on the sheet (CL-ST22); never sent to the server.
+  plannedSacks?: number;
 };
 
 export function saleLineGrams(line: Pick<SaleLineDraft, 'weights'>): bigint {

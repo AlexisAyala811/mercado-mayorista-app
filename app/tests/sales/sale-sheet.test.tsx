@@ -4,6 +4,7 @@ import { act, create, type ReactTestRenderer } from 'react-test-renderer';
 import { saleLineGrams, withWeights } from '@/domain/sales/sale';
 import { saleConfirmationSummary } from '@/domain/shared/confirmation-summary';
 import { SaleFlowScreen } from '@/features/sales/screens/sale-flow-screen';
+import { LotDialog } from '@/features/sales/components/lot-dialog';
 import { getSale, loadSaleCatalogs } from '@/services/api/sales-api';
 import { withChrome } from '../shared/with-chrome';
 
@@ -46,11 +47,20 @@ const press = (root: ReactTestRenderer, label: string) => root.root.findAll((nod
 const type = (root: ReactTestRenderer, label: string, value: string) => root.root.findAll((node) => node.props.accessibilityLabel === label && typeof node.props.onChangeText === 'function')[0]!.props.onChangeText(value);
 const dialog = (root: ReactTestRenderer, title: string) => root.root.findAll((node) => node.props.title === title)[0]!;
 
+const typeDraft = (root: ReactTestRenderer, value: string) => root.root.findAll((node) => String(node.props.accessibilityLabel ?? '').startsWith('Peso del saco') && typeof node.props.onChangeText === 'function')[0]!.props.onChangeText(value);
+
 async function weigh(root: ReactTestRenderer, weights: string[]) {
   for (const weight of weights) {
-    await act(async () => { type(root, 'Peso del saco (kg)', weight); });
-    await act(async () => { press(root, 'Añadir saco'); });
+    await act(async () => { typeDraft(root, weight); });
+    await act(async () => { press(root, 'Registrar peso'); });
   }
+}
+
+// «Añadir nuevo lote / variedad» (CL-ST22).
+async function createLot(root: ReactTestRenderer, varietyId: string, unitPrice = '', plannedSacks = 10) {
+  await act(async () => { press(root, 'Añadir lote o variedad'); });
+  expect(root.root.findByType(LotDialog).props.visible).toBe(true);
+  await act(async () => { root.root.findByType(LotDialog).props.onCreate({ varietyId, qualityId: null, unitPrice, plannedSacks }); });
 }
 
 it('sums the weighed sacks into each line and sends the same sale as the form', async () => {
@@ -60,19 +70,18 @@ it('sums the weighed sacks into each line and sends the same sale as the form', 
   await act(async () => { root.root.findAll((node) => node.props.label === 'Nombre del cliente / comprador')[0]!.props.onPress(); });
   await act(async () => { dialog(root, 'Seleccionar comprador').props.onSelect({ id: 'buyer' }); });
   expect(root.root.findAll((node) => node.props.label === 'N.° celular')[0]!.props.value).toBe('999');
-  await act(async () => { press(root, 'Añadir lote o variedad'); });
-  await act(async () => { dialog(root, 'Seleccionar variedad').props.onSelect({ id: 'canchan' }); });
+  await createLot(root, 'canchan');
   await weigh(root, ['50', '51', '49']);
   // A sack is corrected from the grid.
   await act(async () => { press(root, 'Saco 2: 51 kilos'); });
-  await act(async () => { type(root, 'Peso del saco (kg)', '52'); });
+  await act(async () => { type(root, 'Corregir peso del saco 2 (kg)', '52'); });
   await act(async () => { press(root, 'Guardar corrección'); });
   await act(async () => { type(root, 'Precio por kilogramo, lote A (S/)', '2.00'); });
   expect(root.root.findAll((node) => node.props.accessibilityLabel === 'Importe del lote A: S/ 302.00')).not.toHaveLength(0);
   // The same variety cannot get a second lot without another quality or origin.
-  await act(async () => { press(root, 'Añadir lote o variedad'); });
-  await act(async () => { dialog(root, 'Seleccionar variedad').props.onSelect({ id: 'canchan' }); });
-  expect(root.root.findAll((node) => node.props.message === 'Esta variedad ya tiene un lote; cambia su calidad o procedencia para añadir otro.')).not.toHaveLength(0);
+  await createLot(root, 'canchan');
+  expect(root.root.findAll((node) => node.props.message === 'Esta variedad ya tiene un lote con esa calidad; cambia la calidad o la procedencia para añadir otro.')).not.toHaveLength(0);
+  await act(async () => { root.root.findByType(LotDialog).props.onCancel(); });
   await act(async () => { press(root, 'Guardar venta'); });
   expect(dialog(root, '¿Confirmar la venta?').props.visible).toBe(true);
   await act(async () => { dialog(root, '¿Confirmar la venta?').props.onConfirm(); await Promise.resolve(); });
@@ -87,12 +96,26 @@ it('blocks saving while a lot has no sacks and lets the empty lot be removed', a
   await act(async () => { root = create(withChrome(<SaleFlowScreen />)); });
   await act(async () => { root.root.findAll((node) => node.props.label === 'Nombre del cliente / comprador')[0]!.props.onPress(); });
   await act(async () => { dialog(root, 'Seleccionar comprador').props.onSelect({ id: 'buyer' }); });
-  await act(async () => { press(root, 'Añadir lote o variedad'); });
-  await act(async () => { dialog(root, 'Seleccionar variedad').props.onSelect({ id: 'peruanita' }); });
+  await createLot(root, 'peruanita');
   expect(root.root.findAll((node) => node.props.accessibilityLabel === 'Guardar venta' && node.props.onPress)[0]!.props.disabled).toBe(true);
   await act(async () => { press(root, 'Quitar lote A'); });
   expect(root.root.findAll((node) => String(node.props.testID ?? '').startsWith('sale-lot-'))).toHaveLength(0);
   expect(mockEnqueue).not.toHaveBeenCalled();
+  await act(async () => root.unmount());
+});
+
+it('starts the lot with its price and numbered empty cells, and adds one more cell', async () => {
+  let root!: ReactTestRenderer;
+  await act(async () => { root = create(withChrome(<SaleFlowScreen />)); });
+  await createLot(root, 'canchan', '1.45', 5);
+  const cells = () => root.root.findAll((node) => typeof node.type === 'string' && /^sale-sack-(draft|empty-\d+)$/.test(String(node.props.testID ?? ''))).map((node) => node.props.testID);
+  expect(cells()).toEqual(['sale-sack-draft', 'sale-sack-empty-2', 'sale-sack-empty-3', 'sale-sack-empty-4', 'sale-sack-empty-5']);
+  expect(root.root.findAll((node) => node.props.children?.join?.('') === '0 de 5 sacos registrados')).not.toHaveLength(0);
+  await weigh(root, ['50', '52']);
+  expect(root.root.findAll((node) => node.props.accessibilityLabel === 'Importe del lote A: S/ 147.90')).not.toHaveLength(0);
+  expect(cells()).toEqual(['sale-sack-draft', 'sale-sack-empty-4', 'sale-sack-empty-5']);
+  await act(async () => { press(root, 'Añadir 1 saco'); });
+  expect(cells()).toContain('sale-sack-empty-6');
   await act(async () => root.unmount());
 });
 
