@@ -84,6 +84,7 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
   const [tare, setTare] = useState('0');
   const [sackVarietyId, setSackVarietyId] = useState('');
   const [editingSackId, setEditingSackId] = useState<string | null>(null);
+  const lotTare = useRef('0');
   const [settlementDraft, setSettlementDraft] = useState(initialSettlement);
   const [settlement, setSettlement] = useState<PurchaseSettlement | null>(null);
   const [dialog, setDialog] = useState<Dialog>(null);
@@ -333,11 +334,11 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
       if(outcome.status==='pending'){pendingReceptionWrites.current=true;applyLocalSack(operationId,reception,input,editingSackId,characteristics);return;}
       if(outcome.status!=='confirmed'){router.replace('/sync-queue' as Href);return;}
       const [freshReception,freshSacks]=await Promise.all([getReception(token,reception.id),getSacks(token,reception.id)]);
-      setReception(freshReception);setSacks(freshSacks);setGross('');setTare('0');setEditingSackId(null);
+      setReception(freshReception);setSacks(freshSacks);setGross('');setTare(sheet?lotTare.current:'0');setEditingSackId(null);
     }catch(cause){if(saved){router.replace('/sync-queue' as Href);return;}await handleError(cause)}
     finally{capturing.current=false;setBusy(false)}
   }
-  function applyLocalSack(operationId:string,currentReception:Reception,input:CommercialInput&{grossWeightKg:string;tareKg?:string;varietyId:string},correctedId:string|null,characteristics:CommercialSnapshot){const original=sacks.find(x=>x.id===correctedId);const local={...characteristics,id:`local:${operationId}`,sequence:original?.sequence??Math.max(0,...sacks.map(sack=>sack.sequence))+1,varietyId:input.varietyId,grossWeightKg:Number(input.grossWeightKg).toFixed(3),tareKg:Number(input.tareKg??0).toFixed(3),netWeightKg:(Number(input.grossWeightKg)-Number(input.tareKg??0)).toFixed(3)};setSacks(current=>correctedId?current.map(x=>x.id===correctedId?local:x):[...current,local]);setReception({...currentReception,state:'weighing',version:currentReception.version+1});setGross('');setTare('0');setEditingSackId(null)}
+  function applyLocalSack(operationId:string,currentReception:Reception,input:CommercialInput&{grossWeightKg:string;tareKg?:string;varietyId:string},correctedId:string|null,characteristics:CommercialSnapshot){const original=sacks.find(x=>x.id===correctedId);const local={...characteristics,id:`local:${operationId}`,sequence:original?.sequence??Math.max(0,...sacks.map(sack=>sack.sequence))+1,varietyId:input.varietyId,grossWeightKg:Number(input.grossWeightKg).toFixed(3),tareKg:Number(input.tareKg??0).toFixed(3),netWeightKg:(Number(input.grossWeightKg)-Number(input.tareKg??0)).toFixed(3)};setSacks(current=>correctedId?current.map(x=>x.id===correctedId?local:x):[...current,local]);setReception({...currentReception,state:'weighing',version:currentReception.version+1});setGross('');setTare(sheet?lotTare.current:'0');setEditingSackId(null)}
 
   async function confirmClose():Promise<Reception|null>{
     if(!reception||capturing.current)return null;
@@ -441,6 +442,7 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
     setGross('');setTare('0');setQualityId(null);setOriginId(null);setSettlementDraft(initialSettlement);setError(null);
   }
   function editSack(id:string){
+    if(!editingSackId)lotTare.current=tare;
     const sack=sacks.find((item)=>item.id===id);if(!sack)return;
     setEditingSackId(sack.id);setGross(kilogramsDraft(sack.grossWeightKg));setTare(kilogramsDraft(sack.tareKg));setSackVarietyId(sack.varietyId);setQualityId(sack.qualityId??null);setOriginId(sack.originId??null);
   }
@@ -479,10 +481,12 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
         referenceActions={<>{referenceFeedback}<OperationReferenceActions compact kinds={['providers','varieties']} onManage={referenceManage} disabled={busy||isOfflineSession||Boolean(referenceKind)||referenceReloadBusy}/></>}
         varieties={expectedVarieties} activeVarietyId={captureVarietyId} onSelectVariety={setSackVarietyId}
         onAddVariety={started ? undefined : () => setDialog('varieties')}
-        sacks={activeSacks.map((sack) => ({ id: sack.id, sequence: sack.sequence, varietyId: sack.varietyId, netDisplay: kilogramsDraft(sack.netWeightKg), detail: `Bruto ${formatKilograms(sack.grossWeightKg)}, tara ${formatKilograms(sack.tareKg)}. ${commercialDescription(sack)}` }))}
+        onRemoveVariety={started ? undefined : (id) => { const next = expectedVarietyIds.filter((item) => item !== id); setExpectedVarietyIds(next); setDetails((current) => ({ ...current, expectedVarieties: varieties.filter((item) => next.includes(item.id)).map((item) => item.name).join(', ') })); }}
+        qualityName={qualities.find((item) => item.id === qualityId)?.name ?? null}
+        sacks={activeSacks.map((sack) => ({ id: sack.id, sequence: sack.sequence, varietyId: sack.varietyId, netDisplay: kilogramsDraft(sack.netWeightKg), grossDisplay: kilogramsDraft(sack.grossWeightKg), detail: `Bruto ${formatKilograms(sack.grossWeightKg)}, tara ${formatKilograms(sack.tareKg)}. ${commercialDescription(sack)}` }))}
         weighingLocked={reception?.state === 'weighed'}
-        gross={gross} tare={tare} onGrossChange={setGross} onTareChange={setTare}
-        editingSequence={editing?.sequence ?? null} onEditSack={editSack} onCancelEdit={() => { setEditingSackId(null); setGross(''); setTare('0'); }}
+        gross={gross} tare={tare} onGrossChange={setGross} onTareChange={(value) => { setTare(value); if (!editingSackId) lotTare.current = value; }}
+        editingSequence={editing?.sequence ?? null} onEditSack={editSack} onCancelEdit={() => { setEditingSackId(null); setGross(''); setTare(lotTare.current); }}
         onSaveSack={() => void saveSheetSack()}
         characteristics={<CharacteristicFields appearance="stitch" value={{qualityId,originId}} qualities={qualities} origins={origins} disabled={busy} historical={editing} onChange={(field,id)=>{if(busy)return;if(field==='qualityId')setQualityId(id);else setOriginId(id);}}/>}
         lots={purchaseLots ?? []} values={settlementDraft} preview={settlementPreview}

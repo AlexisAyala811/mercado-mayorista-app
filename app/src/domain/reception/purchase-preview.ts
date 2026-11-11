@@ -92,6 +92,15 @@ export function validateCreditSchedule(installments: readonly { dueOn: string; a
   return total === BigInt(liquidCents) ? null : 'Las cuotas deben sumar exactamente el monto líquido.';
 }
 
+// Amount of one lot on its own (spec 011, CL-ST20): the table shows each
+// row's subtotal as soon as its price is valid, even while another lot is
+// still without a price. Same rounding as the whole preview.
+export function previewLotAmount(lot: PurchaseLot, draft: LotDraft | undefined): string | null {
+  const rate = draft ? cents(draft.unitPrice) : null;
+  if (rate === null || rate <= 0n) return null;
+  return amount(draft!.priceBasis, rate, lot.sacks, lot.grams).toString();
+}
+
 // Provisional display only. Each lot is rounded on its own and then added up,
 // as the server does; freight is computed on the whole reception and is only
 // deducted from the provider when the provider assumes it.
