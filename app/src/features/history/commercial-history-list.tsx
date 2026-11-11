@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { SymbolView } from '@/ui/components/symbol';
-import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 import { formatMoney } from '@/domain/reception/reception';
 import {
@@ -15,6 +15,7 @@ import {
 } from '@/domain/shared/history-cards';
 import { validateHistoryFilters } from '@/domain/shared/history-filters';
 import { AppButton, EmptyState, FeedbackState, FormField, LoadingState, MetricTile } from '@/ui/components';
+import { CountChips } from '@/ui/components/count-chips';
 import { color, spacing, typography } from '@/ui/tokens';
 
 export type HistoryQuery = { from?: string; to?: string; search?: string };
@@ -138,30 +139,7 @@ export function CommercialHistoryList({ kind, loadPage, loadSummary, onOpen, onS
         {/* Chips with their count in a bubble and «+ Nueva compra», inside the
             same toolbar as in Stitch. */}
         <View style={styles.chipRow}>
-          <View accessibilityRole="radiogroup" style={styles.chips}>
-            {historyChips(kind, counts).map((item) => {
-              const checked = chip === item.id;
-              const look = chipLook[item.id === 'paid' || item.id === 'debt' ? item.id : 'neutral'];
-              return (
-                <Pressable
-                  key={item.id}
-                  accessibilityLabel={item.count === null ? item.label : `${item.label}: ${item.count}`}
-                  accessibilityRole="radio"
-                  accessibilityState={{ checked, disabled: disabled || loading }}
-                  disabled={disabled || loading}
-                  onPress={() => choose(item.id)}
-                  style={({ pressed }) => [styles.chip, { backgroundColor: checked ? '#0F2A1F' : look.bg }, pressed && styles.chipPressed]}>
-                  {look.dot ? <View style={[styles.chipDot, { backgroundColor: look.dot }]} /> : null}
-                  <Text numberOfLines={1} style={[styles.chipText, { color: checked ? '#FFFFFF' : look.ink }]}>{item.label}</Text>
-                  {item.count === null ? null : (
-                    <View style={[styles.bubble, { backgroundColor: checked ? 'rgba(255,255,255,0.22)' : look.bubble }]}>
-                      <Text style={[styles.bubbleText, { color: checked ? '#FFFFFF' : look.bubbleInk }]}>{item.count}</Text>
-                    </View>
-                  )}
-                </Pressable>
-              );
-            })}
-          </View>
+          <CountChips chips={historyChips(kind, counts).map((item) => ({ ...item, tone: item.id === 'paid' ? 'success' : item.id === 'debt' ? 'danger' : 'neutral' }))} disabled={disabled || loading} onSelect={choose} selected={chip} />
           {onNew ? <AppButton appearance="stitch-action" disabled={disabled} displayLabel={purchase ? '+ NUEVA COMPRA' : '+ NUEVA VENTA'} label={purchase ? 'Nueva compra' : 'Nueva venta'} onPress={onNew} stitchTone="success" /> : null}
         </View>
       </View>
@@ -196,14 +174,6 @@ export function CommercialHistoryList({ kind, loadPage, loadSummary, onOpen, onS
     </View>
   );
 }
-
-// Chip colours of the mockup: neutral grey, green «Pagadas» and red «Con deuda»,
-// each with its count in a darker bubble; the chosen one is dark green.
-const chipLook = {
-  neutral: { bg: '#F1F5F9', ink: '#334155', bubble: '#E2E8F0', bubbleInk: '#334155', dot: null },
-  paid: { bg: '#ECFDF5', ink: '#065F46', bubble: '#047857', bubbleInk: '#FFFFFF', dot: '#10B981' },
-  debt: { bg: '#FEF2F2', ink: '#991B1B', bubble: '#DC2626', bubbleInk: '#FFFFFF', dot: '#DC2626' },
-} as const;
 
 const stateTone = {
   debt: { tile: '#FEF2F2', tileBorder: '#FECACA', ink: '#B91C1C', pill: '#FEE2E2', pillInk: '#991B1B' },
@@ -285,13 +255,6 @@ const styles = StyleSheet.create({
   date: { flexBasis: 140, flexGrow: 1, flexShrink: 1 },
   toolbarActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chipRow: { alignItems: 'center', flexBasis: '100%', flexDirection: 'row', flexWrap: 'wrap', gap: 12, justifyContent: 'space-between' },
-  chips: { backgroundColor: '#F8FAFC', borderColor: '#E2E8F0', borderRadius: 14, borderWidth: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 6, padding: 4 },
-  chip: { alignItems: 'center', borderRadius: 10, flexDirection: 'row', gap: 8, minHeight: 44, paddingHorizontal: 14 },
-  chipPressed: { opacity: 0.85 },
-  chipDot: { borderRadius: 4, height: 8, width: 8 },
-  chipText: { fontSize: 14, fontWeight: '700' },
-  bubble: { alignItems: 'center', borderRadius: 999, justifyContent: 'center', minWidth: 24, paddingHorizontal: 7, paddingVertical: 2 },
-  bubbleText: { fontSize: 12, fontWeight: '800' },
   metrics: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   note: { color: color.textSecondary, ...typography.bodySmall },
   count: { color: '#64748B', fontSize: 13, fontWeight: '500' },
