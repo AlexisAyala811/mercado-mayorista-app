@@ -6,12 +6,16 @@ import { SymbolView } from '@/ui/components/symbol';
 import { accent, color } from '@/ui/tokens';
 
 export type LotChoice = { id: string; label: string };
-export type NewLot = { varietyId: string; qualityId: string | null; unitPrice: string; plannedSacks: number };
+export type NewLot = { varietyId: string; qualityId: string | null; originId: string | null; unitPrice: string; plannedSacks: number };
 
 type Props = {
   visible: boolean;
   varieties: LotChoice[];
   qualities: LotChoice[];
+  origins?: LotChoice[];
+  // Editing the active lot (the ✎ of the mockup): starts from its values and
+  // does not ask for the number of sacks.
+  initial?: Omit<NewLot, 'plannedSacks'>;
   onCancel: () => void;
   onCreate: (lot: NewLot) => void;
 };
@@ -21,26 +25,29 @@ type Props = {
 export const plannedOptions = [5, 10, 20, 30, 50] as const;
 const plannedLabel = (count: number) => `${count} sacos${count === 10 ? ' (lote estándar)' : ''}`;
 
-type Open = 'variety' | 'quality' | 'planned' | null;
+type Open = 'variety' | 'quality' | 'origin' | 'planned' | null;
 
 // «Añadir nuevo lote / variedad» of the Stitch sale mockup: variety, quality,
 // price per kilogram and the initial number of sacks.
-export function LotDialog({ onCancel, onCreate, qualities, varieties, visible }: Props) {
-  const [varietyId, setVarietyId] = useState<string | null>(null);
-  const [qualityId, setQualityId] = useState<string | null>(null);
-  const [unitPrice, setUnitPrice] = useState('');
+export function LotDialog({ initial, onCancel, onCreate, origins = [], qualities, varieties, visible }: Props) {
+  const editing = Boolean(initial);
+  const [varietyId, setVarietyId] = useState<string | null>(initial?.varietyId ?? null);
+  const [qualityId, setQualityId] = useState<string | null>(initial?.qualityId ?? null);
+  const [originId, setOriginId] = useState<string | null>(initial?.originId ?? null);
+  const [unitPrice, setUnitPrice] = useState(initial?.unitPrice ?? '');
   const [planned, setPlanned] = useState<number>(10);
   const [open, setOpen] = useState<Open>(null);
   const variety = varieties.find((item) => item.id === varietyId);
   const quality = qualities.find((item) => item.id === qualityId);
+  const origin = origins.find((item) => item.id === originId);
 
   function reset() {
-    setVarietyId(null); setQualityId(null); setUnitPrice(''); setPlanned(10); setOpen(null);
+    setVarietyId(null); setQualityId(null); setOriginId(null); setUnitPrice(''); setPlanned(10); setOpen(null);
   }
   function cancel() { reset(); onCancel(); }
   function create() {
     if (!varietyId) return;
-    onCreate({ plannedSacks: planned, qualityId, unitPrice: unitPrice.trim(), varietyId });
+    onCreate({ originId, plannedSacks: planned, qualityId, unitPrice: unitPrice.trim(), varietyId });
     reset();
   }
 
@@ -51,7 +58,7 @@ export function LotDialog({ onCancel, onCreate, qualities, varieties, visible }:
           <View style={styles.head}>
             <View style={styles.titleRow}>
               <SymbolView fallback={null} name={{ android: 'add_box', ios: 'plus.square', web: 'add_box' }} size={22} tintColor={accent.emerald.ink} />
-              <Text accessibilityRole="header" style={styles.title}>Añadir nuevo lote / variedad</Text>
+              <Text accessibilityRole="header" style={styles.title}>{editing ? 'Editar lote / variedad' : 'Añadir nuevo lote / variedad'}</Text>
             </View>
             <Pressable accessibilityLabel="Cerrar" accessibilityRole="button" hitSlop={8} onPress={cancel} style={styles.close}>
               <SymbolView fallback={null} name={{ android: 'close', ios: 'xmark', web: 'close' }} size={20} tintColor="#475569" />
@@ -73,15 +80,23 @@ export function LotDialog({ onCancel, onCreate, qualities, varieties, visible }:
                 <SheetInput accessibilityLabel="Precio por kilogramo del lote (S/)" keyboardType="decimal-pad" onChangeText={setUnitPrice} placeholder="0.00" style={styles.input} value={unitPrice} />
               </View>
             </View>
-            <Select label="CANTIDAD INICIAL DE SACOS" onToggle={() => setOpen(open === 'planned' ? null : 'planned')} open={open === 'planned'} placeholder="" value={plannedLabel(planned)}>
-              {plannedOptions.map((count) => <OptionRow key={count} label={plannedLabel(count)} onPress={() => { setPlanned(count); setOpen(null); }} selected={count === planned} />)}
-            </Select>
+            {origins.length ? (
+              <Select label="PROCEDENCIA" onToggle={() => setOpen(open === 'origin' ? null : 'origin')} open={open === 'origin'} placeholder="Sin procedencia" value={origin?.label}>
+                <OptionRow label="Sin procedencia" onPress={() => { setOriginId(null); setOpen(null); }} selected={originId === null} />
+                {origins.map((item) => <OptionRow key={item.id} label={item.label} onPress={() => { setOriginId(item.id); setOpen(null); }} selected={item.id === originId} />)}
+              </Select>
+            ) : null}
+            {editing ? null : (
+              <Select label="CANTIDAD INICIAL DE SACOS" onToggle={() => setOpen(open === 'planned' ? null : 'planned')} open={open === 'planned'} placeholder="" value={plannedLabel(planned)}>
+                {plannedOptions.map((count) => <OptionRow key={count} label={plannedLabel(count)} onPress={() => { setPlanned(count); setOpen(null); }} selected={count === planned} />)}
+              </Select>
+            )}
           </ScrollView>
           <View style={styles.actions}>
             <Pressable accessibilityRole="button" onPress={cancel} style={styles.cancel}><Text style={styles.cancelText}>Cancelar</Text></Pressable>
-            <Pressable accessibilityLabel="Crear lote" accessibilityRole="button" accessibilityState={{ disabled: !varietyId }} disabled={!varietyId} onPress={create} style={({ pressed }) => [styles.create, (pressed || !varietyId) && styles.dimmed]}>
+            <Pressable accessibilityLabel={editing ? 'Guardar cambios del lote' : 'Crear lote'} accessibilityRole="button" accessibilityState={{ disabled: !varietyId }} disabled={!varietyId} onPress={create} style={({ pressed }) => [styles.create, (pressed || !varietyId) && styles.dimmed]}>
               <SymbolView fallback={null} name={{ android: 'check', ios: 'checkmark', web: 'check' }} size={18} tintColor="#FFFFFF" />
-              <Text style={styles.createText}>Crear lote</Text>
+              <Text style={styles.createText}>{editing ? 'Guardar cambios' : 'Crear lote'}</Text>
             </Pressable>
           </View>
         </View>

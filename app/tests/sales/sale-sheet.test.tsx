@@ -68,7 +68,7 @@ async function pickBuyer(root: ReactTestRenderer) {
 async function createLot(root: ReactTestRenderer, varietyId: string, unitPrice = '', plannedSacks = 10) {
   await act(async () => { press(root, 'Añadir lote o variedad'); });
   expect(root.root.findByType(LotDialog).props.visible).toBe(true);
-  await act(async () => { root.root.findByType(LotDialog).props.onCreate({ varietyId, qualityId: null, unitPrice, plannedSacks }); });
+  await act(async () => { root.root.findByType(LotDialog).props.onCreate({ varietyId, qualityId: null, originId: null, unitPrice, plannedSacks }); });
 }
 
 it('sums the weighed sacks into each line and sends the same sale as the form', async () => {
@@ -100,10 +100,13 @@ it('blocks saving while a lot has no sacks and lets the empty lot be removed', a
   let root!: ReactTestRenderer;
   await act(async () => { root = create(withChrome(<SaleFlowScreen />)); });
   await pickBuyer(root);
+  // CL-ST23: the sheet opens with «Lote A» of the first variety and 10 empty cells.
+  expect(root.root.findAll((node) => typeof node.type === 'string' && node.props.testID === 'sale-lot-A')).toHaveLength(1);
+  expect(cells(root)).toBe(10);
   await createLot(root, 'peruanita');
   expect(root.root.findAll((node) => node.props.accessibilityLabel === 'Guardar venta' && node.props.onPress)[0]!.props.disabled).toBe(true);
-  await act(async () => { press(root, 'Quitar lote A'); });
-  expect(root.root.findAll((node) => String(node.props.testID ?? '').startsWith('sale-lot-'))).toHaveLength(0);
+  await act(async () => { press(root, 'Quitar lote B'); });
+  expect(root.root.findAll((node) => typeof node.type === 'string' && /^sale-lot-[A-Z]$/.test(String(node.props.testID ?? '')))).toHaveLength(1);
   expect(mockEnqueue).not.toHaveBeenCalled();
   await act(async () => root.unmount());
 });
@@ -111,13 +114,13 @@ it('blocks saving while a lot has no sacks and lets the empty lot be removed', a
 it('starts the lot with its price and empty cells, types, clears with × and loads 10 sacks of 50 kg', async () => {
   let root!: ReactTestRenderer;
   await act(async () => { root = create(withChrome(<SaleFlowScreen />)); });
-  await createLot(root, 'canchan', '1.45', 10);
+  await createLot(root, 'peruanita', '1.45', 10);
   expect(cells(root)).toBe(10);
   expect(badge(root, '0 de 10 sacos registrados')).not.toHaveLength(0);
   await weigh(root, ['50', '52']);
   await act(async () => { type(root, 'Peso del saco 7 (kg)', '49'); });
   expect(badge(root, '3 de 10 sacos registrados')).not.toHaveLength(0);
-  expect(root.root.findAll((node) => node.props.accessibilityLabel === 'Importe del lote A: S/ 218.95')).not.toHaveLength(0);
+  expect(root.root.findAll((node) => node.props.accessibilityLabel === 'Importe del lote B: S/ 218.95')).not.toHaveLength(0);
   // Decimals are not kept: the cell holds whole kilograms only.
   await act(async () => { type(root, 'Peso del saco 3 (kg)', '50.5'); });
   expect(root.root.findAll((node) => node.props.accessibilityLabel === 'Peso del saco 3 (kg)' && typeof node.props.onChangeText === 'function')[0]!.props.value).toBe('505');
@@ -160,8 +163,8 @@ it('asks before removing a lot with weighed sacks and sends no freight while the
   let root!: ReactTestRenderer;
   await act(async () => { root = create(withChrome(<SaleFlowScreen />)); });
   await pickBuyer(root);
-  await createLot(root, 'canchan', '2.00');
   await weigh(root, ['50']);
+  await act(async () => { type(root, 'Precio por kilogramo, lote A (S/)', '2.00'); });
   expect(root.root.findAll((node) => String(node.props.accessibilityLabel ?? '').startsWith('Lote A: por'))).toHaveLength(0);
   await act(async () => { press(root, 'Guardar venta'); });
   await act(async () => { dialog(root, '¿Confirmar la venta?').props.onConfirm(); await Promise.resolve(); });
@@ -169,13 +172,26 @@ it('asks before removing a lot with weighed sacks and sends no freight while the
   await act(async () => root.unmount());
   let second!: ReactTestRenderer;
   await act(async () => { second = create(withChrome(<SaleFlowScreen />)); });
-  await createLot(second, 'canchan', '2.00');
   await weigh(second, ['50']);
   await act(async () => { press(second, 'Quitar lote A'); });
   expect(dialog(second, '¿Quitar el lote?').props.visible).toBe(true);
   await act(async () => { dialog(second, '¿Quitar el lote?').props.onConfirm(); });
-  expect(second.root.findAll((node) => String(node.props.testID ?? '').startsWith('sale-lot-'))).toHaveLength(0);
+  // The last lot gives way to a fresh initial lot, as the mockup keeps one.
+  expect(badge(second, '0 de 10 sacos registrados')).not.toHaveLength(0);
   await act(async () => second.unmount());
+});
+
+it('edits variety and price of the active lot from ✎ (CL-ST23)', async () => {
+  let root!: ReactTestRenderer;
+  await act(async () => { root = create(withChrome(<SaleFlowScreen />)); });
+  await act(async () => { press(root, 'Editar o cambiar variedad y calidad'); });
+  const lotDialog = root.root.findByType(LotDialog);
+  expect(lotDialog.props.initial).toMatchObject({ varietyId: 'canchan', unitPrice: '' });
+  await act(async () => { lotDialog.props.onCreate({ varietyId: 'peruanita', qualityId: null, originId: null, unitPrice: '1.80', plannedSacks: 10 }); });
+  await weigh(root, ['50']);
+  expect(root.root.findAll((node) => node.props.accessibilityLabel === 'Lote A: Peruanita, 1 saco')).not.toHaveLength(0);
+  expect(root.root.findAll((node) => node.props.accessibilityLabel === 'Importe del lote A: S/ 90.00')).not.toHaveLength(0);
+  await act(async () => root.unmount());
 });
 
 it('keeps sacks and weight equal to the weighed sacks and sums the card facts', () => {

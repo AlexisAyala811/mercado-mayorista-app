@@ -50,6 +50,8 @@ export type SaleSheetProps = {
   activeLineId: string | null;
   onSelectLine: (id: string) => void;
   onAddLot: () => void;
+  // ✎ of the lot chip: variety, quality, origin and price (CL-ST23).
+  onEditLot?: () => void;
   onRemoveLot?: (id: string) => void;
   // Cells of the lot (CL-ST22): typed weights or empty.
   onChangeSlots: (id: string, slots: string[]) => void;
@@ -193,8 +195,8 @@ export function SaleSheet(props: SaleSheetProps) {
             <View style={s.lotChip}>
               <SymbolView fallback={null} name={{ android: 'inventory_2', ios: 'shippingbox', web: 'inventory_2' }} size={20} tintColor="#6EE7B7" />
               <Text numberOfLines={1} style={s.lotChipText}>{props.lineName(active)}</Text>
-              {props.lotCharacteristics ? (
-                <Pressable accessibilityLabel="Cambiar calidad y procedencia del lote" accessibilityRole="button" disabled={busy} onPress={() => setCharacteristicsOpen(true)} style={p.edit}>
+              {props.onEditLot || props.lotCharacteristics ? (
+                <Pressable accessibilityLabel="Editar o cambiar variedad y calidad" accessibilityRole="button" disabled={busy} onPress={() => (props.onEditLot ? props.onEditLot() : setCharacteristicsOpen(true))} style={p.edit}>
                   <SymbolView fallback={null} name={{ android: 'edit', ios: 'pencil', web: 'edit' }} size={17} tintColor="#6EE7B7" />
                 </Pressable>
               ) : null}
