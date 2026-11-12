@@ -1,6 +1,6 @@
 import { SymbolView } from '@/ui/components/symbol';
 import { useMemo, useRef, useState, type ReactNode } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Keyboard, Modal, Pressable, ScrollView, StyleSheet, Text, View, type TextInput } from 'react-native';
 
 import { formatMoney } from '@/domain/reception/reception';
 import type { SalePreview } from '@/domain/sales/sale-preview';
@@ -8,6 +8,7 @@ import { saleLineGrams, validSackWeight, type SaleLineDraft } from '@/domain/sal
 import { BigTotal, gramsToKg, Line, sheetColumns, sheetLayout as p, sheetRowHeight, SheetInput, sheetStyles as s } from '@/features/reception/screens/purchase-sheet';
 import type { InstallmentDraft } from '@/features/reception/screens/settlement-screen';
 import { AppButton, AppScreen, ConfirmationDialog, FeedbackState, FormField, SelectionField } from '@/ui/components';
+import { DateDialog } from '@/features/sales/components/date-dialog';
 import { useBottomNav } from '@/ui/navigation/app-chrome';
 import { AppHeader } from '@/ui/navigation/app-header';
 import { accent, color } from '@/ui/tokens';
@@ -93,6 +94,12 @@ export function SaleSheet(props: SaleSheetProps) {
   const [characteristicsOpen, setCharacteristicsOpen] = useState(false);
   // «Quitar lote» of the mockup asks before dropping weighed sacks.
   const [removeAsked, setRemoveAsked] = useState(false);
+  const [dateOpen, setDateOpen] = useState(false);
+  // ✓ of the keyboard moves on: name → RUC / DNI → celular → first cell →
+  // next cell; the last cell closes the keyboard (CL-ST25).
+  const documentRef = useRef<TextInput>(null);
+  const phoneRef = useRef<TextInput>(null);
+  const cellRefs = useRef(new Map<number, TextInput>());
   const busy = Boolean(props.busy);
   const activeIndex = Math.max(0, props.lines.findIndex((line) => line.id === props.activeLineId));
   const active = props.lines[activeIndex];
@@ -138,6 +145,16 @@ export function SaleSheet(props: SaleSheetProps) {
     while (left > 0) { next.push(quickWeight); left -= 1; }
     setSlots(next);
   }
+  function focusCell(index: number) {
+    if (index >= slots.length) { Keyboard.dismiss(); return; }
+    const cell = cellRefs.current.get(index);
+    if (cell) { cell.focus(); return; }
+    // A cell outside the drawn rows: scroll the grid there, then focus it.
+    const row = Math.floor(index / sheetColumns);
+    setFirstRow(row);
+    gridRef.current?.scrollTo({ animated: false, y: row * sheetRowHeight });
+    setTimeout(() => cellRefs.current.get(index)?.focus(), 50);
+  }
   function selectLine(id: string) {
     props.onSelectLine(id);
   }
@@ -150,7 +167,7 @@ export function SaleSheet(props: SaleSheetProps) {
 
       <View style={[s.card, p.details]} testID="sale-buyer">
         <View style={p.detailWide}>
-          <FormField appearance="stitch" autoCorrect={false} editable={!busy} label="Nombre del cliente / comprador" leadingIcon="domain" maxLength={160} onChangeText={props.onBuyerNameChange} placeholder="Ingrese nombre o razón social…" value={props.buyerName} />
+          <FormField appearance="stitch" autoComplete="off" autoCorrect={false} importantForAutofill="no" editable={!busy} label="Nombre del cliente / comprador" onSubmitEditing={() => documentRef.current?.focus()} returnKeyType="next" submitBehavior="submit" leadingIcon="domain" maxLength={160} onChangeText={props.onBuyerNameChange} placeholder="Ingrese nombre o razón social…" value={props.buyerName} />
           {props.buyerSuggestions.length ? (
             <View accessibilityLabel="Compradores que coinciden" style={buyerStyles.suggestions}>
               {props.buyerSuggestions.map((item) => (
@@ -163,9 +180,15 @@ export function SaleSheet(props: SaleSheetProps) {
             </View>
           ) : null}
         </View>
-        <View style={buyerStyles.document}><FormField appearance="stitch" autoCapitalize="characters" editable={!busy} keyboardType="number-pad" label="RUC / DNI" leadingIcon="badge" maxLength={11} onChangeText={(value) => props.onBuyerDocumentChange(value.replace(/[^0-9]/g, ''))} placeholder="20…" value={props.buyerDocument} /></View>
-        <View style={p.detail}><FormField appearance="stitch" editable={!busy && props.phoneEditable} keyboardType="phone-pad" label="N.° celular" leadingIcon="call" maxLength={32} onChangeText={props.onBuyerPhoneChange} placeholder="999 000 000" value={props.buyerPhone} /></View>
-        <View style={buyerStyles.date}><FormField appearance="stitch" editable={!busy} label="Fecha despacho" leadingIcon="calendar_today" maxLength={10} onChangeText={props.onDispatchDateChange} placeholder="aaaa-mm-dd" value={props.dispatchDate} /></View>
+        <View style={buyerStyles.document}><FormField appearance="stitch" autoComplete="off" autoCorrect={false} importantForAutofill="no" editable={!busy} keyboardType="number-pad" label="RUC / DNI" onSubmitEditing={() => (props.phoneEditable ? phoneRef.current?.focus() : focusCell(0))} ref={documentRef} returnKeyType="next" submitBehavior="submit" leadingIcon="badge" maxLength={11} onChangeText={(value) => props.onBuyerDocumentChange(value.replace(/[^0-9]/g, ''))} placeholder="20…" value={props.buyerDocument} /></View>
+        <View style={p.detail}><FormField appearance="stitch" autoComplete="off" autoCorrect={false} importantForAutofill="no" editable={!busy && props.phoneEditable} keyboardType="phone-pad" label="N.° celular" onSubmitEditing={() => focusCell(0)} ref={phoneRef} returnKeyType="next" submitBehavior="submit" leadingIcon="call" maxLength={32} onChangeText={props.onBuyerPhoneChange} placeholder="999 000 000" value={props.buyerPhone} /></View>
+        <View style={[buyerStyles.date, buyerStyles.dateField]}>
+          <Text style={buyerStyles.dateLabel}>FECHA DESPACHO</Text>
+          <Pressable accessibilityHint="Abre el calendario con Hoy y Mañana" accessibilityLabel={`Fecha despacho: ${props.dispatchDate}`} accessibilityRole="button" disabled={busy} onPress={() => { Keyboard.dismiss(); setDateOpen(true); }} style={({ pressed }) => [buyerStyles.dateControl, pressed && s.dimmed]} testID="sale-dispatch-date">
+            <SymbolView fallback={null} name={{ android: 'calendar_today', ios: 'calendar', web: 'calendar_today' }} size={20} tintColor="#74777F" />
+            <Text style={buyerStyles.dateValue}>{props.dispatchDate}</Text>
+          </Pressable>
+        </View>
         {props.buyerNotice ? <Text accessibilityLiveRegion="polite" style={buyerStyles.notice}>{props.buyerNotice}</Text> : null}
       </View>
 
@@ -235,7 +258,7 @@ export function SaleSheet(props: SaleSheetProps) {
                     <View key={cell.index} style={[s.cell, slotStyles.cell, filled ? slotStyles.cellFilled : slotStyles.cellEmpty, invalid && slotStyles.cellInvalid]} testID={`sale-sack-${cell.index + 1}`}>
                       <View style={[slotStyles.number, filled && slotStyles.numberFilled]}><Text style={[slotStyles.numberText, filled && slotStyles.numberTextFilled]}>{number}</Text></View>
                       <View style={slotStyles.right}>
-                        <SheetInput accessibilityHint={invalid ? 'Escribe kilos enteros mayores que cero' : undefined} accessibilityLabel={`Peso del saco ${cell.index + 1} (kg)`} editable={!busy} keyboardType="number-pad" onChangeText={(value) => typeSlot(cell.index, value)} placeholder="0.0" returnKeyType="next" style={slotStyles.input} value={cell.value} />
+                        <SheetInput accessibilityHint={invalid ? 'Escribe kilos enteros mayores que cero' : undefined} accessibilityLabel={`Peso del saco ${cell.index + 1} (kg)`} editable={!busy} importantForAutofill="no" keyboardType="number-pad" autoComplete="off" autoCorrect={false} onChangeText={(value) => typeSlot(cell.index, value)} onSubmitEditing={() => focusCell(cell.index + 1)} placeholder="0.0" ref={(node) => { if (node) cellRefs.current.set(cell.index, node); else cellRefs.current.delete(cell.index); }} returnKeyType={cell.index + 1 < slots.length ? 'next' : 'done'} style={slotStyles.input} submitBehavior={cell.index + 1 < slots.length ? 'submit' : 'blurAndSubmit'} value={cell.value} />
                         <Text style={slotStyles.unit}>kg</Text>
                         <Pressable accessibilityLabel={`Limpiar saco ${cell.index + 1}`} accessibilityRole="button" disabled={busy} hitSlop={6} onPress={() => clearSlot(cell.index)} style={({ pressed }) => [slotStyles.clear, pressed && s.dimmed]}>
                           <SymbolView fallback={null} name={{ android: 'close', ios: 'xmark', web: 'close' }} size={14} tintColor="#727974" />
@@ -435,6 +458,7 @@ export function SaleSheet(props: SaleSheetProps) {
       </View>
 
       <ConfirmationDialog confirmLabel="Quitar lote" message={active ? `Se quitará el lote ${letter(activeIndex)} (${props.lineName(active)}) con sus ${weights.length} ${sackWord(weights.length)} pesados. La venta todavía no se ha guardado.` : ''} onCancel={() => setRemoveAsked(false)} onConfirm={() => { setRemoveAsked(false); if (active) props.onRemoveLot?.(active.id); }} title="¿Quitar el lote?" visible={removeAsked} />
+      {dateOpen ? <DateDialog onCancel={() => setDateOpen(false)} onPick={(value) => { setDateOpen(false); props.onDispatchDateChange(value); }} title="Fecha de despacho" value={props.dispatchDate} visible /> : null}
       <Modal animationType="fade" onRequestClose={() => setCharacteristicsOpen(false)} transparent visible={characteristicsOpen}>
         <View style={p.modalBackdrop}>
           <View style={p.modal}>
@@ -473,6 +497,10 @@ const buyerStyles = StyleSheet.create({
   suggestionText: { color: '#0B1C30', flexShrink: 1, fontSize: 14, fontWeight: '600' },
   suggestionHint: { color: '#727974', fontSize: 12, marginLeft: 'auto' },
   notice: { color: '#424844', flexBasis: '100%', fontSize: 12 },
+  dateField: { gap: 6 },
+  dateLabel: { color: '#64748B', fontSize: 12, fontWeight: '600', letterSpacing: 0.8, lineHeight: 16 },
+  dateControl: { alignItems: 'center', backgroundColor: '#EFF4FF', borderRadius: 12, flexDirection: 'row', gap: 10, minHeight: 44, paddingHorizontal: 13 },
+  dateValue: { color: '#0B1C30', fontSize: 14, fontWeight: '500' },
 });
 
 const sheetLayout2 = StyleSheet.create({

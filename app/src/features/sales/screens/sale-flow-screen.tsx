@@ -9,7 +9,7 @@ import { calculateSalePreview } from '@/domain/sales/sale-preview';
 import { validateCreditSchedule } from '@/domain/reception/purchase-preview';
 import { validateSaleLine, withSlots, type Buyer, type Sale, type SaleLineDraft } from '@/domain/sales/sale';
 import { SaleSheet } from '@/features/sales/screens/sale-sheet';
-import { LotDialog, type NewLot } from '@/features/sales/components/lot-dialog';
+import { LotDialog, type ChoiceKind, type LotChoice, type NewLot } from '@/features/sales/components/lot-dialog';
 import { formatLocalDateInput } from '@/domain/shared/date';
 import { useSession } from '@/features/auth/session/session-provider';
 import { useSyncQueue } from '@/features/sync/sync-queue-provider';
@@ -282,6 +282,25 @@ export function SaleFlowScreen() {
   // The buyer of the sheet: a new name is created and a changed phone is kept
   // in the catalog (only the Mayorista, online). After creating it the id is
   // kept, so a retry does not create it twice.
+  // «Escribir otra…» of the lot window (CL-ST26): an existing name is reused;
+  // a new one is registered in the catalog (Mayorista, con conexión).
+  const canWriteChoices = session?.user.role === 'wholesaler' && !isOfflineSession;
+  async function createChoice(kind: ChoiceKind, name: string): Promise<LotChoice> {
+    const same = (value: string) => value.trim().toLocaleLowerCase('es') === name.trim().toLocaleLowerCase('es');
+    if (kind === 'variety') {
+      const known = varieties.find((item) => same(item.name));
+      if (known) return { id: known.id, label: known.name };
+      const created = await createCatalogItem<PotatoVariety>(token, 'varieties', { name });
+      setVarieties((all) => [...all, created]);
+      return { id: created.id, label: created.name };
+    }
+    const list = kind === 'quality' ? qualities : origins;
+    const known = list.find((item) => item.isActive && same(item.name));
+    if (known) return { id: known.id, label: known.name };
+    const created = await createCatalogItem<CommercialCharacteristic>(token, kind === 'quality' ? 'qualities' : 'origins', { name });
+    (kind === 'quality' ? setQualities : setOrigins)((all) => [...all, created]);
+    return { id: created.id, label: created.name };
+  }
   async function ensureBuyer() {
     const name = buyerName.trim();
     const phone = buyerPhone.trim();
@@ -343,7 +362,7 @@ export function SaleFlowScreen() {
   }).join(' ') : '';
   const dialogs = <>
     <ChoiceDialog choices={dialog === 'buyer' ? buyers.map((item) => ({ id: item.id, label: item.name, supportingText: item.destinationDepartment ?? undefined })) : dialog === 'vehicle' ? vehicles.map((item) => ({ id: item.id, label: item.plate, supportingText: item.description ?? undefined })) : varietyChoices} onClose={() => setDialog(null)} onSelect={select} selectedIds={[buyerId, vehicleId, draft.varietyId]} title={dialog === 'buyer' ? 'Seleccionar comprador' : dialog === 'vehicle' ? 'Seleccionar vehículo' : 'Seleccionar variedad'} visible={dialog !== null && dialog !== 'lot-edit' && !(sheet && dialog === 'variety')} />
-    <LotDialog key={`${dialog}-${activeLineId}`} initial={dialog === 'lot-edit' ? (() => { const active = sheetLines.find((line) => line.id === activeLineId) ?? sheetLines[0]; return active ? { varietyId: active.varietyId, qualityId: active.qualityId ?? null, originId: active.originId ?? null, unitPrice: active.unitPrice } : undefined; })() : undefined} onCancel={() => setDialog(null)} onCreate={(lot) => { if (dialog === 'lot-edit' ? editLot(lot) : addLot(lot)) setDialog(null); }} origins={origins.filter((item) => item.isActive).map((item) => ({ id: item.id, label: item.name }))} qualities={qualities.filter((item) => item.isActive).map((item) => ({ id: item.id, label: item.name }))} varieties={varietyChoices.map((item) => ({ id: item.id, label: item.label }))} visible={sheet && (dialog === 'variety' || dialog === 'lot-edit')} />
+    <LotDialog onCreateChoice={canWriteChoices ? createChoice : undefined} key={`${dialog}-${activeLineId}`} initial={dialog === 'lot-edit' ? (() => { const active = sheetLines.find((line) => line.id === activeLineId) ?? sheetLines[0]; return active ? { varietyId: active.varietyId, qualityId: active.qualityId ?? null, originId: active.originId ?? null, unitPrice: active.unitPrice } : undefined; })() : undefined} onCancel={() => setDialog(null)} onCreate={(lot) => { if (dialog === 'lot-edit' ? editLot(lot) : addLot(lot)) setDialog(null); }} origins={origins.filter((item) => item.isActive).map((item) => ({ id: item.id, label: item.name }))} qualities={qualities.filter((item) => item.isActive).map((item) => ({ id: item.id, label: item.name }))} varieties={varietyChoices.map((item) => ({ id: item.id, label: item.label }))} visible={sheet && (dialog === 'variety' || dialog === 'lot-edit')} />
     <ConfirmationDialog busy={busy} confirmLabel="Confirmar venta" message={preview.kind === 'ready' ? `${buyer?.name ?? 'Comprador'} · ${destination}. Bruto ${formatMoney(preview.grossCents)}, flete ${formatMoney(preview.freightCents)} (${freightIncluded ? 'incluido' : 'separado'}), descuento ${formatMoney(preview.discountsCents)} y total ${formatMoney(preview.totalCents)}. Pago ${paymentMode === 'cash' ? 'al contado' : 'a crédito'}. ${scheduleReview} Se registrará la venta y su efecto financiero.` : 'Revisa los datos de la venta.'} onCancel={() => setConfirming(false)} onConfirm={() => void submit()} title="¿Confirmar la venta?" visible={confirming} />
     <ConfirmationDialog busy={busy} confirmLabel="Salir sin guardar" title="¿Salir de la venta?" message="Los datos en edición todavía no se han guardado. Si sales, perderás este borrador de venta." visible={exitAction !== null} onCancel={()=>setExitAction(null)} onConfirm={confirmExit} />
   </>;

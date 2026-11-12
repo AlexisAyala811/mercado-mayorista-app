@@ -5,6 +5,9 @@ import { saleLineGrams, withWeights } from '@/domain/sales/sale';
 import { saleConfirmationSummary } from '@/domain/shared/confirmation-summary';
 import { SaleFlowScreen } from '@/features/sales/screens/sale-flow-screen';
 import { LotDialog } from '@/features/sales/components/lot-dialog';
+import { DateDialog } from '@/features/sales/components/date-dialog';
+import { formatLocalDateInput } from '@/domain/shared/date';
+import { Keyboard } from 'react-native';
 import { getSale, loadSaleCatalogs } from '@/services/api/sales-api';
 import { createCatalogItem } from '@/services/api/catalog-api';
 import { withChrome } from '../shared/with-chrome';
@@ -179,6 +182,44 @@ it('asks before removing a lot with weighed sacks and sends no freight while the
   // The last lot gives way to a fresh initial lot, as the mockup keeps one.
   expect(badge(second, '0 de 10 sacos registrados')).not.toHaveLength(0);
   await act(async () => second.unmount());
+});
+
+it('moves through the cells with ✓, closes the keyboard on the last one and picks the date (CL-ST25)', async () => {
+  let root!: ReactTestRenderer;
+  await act(async () => { root = create(withChrome(<SaleFlowScreen />)); });
+  const input = (n: number) => root.root.findAll((node) => node.props.accessibilityLabel === `Peso del saco ${n} (kg)` && typeof node.props.onSubmitEditing === 'function')[0]!;
+  expect(input(1).props).toMatchObject({ returnKeyType: 'next', submitBehavior: 'submit', autoCorrect: false });
+  expect(input(10).props).toMatchObject({ returnKeyType: 'done', submitBehavior: 'blurAndSubmit' });
+  const dismiss = jest.spyOn(Keyboard, 'dismiss');
+  await act(async () => { input(10).props.onSubmitEditing(); });
+  expect(dismiss).toHaveBeenCalled();
+  dismiss.mockRestore();
+  // The date is chosen with a tap: «Mañana» or a day of the calendar.
+  const today = new Date();
+  await act(async () => { press(root, `Fecha despacho: ${formatLocalDateInput(today)}`); });
+  expect(root.root.findAllByType(DateDialog)).toHaveLength(1);
+  await act(async () => { root.root.findAll((node) => node.props.accessibilityRole === 'button' && typeof node.props.onPress === 'function' && [node.props.children].flat().some((child: any) => child?.props?.children === 'Mañana'))[0]!.props.onPress(); });
+  const tomorrow = formatLocalDateInput(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1));
+  expect(root.root.findAllByType(DateDialog)).toHaveLength(0);
+  expect(root.root.findAll((node) => node.props.accessibilityLabel === `Fecha despacho: ${tomorrow}`)).not.toHaveLength(0);
+  await act(async () => root.unmount());
+});
+
+it('writes a variety that is not in the list and reuses one that is (CL-ST26)', async () => {
+  jest.mocked(createCatalogItem).mockClear();
+  jest.mocked(createCatalogItem).mockResolvedValue({ id: 'huayro', name: 'Huayro' });
+  let root!: ReactTestRenderer;
+  await act(async () => { root = create(withChrome(<SaleFlowScreen />)); });
+  await act(async () => { press(root, 'Añadir lote o variedad'); });
+  const write = root.root.findByType(LotDialog).props.onCreateChoice;
+  expect(write).toEqual(expect.any(Function));
+  await act(async () => { expect(await write('variety', ' peruanita ')).toEqual({ id: 'peruanita', label: 'Peruanita' }); });
+  expect(createCatalogItem).not.toHaveBeenCalled();
+  await act(async () => { expect(await write('variety', 'Huayro')).toEqual({ id: 'huayro', label: 'Huayro' }); });
+  expect(createCatalogItem).toHaveBeenCalledWith('test-token', 'varieties', { name: 'Huayro' });
+  // The new variety is in the list from now on, for this lot and the next ones.
+  expect(root.root.findByType(LotDialog).props.varieties).toContainEqual({ id: 'huayro', label: 'Huayro' });
+  await act(async () => root.unmount());
 });
 
 it('edits variety and price of the active lot from ✎ (CL-ST23)', async () => {
