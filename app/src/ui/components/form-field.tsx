@@ -3,7 +3,7 @@ import {
   useVisualStyles,
   type VisualPalette,
 } from "@/ui/visual-theme";
-import { useContext, useRef, type ReactNode } from "react";
+import { useContext, useRef, type ReactNode, type Ref } from "react";
 import {
   StyleSheet,
   Text,
@@ -33,6 +33,8 @@ type FormFieldProps = TextInputProps & {
   // next to the label (a link such as «¿Olvidó su clave?»).
   trailing?: ReactNode;
   labelAction?: ReactNode;
+  // Lets a form move the focus to this field (✓ of the keyboard, CL-ST25).
+  ref?: Ref<TextInput>;
 };
 
 export function FormField({
@@ -48,6 +50,7 @@ export function FormField({
   trailing,
   labelAction,
   hideLabel = false,
+  ref: outerRef,
   ...props
 }: FormFieldProps) {
   const styles = useVisualStyles(createStyles);
@@ -71,7 +74,11 @@ export function FormField({
       </View>}
       <View>
       <TextInput
-        ref={inputRef}
+        ref={(node) => {
+          inputRef.current = node;
+          if (typeof outerRef === "function") outerRef(node);
+          else if (outerRef) outerRef.current = node;
+        }}
         onFocus={(event) => {
           keyboardFocus?.focus(inputRef.current);
           onFocus?.(event);
