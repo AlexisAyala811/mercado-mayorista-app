@@ -54,7 +54,7 @@ export function ConfirmationCard({ documentLabel = 'COMPROBANTE', title, party, 
         <SymbolView fallback={null} name={{ android: 'check_circle', ios: 'checkmark.circle.fill', web: 'check_circle' }} size={36} tintColor={accent.emerald.ink} />
       </View>
       <Text accessibilityRole="header" style={styles.title}>Guardado exitosamente</Text>
-      <Text style={styles.lead}>{title} para {party}: quedó registrada y archivada en el servidor.</Text>
+      <Text style={styles.lead}>{title} para {party} quedó registrada y archivada en el servidor.</Text>
 
       <View style={styles.box}>
         <View style={styles.boxHead}>

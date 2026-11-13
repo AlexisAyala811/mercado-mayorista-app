@@ -7,8 +7,9 @@ import type { SalePreview } from '@/domain/sales/sale-preview';
 import { saleLineGrams, validSackWeight, type SaleLineDraft } from '@/domain/sales/sale';
 import { BigTotal, gramsToKg, Line, sheetColumns, sheetLayout as p, sheetRowHeight, SheetInput, sheetStyles as s } from '@/features/reception/screens/purchase-sheet';
 import type { InstallmentDraft } from '@/features/reception/screens/settlement-screen';
-import { AppButton, AppScreen, ConfirmationDialog, FeedbackState, FormField, SelectionField } from '@/ui/components';
+import { AppScreen, ConfirmationDialog, FeedbackState, FormField, SelectionField } from '@/ui/components';
 import { DateDialog } from '@/features/sales/components/date-dialog';
+import { InstallmentRows } from '@/features/reception/components/installment-rows';
 import { useBottomNav } from '@/ui/navigation/app-chrome';
 import { AppHeader } from '@/ui/navigation/app-header';
 import { accent, color } from '@/ui/tokens';
@@ -431,16 +432,7 @@ export function SaleSheet(props: SaleSheetProps) {
           </View>
         </View>
         {props.paymentMode === 'credit' ? (
-          <View style={{ gap: 12 }}>
-            {props.installments.map((item, index) => (
-              <View key={item.id} style={s.fields}>
-                <View style={s.field}><FormField appearance="stitch" editable={!busy} label={`Vencimiento cuota ${index + 1}`} onChangeText={(value) => props.onChangeInstallment(item.id, 'dueOn', value)} placeholder="aaaa-mm-dd" value={item.dueOn} /></View>
-                <View style={s.field}><FormField appearance="stitch" accessibilityLabel={`Importe cuota ${index + 1} (S/)`} editable={!busy} keyboardType="decimal-pad" label="Importe (S/)" onChangeText={(value) => props.onChangeInstallment(item.id, 'amount', value)} value={item.amount} /></View>
-                <AppButton accessibilityLabel={`Quitar cuota ${index + 1}`} disabled={busy} label="Quitar" onPress={() => props.onRemoveInstallment(item.id)} tone="secondary" />
-              </View>
-            ))}
-            <AppButton disabled={busy} label="Agregar cuota" onPress={props.onAddInstallment} tone="secondary" />
-          </View>
+          <InstallmentRows busy={busy} installments={props.installments} onAdd={props.onAddInstallment} onChange={props.onChangeInstallment} onRemove={props.onRemoveInstallment} />
         ) : null}
         {preview.kind !== 'ready' && totalSacks ? <FeedbackState title="Importes pendientes" message={preview.message} /> : null}
         <Text style={s.help}>Importes provisionales: el servidor los verifica al guardar y registra la venta y su efecto en caja o en la cuenta del comprador.</Text>

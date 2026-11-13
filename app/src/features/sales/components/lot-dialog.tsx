@@ -17,6 +17,10 @@ type Props = {
   // Editing the active lot (the ✎ of the mockup): starts from its values and
   // does not ask for the number of sacks.
   initial?: Omit<NewLot, 'plannedSacks'>;
+  // The purchase weighs sack by sack: it does not ask how many to start with.
+  askPlanned?: boolean;
+  // The purchase fixes the variety with its first sack: it is shown, not changed.
+  lockVariety?: boolean;
   onCancel: () => void;
   onCreate: (lot: NewLot) => void;
   // «Escribir otra…» of each list (CL-ST26): registers the typed name in the
@@ -33,7 +37,7 @@ type Open = 'variety' | 'quality' | 'origin' | 'planned' | null;
 
 // «Añadir nuevo lote / variedad» of the Stitch sale mockup: variety, quality,
 // price per kilogram and the initial number of sacks.
-export function LotDialog({ initial, onCancel, onCreate, onCreateChoice, origins = [], qualities, varieties, visible }: Props) {
+export function LotDialog({ askPlanned = true, initial, lockVariety = false, onCancel, onCreate, onCreateChoice, origins = [], qualities, varieties, visible }: Props) {
   const editing = Boolean(initial);
   const [varietyId, setVarietyId] = useState<string | null>(initial?.varietyId ?? null);
   const [qualityId, setQualityId] = useState<string | null>(initial?.qualityId ?? null);
@@ -92,7 +96,7 @@ export function LotDialog({ initial, onCancel, onCreate, onCreateChoice, origins
             </Pressable>
           </View>
           <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" ref={scrollRef}>
-            <Select label="VARIEDAD / NOMBRE" onLayoutY={(y) => { fieldY.current.variety = y; }} onToggle={() => setOpen(open === 'variety' ? null : 'variety')} open={open === 'variety'} placeholder="Elige la variedad" value={variety?.label}>
+            <Select label="VARIEDAD / NOMBRE" locked={lockVariety} onLayoutY={(y) => { fieldY.current.variety = y; }} onToggle={() => setOpen(open === 'variety' ? null : 'variety')} open={open === 'variety'} placeholder="Elige la variedad" value={variety?.label}>
               {varieties.length ? varieties.map((item) => <OptionRow key={item.id} label={item.label} onPress={() => { setVarietyId(item.id); setOpen(null); }} selected={item.id === varietyId} />) : <Text style={styles.none}>No hay variedades activas en el catálogo.</Text>}
               {onCreateChoice ? <WriteRow kind="variety" noun="variedad" onReveal={(y) => reveal(fieldY.current.variety + optionsTop + y)} onWrite={write} /> : null}
             </Select>
@@ -116,7 +120,7 @@ export function LotDialog({ initial, onCancel, onCreate, onCreateChoice, origins
                 {onCreateChoice ? <WriteRow kind="origin" noun="procedencia" onReveal={(y) => reveal(fieldY.current.origin + optionsTop + y)} onWrite={write} /> : null}
               </Select>
             ) : null}
-            {editing ? null : (
+            {editing || !askPlanned ? null : (
               <Select label="CANTIDAD INICIAL DE SACOS" onToggle={() => setOpen(open === 'planned' ? null : 'planned')} open={open === 'planned'} placeholder="" value={plannedLabel(planned)}>
                 {plannedOptions.map((count) => <OptionRow key={count} label={plannedLabel(count)} onPress={() => { setPlanned(count); setOpen(null); }} selected={count === planned} />)}
               </Select>
@@ -138,13 +142,13 @@ export function LotDialog({ initial, onCancel, onCreate, onCreateChoice, origins
 // Label and closed control above the options: where a list starts in its field.
 const optionsTop = 74;
 
-function Select({ children, label, onLayoutY, onToggle, open, placeholder, value }: { children: React.ReactNode; label: string; onLayoutY?: (y: number) => void; onToggle: () => void; open: boolean; placeholder: string; value?: string }) {
+function Select({ children, label, locked = false, onLayoutY, onToggle, open, placeholder, value }: { children: React.ReactNode; label: string; locked?: boolean; onLayoutY?: (y: number) => void; onToggle: () => void; open: boolean; placeholder: string; value?: string }) {
   return (
     <View onLayout={onLayoutY ? (event) => onLayoutY(event.nativeEvent.layout.y) : undefined} style={styles.field}>
       <Text style={styles.label}>{label}</Text>
-      <Pressable accessibilityLabel={`${label.toLowerCase()}: ${value ?? placeholder}`} accessibilityRole="button" accessibilityState={{ expanded: open }} onPress={onToggle} style={styles.select}>
+      <Pressable accessibilityLabel={`${label.toLowerCase()}: ${value ?? placeholder}`} accessibilityRole="button" accessibilityHint={locked ? 'La variedad queda fija desde el primer saco' : undefined} accessibilityState={{ disabled: locked, expanded: open }} disabled={locked} onPress={onToggle} style={[styles.select, locked && styles.selectLocked]}>
         <Text numberOfLines={1} style={[styles.selectText, !value && styles.placeholder]}>{value ?? placeholder}</Text>
-        <SymbolView fallback={null} name={{ android: open ? 'expand_less' : 'expand_more', ios: 'chevron.down', web: 'expand_more' }} size={20} tintColor="#475569" />
+        {locked ? <SymbolView fallback={null} name={{ android: 'lock', ios: 'lock', web: 'lock' }} size={16} tintColor="#94A3B8" /> : <SymbolView fallback={null} name={{ android: open ? 'expand_less' : 'expand_more', ios: 'chevron.down', web: 'expand_more' }} size={20} tintColor="#475569" />}
       </Pressable>
       {open ? <View style={styles.options}>{children}</View> : null}
     </View>
@@ -208,6 +212,7 @@ const styles = StyleSheet.create({
   field: { gap: 6 },
   label: { color: '#475569', fontSize: 11, fontWeight: '700', letterSpacing: 0.6 },
   select: { alignItems: 'center', backgroundColor: '#EFF4FF', borderRadius: 10, flexDirection: 'row', justifyContent: 'space-between', minHeight: 46, paddingHorizontal: 12 },
+  selectLocked: { backgroundColor: '#F1F5F9' },
   selectText: { color: '#0F172A', flex: 1, fontSize: 15, fontWeight: '600' },
   placeholder: { color: '#64748B', fontWeight: '500' },
   input: { backgroundColor: '#EFF4FF', borderColor: 'transparent', fontSize: 15, fontWeight: '600', minHeight: 46 },
