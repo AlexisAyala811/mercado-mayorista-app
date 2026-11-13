@@ -19,7 +19,10 @@ jest.mock('expo-router',()=>{
     react.useEffect(()=>{mockMounts++;return()=>{mockUnmounts++;};},[]);
     return react.createElement('navigation-state',{route,onMove:()=>setRoute('sync-queue')},props.children);
   };
-  Stack.Screen=()=>null;Stack.Protected=({guard,children}:React.PropsWithChildren<{guard:boolean}>)=>guard?children:null;
+  Stack.Screen = function Screen() { return null; };
+  Stack.Protected = function Protected({ guard, children }: React.PropsWithChildren<{ guard: boolean }>) {
+    return guard ? children : null;
+  };
   return {Stack,usePathname:()=>"/home",useRouter:()=>({back:jest.fn(),canGoBack:()=>false,replace:jest.fn()})};
 });
 beforeEach(()=>{(globalThis as typeof globalThis&{IS_REACT_ACT_ENVIRONMENT:boolean}).IS_REACT_ACT_ENVIRONMENT=true;mockMounts=0;mockUnmounts=0;mockContext={session:{accessToken:'fixture',user:{role:'wholesaler'}},isBootstrapping:false,isRevalidating:false,bootstrapError:null,retryBootstrap:jest.fn()};});

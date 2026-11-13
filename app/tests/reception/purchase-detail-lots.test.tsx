@@ -4,7 +4,7 @@ import { PurchaseHistoryScreen } from '@/features/reception/screens/purchase-his
 import { getPurchaseSettlement, getReception, getSacks } from '@/services/api/reception-api';
 import { listPurchaseHistory, purchaseHistorySummary } from '@/services/api/history-api';
 import type { PurchaseSettlement, Reception } from '@/domain/reception/reception';
-import { PurchasePaymentDialog } from '@/features/reception/components/purchase-payment-dialog';
+import { AccountPaymentDialog } from '@/features/history/account-payment-dialog';
 import { shareReceipt } from '@/services/receipts/receipt-sharing';
 
 const mockEnqueue = jest.fn();
@@ -13,7 +13,7 @@ jest.mock('@/features/auth/session/session-provider', () => ({ useSession: () =>
 jest.mock('expo-router', () => ({ useRouter: () => ({ push: jest.fn(), back: jest.fn() }) }));
 jest.mock('@/services/api/reception-api', () => ({ getPurchaseSettlement: jest.fn(), getReception: jest.fn(), getSacks: jest.fn() }));
 jest.mock('@/services/receipts/receipt-sharing', () => ({ shareReceipt: jest.fn() }));
-jest.mock('@/features/reception/components/purchase-payment-dialog', () => ({ PurchasePaymentDialog: () => null }));
+jest.mock('@/features/history/account-payment-dialog', () => ({ AccountPaymentDialog: () => null }));
 jest.mock('@/services/api/history-api', () => ({ listPurchaseHistory: jest.fn(), purchaseHistorySummary: jest.fn() }));
 jest.mock('@/domain/reception/reception', () => ({ ...jest.requireActual('@/domain/reception/reception'), createOperationId: () => 'detail-operation' }));
 jest.mock('@/ui/components', () => {
@@ -89,7 +89,7 @@ describe('buttons of the purchase card (CL-ST30)', () => {
   it('opens «Abonar / Liquidar» on this screen instead of leaving for Deudas', async () => {
     const root = await openList();
     await act(async () => { byLabel(root, 'Abonar a').props.onPress(); });
-    expect(root.root.findAllByType(PurchasePaymentDialog)).toHaveLength(1);
+    expect(root.root.findAllByType(AccountPaymentDialog)).toHaveLength(1);
     await act(async () => root.unmount());
   });
 });

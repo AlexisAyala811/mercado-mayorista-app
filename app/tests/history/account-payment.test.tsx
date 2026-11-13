@@ -2,13 +2,13 @@ import React from 'react';
 import { act, create, type ReactTestRenderer } from 'react-test-renderer';
 
 import type { HistoryCard } from '@/domain/shared/history-cards';
-import { PurchasePaymentDialog } from '@/features/reception/components/purchase-payment-dialog';
-import { listAccounts } from '@/services/api/operations-api';
+import { AccountPaymentDialog } from '@/features/history/account-payment-dialog';
+import { findAccountBySource } from '@/services/api/operations-api';
 
 const mockEnqueue = jest.fn();
 const mockSendQueued = jest.fn();
 jest.mock('@/features/sync/sync-queue-provider', () => ({ useSyncQueue: () => ({ enqueue: mockEnqueue, sendQueued: mockSendQueued }) }));
-jest.mock('@/services/api/operations-api', () => ({ listAccounts: jest.fn() }));
+jest.mock('@/services/api/operations-api', () => ({ findAccountBySource: jest.fn() }));
 jest.mock('@/domain/reception/reception', () => ({ ...jest.requireActual('@/domain/reception/reception'), createOperationId: () => 'payment-operation' }));
 jest.mock('@/features/reception/screens/purchase-sheet', () => ({ SheetInput: (props: object) => jest.requireActual('react').createElement('sheet-input', props) }));
 jest.mock('@/ui/components/symbol', () => ({ SymbolView: () => null }));
@@ -21,20 +21,21 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockEnqueue.mockResolvedValue({ id: 'payment-operation', status: 'pending' });
   mockSendQueued.mockResolvedValue({ id: 'payment-operation', status: 'confirmed' });
-  jest.mocked(listAccounts).mockResolvedValue({ items: [account], limit: 100, offset: 0, total: 1 });
+  jest.mocked(findAccountBySource).mockResolvedValue({ account });
 });
 
 const press = (root: ReactTestRenderer, label: string) => root.root.findAll((node) => node.props.accessibilityLabel === label && typeof node.props.onPress === 'function')[0]!.props.onPress();
-async function open(overrides: Partial<React.ComponentProps<typeof PurchasePaymentDialog>> = {}) {
+async function open(overrides: Partial<React.ComponentProps<typeof AccountPaymentDialog>> = {}) {
   const onPaid = jest.fn(); const onPending = jest.fn(); const onClose = jest.fn();
   let root!: ReactTestRenderer;
-  await act(async () => { root = create(<PurchasePaymentDialog card={card} onClose={onClose} onPaid={onPaid} onPending={onPending} token="test-token" {...overrides} />); });
+  await act(async () => { root = create(<AccountPaymentDialog card={card} onClose={onClose} onPaid={onPaid} onPending={onPending} token="test-token" {...overrides} />); });
   return { onClose, onPaid, onPending, root };
 }
 
 // Spec 011, CL-ST30: «Abonar / Liquidar» of «Ver compras».
 it('prefills the whole balance and registers the payment as the account payment of Deudas', async () => {
   const { onPaid, root } = await open();
+  expect(findAccountBySource).toHaveBeenCalledWith('test-token', 'purchase-settlement', card.sourceId);
   const input = root.root.findAll((node) => node.props.accessibilityLabel === 'Monto a cancelar o abonar (S/)')[0]!;
   expect(input.props.value).toBe('1464.00');
   await act(async () => { input.props.onChangeText('1000'); });
@@ -60,9 +61,33 @@ it('rejects an amount above the balance and goes to the queue when the server do
 });
 
 it('says so when the purchase has no open account', async () => {
-  jest.mocked(listAccounts).mockResolvedValue({ items: [], limit: 100, offset: 0, total: 0 });
+  jest.mocked(findAccountBySource).mockResolvedValue({ account: null });
   const { root } = await open();
   expect(root.root.findAll((node) => String(node.props.children).includes('No se encontró la cuenta por pagar'))).not.toHaveLength(0);
   expect(root.root.findAll((node) => node.props.accessibilityLabel === 'Registrar pago')[0]!.props.disabled).toBe(true);
+  await act(async () => root.unmount());
+});
+
+it('looks up the receivable by sale ID and prefills its balance', async () => {
+  const saleCard: HistoryCard = { ...card, sourceId: 'sale-1' };
+  jest.mocked(findAccountBySource).mockResolvedValue({
+    account: { ...account, kind: 'receivable', sourceType: 'sale', sourceId: 'sale-1' },
+  });
+  const { root } = await open({ card: saleCard, kind: 'sale' });
+  expect(findAccountBySource).toHaveBeenCalledWith('test-token', 'sale', 'sale-1');
+  expect(root.root.findAll((node) => node.props.accessibilityLabel === 'Monto a cancelar o abonar (S/)')[0]?.props.value).toBe('1464.00');
+  await act(async () => root.unmount());
+});
+
+// Spec 011, CL-ST32: «Cobrar / Liquidar» of «Ver ventas» uses the receivable account.
+it('collects a sale on its receivable account with the same account payment', async () => {
+  jest.mocked(findAccountBySource).mockResolvedValue({ account: { ...account, id: 'account-sale', kind: 'receivable' as const, sourceType: 'sale', sourceId: 'sale-1', balanceCents: '50000', version: 5 } });
+  const { onPaid, root } = await open({ card: { ...card, sourceId: 'sale-1', party: 'Comercial Los Andes' }, kind: 'sale' });
+  expect(findAccountBySource).toHaveBeenLastCalledWith('test-token', 'sale', 'sale-1');
+  expect(root.root.findAll((node) => node.props.children === 'Cobrar / Liquidar venta')).not.toHaveLength(0);
+  expect(root.root.findAll((node) => node.props.accessibilityLabel === 'Monto a cancelar o abonar (S/)')[0]!.props.value).toBe('500.00');
+  await act(async () => { press(root, 'Registrar pago'); });
+  expect(mockEnqueue).toHaveBeenCalledWith(expect.objectContaining({ path: '/accounts/account-sale/payments', type: 'account.payment', body: { amountCents: 50000, clientOperationId: 'payment-operation', expectedAccountVersion: 5 } }));
+  expect(onPaid).toHaveBeenCalledWith('Cobro de S/ 500.00 registrado a Comercial Los Andes.');
   await act(async () => root.unmount());
 });

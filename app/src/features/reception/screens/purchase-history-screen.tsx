@@ -37,7 +37,7 @@ import { useSyncQueue } from "@/features/sync/sync-queue-provider";
 import { CommercialHistoryList, type HistoryListState, type HistoryQuery } from "@/features/history/commercial-history-list";
 import { purchaseCard, type HistoryCard, type HistoryChip } from "@/domain/shared/history-cards";
 import { listPurchaseHistory, purchaseHistorySummary } from "@/services/api/history-api";
-import { PurchasePaymentDialog } from "@/features/reception/components/purchase-payment-dialog";
+import { AccountPaymentDialog } from "@/features/history/account-payment-dialog";
 import { shareReceipt } from "@/services/receipts/receipt-sharing";
 
 
@@ -298,7 +298,7 @@ export function PurchaseHistoryScreen() {
           reloadKey={reloadKey}
           disabled={ticketBusy}
         />
-        {paying ? <PurchasePaymentDialog card={paying} onClose={() => setPaying(null)} onPaid={(message) => { setPaying(null); setNotice(message); setReloadKey((value) => value + 1); }} onPending={() => { setPaying(null); router.push('/sync-queue' as Href); }} token={token} /> : null}
+        {paying ? <AccountPaymentDialog card={paying} onClose={() => setPaying(null)} onPaid={(message) => { setPaying(null); setNotice(message); setReloadKey((value) => value + 1); }} onPending={() => { setPaying(null); router.push('/sync-queue' as Href); }} token={token} /> : null}
       </AppScreen>
     );
 

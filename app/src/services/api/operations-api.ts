@@ -148,6 +148,17 @@ export type StowageEntry = {
 const auth = (token: string) => ({ token });
 export const listAccounts = (token: string) =>
   loadCollectionPages<Account>("/accounts", token);
+export const findAccountBySource = (
+  token: string,
+  sourceType: "purchase-settlement" | "sale",
+  sourceId: string,
+) => {
+  const query = new URLSearchParams({ sourceType, sourceId });
+  return apiRequest<{ account: Account | null }>(
+    `/accounts/by-source?${query}`,
+    auth(token),
+  );
+};
 export const listCashMovements = (token: string) =>
   loadCollectionPages<CashMovement>("/accounts/cash/movements", token);
 export const getAccount = (token: string, id: string) =>
