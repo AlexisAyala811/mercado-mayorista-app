@@ -160,7 +160,7 @@ it('switches report operation without keeping the previous summary or mixing glo
     expect(control(root, 'Venta').props.accessibilityState.selected).toBe(true);
     await act(async () => { control(root, 'Generar').props.onPress(); });
     expect(operationOverview).toHaveBeenLastCalledWith('test-token', 'sale', expect.any(String), expect.any(String));
-    expect(control(root, 'Total de ventas').props.value).toBe('S/ 123.45');
+    expect(control(root, 'Facturación total').props.value).toBe('S/ 123.45');
   } finally { await act(async () => { root.unmount(); }); }
 });
 
@@ -337,7 +337,7 @@ it('does not mention returns in the sales summary even when the server reports t
   try {
     await act(async () => { control(root, 'Venta').props.onPress(); });
     await act(async () => { control(root, 'Generar').props.onPress(); });
-    expect(control(root, 'Total de ventas').props.value).toBe('S/ 123.45');
+    expect(control(root, 'Facturación total').props.value).toBe('S/ 123.45');
     const texts = root.root.findAll(node => typeof node.type === 'string' || typeof node.props.children === 'string')
       .map(node => [node.props.children].flat().join(''));
     expect(texts.some(text => /devoluci/i.test(text))).toBe(false);
@@ -356,5 +356,22 @@ it('queries the current period on opening and again after switching operation', 
   await act(async () => { root.root.findAll(node => node.props.label === 'Venta')[0]!.props.onPress(); });
   await act(async () => { await Promise.resolve(); });
   expect(operationOverview).toHaveBeenLastCalledWith('test-token', 'sale', expect.any(String), expect.any(String));
+  await act(async () => { root.unmount(); });
+});
+
+// Spec 011, CL-ST33: the sales report shows the four indicators of the mockup.
+it('shows facturación, cobrado, saldo por cobrar and volumen despachado for sales with the collection effectiveness', async () => {
+  let root!: ReactTestRenderer;
+  await act(async () => { root = create(<ReportsScreen />); });
+  await act(async () => { await Promise.resolve(); });
+  await act(async () => { root.root.findAll(node => node.props.label === 'Venta')[0]!.props.onPress(); });
+  await act(async () => { await Promise.resolve(); });
+  const value = (label: string) => root.root.findAll(node => node.props.label === label)[0]!.props.value;
+  expect(value('Facturación total')).toBe('S/ 123.45');
+  expect(root.root.findAll(node => node.props.label === 'Cobrado / en caja')).not.toHaveLength(0);
+  expect(root.root.findAll(node => node.props.label === 'Saldo por cobrar')).not.toHaveLength(0);
+  expect(root.root.findAll(node => node.props.label === 'Volumen despachado')).not.toHaveLength(0);
+  expect(root.root.findAll(node => node.props.label === 'Precio promedio')).toHaveLength(0);
+  expect(root.root.findAll(node => typeof node.type === 'string' && node.props.testID === 'collection-effectiveness')).toHaveLength(1);
   await act(async () => { root.unmount(); });
 });

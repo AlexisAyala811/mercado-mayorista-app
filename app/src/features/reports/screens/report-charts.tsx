@@ -9,6 +9,7 @@ import { listAllReportRows, type DailyReportRow, type OperationReportRow, type V
 import type { ReportSelection } from '@/services/reports/report-sharing';
 import { FeedbackState } from '@/ui/components/feedback-state';
 import { LoadingState } from '@/ui/components/loading-state';
+import { SalesByClient } from './sales-by-client';
 import { accent, color } from '@/ui/tokens';
 
 type Rows = { daily: DailyReportRow[]; varieties: VarietyReportRow[]; detail: OperationReportRow[] };
@@ -101,7 +102,7 @@ export function ReportCharts({ selection, token }: { selection: ReportSelection;
             );
           }) : <Text style={styles.empty}>Sin variedades en el período.</Text>}
         </Panel>
-        <Panel icon="groups" subtitle={purchase ? 'Proveedores del período por kilos' : 'Compradores del período por kilos'} title={purchase ? 'Principales proveedores' : 'Principales compradores'}>
+        {purchase ? <Panel icon="groups" subtitle="Proveedores del período por kilos" title="Principales proveedores">
           {parties.length ? parties.map((party) => (
             <View key={party.id} style={styles.party} testID={`top-party-${party.position}`}>
               <View style={[styles.position, party.position > 3 && styles.positionLight]}><Text style={[styles.positionText, party.position > 3 && styles.positionTextLight]}>{party.position}</Text></View>
@@ -115,8 +116,10 @@ export function ReportCharts({ selection, token }: { selection: ReportSelection;
               </View>
             </View>
           )) : <Text style={styles.empty}>Sin operaciones en el período.</Text>}
-        </Panel>
+        </Panel> : null}
       </View>
+      {/* CL-ST33: the sales report ends with the table of sales by client. */}
+      {purchase ? null : <SalesByClient rows={rows.detail} />}
     </View>
   );
 }
