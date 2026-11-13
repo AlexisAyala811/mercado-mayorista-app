@@ -3,7 +3,7 @@ import { formatKilograms, kilogramsDraft, validateSackWeights } from "@/domain/r
 import { freightLabel, SettlementLotList } from "@/features/reception/components/settlement-lot-list";
 import {commercialDescription} from '@/domain/catalog/commercial-characteristic';
 import { useCallback, useRef, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { type ScrollView, StyleSheet, Text, View } from "react-native";
 import { useRouter, type Href } from "expo-router";
 
 import {
@@ -35,8 +35,10 @@ import { color, radius, spacing, typography } from "@/ui/tokens";
 
 import { useSyncQueue } from "@/features/sync/sync-queue-provider";
 import { CommercialHistoryList, type HistoryListState, type HistoryQuery } from "@/features/history/commercial-history-list";
-import { purchaseCard, type HistoryChip } from "@/domain/shared/history-cards";
+import { purchaseCard, type HistoryCard, type HistoryChip } from "@/domain/shared/history-cards";
 import { listPurchaseHistory, purchaseHistorySummary } from "@/services/api/history-api";
+import { PurchasePaymentDialog } from "@/features/reception/components/purchase-payment-dialog";
+import { shareReceipt } from "@/services/receipts/receipt-sharing";
 
 
 type Action =
@@ -71,6 +73,22 @@ export function PurchaseHistoryScreen() {
     return { items: value.items.map(purchaseCard), total: value.total };
   }, [token]);
   const loadSummary = useCallback((query: HistoryQuery) => purchaseHistorySummary(token, query), [token]);
+  // CL-ST30: «Abonar / Liquidar» on this screen, «Ver ticket» shares the
+  // settlement, ✎ opens the detail and 🗑 opens it with the void reason.
+  const [paying, setPaying] = useState<HistoryCard | null>(null);
+  // 🗑 opens the detail and goes straight to the reason of the void.
+  const detailScroll = useRef<ScrollView>(null);
+  const scrollToVoid = useRef(false);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [ticketBusy, setTicketBusy] = useState(false);
+  async function ticket(card: HistoryCard) {
+    if (!card.sourceId || ticketBusy) return;
+    setTicketBusy(true); setError(null);
+    try { await shareReceipt('purchases', card.sourceId, token); }
+    catch (cause) { setError(cause instanceof Error ? cause.message : 'No se pudo abrir el ticket.'); }
+    finally { setTicketBusy(false); }
+  }
 
   async function readDetail(id: string) {
     const [current, bagRows] = await Promise.all([
@@ -85,13 +103,20 @@ export function PurchaseHistoryScreen() {
     setSacks(bagRows);
     setSettlement(purchase);
     setNeedsRefresh(false);
+    return { current, purchase };
   }
-  async function open(id: string) {
+  async function open(id: string, then?: 'void') {
     setDetailLoading(true);
     setError(null);
     setSuccess(null);
     try {
-      await readDetail(id);
+      const read = await readDetail(id);
+      if (then === 'void') {
+        scrollToVoid.current = true;
+        setReason('');
+        if (read.purchase?.state === 'confirmed') setAction('void-purchase');
+        else if (read.current.state !== 'settled' && read.current.state !== 'voided') setAction('void-reception');
+      }
     } catch (cause) {
       setError(
         cause instanceof Error
@@ -257,6 +282,7 @@ export function PurchaseHistoryScreen() {
           title="Ver compras"
         />
         {error ? <FeedbackState title="No se pudo abrir la compra" message={error} tone="error" /> : null}
+        {notice ? <FeedbackState title="Operación confirmada" message={notice} tone="success" /> : null}
         <CommercialHistoryList
           kind="purchase"
           initial={listState}
@@ -264,15 +290,21 @@ export function PurchaseHistoryScreen() {
           loadPage={loadPage}
           loadSummary={loadSummary}
           onOpen={(card) => void open(card.id)}
-          onSettle={(card) => router.push({ pathname: '/debts', params: { sourceId: card.sourceId ?? '' } } as Href)}
+          onSettle={(card) => { setNotice(null); setPaying(card); }}
           onNew={() => router.push('/purchase-flow' as Href)}
+          onTicket={(card) => void ticket(card)}
+          onEdit={(card) => void open(card.id)}
+          onVoid={(card) => void open(card.id, 'void')}
+          reloadKey={reloadKey}
+          disabled={ticketBusy}
         />
+        {paying ? <PurchasePaymentDialog card={paying} onClose={() => setPaying(null)} onPaid={(message) => { setPaying(null); setNotice(message); setReloadKey((value) => value + 1); }} onPending={() => { setPaying(null); router.push('/sync-queue' as Href); }} token={token} /> : null}
       </AppScreen>
     );
 
   return (
     <>
-      <AppScreen contentContainerStyle={styles.screen}>
+      <AppScreen contentContainerStyle={styles.screen} scrollRef={detailScroll}>
         <BottomNavSlots back={{ label: "Atrás", accessibilityLabel: "Volver al historial", onPress: () => { setReception(null); setSettlement(null); } }} />
         <ScreenHeader
           eyebrow="COMPRAS"
@@ -407,6 +439,7 @@ export function PurchaseHistoryScreen() {
           </AppCard>
         ) : null}
         {action && action !== "correct-sack" ? (
+          <View onLayout={(event) => { if (scrollToVoid.current) { scrollToVoid.current = false; detailScroll.current?.scrollTo({ animated: true, y: Math.max(0, event.nativeEvent.layout.y - 12) }); } }}>
           <AppCard title="Motivo de anulación">
             <FormField label="Motivo" onChangeText={setReason} value={reason} />
             <AppButton
@@ -415,6 +448,7 @@ export function PurchaseHistoryScreen() {
               onPress={() => setReviewing(true)}
             />
           </AppCard>
+          </View>
         ) : null}
         <View style={styles.actions}>
           {settlement?.state === "confirmed" ? (

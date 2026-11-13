@@ -4,12 +4,16 @@ import { PurchaseHistoryScreen } from '@/features/reception/screens/purchase-his
 import { getPurchaseSettlement, getReception, getSacks } from '@/services/api/reception-api';
 import { listPurchaseHistory, purchaseHistorySummary } from '@/services/api/history-api';
 import type { PurchaseSettlement, Reception } from '@/domain/reception/reception';
+import { PurchasePaymentDialog } from '@/features/reception/components/purchase-payment-dialog';
+import { shareReceipt } from '@/services/receipts/receipt-sharing';
 
 const mockEnqueue = jest.fn();
 jest.mock('@/features/sync/sync-queue-provider', () => ({ useSyncQueue: () => ({ enqueue: mockEnqueue, sendQueued: jest.fn() }) }));
 jest.mock('@/features/auth/session/session-provider', () => ({ useSession: () => ({ session: { accessToken: 'test-token', user: { role: 'wholesaler' } } }) }));
 jest.mock('expo-router', () => ({ useRouter: () => ({ push: jest.fn(), back: jest.fn() }) }));
 jest.mock('@/services/api/reception-api', () => ({ getPurchaseSettlement: jest.fn(), getReception: jest.fn(), getSacks: jest.fn() }));
+jest.mock('@/services/receipts/receipt-sharing', () => ({ shareReceipt: jest.fn() }));
+jest.mock('@/features/reception/components/purchase-payment-dialog', () => ({ PurchasePaymentDialog: () => null }));
 jest.mock('@/services/api/history-api', () => ({ listPurchaseHistory: jest.fn(), purchaseHistorySummary: jest.fn() }));
 jest.mock('@/domain/reception/reception', () => ({ ...jest.requireActual('@/domain/reception/reception'), createOperationId: () => 'detail-operation' }));
 jest.mock('@/ui/components', () => {
@@ -41,7 +45,7 @@ const texts = (root: ReactTestRenderer) => host(root, (props) => typeof props.ch
 async function openDetail() {
   let root!: ReactTestRenderer;
   await act(async () => { root = create(<PurchaseHistoryScreen />); });
-  await act(async () => { host(root, (props) => props.label === 'Ver detalle')[0]!.props.onPress(); await Promise.resolve(); });
+  await act(async () => { root.root.findAll((node) => typeof node.props.accessibilityLabel === 'string' && node.props.accessibilityLabel.startsWith('Editar compra de') && typeof node.props.onPress === 'function')[0]!.props.onPress(); await Promise.resolve(); });
   return root;
 }
 
@@ -69,3 +73,29 @@ it('rounds sack weights on screen and captures corrections in whole kilograms', 
   expect(mockEnqueue).not.toHaveBeenCalled();
   await act(async () => root.unmount());
 });
+
+// Spec 011, CL-ST30: the buttons of a settled purchase in «Ver compras».
+describe('buttons of the purchase card (CL-ST30)', () => {
+  const byLabel = (root: ReactTestRenderer, label: string) => root.root.findAll((node) => typeof node.props.accessibilityLabel === 'string' && node.props.accessibilityLabel.startsWith(label) && typeof node.props.onPress === 'function')[0]!;
+  it('shares the ticket of the settlement and opens the void form straight from the trash can', async () => {
+    const root = await openList();
+    await act(async () => { byLabel(root, 'Ver ticket de').props.onPress(); await Promise.resolve(); });
+    expect(shareReceipt).toHaveBeenCalledWith('purchases', 'purchase-id', 'test-token');
+    await act(async () => { byLabel(root, 'Anular compra de').props.onPress(); await Promise.resolve(); await Promise.resolve(); });
+    expect(root.root.findAll((node) => node.props.title === 'Motivo de anulación')).not.toHaveLength(0);
+    await act(async () => root.unmount());
+  });
+
+  it('opens «Abonar / Liquidar» on this screen instead of leaving for Deudas', async () => {
+    const root = await openList();
+    await act(async () => { byLabel(root, 'Abonar a').props.onPress(); });
+    expect(root.root.findAllByType(PurchasePaymentDialog)).toHaveLength(1);
+    await act(async () => root.unmount());
+  });
+});
+
+async function openList() {
+  let root!: ReactTestRenderer;
+  await act(async () => { root = create(<PurchaseHistoryScreen />); });
+  return root;
+}

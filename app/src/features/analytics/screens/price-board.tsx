@@ -17,7 +17,7 @@ import { accent, color } from '@/ui/tokens';
 // sale price and their difference, the weekly evolution of the chosen variety
 // and the variety with the largest difference. Never a suggested price nor a
 // margin: those come from a reviewed publication (CL-FM20).
-export function PriceBoard({ token }: { token: string }) {
+export function PriceBoard({ token, refreshKey = 0 }: { token: string; refreshKey?: number }) {
   const [data, setData] = useState<{ cards: BoardCard[]; points: AnalyticsPoint[] } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
@@ -32,7 +32,7 @@ export function PriceBoard({ token }: { token: string }) {
     return () => {
       active = false;
     };
-  }, [attempt, token]);
+  }, [attempt, refreshKey, token]);
   const cards = data?.cards ?? null;
   const volume = data ? latestWeekVolume(data.points) : null;
   const featured = cards && volume ? [...cards].sort((a, b) => volume.order.indexOf(a.varietyId) - volume.order.indexOf(b.varietyId)).slice(0, 2) : [];

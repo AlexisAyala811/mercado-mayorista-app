@@ -1,5 +1,7 @@
 import { useVisualStyles, type VisualPalette } from '@/ui/visual-theme';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import type { AndroidSymbol } from 'expo-symbols';
+import { SymbolView } from './symbol';
 
 
 import { reportVisual } from '@/ui/report-tokens';
@@ -12,9 +14,11 @@ type MetricTileProps = {
   reportFontsLoaded?: boolean;
   // Stitch tiles (spec 011, CL-ST18): neutral, paid (green) or owed (red).
   tone?: 'neutral' | 'success' | 'danger';
+  // Material symbol of the Stitch tile (scale, check_circle, pending_actions).
+  icon?: AndroidSymbol;
 };
 
-export function MetricTile({ label, value, description, appearance = 'default', reportFontsLoaded = false, tone = 'neutral' }: MetricTileProps) {
+export function MetricTile({ label, value, description, appearance = 'default', reportFontsLoaded = false, tone = 'neutral', icon }: MetricTileProps) {
   const styles = useVisualStyles(createStyles);
   const report = appearance === 'report';
   // Wider tiles with large text so labels never break mid-word (T1190).
@@ -29,7 +33,7 @@ export function MetricTile({ label, value, description, appearance = 'default', 
           {description ? <Text style={stitchStyles.detail}>{description}</Text> : null}
         </View>
         <View style={[stitchStyles.icon, { backgroundColor: palette.icon }]}>
-          {tone === 'success' ? <Text style={[stitchStyles.iconText, { color: palette.label }]}>✓</Text> : tone === 'danger' ? <Text style={[stitchStyles.iconText, { color: palette.label }]}>!</Text> : null}
+          {icon ? <SymbolView fallback={null} name={{ android: icon, ios: 'circle', web: icon }} size={22} tintColor={palette.value} /> : tone === 'success' ? <Text style={[stitchStyles.iconText, { color: palette.label }]}>✓</Text> : tone === 'danger' ? <Text style={[stitchStyles.iconText, { color: palette.label }]}>!</Text> : null}
         </View>
       </View>
     );
