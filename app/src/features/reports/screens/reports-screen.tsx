@@ -267,7 +267,7 @@ function ReportsWorkspace({ autoQuery, initialOperation }: { autoQuery: boolean;
               ))}
             </View>
             <AppButton appearance="stitch-action" stitchTone="success" disabled={!overview}
-              label="Exportar PDF o Excel" displayLabel="+ EXPORTAR PDF / EXCEL"
+              label="Exportar PDF o Excel" displayLabel={reportOperation === 'sale' ? "+ EXPORTAR REPORTE (PDF/EXCEL)" : "+ EXPORTAR PDF / EXCEL"}
               onPress={() => setExportVisible(value => !value)} />
           </View>
         </View>
