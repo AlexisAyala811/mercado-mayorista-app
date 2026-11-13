@@ -70,6 +70,7 @@ function base(filters: PurchaseHistoryFilterDto) {
         p.name AS provider_name, l.id AS settlement_id, l.liquid_amount_cents,
         COALESCE(k.sacks, 0) AS sacks, COALESCE(k.weight, 0) AS weight, COALESCE(k.varieties, '{}') AS varieties,
         CASE
+          WHEN l.id IS NULL AND r.state::text = 'voided' THEN 'voided'
           WHEN l.id IS NULL THEN 'unsettled'
           WHEN l.state = 'voided' THEN 'voided'
           WHEN l.payment_mode = 'cash' OR a.id IS NULL OR a.balance_cents <= 0 THEN 'paid'

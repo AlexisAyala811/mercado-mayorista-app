@@ -11,7 +11,7 @@ jest.mock('@/ui/components', () => {
 
 const card = (id: string, state: HistoryCard['state'], balanceCents = '0'): HistoryCard => ({
   balanceCents, date: '2026-11-07', id, paidCents: state === 'debt' ? '0' : '20000', party: `Proveedor ${id}`, sacks: 2,
-  sourceId: `s-${id}`, state, totalCents: '20000', varieties: ['Canchán'], weightKg: '100.000',
+  sourceId: state === 'unsettled' ? null : `s-${id}`, state, totalCents: '20000', varieties: ['Canchán'], weightKg: '100.000',
 });
 const summary = { balanceCents: '20000', counts: { all: 3, debt: 1, paid: 1, unsettled: 1, voided: 0 }, paidCents: '20000', totalCents: '40000' };
 
@@ -53,25 +53,25 @@ it('opens with the list, the chips with server counts and the three totals of th
 });
 
 it('offers «Abonar» only on a card with debt and opens the detail of any card', async () => {
-  const { onOpen, onSettle, root } = await render();
-  const settle = controls(root, (props) => props.label === 'Abonar');
+  const { onOpen, onSettle, root } = await render({ kind: 'sale' });
+  const settle = controls(root, (props) => props.label === 'Cobrar');
   expect(settle).toHaveLength(1);
   await act(async () => settle[0]!.props.onPress());
   expect(onSettle).toHaveBeenCalledWith(expect.objectContaining({ id: 'a', sourceId: 's-a' }));
   await act(async () => controls(root, (props) => props.label === 'Ver detalle')[1]!.props.onPress());
   expect(onOpen).toHaveBeenCalledWith(expect.objectContaining({ id: 'b' }));
-  expect(texts(root)).toEqual(expect.arrayContaining(['Falta pagar', 'Pagado', 'Sin liquidar', 'Canchán']));
+  expect(texts(root)).toEqual(expect.arrayContaining(['Por cobrar', 'Cobrado', 'Sin liquidar', 'Canchán']));
   expect(root.root.findAll((node) => node.props.accessibilityLabel === 'Volumen / peso: 2 sacos (100 kg)').length).toBeGreaterThan(0);
   await act(async () => root.unmount());
 });
 
 it('filters by chip in the server without asking for the totals again, and searches with dates and name', async () => {
-  const { loadPage, loadSummary, root } = await render();
-  await act(async () => radios(root).find((node) => node.props.accessibilityLabel === 'Falta pagar: 1')!.props.onPress());
+  const { loadPage, loadSummary, root } = await render({ kind: 'sale' });
+  await act(async () => radios(root).find((node) => node.props.accessibilityLabel === 'Por cobrar / Deuda: 1')!.props.onPress());
   expect(loadPage).toHaveBeenLastCalledWith({}, 'debt', 0);
   expect(loadSummary).toHaveBeenCalledTimes(1);
   await act(async () => {
-    control(root, 'Proveedor').props.onChangeText(' Aurelio ');
+    control(root, 'Comprador').props.onChangeText(' Aurelio ');
     control(root, 'Desde').props.onChangeText('2026-11-01');
     control(root, 'Hasta').props.onChangeText('2026-11-07');
   });
@@ -83,7 +83,7 @@ it('filters by chip in the server without asking for the totals again, and searc
 });
 
 it('rejects a date that does not exist without querying', async () => {
-  const { loadPage, root } = await render();
+  const { loadPage, root } = await render({ kind: 'sale' });
   await act(async () => control(root, 'Desde').props.onChangeText('2026-02-30'));
   await act(async () => control(root, 'Buscar').props.onPress());
   expect(loadPage).toHaveBeenCalledTimes(1);
@@ -110,7 +110,7 @@ it('ignores a late page of a replaced search', async () => {
   const loadPage = jest.fn()
     .mockImplementationOnce(() => new Promise((resolve) => { finishFirst = resolve; }))
     .mockResolvedValue({ items: [card('new', 'paid')], total: 1 });
-  const { root } = await render({ loadPage });
+  const { root } = await render({ kind: 'sale', loadPage });
   await act(async () => control(root, 'Buscar').props.onPress());
   await act(async () => finishFirst({ items: [card('old', 'paid')], total: 1 }));
   expect(root.root.findAll((node) => typeof node.type === 'string' && node.props.testID === 'history-old')).toHaveLength(0);
@@ -133,4 +133,46 @@ it('pages through the result and restores search, chip and page when shown again
   expect(loadPage).toHaveBeenLastCalledWith({}, 'paid', 20);
   expect(radios(again.root).find((node) => node.props.accessibilityState.checked)!.props.accessibilityLabel).toBe('Pagados: 1');
   await act(async () => again.root.unmount());
+});
+
+// Spec 011, CL-ST30: «Ver compras» as in the mockup.
+describe('purchase toolbar and cards (CL-ST30)', () => {
+  it('searches while typing, picks one day in the calendar and clears it', async () => {
+    jest.useFakeTimers();
+    try {
+      const { loadPage, loadSummary, root } = await render();
+      expect(controls(root, (props) => props.label === 'Buscar')).toHaveLength(0);
+      await act(async () => { controls(root, (props) => props.label === 'Buscar compras')[0]!.props.onChangeText(' Aurelio '); });
+      expect(loadPage).toHaveBeenCalledTimes(1);
+      await act(async () => { jest.advanceTimersByTime(450); });
+      expect(loadPage).toHaveBeenLastCalledWith({ search: 'Aurelio' }, 'all', 0);
+      expect(loadSummary).toHaveBeenLastCalledWith({ search: 'Aurelio' });
+      await act(async () => { root.root.findAll((node) => node.props.accessibilityLabel === 'Fecha: todas' && typeof node.props.onPress === 'function')[0]!.props.onPress(); });
+      const calendar = root.root.findAll((node) => node.props.title === 'Fecha de las compras' && typeof node.props.onPick === 'function')[0]!;
+      await act(async () => { calendar.props.onPick('2026-11-07'); });
+      expect(loadPage).toHaveBeenLastCalledWith({ from: '2026-11-07', search: 'Aurelio', to: '2026-11-07' }, 'all', 0);
+      await act(async () => { root.root.findAll((node) => node.props.accessibilityLabel === 'Quitar fecha' && typeof node.props.onPress === 'function')[0]!.props.onPress(); });
+      expect(loadPage).toHaveBeenLastCalledWith({ from: undefined, search: 'Aurelio', to: undefined }, 'all', 0);
+      await act(async () => root.unmount());
+    } finally { jest.useRealTimers(); }
+  });
+
+  it('offers ticket, edit and void on a settled purchase and the detail on one without settlement', async () => {
+    const onTicket = jest.fn(); const onEdit = jest.fn(); const onVoid = jest.fn();
+    const { onOpen, onSettle, root } = await render({ onTicket, onEdit, onVoid });
+    const press = (label: string) => root.root.findAll((node) => node.props.accessibilityLabel === label && typeof node.props.onPress === 'function')[0]!.props.onPress();
+    await act(async () => press('Abonar a Proveedor a, 2026-11-07'));
+    expect(onSettle).toHaveBeenCalledWith(expect.objectContaining({ id: 'a' }));
+    await act(async () => press('Ver ticket de Proveedor b, 2026-11-07'));
+    expect(onTicket).toHaveBeenCalledWith(expect.objectContaining({ id: 'b', sourceId: 's-b' }));
+    await act(async () => press('Editar compra de Proveedor b'));
+    expect(onEdit).toHaveBeenCalledWith(expect.objectContaining({ id: 'b' }));
+    await act(async () => press('Anular compra de Proveedor b'));
+    expect(onVoid).toHaveBeenCalledWith(expect.objectContaining({ id: 'b' }));
+    // «Sin liquidar» has no settlement: no ticket, no ✎; it opens its detail.
+    expect(root.root.findAll((node) => node.props.accessibilityLabel === 'Ver ticket de Proveedor c, 2026-11-07')).toHaveLength(0);
+    await act(async () => controls(root, (props) => props.label === 'Ver detalle')[0]!.props.onPress());
+    expect(onOpen).toHaveBeenCalledWith(expect.objectContaining({ id: 'c' }));
+    await act(async () => root.unmount());
+  });
 });

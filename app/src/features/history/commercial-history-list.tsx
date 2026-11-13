@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { SymbolView } from '@/ui/components/symbol';
-import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Keyboard, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 import { formatMoney } from '@/domain/reception/reception';
 import {
@@ -17,6 +17,7 @@ import { validateHistoryFilters } from '@/domain/shared/history-filters';
 import { AppButton, EmptyState, FeedbackState, FormField, LoadingState, MetricTile } from '@/ui/components';
 import { CountChips } from '@/ui/components/count-chips';
 import { color, spacing, typography } from '@/ui/tokens';
+import { DateDialog } from '@/features/sales/components/date-dialog';
 
 export type HistoryQuery = { from?: string; to?: string; search?: string };
 export type HistoryListState = { draft: { from: string; search: string; to: string }; query: HistoryQuery; chip: HistoryChip; offset: number };
@@ -34,6 +35,13 @@ type Props = {
   onStateChange?: (state: HistoryListState) => void;
   // «+ Nueva compra» / «+ Nueva venta» of the Stitch toolbar.
   onNew?: () => void;
+  // Buttons of a purchase card (CL-ST30): ticket, ✎ (detail and
+  // corrections) and 🗑 (void with its reason).
+  onTicket?: (card: HistoryCard) => void;
+  onEdit?: (card: HistoryCard) => void;
+  onVoid?: (card: HistoryCard) => void;
+  // Changes after a payment registered on this screen: reload list and totals.
+  reloadKey?: number;
 };
 
 const pageSize = 20;
@@ -42,7 +50,7 @@ const emptyDraft = { from: '', search: '', to: '' };
 // Spec 011 (RQ-ST05, Stitch «Ver compras» / «Ver ventas»): the list opens at
 // once with search and dates on top, chips with their server counts, three
 // totals for the filter and one card per operation.
-export function CommercialHistoryList({ kind, loadPage, loadSummary, onOpen, onSettle, disabled = false, initial, onStateChange, onNew }: Props) {
+export function CommercialHistoryList({ kind, loadPage, loadSummary, onOpen, onSettle, disabled = false, initial, onStateChange, onNew, onTicket, onEdit, onVoid, reloadKey = 0 }: Props) {
   const [draft, setDraft] = useState(initial?.draft ?? emptyDraft);
   const [query, setQuery] = useState<HistoryQuery>(initial?.query ?? {});
   const [chip, setChip] = useState<HistoryChip>(initial?.chip ?? 'all');
@@ -109,6 +117,36 @@ export function CommercialHistoryList({ kind, loadPage, loadSummary, onOpen, onS
     run(applied, 'all', 0, true);
   }
 
+  // Purchases (CL-ST30): the search runs while typing and the date is one day
+  // picked in the calendar, as in the Stitch toolbar; no «Buscar / Limpiar».
+  const [dateOpen, setDateOpen] = useState(false);
+  const live = useRef({ chip, draft, query, run });
+  useEffect(() => { live.current = { chip, draft, query, run }; });
+  const typed = draft.search.trim();
+  useEffect(() => {
+    if (!purchase) return undefined;
+    const current = live.current;
+    if ((current.query.search ?? '') === typed) return undefined;
+    const timer = setTimeout(() => {
+      const next = { ...current.query, search: typed || undefined };
+      setQuery(next); setOffset(0);
+      current.run(next, current.chip, 0, true);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [purchase, typed]);
+  function pickDate(value: string | null) {
+    setDateOpen(false);
+    const next = { ...query, from: value ?? undefined, to: value ?? undefined };
+    setDraft((current) => ({ ...current, from: value ?? '', to: value ?? '' }));
+    setQuery(next); setOffset(0);
+    run(next, chip, 0, true);
+  }
+  useEffect(() => {
+    if (!reloadKey) return;
+    const current = live.current;
+    current.run(current.query, current.chip, 0, true);
+  }, [reloadKey]);
+
   function choose(next: HistoryChip) {
     if (next === chip) return;
     setChip(next);
@@ -126,6 +164,28 @@ export function CommercialHistoryList({ kind, loadPage, loadSummary, onOpen, onS
   const total = page?.total ?? 0;
   return (
     <View style={styles.container}>
+      {purchase ? (
+        <View style={[styles.toolbar, styles.toolbarRow]}>
+          <View style={styles.searchRow}>
+            <FormField accessibilityLabel="Buscar compras por productor o proveedor" appearance="search" autoComplete="off" autoCorrect={false} hideLabel importantForAutofill="no" label="Buscar compras" leadingIcon="search" onChangeText={(value) => setDraft((current) => ({ ...current, search: value }))} placeholder="Buscar proveedor…" returnKeyType="search" value={draft.search} />
+          </View>
+          <View style={styles.dateChip}>
+            <Pressable accessibilityHint="Abre el calendario" accessibilityLabel={`Fecha: ${draft.from || 'todas'}`} accessibilityRole="button" disabled={disabled} onPress={() => { Keyboard.dismiss(); setDateOpen(true); }} style={({ pressed }) => [styles.dateButton, pressed && styles.pressed]}>
+              <SymbolView fallback={null} name={{ android: 'calendar_month', ios: 'calendar', web: 'calendar_month' }} size={20} tintColor="#64748B" />
+              <Text style={styles.dateLabel}>FECHA:</Text>
+              <Text style={styles.dateValue}>{draft.from ? draft.from.split('-').reverse().join(' / ') : 'Todas'}</Text>
+            </Pressable>
+            {draft.from ? (
+              <Pressable accessibilityLabel="Quitar fecha" accessibilityRole="button" disabled={disabled} hitSlop={6} onPress={() => pickDate(null)} style={styles.dateClear}>
+                <SymbolView fallback={null} name={{ android: 'close', ios: 'xmark', web: 'close' }} size={16} tintColor="#64748B" />
+              </Pressable>
+            ) : null}
+          </View>
+          <CountChips chips={historyChips(kind, counts).map((item) => ({ ...item, tone: item.id === 'paid' ? 'success' : item.id === 'debt' ? 'danger' : 'neutral' }))} disabled={disabled || loading} onSelect={choose} selected={chip} />
+          {onNew ? <AppButton appearance="stitch-action" disabled={disabled} displayLabel="+ NUEVA COMPRA" label="Nueva compra" onPress={onNew} stitchTone="success" /> : null}
+          {dateOpen ? <DateDialog onCancel={() => setDateOpen(false)} onPick={(value) => pickDate(value)} title="Fecha de las compras" value={draft.from} visible /> : null}
+        </View>
+      ) : (
       <View style={styles.toolbar}>
         <View style={styles.search}>
           <FormField appearance="stitch" label={purchase ? 'Proveedor' : 'Comprador'} placeholder={purchase ? 'Buscar productor o proveedor…' : 'Buscar comprador…'} value={draft.search} onChangeText={(value) => setDraft((current) => ({ ...current, search: value }))} onSubmitEditing={() => search()} returnKeyType="search" />
@@ -143,13 +203,14 @@ export function CommercialHistoryList({ kind, loadPage, loadSummary, onOpen, onS
           {onNew ? <AppButton appearance="stitch-action" disabled={disabled} displayLabel={purchase ? '+ NUEVA COMPRA' : '+ NUEVA VENTA'} label={purchase ? 'Nueva compra' : 'Nueva venta'} onPress={onNew} stitchTone="success" /> : null}
         </View>
       </View>
+      )}
 
       {summary === 'unavailable' ? <Text style={styles.note}>Totales no disponibles sin conexión.</Text> : null}
       {summary && summary !== 'unavailable' ? (
         <View style={styles.metrics}>
-          <MetricTile appearance="stitch" label={purchase ? 'Total compras' : 'Total ventas'} value={formatMoney(summary.totalCents)} />
-          <MetricTile appearance="stitch" label={purchase ? 'Total pagado' : 'Total cobrado'} tone="success" value={formatMoney(summary.paidCents)} />
-          <MetricTile appearance="stitch" label={purchase ? 'Saldo pendiente' : 'Saldo por cobrar'} tone="danger" value={formatMoney(summary.balanceCents)} />
+          <MetricTile appearance="stitch" icon={purchase ? 'scale' : undefined} label={purchase ? (query.from ? `Total compras ${query.from === todayInput() ? 'hoy' : 'del día'}` : 'Total compras') : 'Total ventas'} value={formatMoney(summary.totalCents)} />
+          <MetricTile appearance="stitch" icon={purchase ? 'check_circle' : undefined} label={purchase ? 'Total pagado' : 'Total cobrado'} tone="success" value={formatMoney(summary.paidCents)} />
+          <MetricTile appearance="stitch" icon={purchase ? 'pending_actions' : undefined} label={purchase ? 'Saldo pendiente' : 'Saldo por cobrar'} tone="danger" value={formatMoney(summary.balanceCents)} />
         </View>
       ) : null}
 
@@ -163,7 +224,7 @@ export function CommercialHistoryList({ kind, loadPage, loadSummary, onOpen, onS
       {!loading && page && !items.length ? (
         <EmptyState title="Sin resultados" message={purchase ? 'No hay compras que coincidan con la búsqueda y el filtro.' : 'No hay ventas que coincidan con la búsqueda y el filtro.'} />
       ) : null}
-      {!loading ? items.map((card) => <HistoryRow key={card.id} card={card} disabled={disabled} kind={kind} onOpen={onOpen} onSettle={onSettle} />) : null}
+      {!loading ? items.map((card) => <HistoryRow key={card.id} card={card} disabled={disabled} kind={kind} onEdit={onEdit} onOpen={onOpen} onSettle={onSettle} onTicket={onTicket} onVoid={onVoid} />) : null}
 
       {!loading && page && total > pageSize ? (
         <View style={styles.pager}>
@@ -182,7 +243,7 @@ const stateTone = {
   voided: { tile: '#F8FAFC', tileBorder: '#E2E8F0', ink: '#475569', pill: '#E2E8F0', pillInk: '#334155' },
 } as const;
 
-function HistoryRow({ card, disabled, kind, onOpen, onSettle }: { card: HistoryCard; disabled: boolean; kind: HistoryKind; onOpen: (card: HistoryCard) => void; onSettle: (card: HistoryCard) => void }) {
+function HistoryRow({ card, disabled, kind, onEdit, onOpen, onSettle, onTicket, onVoid }: { card: HistoryCard; disabled: boolean; kind: HistoryKind; onEdit?: (card: HistoryCard) => void; onOpen: (card: HistoryCard) => void; onSettle: (card: HistoryCard) => void; onTicket?: (card: HistoryCard) => void; onVoid?: (card: HistoryCard) => void }) {
   const state = historyStateLabel(kind, card.state);
   const purchase = kind === 'purchase';
   const debt = card.state === 'debt';
@@ -228,14 +289,38 @@ function HistoryRow({ card, disabled, kind, onOpen, onSettle }: { card: HistoryC
           <Text style={[styles.amount, styles.noneText]}>—</Text>
         </View>
       )}
+      {purchase ? (
+        <View style={styles.actions}>
+          {debt && card.sourceId ? <AppButton accessibilityLabel={`Abonar a ${card.party}, ${card.date}`} appearance="stitch-action" disabled={disabled} displayLabel="ABONAR / LIQUIDAR" label="Abonar" onPress={() => onSettle(card)} stitchTone="danger" /> : null}
+          {card.sourceId && onTicket && card.state !== 'voided' ? <AppButton accessibilityLabel={`Ver ticket de ${card.party}, ${card.date}`} appearance="stitch-action" disabled={disabled} displayLabel={debt ? 'TICKET' : 'VER TICKET'} label="Ver ticket" onPress={() => onTicket(card)} stitchTone={debt ? 'neutral' : 'success'} tone="secondary" /> : null}
+          {!card.sourceId || card.state === 'voided' ? <AppButton accessibilityLabel={`Ver detalle de ${card.party}, ${card.date}, operación ${card.id}`} appearance="stitch-action" disabled={disabled} displayLabel="VER DETALLE" label="Ver detalle" onPress={() => onOpen(card)} stitchTone="success" tone="secondary" /> : null}
+          {onEdit && card.state !== 'voided' && card.sourceId ? <IconAction accessibilityLabel={`Editar compra de ${card.party}`} disabled={disabled} icon="edit" onPress={() => onEdit(card)} /> : null}
+          {onVoid && card.state !== 'voided' ? <IconAction accessibilityLabel={`Anular compra de ${card.party}`} danger disabled={disabled} icon="delete" onPress={() => onVoid(card)} /> : null}
+        </View>
+      ) : (
       <View style={styles.actions}>
         {debt && card.sourceId ? (
           <AppButton accessibilityLabel={`${purchase ? 'Abonar' : 'Cobrar'} a ${card.party}, ${card.date}`} appearance="stitch-action" disabled={disabled} displayLabel={purchase ? 'ABONAR / LIQUIDAR' : 'COBRAR / LIQUIDAR'} label={purchase ? 'Abonar' : 'Cobrar'} onPress={() => onSettle(card)} stitchTone="danger" />
         ) : null}
         <AppButton accessibilityLabel={`Ver detalle de ${card.party}, ${card.date}, operación ${card.id}`} appearance="stitch-action" disabled={disabled} displayLabel="VER DETALLE" label="Ver detalle" onPress={() => onOpen(card)} stitchTone={debt ? 'neutral' : 'success'} tone="secondary" />
       </View>
+      )}
     </View>
   );
+}
+
+// Square ✎ / 🗑 buttons of a purchase card.
+function IconAction({ accessibilityLabel, danger = false, disabled, icon, onPress }: { accessibilityLabel: string; danger?: boolean; disabled: boolean; icon: 'edit' | 'delete'; onPress: () => void }) {
+  return (
+    <Pressable accessibilityLabel={accessibilityLabel} accessibilityRole="button" disabled={disabled} onPress={onPress} style={({ pressed }) => [styles.iconAction, pressed && styles.pressed]}>
+      <SymbolView fallback={null} name={{ android: icon, ios: icon === 'edit' ? 'pencil' : 'trash', web: icon }} size={20} tintColor={danger ? '#DC2626' : '#334155'} />
+    </Pressable>
+  );
+}
+
+function todayInput() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 }
 
 function Fact({ accessibilityValue, after, label, note, value }: { accessibilityValue?: string; after?: string; label: string; note?: { text: string; tone: 'success' | 'danger' }; value: string }) {
@@ -283,4 +368,13 @@ const styles = StyleSheet.create({
   noneText: { color: '#64748B' },
   actions: { flexDirection: 'row', flexShrink: 0, flexWrap: 'wrap', gap: 8 },
   pager: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, justifyContent: 'center' },
+  toolbarRow: { alignItems: 'center' },
+  searchRow: { flexBasis: 240, flexGrow: 1, flexShrink: 1 },
+  dateChip: { alignItems: 'center', backgroundColor: '#F8FAFC', borderColor: '#E2E8F0', borderRadius: 12, borderWidth: 1, flexDirection: 'row', flexShrink: 0, minHeight: 46, paddingHorizontal: 12 },
+  dateButton: { alignItems: 'center', flexDirection: 'row', gap: 8, minHeight: 44 },
+  dateLabel: { color: '#64748B', fontSize: 12, fontWeight: '700' },
+  dateValue: { color: '#1F3A2F', fontSize: 14, fontWeight: '700' },
+  dateClear: { alignItems: 'center', height: 32, justifyContent: 'center', marginLeft: 4, width: 28 },
+  iconAction: { alignItems: 'center', backgroundColor: '#FFFFFF', borderColor: '#E2E8F0', borderRadius: 12, borderWidth: 1, height: 44, justifyContent: 'center', width: 44 },
+  pressed: { opacity: 0.6 },
 });
