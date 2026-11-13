@@ -52,42 +52,38 @@ it('opens with the list, the chips with server counts and the three totals of th
   await act(async () => root.unmount());
 });
 
-it('offers «Abonar» only on a card with debt and opens the detail of any card', async () => {
-  const { onOpen, onSettle, root } = await render({ kind: 'sale' });
+it('offers «Cobrar» only on a sale with debt and the same buttons as a purchase', async () => {
+  const onTicket = jest.fn(); const onEdit = jest.fn(); const onVoid = jest.fn();
+  const { onSettle, root } = await render({ kind: 'sale', onEdit, onTicket, onVoid });
+  const press = (label: string) => root.root.findAll((node) => node.props.accessibilityLabel === label && typeof node.props.onPress === 'function')[0]!.props.onPress();
   const settle = controls(root, (props) => props.label === 'Cobrar');
   expect(settle).toHaveLength(1);
   await act(async () => settle[0]!.props.onPress());
   expect(onSettle).toHaveBeenCalledWith(expect.objectContaining({ id: 'a', sourceId: 's-a' }));
-  await act(async () => controls(root, (props) => props.label === 'Ver detalle')[1]!.props.onPress());
-  expect(onOpen).toHaveBeenCalledWith(expect.objectContaining({ id: 'b' }));
-  expect(texts(root)).toEqual(expect.arrayContaining(['Por cobrar', 'Cobrado', 'Sin liquidar', 'Canchán']));
+  await act(async () => press('Ver ticket de Proveedor b, 2026-11-07'));
+  expect(onTicket).toHaveBeenCalledWith(expect.objectContaining({ id: 'b' }));
+  await act(async () => press('Editar venta de Proveedor b'));
+  expect(onEdit).toHaveBeenCalledWith(expect.objectContaining({ id: 'b' }));
+  await act(async () => press('Anular venta de Proveedor b'));
+  expect(onVoid).toHaveBeenCalledWith(expect.objectContaining({ id: 'b' }));
+  expect(texts(root)).toEqual(expect.arrayContaining(['Por cobrar', 'Cobrado', 'Canchán']));
   expect(root.root.findAll((node) => node.props.accessibilityLabel === 'Volumen / peso: 2 sacos (100 kg)').length).toBeGreaterThan(0);
   await act(async () => root.unmount());
 });
 
-it('filters by chip in the server without asking for the totals again, and searches with dates and name', async () => {
+it('filters by chip in the server without asking for the totals again', async () => {
   const { loadPage, loadSummary, root } = await render({ kind: 'sale' });
   await act(async () => radios(root).find((node) => node.props.accessibilityLabel === 'Por cobrar / Deuda: 1')!.props.onPress());
   expect(loadPage).toHaveBeenLastCalledWith({}, 'debt', 0);
   expect(loadSummary).toHaveBeenCalledTimes(1);
-  await act(async () => {
-    control(root, 'Comprador').props.onChangeText(' Aurelio ');
-    control(root, 'Desde').props.onChangeText('2026-11-01');
-    control(root, 'Hasta').props.onChangeText('2026-11-07');
-  });
-  await act(async () => control(root, 'Buscar').props.onPress());
-  const query = { from: '2026-11-01', search: 'Aurelio', to: '2026-11-07' };
-  expect(loadPage).toHaveBeenLastCalledWith(query, 'all', 0);
-  expect(loadSummary).toHaveBeenLastCalledWith(query);
   await act(async () => root.unmount());
 });
 
-it('rejects a date that does not exist without querying', async () => {
-  const { loadPage, root } = await render({ kind: 'sale' });
-  await act(async () => control(root, 'Desde').props.onChangeText('2026-02-30'));
-  await act(async () => control(root, 'Buscar').props.onPress());
-  expect(loadPage).toHaveBeenCalledTimes(1);
-  expect(controls(root, (props) => props.title === 'No se pudo consultar')[0]!.props.message).toBe('Ingresa fechas existentes con formato aaaa-mm-dd.');
+// The calendar only offers existing days (CL-ST32), so a date that does not exist cannot be typed.
+it('has no free date field: the day comes from the calendar', async () => {
+  const { root } = await render({ kind: 'sale' });
+  expect(controls(root, (props) => props.label === 'Desde' || props.label === 'Hasta')).toHaveLength(0);
+  expect(root.root.findAll((node) => node.props.accessibilityLabel === 'Fecha: todas')).not.toHaveLength(0);
   await act(async () => root.unmount());
 });
 
@@ -110,8 +106,8 @@ it('ignores a late page of a replaced search', async () => {
   const loadPage = jest.fn()
     .mockImplementationOnce(() => new Promise((resolve) => { finishFirst = resolve; }))
     .mockResolvedValue({ items: [card('new', 'paid')], total: 1 });
-  const { root } = await render({ kind: 'sale', loadPage });
-  await act(async () => control(root, 'Buscar').props.onPress());
+  const { root } = await render({ loadPage });
+  await act(async () => radios(root).find((node) => node.props.accessibilityLabel === 'Pagados: 1')!.props.onPress());
   await act(async () => finishFirst({ items: [card('old', 'paid')], total: 1 }));
   expect(root.root.findAll((node) => typeof node.type === 'string' && node.props.testID === 'history-old')).toHaveLength(0);
   expect(root.root.findAll((node) => typeof node.type === 'string' && node.props.testID === 'history-new')).toHaveLength(1);

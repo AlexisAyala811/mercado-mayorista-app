@@ -27,6 +27,7 @@ import {
   CashMovementEntity,
 } from './entities/cash-movement.entity.js';
 import type {
+  AccountSourceQueryDto,
   RegisterPaymentDto,
   ReversePaymentDto,
 } from './http/account.dto.js';
@@ -52,6 +53,14 @@ export class AccountsService {
       take: page.limit,
     });
     return toPage(await this.presentAccounts(businessId, items), total, page);
+  }
+
+  async findBySource(businessId: string, source: AccountSourceQueryDto) {
+    const account = await this.accounts.findOne({
+      where: { businessId, sourceType: source.sourceType, sourceId: source.sourceId },
+    });
+    const [presented] = await this.presentAccounts(businessId, account ? [account] : []);
+    return { account: presented ?? null };
   }
 
   async listCashMovements(businessId: string, page: PageQueryDto) {

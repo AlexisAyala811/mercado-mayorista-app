@@ -13,7 +13,6 @@ import {
   type HistoryChip,
   type HistoryKind,
 } from '@/domain/shared/history-cards';
-import { validateHistoryFilters } from '@/domain/shared/history-filters';
 import { AppButton, EmptyState, FeedbackState, FormField, LoadingState, MetricTile } from '@/ui/components';
 import { CountChips } from '@/ui/components/count-chips';
 import { color, spacing, typography } from '@/ui/tokens';
@@ -104,19 +103,6 @@ export function CommercialHistoryList({ kind, loadPage, loadSummary, onOpen, onS
     };
   }, [run]);
 
-  function search(next = draft) {
-    const message = validateHistoryFilters(next);
-    if (message) {
-      setError(message);
-      return;
-    }
-    const applied = { from: next.from.trim() || undefined, search: next.search.trim() || undefined, to: next.to.trim() || undefined };
-    setQuery(applied);
-    setChip('all');
-    setOffset(0);
-    run(applied, 'all', 0, true);
-  }
-
   // Purchases (CL-ST30): the search runs while typing and the date is one day
   // picked in the calendar, as in the Stitch toolbar; no «Buscar / Limpiar».
   const [dateOpen, setDateOpen] = useState(false);
@@ -124,7 +110,6 @@ export function CommercialHistoryList({ kind, loadPage, loadSummary, onOpen, onS
   useEffect(() => { live.current = { chip, draft, query, run }; });
   const typed = draft.search.trim();
   useEffect(() => {
-    if (!purchase) return undefined;
     const current = live.current;
     if ((current.query.search ?? '') === typed) return undefined;
     const timer = setTimeout(() => {
@@ -133,7 +118,7 @@ export function CommercialHistoryList({ kind, loadPage, loadSummary, onOpen, onS
       current.run(next, current.chip, 0, true);
     }, 400);
     return () => clearTimeout(timer);
-  }, [purchase, typed]);
+  }, [typed]);
   function pickDate(value: string | null) {
     setDateOpen(false);
     const next = { ...query, from: value ?? undefined, to: value ?? undefined };
@@ -164,10 +149,9 @@ export function CommercialHistoryList({ kind, loadPage, loadSummary, onOpen, onS
   const total = page?.total ?? 0;
   return (
     <View style={styles.container}>
-      {purchase ? (
-        <View style={[styles.toolbar, styles.toolbarRow]}>
+      <View style={[styles.toolbar, styles.toolbarRow]}>
           <View style={styles.searchRow}>
-            <FormField accessibilityLabel="Buscar compras por productor o proveedor" appearance="search" autoComplete="off" autoCorrect={false} hideLabel importantForAutofill="no" label="Buscar compras" leadingIcon="search" onChangeText={(value) => setDraft((current) => ({ ...current, search: value }))} placeholder="Buscar proveedor…" returnKeyType="search" value={draft.search} />
+            <FormField accessibilityLabel={purchase ? "Buscar compras por proveedor" : "Buscar ventas por comprador"} appearance="search" autoComplete="off" autoCorrect={false} hideLabel importantForAutofill="no" label={purchase ? "Buscar compras" : "Buscar ventas"} leadingIcon="search" onChangeText={(value) => setDraft((current) => ({ ...current, search: value }))} placeholder={purchase ? "Buscar proveedor…" : "Buscar comprador…"} returnKeyType="search" value={draft.search} />
           </View>
           <View style={styles.dateChip}>
             <Pressable accessibilityHint="Abre el calendario" accessibilityLabel={`Fecha: ${draft.from || 'todas'}`} accessibilityRole="button" disabled={disabled} onPress={() => { Keyboard.dismiss(); setDateOpen(true); }} style={({ pressed }) => [styles.dateButton, pressed && styles.pressed]}>
@@ -182,35 +166,16 @@ export function CommercialHistoryList({ kind, loadPage, loadSummary, onOpen, onS
             ) : null}
           </View>
           <CountChips chips={historyChips(kind, counts).map((item) => ({ ...item, tone: item.id === 'paid' ? 'success' : item.id === 'debt' ? 'danger' : 'neutral' }))} disabled={disabled || loading} onSelect={choose} selected={chip} />
-          {onNew ? <AppButton appearance="stitch-action" disabled={disabled} displayLabel="+ NUEVA COMPRA" label="Nueva compra" onPress={onNew} stitchTone="success" /> : null}
-          {dateOpen ? <DateDialog onCancel={() => setDateOpen(false)} onPick={(value) => pickDate(value)} title="Fecha de las compras" value={draft.from} visible /> : null}
-        </View>
-      ) : (
-      <View style={styles.toolbar}>
-        <View style={styles.search}>
-          <FormField appearance="stitch" label={purchase ? 'Proveedor' : 'Comprador'} placeholder={purchase ? 'Buscar productor o proveedor…' : 'Buscar comprador…'} value={draft.search} onChangeText={(value) => setDraft((current) => ({ ...current, search: value }))} onSubmitEditing={() => search()} returnKeyType="search" />
-        </View>
-        <View style={styles.date}><FormField appearance="stitch" label="Desde" placeholder="aaaa-mm-dd" value={draft.from} onChangeText={(value) => setDraft((current) => ({ ...current, from: value }))} /></View>
-        <View style={styles.date}><FormField appearance="stitch" label="Hasta" placeholder="aaaa-mm-dd" value={draft.to} onChangeText={(value) => setDraft((current) => ({ ...current, to: value }))} /></View>
-        <View style={styles.toolbarActions}>
-          <AppButton appearance="stitch-action" disabled={disabled || loading} label="Buscar" onPress={() => search()} stitchTone="brand" />
-          <AppButton appearance="stitch-action" disabled={disabled || loading} label="Limpiar" tone="secondary" onPress={() => { setDraft(emptyDraft); search(emptyDraft); }} />
-        </View>
-        {/* Chips with their count in a bubble and «+ Nueva compra», inside the
-            same toolbar as in Stitch. */}
-        <View style={styles.chipRow}>
-          <CountChips chips={historyChips(kind, counts).map((item) => ({ ...item, tone: item.id === 'paid' ? 'success' : item.id === 'debt' ? 'danger' : 'neutral' }))} disabled={disabled || loading} onSelect={choose} selected={chip} />
           {onNew ? <AppButton appearance="stitch-action" disabled={disabled} displayLabel={purchase ? '+ NUEVA COMPRA' : '+ NUEVA VENTA'} label={purchase ? 'Nueva compra' : 'Nueva venta'} onPress={onNew} stitchTone="success" /> : null}
+          {dateOpen ? <DateDialog onCancel={() => setDateOpen(false)} onPick={(value) => pickDate(value)} title={purchase ? 'Fecha de las compras' : 'Fecha de las ventas'} value={draft.from} visible /> : null}
         </View>
-      </View>
-      )}
 
       {summary === 'unavailable' ? <Text style={styles.note}>Totales no disponibles sin conexión.</Text> : null}
       {summary && summary !== 'unavailable' ? (
         <View style={styles.metrics}>
-          <MetricTile appearance="stitch" icon={purchase ? 'scale' : undefined} label={purchase ? (query.from ? `Total compras ${query.from === todayInput() ? 'hoy' : 'del día'}` : 'Total compras') : 'Total ventas'} value={formatMoney(summary.totalCents)} />
-          <MetricTile appearance="stitch" icon={purchase ? 'check_circle' : undefined} label={purchase ? 'Total pagado' : 'Total cobrado'} tone="success" value={formatMoney(summary.paidCents)} />
-          <MetricTile appearance="stitch" icon={purchase ? 'pending_actions' : undefined} label={purchase ? 'Saldo pendiente' : 'Saldo por cobrar'} tone="danger" value={formatMoney(summary.balanceCents)} />
+          <MetricTile appearance="stitch" icon={purchase ? 'scale' : 'point_of_sale'} label={`${purchase ? 'Total compras' : 'Total ventas'}${query.from ? (query.from === todayInput() ? ' hoy' : ' del día') : ''}`} value={formatMoney(summary.totalCents)} />
+          <MetricTile appearance="stitch" icon="check_circle" label={purchase ? 'Total pagado' : 'Total cobrado'} tone="success" value={formatMoney(summary.paidCents)} />
+          <MetricTile appearance="stitch" icon="pending_actions" label={purchase ? 'Saldo pendiente' : 'Saldo por cobrar'} tone="danger" value={formatMoney(summary.balanceCents)} />
         </View>
       ) : null}
 
@@ -289,22 +254,13 @@ function HistoryRow({ card, disabled, kind, onEdit, onOpen, onSettle, onTicket, 
           <Text style={[styles.amount, styles.noneText]}>—</Text>
         </View>
       )}
-      {purchase ? (
-        <View style={styles.actions}>
-          {debt && card.sourceId ? <AppButton accessibilityLabel={`Abonar a ${card.party}, ${card.date}`} appearance="stitch-action" disabled={disabled} displayLabel="ABONAR / LIQUIDAR" label="Abonar" onPress={() => onSettle(card)} stitchTone="danger" /> : null}
+      <View style={styles.actions}>
+          {debt && card.sourceId ? <AppButton accessibilityLabel={`${purchase ? 'Abonar' : 'Cobrar'} a ${card.party}, ${card.date}`} appearance="stitch-action" disabled={disabled} displayLabel={purchase ? 'ABONAR / LIQUIDAR' : 'COBRAR / LIQUIDAR'} label={purchase ? 'Abonar' : 'Cobrar'} onPress={() => onSettle(card)} stitchTone="danger" /> : null}
           {card.sourceId && onTicket && card.state !== 'voided' ? <AppButton accessibilityLabel={`Ver ticket de ${card.party}, ${card.date}`} appearance="stitch-action" disabled={disabled} displayLabel={debt ? 'TICKET' : 'VER TICKET'} label="Ver ticket" onPress={() => onTicket(card)} stitchTone={debt ? 'neutral' : 'success'} tone="secondary" /> : null}
           {!card.sourceId || card.state === 'voided' ? <AppButton accessibilityLabel={`Ver detalle de ${card.party}, ${card.date}, operación ${card.id}`} appearance="stitch-action" disabled={disabled} displayLabel="VER DETALLE" label="Ver detalle" onPress={() => onOpen(card)} stitchTone="success" tone="secondary" /> : null}
-          {onEdit && card.state !== 'voided' && card.sourceId ? <IconAction accessibilityLabel={`Editar compra de ${card.party}`} disabled={disabled} icon="edit" onPress={() => onEdit(card)} /> : null}
-          {onVoid && card.state !== 'voided' ? <IconAction accessibilityLabel={`Anular compra de ${card.party}`} danger disabled={disabled} icon="delete" onPress={() => onVoid(card)} /> : null}
+          {onEdit && card.state !== 'voided' && card.sourceId ? <IconAction accessibilityLabel={`Editar ${purchase ? 'compra' : 'venta'} de ${card.party}`} disabled={disabled} icon="edit" onPress={() => onEdit(card)} /> : null}
+          {onVoid && card.state !== 'voided' ? <IconAction accessibilityLabel={`Anular ${purchase ? 'compra' : 'venta'} de ${card.party}`} danger disabled={disabled} icon="delete" onPress={() => onVoid(card)} /> : null}
         </View>
-      ) : (
-      <View style={styles.actions}>
-        {debt && card.sourceId ? (
-          <AppButton accessibilityLabel={`${purchase ? 'Abonar' : 'Cobrar'} a ${card.party}, ${card.date}`} appearance="stitch-action" disabled={disabled} displayLabel={purchase ? 'ABONAR / LIQUIDAR' : 'COBRAR / LIQUIDAR'} label={purchase ? 'Abonar' : 'Cobrar'} onPress={() => onSettle(card)} stitchTone="danger" />
-        ) : null}
-        <AppButton accessibilityLabel={`Ver detalle de ${card.party}, ${card.date}, operación ${card.id}`} appearance="stitch-action" disabled={disabled} displayLabel="VER DETALLE" label="Ver detalle" onPress={() => onOpen(card)} stitchTone={debt ? 'neutral' : 'success'} tone="secondary" />
-      </View>
-      )}
     </View>
   );
 }

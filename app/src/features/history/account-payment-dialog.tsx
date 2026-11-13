@@ -6,10 +6,13 @@ import { createOperationId, formatMoney } from '@/domain/reception/reception';
 import type { HistoryCard } from '@/domain/shared/history-cards';
 import { SheetInput } from '@/features/reception/screens/purchase-sheet';
 import { useSyncQueue } from '@/features/sync/sync-queue-provider';
-import { listAccounts, type Account } from '@/services/api/operations-api';
+import { findAccountBySource, type Account } from '@/services/api/operations-api';
 import { SymbolView } from '@/ui/components/symbol';
 
 type Props = {
+  // «Abonar / Liquidar» of a purchase (payable account) or «Cobrar / Liquidar»
+  // of a sale (receivable account) (CL-ST32).
+  kind?: 'purchase' | 'sale';
   card: HistoryCard;
   token: string;
   onClose: () => void;
@@ -19,15 +22,20 @@ type Props = {
   onPending: () => void;
 };
 
-// «Abonar / Liquidar» of «Ver compras» (spec 011, CL-ST30): the payment of
-// the purchase account, the same operation as in «Deudas» (account.payment
-// with its clientOperationId and the account version), on this screen.
-export function PurchasePaymentDialog({ card, onClose, onPaid, onPending, token }: Props) {
+// «Abonar / Liquidar» of «Ver compras» and «Cobrar / Liquidar» of «Ver ventas»
+// (spec 011, CL-ST30, CL-ST32): the payment or collection of the account, the
+// same operation as in «Deudas» and «Cobranzas» (account.payment with its
+// clientOperationId and the account version), on this screen.
+export function AccountPaymentDialog({ card, kind = 'purchase', onClose, onPaid, onPending, token }: Props) {
+  const sale = kind === 'sale';
   const { enqueue, sendQueued } = useSyncQueue();
   const [account, setAccount] = useState<Account | null>(null);
   const [amount, setAmount] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  // A fresh dialog is mounted for every card, so the state starts here and the
+  // effect only reports what the server answers.
+  const missingAccount = sale ? 'No se encontró la cuenta por cobrar de esta venta.' : 'No se encontró la cuenta por pagar de esta compra.';
+  const [error, setError] = useState<string | null>(card.sourceId ? null : missingAccount);
+  const [loading, setLoading] = useState(Boolean(card.sourceId));
   const [busy, setBusy] = useState(false);
   const operation = useRef<string | null>(null);
   // With the keyboard open the window goes up and fits the free space, so the
@@ -42,13 +50,14 @@ export function PurchasePaymentDialog({ card, onClose, onPaid, onPending, token 
 
   useEffect(() => {
     let active = true;
-    listAccounts(token).then(
-      (accounts) => {
+    if (!card.sourceId) return undefined;
+    findAccountBySource(token, sale ? 'sale' : 'purchase-settlement', card.sourceId).then(
+      ({ account }) => {
         if (!active) return;
-        const found = accounts.items.find((item) => item.kind === 'payable' && item.sourceId === card.sourceId) ?? null;
+        const found = account?.kind === (sale ? 'receivable' : 'payable') ? account : null;
         setAccount(found);
         if (found) setAmount(centsInput(found.balanceCents));
-        else setError('No se encontró la cuenta por pagar de esta compra.');
+        else setError(missingAccount);
         setLoading(false);
       },
       (cause: unknown) => {
@@ -58,7 +67,7 @@ export function PurchasePaymentDialog({ card, onClose, onPaid, onPending, token 
       },
     );
     return () => { active = false; };
-  }, [card.sourceId, token]);
+  }, [card.sourceId, missingAccount, sale, token]);
 
   async function pay() {
     if (!account || busy) return;
@@ -73,7 +82,7 @@ export function PurchasePaymentDialog({ card, onClose, onPaid, onPending, token 
       saved = true;
       const outcome = await sendQueued(id);
       if (outcome.status !== 'confirmed') { onPending(); return; }
-      onPaid(`Pago de ${formatMoney(review.amountCents)} registrado a ${card.party}.`);
+      onPaid(sale ? `Cobro de ${formatMoney(review.amountCents)} registrado a ${card.party}.` : `Pago de ${formatMoney(review.amountCents)} registrado a ${card.party}.`);
     } catch (cause) {
       if (saved) { onPending(); return; }
       setError(cause instanceof Error ? cause.message : 'No se pudo registrar el pago.');
@@ -89,7 +98,7 @@ export function PurchasePaymentDialog({ card, onClose, onPaid, onPending, token 
           <View style={styles.head}>
             <View style={styles.titleRow}>
               <SymbolView fallback={null} name={{ android: 'payments', ios: 'banknote', web: 'payments' }} size={24} tintColor="#FFFFFF" />
-              <Text accessibilityRole="header" style={styles.title}>Abonar / Liquidar deuda</Text>
+              <Text accessibilityRole="header" style={styles.title}>{sale ? 'Cobrar / Liquidar venta' : 'Abonar / Liquidar deuda'}</Text>
             </View>
             <Pressable accessibilityLabel="Cerrar" accessibilityRole="button" disabled={busy} hitSlop={8} onPress={onClose} style={styles.close}>
               <SymbolView fallback={null} name={{ android: 'close', ios: 'xmark', web: 'close' }} size={22} tintColor="#FFFFFF" />
