@@ -1,10 +1,12 @@
 import { SymbolView } from '@/ui/components/symbol';
-import { useContext, useMemo, useRef, useState, type ReactNode, type Ref } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native';
+import { useContext, useEffect, useMemo, useRef, useState, type ReactNode, type Ref } from 'react';
+import { Keyboard, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native';
 
 import { emptyLotDraft, formatPreviewMoney, previewLotAmount, type PurchaseLot, type PurchasePreview } from '@/domain/reception/purchase-preview';
 import { formatKilograms } from '@/domain/reception/whole-kilograms';
-import { PaymentTermsFields } from '@/features/reception/components/payment-terms-fields';
+import { moneyInputToCents } from '@/domain/reception/reception';
+import { InstallmentRows } from '@/features/reception/components/installment-rows';
+import { DateDialog } from '@/features/sales/components/date-dialog';
 import type { LotField } from '@/features/reception/components/settlement-lots';
 import type { ReceptionDetails } from '@/features/reception/screens/reception-details-screen';
 import type { SettlementDraft, SettlementField } from '@/features/reception/screens/settlement-screen';
@@ -25,9 +27,13 @@ const gridMaxHeight = 380;
 // Rows drawn above and below the visible ones.
 const gridOverscan = 4;
 const gridVisibleRows = Math.ceil(gridMaxHeight / sheetRowHeight);
+// As in the sale, a lot shows at least ten cells; the empty ones lead to the
+// cell where the next sack is typed (CL-ST27).
+const plannedCells = 10;
 
 export type PurchaseSheetProps = {
   notice?: string;
+  noticeTitle?: string;
   errorMessage?: string;
   busy?: boolean;
   blocked?: boolean;
@@ -36,6 +42,16 @@ export type PurchaseSheetProps = {
   detailsLocked: boolean;
   onChangeDetail: (field: keyof ReceptionDetails, value: string) => void;
   onSelectProvider: () => void;
+  // Provider typed in its box with the matches of the catalog (CL-ST28).
+  onProviderNameChange?: (value: string) => void;
+  providerSuggestions?: { id: string; label: string; supportingText?: string }[];
+  onPickProvider?: (id: string) => void;
+  providerNotice?: string;
+  // ✎ of the lot and × of a sack (CL-ST28).
+  onEditLot?: () => void;
+  onVoidSack?: (id: string) => void;
+  // Number of the next sack: voided sacks keep their numbers.
+  nextSequence?: number;
   onSelectVehicle: () => void;
   referenceActions?: ReactNode;
   // Lots: one tab per variety of the purchase.
@@ -60,6 +76,8 @@ export type PurchaseSheetProps = {
   onEditSack: (id: string) => void;
   onCancelEdit: () => void;
   onSaveSack: () => void;
+  // «Carga rápida»: registers ten sacks of 50 kg with the tare of the lot.
+  onQuickLoad?: () => void;
   characteristics?: ReactNode;
   // Settlement.
   lots: readonly PurchaseLot[];
@@ -97,16 +115,36 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
   const [targetMessage, setTargetMessage] = useState<string | null>(null);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [characteristicsOpen, setCharacteristicsOpen] = useState(false);
+  const [dateOpen, setDateOpen] = useState(false);
+  // ✓ of the keyboard: celular → conductor → the cell of the next sack.
+  const driverRef = useRef<TextInput>(null);
+  const phoneRef = useRef<TextInput>(null);
+  const draftRef = useRef<TextInput>(null);
   const locked = Boolean(props.busy || props.blocked);
 
   const active = props.varieties.find((variety) => variety.id === props.activeVarietyId) ?? props.varieties[0];
   const activeIndex = active ? props.varieties.indexOf(active) : -1;
   const activeSacks = useMemo(() => props.sacks.filter((sack) => sack.varietyId === active?.id), [active?.id, props.sacks]);
-  const nextSequence = props.sacks.reduce((max, sack) => Math.max(max, sack.sequence), 0) + 1;
+  const nextSequence = props.nextSequence ?? props.sacks.reduce((max, sack) => Math.max(max, sack.sequence), 0) + 1;
   const editing = props.editingSequence !== null;
   // The trailing cell is where the next sack is typed.
   const draft = !props.weighingLocked && Boolean(active) && !editing;
-  const cells = useMemo(() => [...activeSacks.map((sack) => ({ kind: 'sack' as const, sack })), ...(draft ? [{ kind: 'draft' as const }] : [])], [activeSacks, draft]);
+  const cells = useMemo(() => {
+    const filled = [...activeSacks.map((sack) => ({ kind: 'sack' as const, sack })), ...(draft ? [{ kind: 'draft' as const }] : [])];
+    const blanks = draft ? Math.max(0, plannedCells - filled.length) : 0;
+    return [...filled, ...Array.from({ length: blanks }, (_, index) => ({ kind: 'blank' as const, offset: index + 1 }))];
+  }, [activeSacks, draft]);
+  const shownCells = Math.max(activeSacks.length, draft ? plannedCells : 0);
+  // A sack saved with ✓ keeps the cursor in the cell of the next one, also
+  // when that cell starts a new row (CL-ST27), and after a correction (CL-ST29).
+  const keepTyping = useRef(false);
+  useEffect(() => {
+    // Wait until the cell of the next sack exists (a correction ends first).
+    if (!keepTyping.current || editing || !draftRef.current) return undefined;
+    keepTyping.current = false;
+    const timer = setTimeout(() => draftRef.current?.focus(), 250);
+    return () => clearTimeout(timer);
+  }, [activeSacks, editing]);
   const rows = useMemo(() => {
     const chunks: (typeof cells)[] = [];
     for (let index = 0; index < cells.length; index += sheetColumns) chunks.push(cells.slice(index, index + sheetColumns));
@@ -127,7 +165,11 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
   const canAdd = canCapture && props.gross.trim().length > 0;
   const money = (field: 'grossCents' | 'freightCents' | 'liquidCents') => (preview.kind === 'ready' ? formatPreviewMoney(preview[field]) : 'Pendiente');
   const canSave = !locked && props.sacks.length > 0 && preview.kind === 'ready';
-  const wholesalerFreight = values.freightBasis !== 'none' && values.freightChargedTo === 'wholesaler';
+  // Freight as in the sale (CL-ST28): «Por sacos» or «Por kilaje»; a rate of
+  // 0 means the purchase goes without freight.
+  const freightOn = (moneyInputToCents(values.freightRate) ?? 0) > 0;
+  const basis = values.freightBasis === 'none' ? 'sack' : values.freightBasis;
+  const wholesalerFreight = freightOn && values.freightChargedTo === 'wholesaler';
 
   useBottomNav({
     back: { label: 'Atrás', disabled: props.busy, onPress: props.onBack },
@@ -151,14 +193,38 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
   return (
     <AppScreen contentContainerStyle={s.screen} scrollRef={screenRef} testID="purchase-sheet">
       <AppHeader eyebrow="MÓDULO DE COMPRA" subtitle="Recepción y pesaje en centro de acopio" title="Compra" />
-      {props.notice ? <FeedbackState title="Pendiente de confirmación central" message={props.notice} /> : null}
+      {props.notice ? <FeedbackState title={props.noticeTitle ?? 'Pendiente de confirmación central'} message={props.notice} /> : null}
       {props.errorMessage ? <FeedbackState title="No se pudo completar la operación" message={props.errorMessage} tone="error" /> : null}
 
       <View style={[s.card, sheetLayout.details]} testID="sheet-details">
-        <View style={sheetLayout.detailWide}><SelectionField appearance="stitch" disabled={props.detailsLocked || locked} label="Nombre del proveedor / productor" leadingIcon="person" onPress={props.onSelectProvider} placeholder="Nombre del productor o comunidad…" value={props.details.providerName} /></View>
-        <View style={sheetLayout.detail}><FormField appearance="stitch" editable={!props.detailsLocked && !locked} keyboardType="phone-pad" label="N.° celular" leadingIcon="call" onChangeText={(value) => props.onChangeDetail('providerPhone', value)} placeholder="999 000 000" value={props.details.providerPhone} /></View>
-        <View style={sheetLayout.detail}><FormField appearance="stitch" editable={!props.detailsLocked && !locked} label="Conductor" leadingIcon="badge" onChangeText={(value) => props.onChangeDetail('driverName', value)} placeholder="Nombre del conductor" value={props.details.driverName} /></View>
-        <View style={sheetLayout.detail}><FormField appearance="stitch" editable={!props.detailsLocked && !locked} label="Fecha de acopio" leadingIcon="calendar_today" onChangeText={(value) => props.onChangeDetail('date', value)} placeholder="aaaa-mm-dd" value={props.details.date} /></View>
+        <View style={sheetLayout.detailWide}>
+          {props.onProviderNameChange ? (
+            <>
+              <FormField appearance="stitch" autoComplete="off" autoCorrect={false} editable={!props.detailsLocked && !locked} importantForAutofill="no" label="Nombre del proveedor / productor" leadingIcon="person" maxLength={160} onChangeText={props.onProviderNameChange} onSubmitEditing={() => phoneRef.current?.focus()} placeholder="Nombre del productor o comunidad…" returnKeyType="next" submitBehavior="submit" value={props.details.providerName} />
+              {props.providerSuggestions?.length ? (
+                <View accessibilityLabel="Proveedores que coinciden" style={sheetLayout.suggestions}>
+                  {props.providerSuggestions.map((item) => (
+                    <Pressable accessibilityHint="Completa el celular del proveedor" accessibilityLabel={`Elegir ${item.label}`} accessibilityRole="button" key={item.id} onPress={() => props.onPickProvider?.(item.id)} style={({ pressed }) => [sheetLayout.suggestion, pressed && s.dimmed]}>
+                      <SymbolView fallback={null} name={{ android: 'person', ios: 'person', web: 'person' }} size={16} tintColor="#727974" />
+                      <Text numberOfLines={1} style={sheetLayout.suggestionText}>{item.label}</Text>
+                      {item.supportingText ? <Text numberOfLines={1} style={sheetLayout.suggestionHint}>{item.supportingText}</Text> : null}
+                    </Pressable>
+                  ))}
+                </View>
+              ) : null}
+            </>
+          ) : <SelectionField appearance="stitch" disabled={props.detailsLocked || locked} label="Nombre del proveedor / productor" leadingIcon="person" onPress={props.onSelectProvider} placeholder="Nombre del productor o comunidad…" value={props.details.providerName} />}
+        </View>
+        <View style={sheetLayout.detail}><FormField appearance="stitch" autoComplete="off" autoCorrect={false} importantForAutofill="no" editable={!props.detailsLocked && !locked} keyboardType="phone-pad" label="N.° celular" onSubmitEditing={() => driverRef.current?.focus()} ref={phoneRef} returnKeyType="next" submitBehavior="submit" leadingIcon="call" onChangeText={(value) => props.onChangeDetail('providerPhone', value)} placeholder="999 000 000" value={props.details.providerPhone} /></View>
+        <View style={sheetLayout.detail}><FormField appearance="stitch" autoComplete="off" autoCorrect={false} importantForAutofill="no" editable={!props.detailsLocked && !locked} label="Conductor" onSubmitEditing={() => (draftRef.current ? draftRef.current.focus() : Keyboard.dismiss())} ref={driverRef} returnKeyType="next" submitBehavior="submit" leadingIcon="badge" onChangeText={(value) => props.onChangeDetail('driverName', value)} placeholder="Nombre del conductor" value={props.details.driverName} /></View>
+        <View style={[sheetLayout.detail, sheetLayout.dateField]}>
+          <Text style={sheetLayout.dateLabel}>FECHA DE ACOPIO</Text>
+          <Pressable accessibilityHint="Abre el calendario con Hoy y Mañana" accessibilityLabel={`Fecha de acopio: ${props.details.date}`} accessibilityRole="button" accessibilityState={{ disabled: props.detailsLocked || locked }} disabled={props.detailsLocked || locked} onPress={() => { Keyboard.dismiss(); setDateOpen(true); }} style={({ pressed }) => [sheetLayout.dateControl, pressed && s.dimmed]} testID="purchase-date">
+            <SymbolView fallback={null} name={{ android: 'calendar_today', ios: 'calendar', web: 'calendar_today' }} size={20} tintColor="#74777F" />
+            <Text style={[sheetLayout.dateValue, props.detailsLocked && sheetLayout.dateValueLocked]}>{props.details.date}</Text>
+          </Pressable>
+        </View>
+        {props.providerNotice ? <Text accessibilityLiveRegion="polite" style={sheetLayout.providerNotice}>{props.providerNotice}</Text> : null}
       </View>
 
       <View style={[s.card, s.tabsCard]}>
@@ -202,8 +268,8 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
             <SymbolView fallback={null} name={{ android: 'inventory_2', ios: 'shippingbox', web: 'inventory_2' }} size={20} tintColor="#6EE7B7" />
             <Text numberOfLines={1} style={s.lotChipText}>{active?.name ?? 'Sin variedad'}</Text>
             {props.qualityName ? <View style={sheetLayout.quality}><Text style={sheetLayout.qualityText}>{props.qualityName}</Text></View> : null}
-            {props.characteristics && !props.weighingLocked ? (
-              <Pressable accessibilityLabel="Cambiar calidad y procedencia de los próximos sacos" accessibilityRole="button" disabled={locked} onPress={() => setCharacteristicsOpen(true)} style={sheetLayout.edit}>
+            {(props.onEditLot || props.characteristics) && !props.weighingLocked ? (
+              <Pressable accessibilityLabel={props.onEditLot ? 'Editar o cambiar variedad y calidad' : 'Cambiar calidad y procedencia de los próximos sacos'} accessibilityRole="button" disabled={locked} onPress={() => (props.onEditLot ? props.onEditLot() : setCharacteristicsOpen(true))} style={sheetLayout.edit}>
                 <SymbolView fallback={null} name={{ android: 'edit', ios: 'pencil', web: 'edit' }} size={17} tintColor="#6EE7B7" />
               </Pressable>
             ) : null}
@@ -228,7 +294,7 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
           <View style={s.goTo}>
             <SheetInput accessibilityLabel="Número del saco" keyboardType="number-pad" onChangeText={(value) => { setTarget(value); setTargetMessage(null); }} onSubmitEditing={goToSack} placeholder="Ir al saco N.°" returnKeyType="go" style={sheetLayout.goToInput} value={target} />
             <Pressable accessibilityLabel="Ir al saco" accessibilityRole="button" disabled={!props.sacks.length} onPress={goToSack} style={({ pressed }) => [sheetLayout.goToButton, (pressed || !props.sacks.length) && s.dimmed]}><SymbolView fallback={null} name={{ android: 'search', ios: 'magnifyingglass', web: 'search' }} size={18} tintColor={color.brand} /></Pressable>
-            <View style={s.countBadge}><Text style={s.countBadgeText}>{activeSacks.length} de {activeSacks.length} {sackWord(activeSacks.length)} registrados</Text></View>
+            <View style={s.countBadge}><Text style={s.countBadgeText}>{activeSacks.length} de {shownCells} {sackWord(shownCells)} registrados</Text></View>
           </View>
         </View>
         {targetMessage ? <Text accessibilityLiveRegion="polite" style={s.targetMessage}>{targetMessage}</Text> : null}
@@ -247,15 +313,28 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
             style={s.grid}
             testID="sack-grid">
             <View style={{ height: Math.max(0, windowStart) * sheetRowHeight }} />
-            {rows.slice(windowStart, windowEnd).map((row) => (
-              <View key={row[0]!.kind === 'sack' ? row[0]!.sack.id : 'draft'} style={s.gridRow}>
+            {rows.slice(windowStart, windowEnd).map((row, position) => (
+              <View key={`row-${windowStart + position}`} style={s.gridRow}>
                 {row.map((cell) => {
+                  if (cell.kind === 'blank') {
+                    return (
+                      <Pressable accessibilityElementsHidden importantForAccessibility="no-hide-descendants" key={`blank-${cell.offset}`} onPress={() => draftRef.current?.focus()} style={[s.cell, sheetLayout.cellBlank]} testID={`sack-blank-${cell.offset}`}>
+                        <View style={[s.cellNumber, sheetLayout.cellNumberBlank]}><Text style={[s.cellNumberText, sheetLayout.cellNumberBlankText]}>{String(nextSequence + cell.offset).padStart(2, '0')}</Text></View>
+                        <View style={s.cellValue}><Text style={sheetLayout.cellBlankText}>0</Text></View>
+                        <Text style={s.cellUnit}>kg</Text>
+                        <View style={[sheetLayout.clear, sheetLayout.clearIdle]}><SymbolView fallback={null} name={{ android: 'close', ios: 'xmark', web: 'close' }} size={14} tintColor="#727974" /></View>
+                      </Pressable>
+                    );
+                  }
                   if (cell.kind === 'draft') {
                     return (
                       <View key="draft" style={[s.cell, sheetLayout.cellDraft]} testID="sack-draft">
                         <View style={[s.cellNumber, sheetLayout.cellNumberDraft]}><Text style={s.cellNumberText}>{String(nextSequence).padStart(2, '0')}</Text></View>
-                        <SheetInput accessibilityLabel="Peso bruto (kg)" editable={captureEditable} keyboardType="number-pad" onChangeText={props.onGrossChange} onSubmitEditing={canAdd ? props.onSaveSack : undefined} placeholder="0" returnKeyType="done" style={sheetLayout.cellInput} submitBehavior="submit" value={props.gross} />
+                        <SheetInput accessibilityLabel="Peso bruto (kg)" autoComplete="off" autoCorrect={false} importantForAutofill="no" editable={captureEditable} keyboardType="number-pad" onChangeText={(value) => props.onGrossChange(value.replace(/[^0-9]/g, ''))} onSubmitEditing={canAdd ? () => { keepTyping.current = true; props.onSaveSack(); } : undefined} placeholder="0" ref={draftRef} returnKeyType="next" style={sheetLayout.cellInput} submitBehavior="submit" value={props.gross} />
                         <Text style={s.cellUnit}>kg</Text>
+                        <Pressable accessibilityLabel={`Limpiar el peso del saco ${nextSequence}`} accessibilityRole="button" disabled={!props.gross} hitSlop={6} onPress={() => { props.onGrossChange(''); draftRef.current?.focus(); }} style={({ pressed }) => [sheetLayout.clear, !props.gross && sheetLayout.clearIdle, pressed && s.dimmed]}>
+                          <SymbolView fallback={null} name={{ android: 'close', ios: 'xmark', web: 'close' }} size={14} tintColor="#727974" />
+                        </Pressable>
                       </View>
                     );
                   }
@@ -265,8 +344,11 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
                     return (
                       <View key={sack.id} style={[s.cell, s.cellHighlighted]} testID={`sack-${sack.sequence}`}>
                         <View style={s.cellNumber}><Text style={s.cellNumberText}>{String(sack.sequence).padStart(2, '0')}</Text></View>
-                        <SheetInput accessibilityLabel="Peso bruto (kg)" autoFocus editable={captureEditable} keyboardType="number-pad" onChangeText={props.onGrossChange} onSubmitEditing={canAdd ? props.onSaveSack : undefined} returnKeyType="done" style={sheetLayout.cellInput} submitBehavior="submit" value={props.gross} />
+                        <SheetInput accessibilityLabel="Peso bruto (kg)" autoComplete="off" autoCorrect={false} importantForAutofill="no" autoFocus editable={captureEditable} keyboardType="number-pad" onChangeText={(value) => props.onGrossChange(value.replace(/[^0-9]/g, ''))} onSubmitEditing={canAdd ? () => { keepTyping.current = true; props.onSaveSack(); } : undefined} returnKeyType="done" style={sheetLayout.cellInput} submitBehavior="submit" value={props.gross} />
                         <Text style={s.cellUnit}>kg</Text>
+                        <Pressable accessibilityLabel={`Cancelar la corrección del saco ${sack.sequence}`} accessibilityRole="button" disabled={locked} hitSlop={6} onPress={props.onCancelEdit} style={({ pressed }) => [sheetLayout.clear, pressed && s.dimmed]}>
+                          <SymbolView fallback={null} name={{ android: 'close', ios: 'xmark', web: 'close' }} size={14} tintColor="#727974" />
+                        </Pressable>
                       </View>
                     );
                   }
@@ -283,6 +365,11 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
                       <View style={s.cellNumber}><Text style={s.cellNumberText}>{String(sack.sequence).padStart(2, '0')}</Text></View>
                       <View style={s.cellValue}><Text style={s.cellValueText}>{sack.grossDisplay ?? sack.netDisplay}</Text></View>
                       <Text style={s.cellUnit}>kg</Text>
+                      {!props.weighingLocked ? (
+                        <Pressable accessibilityHint={props.onVoidSack ? undefined : 'Para anular un saco se necesita conexión y que esté sincronizado'} accessibilityLabel={`Anular saco ${sack.sequence}`} accessibilityRole="button" accessibilityState={{ disabled: locked || !props.onVoidSack }} disabled={locked || !props.onVoidSack} hitSlop={6} onPress={() => props.onVoidSack?.(sack.id)} style={({ pressed }) => [sheetLayout.clear, pressed && s.dimmed]}>
+                          <SymbolView fallback={null} name={{ android: 'close', ios: 'xmark', web: 'close' }} size={14} tintColor="#727974" />
+                        </Pressable>
+                      ) : null}
                     </Pressable>
                   );
                 })}
@@ -302,10 +389,16 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
             <View style={sheetLayout.tareBox}>
               <SymbolView fallback={null} name={{ android: 'scale', ios: 'scalemass', web: 'scale' }} size={18} tintColor={accent.emerald.pillInk} />
               <Text style={sheetLayout.tareLabel}>{editing ? `Tara del saco ${props.editingSequence}` : 'Tara por saco'}</Text>
-              <SheetInput accessibilityLabel="Tara (kg)" editable={captureEditable} keyboardType="number-pad" onChangeText={props.onTareChange} placeholder="0" style={sheetLayout.tareInput} value={props.tare} />
+              <SheetInput accessibilityLabel="Tara (kg)" autoComplete="off" autoCorrect={false} importantForAutofill="no" editable={captureEditable} keyboardType="number-pad" onChangeText={(value) => props.onTareChange(value.replace(/[^0-9]/g, ''))} placeholder="0" style={sheetLayout.tareInput} value={props.tare} />
               <Text style={sheetLayout.tareUnit}>kg</Text>
               {editing ? <Pressable accessibilityLabel="Cancelar corrección" accessibilityRole="button" disabled={locked} onPress={props.onCancelEdit} style={sheetLayout.cancel}><Text style={sheetLayout.cancelText}>Cancelar</Text></Pressable> : null}
             </View>
+            {props.onQuickLoad && !editing ? (
+              <Pressable accessibilityHint="Registra diez sacos de 50 kilos brutos con la tara del lote; luego puedes corregir cada peso" accessibilityLabel="Carga rápida de 10 sacos a 50 kilos" accessibilityRole="button" accessibilityState={{ disabled: !canCapture }} disabled={!canCapture} onPress={() => { Keyboard.dismiss(); props.onQuickLoad?.(); }} style={({ pressed }) => [sheetLayout.quickLoad, (pressed || !canCapture) && s.dimmed]} testID="purchase-quick-load">
+                <SymbolView fallback={null} name={{ android: 'library_add', ios: 'plus.square.on.square', web: 'library_add' }} size={18} tintColor={accent.emerald.pillInk} />
+                <Text style={sheetLayout.quickLoadText}>+ Carga rápida (10 sacos a 50 kg)</Text>
+              </Pressable>
+            ) : null}
           </View>
         )}
 
@@ -351,7 +444,7 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
           const current = lot.varietyId === active?.id;
           return (
             <View key={lot.key} style={[s.tableRow, current && sheetLayout.rowActive]} testID={`lot-${lot.letter}`}>
-              <View style={s.colLot}><View style={[s.lotTag, !current && sheetLayout.lotTagIdle]}><Text style={[s.lotTagText, !current && sheetLayout.lotTagTextIdle]}>Lote {lot.letter}</Text></View></View>
+              <View style={s.colLot}><Pressable accessibilityLabel={`Ir al lote ${lot.letter}`} accessibilityRole="button" onPress={() => props.onSelectVariety(lot.varietyId)} style={[s.lotTag, !current && sheetLayout.lotTagIdle]}><Text style={[s.lotTagText, !current && sheetLayout.lotTagTextIdle]}>Lote {lot.letter}</Text></Pressable></View>
               <View style={s.colVariety}>
                 <SheetInput accessibilityLabel={`Nombre del lote ${lot.letter} (opcional)`} editable={!locked} maxLength={60} onChangeText={(value) => props.onChangeLot(lot.key, 'name', value)} placeholder={described} style={s.tableInput} value={draftLot.name} />
               </View>
@@ -359,13 +452,6 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
               <View style={s.colWeight}><View style={s.weightPill}><Text style={s.weightPillText}>{formatKilograms(lot.netWeightKg)}</Text></View></View>
               <View style={[s.colPrice, s.priceCell]}>
                 <SheetInput accessibilityLabel={draftLot.priceBasis === 'kilogram' ? `Precio por kilogramo, lote ${lot.letter} (S/)` : `Precio por saco, lote ${lot.letter} (S/)`} editable={!locked} keyboardType="decimal-pad" onChangeText={(value) => props.onChangeLot(lot.key, 'unitPrice', value)} placeholder="0.00" style={[s.tableInput, s.priceInput]} value={draftLot.unitPrice} />
-                <View accessibilityRole="radiogroup" style={sheetLayout.basis}>
-                  {([['kilogram', 'kg', 'por kilogramo'], ['sack', 'saco', 'por saco']] as const).map(([value, short, long]) => (
-                    <Pressable accessibilityLabel={`Lote ${lot.letter}: ${long}`} accessibilityRole="radio" accessibilityState={{ checked: draftLot.priceBasis === value }} disabled={locked} key={value} onPress={() => props.onChangeLot(lot.key, 'priceBasis', value)} style={[sheetLayout.basisOption, draftLot.priceBasis === value && s.basisSelected]}>
-                      <Text style={[sheetLayout.basisText, draftLot.priceBasis === value && s.onBrand]}>{short}</Text>
-                    </Pressable>
-                  ))}
-                </View>
               </View>
               <Text accessibilityLabel={`Importe del lote ${lot.letter}: ${amount ? formatPreviewMoney(amount) : 'Pendiente'}`} style={[s.amount, s.colAmount]}>{amount ? formatPreviewMoney(amount) : 'Pendiente'}</Text>
             </View>
@@ -397,29 +483,29 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
             <Text accessibilityRole="header" style={s.sectionTitle}>Flete de transporte (descuento / acopio)</Text>
           </View>
           <View accessibilityRole="radiogroup" style={sheetLayout.segment}>
-            {([['none', 'Sin flete'], ['sack', 'Por sacos'], ['kilogram', 'Por kilaje']] as const).map(([value, label]) => (
-              <Pressable accessibilityLabel={`Flete: ${label.toLowerCase()}`} accessibilityRole="radio" accessibilityState={{ checked: values.freightBasis === value }} disabled={locked} key={value} onPress={() => props.onChange('freightBasis', value)} style={[sheetLayout.segmentOption, values.freightBasis === value && sheetLayout.segmentSelected]}>
-                <Text style={[sheetLayout.segmentText, values.freightBasis === value && s.onBrand]}>{label}</Text>
+            {([['sack', 'Por sacos'], ['kilogram', 'Por kilaje']] as const).map(([value, label]) => (
+              <Pressable accessibilityLabel={`Flete: ${label.toLowerCase()}`} accessibilityRole="radio" accessibilityState={{ checked: basis === value }} disabled={locked} key={value} onPress={() => props.onChange('freightBasis', value)} style={[sheetLayout.segmentOption, basis === value && sheetLayout.segmentSelected]}>
+                <Text style={[sheetLayout.segmentText, basis === value && s.onBrand]}>{label}</Text>
               </Pressable>
             ))}
           </View>
         </View>
-        {values.freightBasis === 'none' ? <Text style={s.help}>Esta compra no lleva flete.</Text> : (
+        {(
           <View style={s.freightRow}>
             <View style={s.freightChip}>
-              <Text style={s.freightQuantity}>{values.freightBasis === 'sack' ? `${totalSacks}` : formatKilograms(gramsToKg(totalGrams)).replace(' kg', '')}</Text>
-              <Text style={sheetLayout.freightUnit}>{values.freightBasis === 'sack' ? sackWord(totalSacks) : 'kg'}</Text>
+              <Text style={s.freightQuantity}>{basis === 'sack' ? `${totalSacks}` : formatKilograms(gramsToKg(totalGrams)).replace(' kg', '')}</Text>
+              <Text style={sheetLayout.freightUnit}>{basis === 'sack' ? sackWord(totalSacks) : 'kg'}</Text>
               <Text style={s.freightTimes}>× S/</Text>
               <SheetInput accessibilityLabel="Tarifa de flete (S/)" editable={!locked} keyboardType="decimal-pad" onChangeText={(value) => props.onChange('freightRate', value)} placeholder="0.00" style={s.freightInput} value={values.freightRate} />
             </View>
-            <Text style={[s.help, s.grow]}>Tarifa por unidad seleccionada</Text>
+            <Text style={[s.help, s.grow]}>{freightOn ? 'Tarifa por unidad seleccionada' : 'Tarifa 0: la compra va sin flete'}</Text>
             <Text style={sheetLayout.freightLabel}>SUBTOTAL FLETE:</Text>
             <Text accessibilityLabel={`Subtotal de flete: ${money('freightCents')}`} style={s.freightAmount}>{money('freightCents')}</Text>
           </View>
         )}
         <View style={sheetLayout.freightMore}>
           <View style={sheetLayout.vehicle}><SelectionField appearance="stitch" disabled={props.detailsLocked || locked} label="Vehículo (opcional)" leadingIcon="local_shipping" onPress={props.onSelectVehicle} placeholder="Seleccionar placa" value={props.details.vehiclePlate} /></View>
-          {values.freightBasis !== 'none' ? (
+          {freightOn ? (
             <View style={sheetLayout.payer}>
               <Text style={sheetLayout.payerLabel}>¿QUIÉN ASUME EL FLETE?</Text>
               <View accessibilityRole="radiogroup" style={sheetLayout.segment}>
@@ -446,7 +532,7 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
         <View style={sheetLayout.summary}>
           <View style={sheetLayout.summaryLeft}>
             <Line label="Total pago (producto):" value={money('grossCents')} />
-            <Line label={wholesalerFreight ? 'Flete a cargo del Mayorista (no se descuenta)' : 'Total flete (descuento):'} value={values.freightBasis === 'none' ? 'S/ 0.00' : wholesalerFreight || preview.kind !== 'ready' ? money('freightCents') : `- ${money('freightCents')}`} />
+            <Line label={wholesalerFreight ? 'Flete a cargo del Mayorista (no se descuenta)' : 'Total flete (descuento):'} value={!freightOn ? 'S/ 0.00' : wholesalerFreight || preview.kind !== 'ready' ? money('freightCents') : `- ${money('freightCents')}`} />
             <View style={sheetLayout.line}>
               <Text style={sheetLayout.lineLabel}>Otros cargos / ajustes:</Text>
               <Text style={sheetLayout.currency}>S/</Text>
@@ -478,7 +564,7 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
             </View>
           </View>
         </View>
-        {values.paymentMode === 'credit' ? <PaymentTermsFields isSubmitting={locked} onAddInstallment={props.onAddInstallment} onChange={props.onChange} onChangeInstallment={props.onChangeInstallment} onRemoveInstallment={props.onRemoveInstallment} values={values} /> : null}
+        {values.paymentMode === 'credit' ? <InstallmentRows busy={locked} installments={values.installments} onAdd={props.onAddInstallment} onChange={props.onChangeInstallment} onRemove={props.onRemoveInstallment} /> : null}
         {preview.kind !== 'ready' && props.sacks.length ? <FeedbackState title={preview.kind === 'invalid' ? 'Revisa la liquidación' : 'Importes pendientes'} message={preview.message} tone={preview.kind === 'invalid' ? 'error' : undefined} /> : null}
         <Text style={s.help}>Importes provisionales: el servidor los verifica al guardar y registra la compra, el flete y la caja o la cuenta por pagar.</Text>
       </View>
@@ -496,6 +582,7 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
         </Pressable>
       </View>
 
+      {dateOpen ? <DateDialog onCancel={() => setDateOpen(false)} onPick={(value) => { setDateOpen(false); props.onChangeDetail('date', value); }} title="Fecha de acopio" value={props.details.date} visible /> : null}
       <Modal animationType="fade" onRequestClose={() => setCharacteristicsOpen(false)} transparent visible={characteristicsOpen}>
         <View style={sheetLayout.modalBackdrop}>
           <View style={sheetLayout.modal}>
@@ -549,6 +636,24 @@ export const sheetLayout = StyleSheet.create({
   goToInput: { fontSize: 13, minHeight: 40, textAlign: 'center', width: 120 },
   goToButton: { alignItems: 'center', backgroundColor: '#EFF4FF', borderRadius: 10, height: 40, justifyContent: 'center', width: 44 },
   cellDraft: { borderColor: '#10B981', borderStyle: 'dashed', borderWidth: 1.5 },
+  clear: { alignItems: 'center', height: 24, justifyContent: 'center', width: 22 },
+  clearIdle: {},
+  suggestions: { backgroundColor: '#FFFFFF', borderColor: '#D3E4FE', borderRadius: 10, borderWidth: 1, marginTop: 6, overflow: 'hidden' },
+  suggestion: { alignItems: 'center', borderBottomColor: '#EFF4FF', borderBottomWidth: 1, flexDirection: 'row', gap: 8, minHeight: 44, paddingHorizontal: 12 },
+  suggestionText: { color: '#0B1C30', flexShrink: 1, fontSize: 14, fontWeight: '600' },
+  suggestionHint: { color: '#727974', fontSize: 12, marginLeft: 'auto' },
+  providerNotice: { color: '#424844', flexBasis: '100%', fontSize: 12 },
+  cellBlank: { backgroundColor: '#F8F9FF', borderColor: '#CBD5E1', borderStyle: 'dashed', borderWidth: 1 },
+  cellNumberBlank: { backgroundColor: '#E2E8F0' },
+  cellNumberBlankText: { color: '#64748B' },
+  cellBlankText: { color: '#94A3B8', fontSize: 16, fontWeight: '600' },
+  quickLoad: { alignItems: 'center', backgroundColor: 'rgba(209,250,229,0.4)', borderColor: 'rgba(4,120,87,0.4)', borderRadius: 12, borderWidth: 1, flexBasis: 280, flexDirection: 'row', flexGrow: 1, gap: 8, justifyContent: 'center', minHeight: 48, paddingHorizontal: 14 },
+  quickLoadText: { color: accent.emerald.pillInk, fontSize: 14, fontWeight: '700' },
+  dateField: { gap: 6 },
+  dateLabel: { color: '#64748B', fontSize: 12, fontWeight: '600', letterSpacing: 0.8, lineHeight: 16 },
+  dateControl: { alignItems: 'center', backgroundColor: '#EFF4FF', borderRadius: 12, flexDirection: 'row', gap: 10, minHeight: 44, paddingHorizontal: 13 },
+  dateValue: { color: '#0B1C30', fontSize: 14, fontWeight: '500' },
+  dateValueLocked: { color: '#475569' },
   cellNumberDraft: { backgroundColor: '#047857' },
   cellInput: { flex: 1, fontSize: 16, fontWeight: '800', minHeight: 34, paddingHorizontal: 8, paddingVertical: 2, textAlign: 'right' },
   addRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },

@@ -32,6 +32,8 @@ function mockScreen(screenKind: string) {
   return (props: object) => jest.requireActual('react').createElement('test-control', { ...props, screenKind });
 }
 jest.mock('@/features/reception/screens/purchase-sheet', () => ({ PurchaseSheet: mockScreen('sheet') }));
+jest.mock('@/features/sales/components/lot-dialog', () => ({ LotDialog: mockScreen('lot') }));
+jest.mock('@/services/api/catalog-api', () => ({ createCatalogItem: jest.fn() }));
 jest.mock('@/features/reception/screens/reception-details-screen', () => ({ ReceptionDetailsScreen: mockScreen('details') }));
 jest.mock('@/features/reception/screens/weighing-screen', () => ({ WeighingScreen: mockScreen('weighing') }));
 jest.mock('@/features/reception/screens/settlement-screen', () => ({ SettlementScreen: mockScreen('settlement') }));
@@ -60,6 +62,7 @@ beforeEach(() => {
 });
 
 const sheet = (root: ReactTestRenderer) => root.root.findAll((node) => node.props.screenKind === 'sheet')[0]!;
+const lot = (root: ReactTestRenderer) => root.root.findAll((node) => node.props.screenKind === 'lot')[0]!;
 const dialog = (root: ReactTestRenderer, title: string) => root.root.findAll((node) => node.props.title === title)[0]!;
 const queued = () => mockEnqueue.mock.calls.map((call) => ({ id: call[0].id, type: call[0].type, path: call[0].path }));
 
@@ -73,7 +76,7 @@ async function fillDetails(root: ReactTestRenderer) {
   await act(async () => { dialog(root, 'Seleccionar proveedor').props.onSelect({ id: 'provider-id', label: 'Proveedor' }); });
   await act(async () => { sheet(root).props.onChangeDetail('driverName', 'Conductor'); });
   await act(async () => { sheet(root).props.onAddVariety(); });
-  await act(async () => { dialog(root, 'Seleccionar variedades').props.onSelect({ id: 'variety-id', label: 'Papa' }); });
+  await act(async () => { lot(root).props.onCreate({ varietyId: 'variety-id', qualityId: null, originId: null, unitPrice: '', plannedSacks: 10 }); });
 }
 async function addSack(root: ReactTestRenderer, gross = '100') {
   await act(async () => { sheet(root).props.onGrossChange(gross); });
@@ -83,7 +86,8 @@ async function addSack(root: ReactTestRenderer, gross = '100') {
 it('shows one screen for the whole purchase and creates nothing until the first sack', async () => {
   const root = await open();
   expect(root.root.findAll((node) => ['details', 'weighing', 'settlement'].includes(node.props.screenKind))).toHaveLength(0);
-  expect(sheet(root).props).toMatchObject({ detailsLocked: false, weighingLocked: false, varieties: [], sacks: [] });
+  // CL-ST28: «Lote A» of the first variety is there from the start.
+  expect(sheet(root).props).toMatchObject({ detailsLocked: false, weighingLocked: false, varieties: [{ id: 'variety-id', name: 'Papa' }], sacks: [] });
   await fillDetails(root);
   expect(sheet(root).props.varieties).toEqual([{ id: 'variety-id', name: 'Papa' }]);
   expect(sheet(root).props.activeVarietyId).toBe('variety-id');
@@ -201,7 +205,126 @@ it('clears the form before the reception exists', async () => {
   const root = await open();
   await fillDetails(root);
   await act(async () => { sheet(root).props.onClear(); });
-  expect(sheet(root).props).toMatchObject({ varieties: [], details: expect.objectContaining({ driverName: '', providerName: '' }) });
+  expect(sheet(root).props).toMatchObject({ varieties: [{ id: 'variety-id', name: 'Papa' }], details: expect.objectContaining({ driverName: '', providerName: '' }) });
   expect(mockEnqueue).not.toHaveBeenCalled();
   await act(async () => { root.unmount(); });
+});
+
+it('adds the lot from the lot window with its price and writes a new variety (CL-ST27)', async () => {
+  const { createCatalogItem } = jest.requireMock('@/services/api/catalog-api');
+  createCatalogItem.mockReset().mockResolvedValue({ id: 'huayro', name: 'Huayro' });
+  const root = await open();
+  await act(async () => { sheet(root).props.onAddVariety(); });
+  expect(lot(root).props).toMatchObject({ visible: true, askPlanned: false });
+  await act(async () => { expect(await lot(root).props.onCreateChoice('variety', ' papa ')).toEqual({ id: 'variety-id', label: 'Papa' }); });
+  expect(createCatalogItem).not.toHaveBeenCalled();
+  await act(async () => { expect(await lot(root).props.onCreateChoice('variety', 'Huayro')).toEqual({ id: 'huayro', label: 'Huayro' }); });
+  expect(createCatalogItem).toHaveBeenCalledWith('test-token', 'varieties', { name: 'Huayro' });
+  await act(async () => { lot(root).props.onCreate({ varietyId: 'huayro', qualityId: null, originId: null, unitPrice: '1.50', plannedSacks: 10 }); });
+  expect(lot(root).props.visible).toBe(false);
+  expect(sheet(root).props.varieties).toEqual([{ id: 'huayro', name: 'Huayro' }, { id: 'variety-id', name: 'Papa' }]);
+  expect(sheet(root).props.values.lots['huayro|']).toMatchObject({ unitPrice: '1.50' });
+  expect(mockEnqueue).not.toHaveBeenCalled();
+  await act(async () => { root.unmount(); });
+});
+
+it('quick load registers ten sacks of 50 kg one after another (CL-ST27)', async () => {
+  const root = await open();
+  await fillDetails(root);
+  jest.mocked(getReception).mockReset().mockImplementation(async () => ({ ...reception, state: 'weighing', version: jest.mocked(getReception).mock.calls.length }));
+  await act(async () => { await sheet(root).props.onQuickLoad(); await new Promise((resolve) => setTimeout(resolve, 0)); });
+  const adds = mockEnqueue.mock.calls.filter((call) => call[0].type === 'reception.sack-add');
+  expect(adds).toHaveLength(10);
+  expect(adds.every((call) => call[0].body.grossWeightKg === adds[0]![0].body.grossWeightKg && Number(call[0].body.grossWeightKg) === 50)).toBe(true);
+  expect(adds.map((call) => call[0].body.expectedReceptionVersion)).toEqual([...adds.keys()].map((index) => index + 1));
+  await act(async () => { root.unmount(); });
+});
+
+describe('purchase equal to the sale (CL-ST28)', () => {
+  it('registers a typed provider with the first sack and suggests the known ones', async () => {
+    const { createCatalogItem } = jest.requireMock('@/services/api/catalog-api');
+    createCatalogItem.mockReset().mockResolvedValue({ id: 'provider-new', name: 'Comunidad Nueva', phone: '988' });
+    const root = await open();
+    await act(async () => { sheet(root).props.onProviderNameChange('prov'); });
+    expect(sheet(root).props.providerSuggestions).toEqual([{ id: 'provider-id', label: 'Proveedor' }]);
+    await act(async () => { sheet(root).props.onProviderNameChange('Comunidad Nueva'); });
+    await act(async () => { sheet(root).props.onChangeDetail('providerPhone', '988'); });
+    expect(sheet(root).props.providerNotice).toBe('Proveedor nuevo: se registrará al añadir el primer saco.');
+    await act(async () => { sheet(root).props.onChangeDetail('driverName', 'Conductor'); });
+    await addSack(root);
+    expect(createCatalogItem).toHaveBeenCalledWith('test-token', 'providers', { name: 'Comunidad Nueva', phone: '988' });
+    expect(mockEnqueue.mock.calls[0]![0].body).toMatchObject({ providerId: 'provider-new', expectedVarietyIds: ['variety-id'] });
+    await act(async () => { root.unmount(); });
+  });
+
+  it('voids a weighed sack with its reason instead of deleting it', async () => {
+    const root = await open();
+    await fillDetails(root);
+    await addSack(root);
+    jest.mocked(getReception).mockResolvedValue({ ...reception, state: 'weighing', version: 2 });
+    jest.mocked(getSacks).mockResolvedValue([{ ...sack, voidedAt: '2026-11-12T10:00:00Z' }] as never);
+    await act(async () => { sheet(root).props.onVoidSack('sack-id'); });
+    const confirm = dialog(root, '¿Anular el saco?');
+    expect(confirm.props.visible).toBe(true);
+    await act(async () => { confirm.props.onConfirm(); await new Promise((resolve) => setTimeout(resolve, 0)); });
+    const voided = mockEnqueue.mock.calls.find((call) => call[0].type === 'reception.sack-void')![0];
+    expect(voided).toMatchObject({ method: 'POST', path: '/receptions/reception-id/sacks/sack-id/void', body: { reason: 'Saco retirado al pesar la compra' } });
+    expect(sheet(root).props.sacks).toEqual([]);
+    expect(sheet(root).props.nextSequence).toBe(2);
+    await act(async () => { root.unmount(); });
+  });
+
+  it('edits the lot from ✎ and treats a freight rate of 0 as no freight', async () => {
+    const root = await open();
+    await fillDetails(root);
+    await act(async () => { sheet(root).props.onEditLot(); });
+    expect(lot(root).props).toMatchObject({ visible: true, lockVariety: false, initial: { varietyId: 'variety-id', unitPrice: '' } });
+    await act(async () => { lot(root).props.onCreate({ varietyId: 'variety-id', qualityId: null, originId: null, unitPrice: '2.00', plannedSacks: 10 }); });
+    expect(sheet(root).props.values.lots['variety-id|']).toMatchObject({ unitPrice: '2.00' });
+    await addSack(root);
+    await act(async () => { sheet(root).props.onChange('freightBasis', 'sack'); });
+    expect(sheet(root).props.preview).toMatchObject({ kind: 'ready', freightCents: '0' });
+    await act(async () => { sheet(root).props.onChange('freightRate', '1.00'); });
+    expect(sheet(root).props.preview).toMatchObject({ kind: 'ready', freightCents: '100' });
+    // Once the reception exists the variety of the lot is fixed.
+    await act(async () => { sheet(root).props.onEditLot(); });
+    expect(lot(root).props.lockVariety).toBe(true);
+    await act(async () => { root.unmount(); });
+  });
+});
+
+describe('found in the purchase simulation (CL-ST29)', () => {
+  it('keeps the weight typed while the previous sack is saving and saves it right after', async () => {
+    const root = await open();
+    await fillDetails(root);
+    await act(async () => { sheet(root).props.onGrossChange('52'); });
+    let first!: Promise<void>;
+    act(() => { first = sheet(root).props.onSaveSack(); });
+    await act(async () => { sheet(root).props.onGrossChange('53'); });
+    await act(async () => { sheet(root).props.onSaveSack(); });
+    await act(async () => { await first; await new Promise((resolve) => setTimeout(resolve, 0)); });
+    await act(async () => { await new Promise((resolve) => setTimeout(resolve, 0)); });
+    const adds = mockEnqueue.mock.calls.filter((call) => call[0].type === 'reception.sack-add').map((call) => call[0].body.grossWeightKg);
+    expect(adds).toEqual(['52', '53']);
+    expect(sheet(root).props.gross).toBe('');
+    await act(async () => { root.unmount(); });
+  });
+
+  it('labels the lots as the server does, before and after the reception exists', async () => {
+    jest.mocked(loadReceptionCatalogs).mockResolvedValue({ providers: [{ id: 'provider-id', name: 'Proveedor', phone: null }], vehicles: [], varieties: [{ id: 'a-first', name: 'Amarilla' }, { id: 'variety-id', name: 'Papa' }] });
+    jest.mocked(getReception).mockReset().mockResolvedValue({ ...reception, expectedVarieties: [{ id: 'a-first', name: 'Amarilla' }, { id: 'variety-id', name: 'Papa' }] });
+    const root = await open();
+    await act(async () => { sheet(root).props.onSelectProvider(); });
+    await act(async () => { dialog(root, 'Seleccionar proveedor').props.onSelect({ id: 'provider-id', label: 'Proveedor' }); });
+    await act(async () => { sheet(root).props.onChangeDetail('driverName', 'Conductor'); });
+    await act(async () => { sheet(root).props.onEditLot(); });
+    await act(async () => { lot(root).props.onCreate({ varietyId: 'variety-id', qualityId: null, originId: null, unitPrice: '', plannedSacks: 10 }); });
+    await act(async () => { sheet(root).props.onAddVariety(); });
+    await act(async () => { lot(root).props.onCreate({ varietyId: 'a-first', qualityId: null, originId: null, unitPrice: '', plannedSacks: 10 }); });
+    expect(sheet(root).props.varieties.map((item: { id: string }) => item.id)).toEqual(['a-first', 'variety-id']);
+    await act(async () => { sheet(root).props.onSelectVariety('variety-id'); });
+    await addSack(root);
+    expect(sheet(root).props.varieties.map((item: { id: string }) => item.id)).toEqual(['a-first', 'variety-id']);
+    await act(async () => { root.unmount(); });
+  });
 });

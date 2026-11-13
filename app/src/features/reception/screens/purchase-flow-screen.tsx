@@ -9,8 +9,9 @@ import { readInitialPurchaseDraft, rememberInitialPurchaseDraft, clearInitialPur
 import type { PotatoVariety, Provider, PurchaseSettlement, Reception, ReceptionSack, Vehicle } from '@/domain/reception/reception';
 import { createOperationId, moneyInputToCents, summarizeSacks } from '@/domain/reception/reception';
 import { formatKilograms, kilogramsDraft, validateSackWeights } from '@/domain/reception/whole-kilograms';
-import { calculatePurchasePreview, emptyLotDraft, formatPreviewMoney, groupPurchaseLots, settlementLotsPayload, validateCreditSchedule } from '@/domain/reception/purchase-preview';
+import { calculatePurchasePreview, emptyLotDraft, formatPreviewMoney, groupPurchaseLots, lotKey, settlementLotsPayload, validateCreditSchedule } from '@/domain/reception/purchase-preview';
 import { formatLocalDateInput } from '@/domain/shared/date';
+import { remainingInstallmentAmount } from '@/domain/shared/installments';
 import { hasUnresolvedReceptionWrites } from '@/domain/reception/reception-recovery';
 import { recoverLocalReception } from '@/domain/reception/local-reception-recovery';
 import { useSession } from '@/features/auth/session/session-provider';
@@ -20,10 +21,11 @@ import { PurchaseConfirmationScreen } from '@/features/reception/screens/purchas
 import { SettlementScreen, type SettlementDraft } from '@/features/reception/screens/settlement-screen';
 import { WeighingScreen } from '@/features/reception/screens/weighing-screen';
 import { PurchaseSheet } from '@/features/reception/screens/purchase-sheet';
+import { LotDialog, type ChoiceKind, type LotChoice, type NewLot } from '@/features/sales/components/lot-dialog';
 import {CharacteristicFields} from '@/features/catalog/components/characteristic-fields';
 import {OperationReferenceActions} from '@/features/catalog/components/operation-reference-actions';
 import {OperationReferenceEditor} from '@/features/catalog/screens/catalog-workspace';
-import type {CatalogKind} from '@/services/api/catalog-api';
+import {createCatalogItem,type CatalogKind} from '@/services/api/catalog-api';
 import {captureCommercialSnapshot,commercialDescription,type CommercialCharacteristic,type CommercialInput,type CommercialSnapshot} from '@/domain/catalog/commercial-characteristic';
 import { ApiError, ApiUnavailableError } from '@/services/api/api-client';
 import {
@@ -39,7 +41,7 @@ import {
 import { AppScreen, ChoiceDialog, ConfirmationDialog, FeedbackState, LoadingState, type Choice } from '@/ui/components';
 
 type Step = 'details' | 'weighing' | 'settlement' | 'confirmation';
-type Dialog = 'provider' | 'vehicle' | 'varieties' | 'sack-variety' | null;
+type Dialog = 'provider' | 'vehicle' | 'varieties' | 'sack-variety' | 'lot' | 'lot-edit' | null;
 
 function initialDetails(): ReceptionDetails {
   return { date: formatLocalDateInput(), driverName: '', expectedVarieties: '', providerName: '', providerPhone: '', vehiclePlate: '' };
@@ -230,7 +232,15 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
     return () => { active = false; };
   }, [invalidateSession, isLoadingQueue, localCreationId, localRecovery, token, session, catalogAttempt]);
 
-  const expectedVarieties = reception?.expectedVarieties ?? varieties.filter((item) => expectedVarietyIds.includes(item.id));
+  // CL-ST28: as in the sale, the sheet opens with «Lote A» of the first
+  // variety; it is sent as the variety of the reception with the first sack.
+  const lotVarietyIds = expectedVarietyIds.length || !sheet || reception ? expectedVarietyIds : varieties[0] ? [varieties[0].id] : [];
+  // CL-ST29: the lots follow the server letters (variety name, as on the
+  // receipt and the table), before and after the first sack, so a letter never
+  // changes when the purchase is registered.
+  const byName = (a: { name: string; id: string }, b: { name: string; id: string }) => a.name.localeCompare(b.name, 'es') || a.id.localeCompare(b.id);
+  const chosenVarieties = reception?.expectedVarieties ?? lotVarietyIds.flatMap((id) => varieties.filter((item) => item.id === id));
+  const expectedVarieties = sheet ? [...chosenVarieties].sort(byName) : chosenVarieties;
   const currentReception = reception;
   // On the sheet the active tab is the variety of the next sack.
   const captureVarietyId = sheet ? (expectedVarieties.some((item) => item.id === sackVarietyId) ? sackVarietyId : expectedVarieties[0]?.id ?? '') : sackVarietyId;
@@ -246,7 +256,12 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
   }));
   const summary = useMemo(() => summarizeSacks(activeSacks), [activeSacks]);
   const purchaseLots = useMemo(() => groupPurchaseLots(activeSacks, (varietyId) => varieties.find((item) => item.id === varietyId)?.name ?? expectedVarieties.find((item) => item.id === varietyId)?.name ?? 'Variedad'), [activeSacks, varieties, expectedVarieties]);
-  const settlementPreview = useMemo(() => calculatePurchasePreview(purchaseLots, settlementDraft), [purchaseLots, settlementDraft]);
+  const effectiveDraft = useMemo<SettlementDraft>(() => {
+    if (!sheet) return settlementDraft;
+    const rate = moneyInputToCents(settlementDraft.freightRate) ?? 0;
+    return { ...settlementDraft, freightBasis: rate > 0 ? (settlementDraft.freightBasis === 'none' ? 'sack' : settlementDraft.freightBasis) : 'none' };
+  }, [settlementDraft, sheet]);
+  const settlementPreview = useMemo(() => calculatePurchasePreview(purchaseLots, effectiveDraft), [purchaseLots, effectiveDraft]);
   const settlementConfirmationMessage = settlementPreview.kind === 'ready'
     ? `Importes provisionales: ${settlementPreview.lots.length} ${settlementPreview.lots.length === 1 ? 'lote' : 'lotes'}, bruto ${formatPreviewMoney(settlementPreview.grossCents)}; ${settlementPreview.freightDeducted ? `flete descontado ${formatPreviewMoney(settlementPreview.freightCents)}` : settlementDraft.freightBasis === 'none' ? 'sin flete' : `flete a cargo del Mayorista ${formatPreviewMoney(settlementPreview.freightCents)}, no se descuenta`}; adelantos ${formatPreviewMoney(settlementPreview.advancesCents)}; descuentos ${formatPreviewMoney(settlementPreview.discountsCents)}. Total líquido ${formatPreviewMoney(settlementPreview.liquidCents)}. ${settlementDraft.paymentMode === 'cash' ? 'Pago al contado.' : `Crédito con ${settlementDraft.installments.length} ${settlementDraft.installments.length === 1 ? 'cuota' : 'cuotas'}.`} El servidor verificará los importes y registrará los efectos de compra, flete, caja o cuenta por pagar.`
     : 'Revisa los datos de la liquidación antes de confirmar.';
@@ -286,10 +301,20 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
   async function submitDetails():Promise<Reception|null>{
     if(capturing.current || busy || detailsExitAction)return null;
     setError(null);
-    if(!/^\d{4}-\d{2}-\d{2}$/.test(details.date)||!providerId||!details.driverName.trim()||!expectedVarietyIds.length){setError('Completa fecha, proveedor, conductor y al menos una variedad.');return null;}
-    capturing.current=true;setBusy(true);createOperationRef.current??=createOperationId();
+    const typedProvider=sheet&&!providerId&&details.providerName.trim().length>0;
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(details.date)||!(providerId||typedProvider)||!details.driverName.trim()||!lotVarietyIds.length){setError('Completa fecha, proveedor, conductor y al menos una variedad.');return null;}
+    if(typedProvider&&(session?.user.role!=='wholesaler'||isOfflineSession)){setError('Elige un proveedor de la lista: solo el Mayorista registra uno nuevo y necesita conexión.');return null;}
+    capturing.current=true;setBusy(true);
+    let resolvedProviderId=providerId;
+    if(!resolvedProviderId){
+      try{const created=await createCatalogItem<Provider>(token,'providers',{name:details.providerName.trim(),phone:details.providerPhone.trim()||undefined});setProviders((all)=>[...all,created]);setProviderId(created.id);resolvedProviderId=created.id;}
+      catch(cause){capturing.current=false;setBusy(false);await handleError(cause);return null;}
+    }
+    // The initial lot becomes a chosen variety: its order is kept after saving.
+    if(!expectedVarietyIds.length)setExpectedVarietyIds(lotVarietyIds);
+    createOperationRef.current??=createOperationId();
     const operationId=createOperationRef.current;
-    const payload={clientOperationId:operationId,driverName:details.driverName,expectedVarietyIds,providerId,providerPhone:details.providerPhone.trim()||undefined,receivedOn:details.date,vehicleId:vehicleId||undefined};
+    const payload={clientOperationId:operationId,driverName:details.driverName,expectedVarietyIds:lotVarietyIds,providerId:resolvedProviderId,providerPhone:details.providerPhone.trim()||undefined,receivedOn:details.date,vehicleId:vehicleId||undefined};
     let saved=false;
     try{
       await enqueue({body:payload,id:operationId,method:'POST',path:'/receptions',type:'reception.create',receptionContext:{providerName:details.providerName,vehiclePlate:details.vehiclePlate,varieties:expectedVarieties,qualities,origins}});
@@ -309,16 +334,16 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
     finally{capturing.current=false;setBusy(false)}
   }
 
-  async function saveSack(target?:Reception){
+  async function saveSack(target?:Reception,run?:{gross:string;tare:string;sacks:ReceptionSack[]}):Promise<{reception:Reception;sacks:ReceptionSack[]}|null>{
     const reception=target??currentReception;
     const sackVarietyId=captureVarietyId;
-    if(!reception||!sackVarietyId||capturing.current)return;
+    if(!reception||!sackVarietyId||capturing.current)return null;
     setError(null);
-    const weights=validateSackWeights(gross,tare);
-    if(!weights.ok){setError(weights.message);return;}
+    const weights=validateSackWeights(run?.gross??gross,run?.tare??tare);
+    if(!weights.ok){setError(weights.message);return null;}
     let characteristics:CommercialSnapshot;
     try{characteristics=captureCommercialSnapshot({qualityId,originId},qualities,origins,sacks.find(sack=>sack.id===editingSackId));}
-    catch(cause){setError(cause instanceof Error?cause.message:'Revisa calidad y procedencia.');return;}
+    catch(cause){setError(cause instanceof Error?cause.message:'Revisa calidad y procedencia.');return null;}
     capturing.current=true;setBusy(true);sackOperationRef.current??=createOperationId();
     const operationId=sackOperationRef.current;
     const input={clientOperationId:operationId,expectedReceptionVersion:reception.version,grossWeightKg:weights.value.grossWeightKg,tareKg:weights.value.tareKg,varietyId:sackVarietyId,qualityId,originId};
@@ -329,16 +354,19 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
     try{
       await enqueue({body:input,id:operationId,method:editingSackId?'PATCH':'POST',path,type:editingSackId?'reception.sack-correct':'reception.sack-add',sackCharacteristics:characteristics});
       saved=true;sackOperationRef.current=null;setCaptureBaseline({qualityId,originId});
-      if(pendingReceptionWrites.current||reception.id.startsWith('local:')){applyLocalSack(operationId,reception,input,editingSackId,characteristics);return;}
+      if(pendingReceptionWrites.current||reception.id.startsWith('local:'))return applyLocalSack(operationId,reception,input,editingSackId,characteristics,run?.sacks??sacks);
       const outcome=await sendQueued(operationId);
-      if(outcome.status==='pending'){pendingReceptionWrites.current=true;applyLocalSack(operationId,reception,input,editingSackId,characteristics);return;}
-      if(outcome.status!=='confirmed'){router.replace('/sync-queue' as Href);return;}
+      if(outcome.status==='pending'){pendingReceptionWrites.current=true;return applyLocalSack(operationId,reception,input,editingSackId,characteristics,run?.sacks??sacks);}
+      if(outcome.status!=='confirmed'){router.replace('/sync-queue' as Href);return null;}
       const [freshReception,freshSacks]=await Promise.all([getReception(token,reception.id),getSacks(token,reception.id)]);
-      setReception(freshReception);setSacks(freshSacks);setGross('');setTare(sheet?lotTare.current:'0');setEditingSackId(null);
-    }catch(cause){if(saved){router.replace('/sync-queue' as Href);return;}await handleError(cause)}
+      // A weight typed while this sack was being saved stays in the cell.
+      const savedGross=run?.gross??gross;
+      setReception(freshReception);setSacks(freshSacks);if(!run)setGross((value)=>value===savedGross?'':value);setTare(sheet?lotTare.current:'0');setEditingSackId(null);
+      return {reception:freshReception,sacks:freshSacks};
+    }catch(cause){if(saved){router.replace('/sync-queue' as Href);return null;}await handleError(cause);return null}
     finally{capturing.current=false;setBusy(false)}
   }
-  function applyLocalSack(operationId:string,currentReception:Reception,input:CommercialInput&{grossWeightKg:string;tareKg?:string;varietyId:string},correctedId:string|null,characteristics:CommercialSnapshot){const original=sacks.find(x=>x.id===correctedId);const local={...characteristics,id:`local:${operationId}`,sequence:original?.sequence??Math.max(0,...sacks.map(sack=>sack.sequence))+1,varietyId:input.varietyId,grossWeightKg:Number(input.grossWeightKg).toFixed(3),tareKg:Number(input.tareKg??0).toFixed(3),netWeightKg:(Number(input.grossWeightKg)-Number(input.tareKg??0)).toFixed(3)};setSacks(current=>correctedId?current.map(x=>x.id===correctedId?local:x):[...current,local]);setReception({...currentReception,state:'weighing',version:currentReception.version+1});setGross('');setTare(sheet?lotTare.current:'0');setEditingSackId(null)}
+  function applyLocalSack(operationId:string,currentReception:Reception,input:CommercialInput&{grossWeightKg:string;tareKg?:string;varietyId:string},correctedId:string|null,characteristics:CommercialSnapshot,sacks:ReceptionSack[]){const original=sacks.find(x=>x.id===correctedId);const local={...characteristics,id:`local:${operationId}`,sequence:original?.sequence??Math.max(0,...sacks.map(sack=>sack.sequence))+1,varietyId:input.varietyId,grossWeightKg:Number(input.grossWeightKg).toFixed(3),tareKg:Number(input.tareKg??0).toFixed(3),netWeightKg:(Number(input.grossWeightKg)-Number(input.tareKg??0)).toFixed(3)};setSacks(current=>correctedId?current.map(x=>x.id===correctedId?local:x):[...current,local]);const nextReception:Reception={...currentReception,state:'weighing',version:currentReception.version+1};setReception(nextReception);setGross((value)=>value===input.grossWeightKg||value===String(Number(input.grossWeightKg))?'':value);setTare(sheet?lotTare.current:'0');setEditingSackId(null);return {reception:nextReception,sacks:correctedId?sacks.map(x=>x.id===correctedId?local as ReceptionSack:x):[...sacks,local as ReceptionSack]};}
 
   async function confirmClose():Promise<Reception|null>{
     if(!reception||capturing.current)return null;
@@ -364,15 +392,15 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
     setError(null);
     const preview = settlementPreview;
     if (preview.kind !== 'ready') { setError(preview.message); return; }
-    if (settlementDraft.paymentMode === 'credit') {
-      const scheduleError = validateCreditSchedule(settlementDraft.installments, preview.liquidCents);
+    if (effectiveDraft.paymentMode === 'credit') {
+      const scheduleError = validateCreditSchedule(effectiveDraft.installments, preview.liquidCents);
       if (scheduleError) { setError(scheduleError); return; }
     }
-    const unitPrice = Boolean(purchaseLots?.length && purchaseLots.every((lot) => (moneyInputToCents(settlementDraft.lots[lot.key]?.unitPrice ?? '') ?? 0) > 0));
-    const freightRate = settlementDraft.freightBasis === 'none' ? 0 : moneyInputToCents(settlementDraft.freightRate);
-    const advances = moneyInputToCents(settlementDraft.advances);
-    const discounts = moneyInputToCents(settlementDraft.discounts);
-    const installmentsValid = settlementDraft.paymentMode === 'cash' || (settlementDraft.installments.length > 0 && settlementDraft.installments.every((item) => /^\d{4}-\d{2}-\d{2}$/.test(item.dueOn) && (moneyInputToCents(item.amount) ?? 0) > 0));
+    const unitPrice = Boolean(purchaseLots?.length && purchaseLots.every((lot) => (moneyInputToCents(effectiveDraft.lots[lot.key]?.unitPrice ?? '') ?? 0) > 0));
+    const freightRate = effectiveDraft.freightBasis === 'none' ? 0 : moneyInputToCents(effectiveDraft.freightRate);
+    const advances = moneyInputToCents(effectiveDraft.advances);
+    const discounts = moneyInputToCents(effectiveDraft.discounts);
+    const installmentsValid = effectiveDraft.paymentMode === 'cash' || (effectiveDraft.installments.length > 0 && effectiveDraft.installments.every((item) => /^\d{4}-\d{2}-\d{2}$/.test(item.dueOn) && (moneyInputToCents(item.amount) ?? 0) > 0));
     if (!unitPrice || freightRate === null || advances === null || discounts === null || !installmentsValid) {
       setError('Revisa los importes y, para crédito, registra cuotas con fecha e importe válidos.'); return;
     }
@@ -386,11 +414,11 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
     settlementOperationRef.current??=createOperationId();
     const operationId=settlementOperationRef.current;
     const payload={
-      advancesCents:moneyInputToCents(settlementDraft.advances)!,clientOperationId:operationId,
-      discountsCents:moneyInputToCents(settlementDraft.discounts)!,expectedReceptionVersion:reception.version,
-      ...(settlementDraft.freightBasis==='none'?{}:{freightBasis:settlementDraft.freightBasis,freightRateCents:moneyInputToCents(settlementDraft.freightRate)!,freightChargedTo:settlementDraft.freightChargedTo}),
-      installments:settlementDraft.paymentMode==='cash'?[]:settlementDraft.installments.map(item=>({amountCents:moneyInputToCents(item.amount)!,dueOn:item.dueOn})),
-      paymentMode:settlementDraft.paymentMode,lots:settlementLotsPayload(purchaseLots,settlementDraft.lots)
+      advancesCents:moneyInputToCents(effectiveDraft.advances)!,clientOperationId:operationId,
+      discountsCents:moneyInputToCents(effectiveDraft.discounts)!,expectedReceptionVersion:reception.version,
+      ...(effectiveDraft.freightBasis==='none'?{}:{freightBasis:effectiveDraft.freightBasis,freightRateCents:moneyInputToCents(effectiveDraft.freightRate)!,freightChargedTo:effectiveDraft.freightChargedTo}),
+      installments:effectiveDraft.paymentMode==='cash'?[]:effectiveDraft.installments.map(item=>({amountCents:moneyInputToCents(item.amount)!,dueOn:item.dueOn})),
+      paymentMode:effectiveDraft.paymentMode,lots:settlementLotsPayload(purchaseLots,effectiveDraft.lots)
     };
     let saved=false;
     try{
@@ -417,8 +445,15 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
   // Spec 011 (RQ-ST13): handlers of the single screen. The first sack creates
   // the reception with the data typed above; «Guardar compra» closes the
   // weighing and settles in that order, through the same queued operations.
+  // ✓ pressed while the previous sack is still being saved: saved right after.
+  const queuedSave=useRef(false);
+  useEffect(()=>{
+    if(busy||!queuedSave.current)return;
+    queuedSave.current=false;
+    if(gross.trim())void saveSheetSack();
+  });
   async function saveSheetSack(){
-    if(busy||capturing.current)return;
+    if(busy||capturing.current){queuedSave.current=true;return;}
     if(reception){await saveSack();return;}
     const weights=validateSackWeights(gross,tare);
     if(!weights.ok){setError(weights.message);return;}
@@ -434,6 +469,105 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
     if(reception.state==='weighed'){await confirmSettlement();return;}
     const closed=await confirmClose();
     if(closed)await confirmSettlement(closed);
+  }
+  // «Añadir lote / variedad» of the sheet (CL-ST27): the same window as the
+  // sale. The variety joins the purchase; quality and origin apply to its
+  // next sacks and the price is kept for the settlement.
+  function addSheetLot(lot:NewLot){
+    if(reception||busy)return;
+    const next=lotVarietyIds.includes(lot.varietyId)?lotVarietyIds:[...lotVarietyIds,lot.varietyId];
+    setExpectedVarietyIds(next);setDetails((current)=>({...current,expectedVarieties:varieties.filter((item)=>next.includes(item.id)).map((item)=>item.name).join(', ')}));
+    setSackVarietyId(lot.varietyId);setQualityId(lot.qualityId);setOriginId(lot.originId);setLotTraits((value)=>({...value,[lot.varietyId]:{qualityId:lot.qualityId,originId:lot.originId}}));
+    if(lot.unitPrice){const key=lotKey(lot.varietyId,lot.qualityId);setSettlementDraft((current)=>({...current,lots:{...current.lots,[key]:{...(current.lots[key]??emptyLotDraft),unitPrice:lot.unitPrice}}}));}
+    setDialog(null);
+  }
+  const canWriteChoices=session?.user.role==='wholesaler'&&!isOfflineSession;
+  async function createChoice(kind:ChoiceKind,name:string):Promise<LotChoice>{
+    const same=(value:string)=>value.trim().toLocaleLowerCase('es')===name.trim().toLocaleLowerCase('es');
+    if(kind==='variety'){
+      const known=varieties.find((item)=>same(item.name));
+      if(known)return {id:known.id,label:known.name};
+      const created=await createCatalogItem<PotatoVariety>(token,'varieties',{name});
+      setVarieties((all)=>[...all,created]);
+      return {id:created.id,label:created.name};
+    }
+    const list=kind==='quality'?qualities:origins;
+    const known=list.find((item)=>item.isActive&&same(item.name));
+    if(known)return {id:known.id,label:known.name};
+    const created=await createCatalogItem<CommercialCharacteristic>(token,kind==='quality'?'qualities':'origins',{name});
+    (kind==='quality'?setQualities:setOrigins)((all)=>[...all,created]);
+    return {id:created.id,label:created.name};
+  }
+  // ✎ of the lot (CL-ST28): variety (before the first sack), quality, origin
+  // and price per kilogram of the active lot.
+  function editSheetLot(lot:NewLot){
+    const current=captureVarietyId;
+    if(!reception&&lot.varietyId!==current){
+      if(lotVarietyIds.includes(lot.varietyId)){setError('Esa variedad ya tiene su lote.');return;}
+      const next=lotVarietyIds.map((id)=>id===current?lot.varietyId:id);
+      setExpectedVarietyIds(next);setDetails((value)=>({...value,expectedVarieties:varieties.filter((item)=>next.includes(item.id)).map((item)=>item.name).join(', ')}));
+    }
+    const varietyId=reception?current:lot.varietyId;
+    setSackVarietyId(varietyId);setQualityId(lot.qualityId);setOriginId(lot.originId);
+    setLotTraits((value)=>{const next={...value,[varietyId]:{qualityId:lot.qualityId,originId:lot.originId}};if(varietyId!==current)delete next[current];return next;});
+    const key=lotKey(varietyId,lot.qualityId);
+    setSettlementDraft((value)=>({...value,lots:{...value.lots,[key]:{...(value.lots[key]??emptyLotDraft),unitPrice:lot.unitPrice}}}));
+    setError(null);setDialog(null);
+  }
+  // Provider typed in its box (CL-ST28): matches of the catalog under the name.
+  function typeProvider(name:string){
+    const chosen=providers.find((item)=>item.id===providerId);
+    if(chosen&&chosen.name!==name)setProviderId('');
+    setDetails((value)=>({...value,providerName:name}));
+  }
+  function pickProvider(id:string){
+    const selected=providers.find((item)=>item.id===id);if(!selected)return;
+    setProviderId(selected.id);setDetails((value)=>({...value,providerName:selected.name,providerPhone:selected.phone??''}));
+  }
+  const providerQuery=details.providerName.trim().toLocaleLowerCase('es');
+  const providerSuggestions=!reception&&providerQuery&&!providerId?providers.filter((item)=>item.name.toLocaleLowerCase('es').includes(providerQuery)).slice(0,6).map((item)=>({id:item.id,label:item.name,supportingText:item.phone??undefined})):[];
+  // × of a sack (CL-ST28): the sack is voided with its reason, not deleted.
+  const [voidSackId,setVoidSackId]=useState<string|null>(null);
+  // Quality and origin of each lot, kept when moving between lots (CL-ST28).
+  const [lotTraits,setLotTraits]=useState<Record<string,CommercialInput>>({});
+  function selectSheetVariety(id:string){
+    if(editingSackId)return;
+    setSackVarietyId(id);
+    const traits=lotTraits[id];
+    setQualityId(traits?.qualityId??null);setOriginId(traits?.originId??null);
+  }
+  // The server lists active sacks only but keeps counting the voided ones.
+  const [voidedSequence,setVoidedSequence]=useState(0);
+  const canVoidSacks=Boolean(reception&&reception.state==='weighing'&&!reception.id.startsWith('local:')&&!isOfflineSession);
+  async function confirmVoidSack(){
+    const sack=sacks.find((item)=>item.id===voidSackId);
+    setVoidSackId(null);
+    if(!sack||!reception||capturing.current)return;
+    if(pendingReceptionWrites.current||sack.id.startsWith('local:')){setError('Hay sacos pendientes de sincronizar: anula el saco cuando se confirmen.');return;}
+    capturing.current=true;setBusy(true);setError(null);
+    const operationId=createOperationId();
+    let saved=false;
+    try{
+      await enqueue({body:{clientOperationId:operationId,expectedReceptionVersion:reception.version,reason:'Saco retirado al pesar la compra'},id:operationId,method:'POST',path:`/receptions/${reception.id}/sacks/${sack.id}/void`,type:'reception.sack-void'});
+      saved=true;
+      const outcome=await sendQueued(operationId);
+      if(outcome.status!=='confirmed'){router.replace('/sync-queue' as Href);return;}
+      const [freshReception,freshSacks]=await Promise.all([getReception(token,reception.id),getSacks(token,reception.id)]);
+      setReception(freshReception);setSacks(freshSacks);setVoidedSequence((value)=>Math.max(value,sack.sequence));
+    }catch(cause){if(saved){router.replace('/sync-queue' as Href);return;}await handleError(cause);}
+    finally{capturing.current=false;setBusy(false);}
+  }
+  // «Carga rápida»: ten sacks of 50 kg, one confirmed operation after another.
+  async function quickLoad(){
+    if(busy||capturing.current||editingSackId)return;
+    setError(null);
+    let target=reception??await submitDetails();
+    let known=sacks;
+    for(let index=0;index<10&&target;index+=1){
+      const result=await saveSack(target,{gross:'50',tare:lotTare.current,sacks:known});
+      if(!result)break;
+      target=result.reception;known=result.sacks;
+    }
   }
   function clearSheet(){
     if(reception||busy)return;
@@ -473,16 +607,24 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
     return <>
       {referenceEditor}
       <PurchaseSheet
+        noticeTitle={started && recoveryNotice ? 'Pendiente de confirmación central' : 'Aviso'}
         notice={[started ? recoveryNotice : initialDraft.recovered ? 'Se conservaron tus datos durante esta sesión. La compra se registra al añadir el primer saco.' : undefined, catalogNotice].filter(Boolean).join(' ') || undefined}
         errorMessage={error ?? undefined} busy={busy} blocked={Boolean(detailsExitAction || stageExitAction || referenceKind)}
         details={started ? { ...details, providerName: displayContext.providerName, providerPhone: displayContext.providerPhone, date: displayContext.receivedOn } : details} detailsLocked={started}
         onChangeDetail={(field, value) => setDetails((current) => ({ ...current, [field]: value }))}
         onSelectProvider={() => setDialog('provider')} onSelectVehicle={() => setDialog('vehicle')}
-        referenceActions={<>{referenceFeedback}<OperationReferenceActions compact kinds={['providers','varieties']} onManage={referenceManage} disabled={busy||isOfflineSession||Boolean(referenceKind)||referenceReloadBusy}/></>}
-        varieties={expectedVarieties} activeVarietyId={captureVarietyId} onSelectVariety={setSackVarietyId}
-        onAddVariety={started ? undefined : () => setDialog('varieties')}
+        onProviderNameChange={typeProvider} providerSuggestions={providerSuggestions} onPickProvider={pickProvider}
+        providerNotice={!reception && details.providerName.trim() && !providerId ? (session?.user.role === 'wholesaler' ? 'Proveedor nuevo: se registrará al añadir el primer saco.' : 'Elige un proveedor de la lista: solo el Mayorista registra uno nuevo.') : undefined}
+        onEditLot={() => setDialog('lot-edit')} nextSequence={sacks.reduce((max, sack) => Math.max(max, sack.sequence), voidedSequence) + 1}
+        onVoidSack={canVoidSacks ? (id) => setVoidSackId(id) : undefined}
+        // CL-ST28: as in the sale, no «Editar proveedores / variedades» links;
+        // a new name is typed in its box.
+        referenceActions={referenceFeedback}
+        varieties={expectedVarieties} activeVarietyId={captureVarietyId} onSelectVariety={selectSheetVariety}
+        onAddVariety={started ? undefined : () => setDialog('lot')}
+        onQuickLoad={() => void quickLoad()}
         addVarietyLockedReason={started ? 'Las variedades se eligen antes del primer saco.' : undefined}
-        onRemoveVariety={started ? undefined : (id) => { const next = expectedVarietyIds.filter((item) => item !== id); setExpectedVarietyIds(next); setDetails((current) => ({ ...current, expectedVarieties: varieties.filter((item) => next.includes(item.id)).map((item) => item.name).join(', ') })); }}
+        onRemoveVariety={started ? undefined : (id) => { const next = lotVarietyIds.filter((item) => item !== id); setExpectedVarietyIds(next); setDetails((current) => ({ ...current, expectedVarieties: varieties.filter((item) => next.includes(item.id)).map((item) => item.name).join(', ') })); }}
         qualityName={qualities.find((item) => item.id === qualityId)?.name ?? null}
         sacks={activeSacks.map((sack) => ({ id: sack.id, sequence: sack.sequence, varietyId: sack.varietyId, netDisplay: kilogramsDraft(sack.netWeightKg), grossDisplay: kilogramsDraft(sack.grossWeightKg), detail: `Bruto ${formatKilograms(sack.grossWeightKg)}, tara ${formatKilograms(sack.tareKg)}. ${commercialDescription(sack)}` }))}
         weighingLocked={reception?.state === 'weighed'}
@@ -493,11 +635,13 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
         lots={purchaseLots ?? []} values={settlementDraft} preview={settlementPreview}
         onChange={(field, value) => setSettlementDraft((current) => ({ ...current, [field]: value }))}
         onChangeLot={(key, field, value) => setSettlementDraft((current) => ({ ...current, lots: { ...current.lots, [key]: { ...(current.lots[key] ?? emptyLotDraft), [field]: value } } }))}
-        onAddInstallment={() => setSettlementDraft((current) => ({ ...current, installments: [...current.installments, { amount: '', dueOn: '', id: createOperationId() }] }))}
+        onAddInstallment={() => setSettlementDraft((current) => ({ ...current, installments: [...current.installments, { amount: settlementPreview.kind === 'ready' ? remainingInstallmentAmount(settlementPreview.liquidCents, current.installments) : '', dueOn: '', id: createOperationId() }] }))}
         onChangeInstallment={(id, field, value) => setSettlementDraft((current) => ({ ...current, installments: current.installments.map((item) => item.id === id ? { ...item, [field]: value } : item) }))}
         onRemoveInstallment={(id) => setSettlementDraft((current) => ({ ...current, installments: current.installments.filter((item) => item.id !== id) }))}
         onClear={started ? undefined : clearSheet} onSave={requestSheetSave} onBack={leave} onGoHome={leave}
       />
+      <LotDialog askPlanned={false} initial={dialog === 'lot-edit' ? { varietyId: captureVarietyId, qualityId, originId, unitPrice: settlementDraft.lots[lotKey(captureVarietyId, qualityId)]?.unitPrice ?? '' } : undefined} key={dialog === 'lot' || dialog === 'lot-edit' ? `${dialog}-open` : 'lot-closed'} lockVariety={dialog === 'lot-edit' && started} onCancel={() => setDialog(null)} onCreate={dialog === 'lot-edit' ? editSheetLot : addSheetLot} onCreateChoice={canWriteChoices ? createChoice : undefined} origins={origins.filter((item) => item.isActive).map((item) => ({ id: item.id, label: item.name }))} qualities={qualities.filter((item) => item.isActive).map((item) => ({ id: item.id, label: item.name }))} varieties={varieties.map((item) => ({ id: item.id, label: item.name }))} visible={dialog === 'lot' || dialog === 'lot-edit'} />
+      <ConfirmationDialog busy={busy} confirmLabel="Anular saco" message={`El saco ${sacks.find((item) => item.id === voidSackId)?.sequence ?? ''} se anula con el motivo «Saco retirado al pesar la compra» y queda en el historial de la recepción. Los demás sacos no cambian.`} onCancel={() => setVoidSackId(null)} onConfirm={() => void confirmVoidSack()} title="¿Anular el saco?" visible={voidSackId !== null} />
       <ConfirmationDialog busy={busy} confirmLabel="Salir sin guardar la recepción" title="¿Salir de los datos de compra?" message="Los datos en edición todavía no se han guardado como recepción. Si sales, tendrás que ingresarlos nuevamente." visible={Boolean(detailsExitAction)} onCancel={() => setDetailsExitAction(null)} onConfirm={confirmDetailsExit} />
       <ConfirmationDialog busy={busy} confirmLabel="Salir sin guardar estos datos" title="¿Salir de la compra?" message="El peso, los precios, las deducciones y las cuotas en edición todavía no se han guardado. Los sacos ya registrados se conservan en la recepción." visible={stageExitAction !== null} onCancel={() => setStageExitAction(null)} onConfirm={confirmStageExit} />
       <ConfirmationDialog busy={busy} confirmLabel="Guardar compra" message={`${reception?.state === 'weighed' ? '' : 'Se cerrará el pesaje: después, cualquier corrección requiere autorización del Mayorista. '}${settlementConfirmationMessage}`} onCancel={() => setConfirmation(null)} onConfirm={() => void confirmSheetSave()} title="¿Guardar la compra?" visible={confirmation === 'settle'} />

@@ -11,6 +11,7 @@ import { validateSaleLine, withSlots, type Buyer, type Sale, type SaleLineDraft 
 import { SaleSheet } from '@/features/sales/screens/sale-sheet';
 import { LotDialog, type ChoiceKind, type LotChoice, type NewLot } from '@/features/sales/components/lot-dialog';
 import { formatLocalDateInput } from '@/domain/shared/date';
+import { remainingInstallmentAmount } from '@/domain/shared/installments';
 import { useSession } from '@/features/auth/session/session-provider';
 import { useSyncQueue } from '@/features/sync/sync-queue-provider';
 import type { InstallmentDraft } from '@/features/reception/screens/settlement-screen';
@@ -389,7 +390,7 @@ export function SaleFlowScreen() {
         onChangeLine={(id, field, value) => updateLine(id, (line) => ({ ...line, [field]: value }))}
         preview={preview} freightBasis={sheetFreightBasis} freightRate={freightRate} freightIncluded={freightIncluded} discounts={discounts} paymentMode={paymentMode} installments={installments}
         onChange={(field, value) => { if (field === 'freightBasis') setFreightBasis(value as typeof freightBasis); else if (field === 'freightRate') setFreightRate(value); else if (field === 'freightIncluded') setFreightIncluded(value === 'true'); else if (field === 'discounts') setDiscounts(value); else setPaymentMode(value as typeof paymentMode); }}
-        onAddInstallment={() => setInstallments((all) => [...all, { amount: '', dueOn: '', id: createOperationId() }])}
+        onAddInstallment={() => setInstallments((all) => [...all, { amount: preview.kind === 'ready' ? remainingInstallmentAmount(preview.totalCents, all) : '', dueOn: '', id: createOperationId() }])}
         onChangeInstallment={(id, field, value) => setInstallments((all) => all.map((item) => (item.id === id ? { ...item, [field]: value } : item)))}
         onRemoveInstallment={(id) => setInstallments((all) => all.filter((item) => item.id !== id))}
         onClear={clearSale} onSave={requestConfirmation} onBack={() => requestExit()} onGoHome={() => requestExit('home')}
