@@ -327,3 +327,18 @@ it('does not expose a pending report from the previous session',async()=>{
   expect(control(root,'Generar').props.disabled).toBe(false);
   await act(async()=>root.unmount());
 });
+
+it('does not mention returns in the sales summary even when the server reports them (CL-FM14)', async () => {
+  jest.mocked(operationOverview).mockImplementation(async (_token, operation, from, to) => ({
+    operation, period: { from, to }, operationCount: '2', totalAmountCents: '12345', sacks: '4', weightKg: '31.000', currentBalanceCents: '6000', openAccountCount: '1', returnCount: '3', returnAmountCents: '4500', generatedAt: '2026-10-17T23:00:00Z', balanceScope: 'current-for-period-operations', returnsScope: 'confirmed-in-period',
+  }));
+  const root = await open();
+  try {
+    await act(async () => { control(root, 'Venta').props.onPress(); });
+    await act(async () => { control(root, 'Generar').props.onPress(); });
+    expect(control(root, 'Total de ventas').props.value).toBe('S/ 123.45');
+    const texts = root.root.findAll(node => typeof node.type === 'string' || typeof node.props.children === 'string')
+      .map(node => [node.props.children].flat().join(''));
+    expect(texts.some(text => /devoluci/i.test(text))).toBe(false);
+  } finally { await act(async () => { root.unmount(); }); }
+});

@@ -21,7 +21,6 @@ export function ReportIndicators({ overview: o }: { overview: OperationOverview 
       <MetricTile {...tile} label="Saldo pendiente del período" value={formatMoney(o.currentBalanceCents)} description={`${o.openAccountCount} cuentas abiertas de estas operaciones`} />
     </View>
     <Text style={styles.detail}>El saldo es actual, no histórico al cierre del período. Cantidades originales de las operaciones.</Text>
-    {!purchase ? <Text style={styles.detail}>Devoluciones confirmadas en el período: {o.returnCount} · {formatMoney(o.returnAmountCents)}. Separadas del total; pueden corresponder a ventas de otros períodos.</Text> : null}
   </View>;
 }
 

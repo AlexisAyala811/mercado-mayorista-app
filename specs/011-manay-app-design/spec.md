@@ -168,3 +168,43 @@ Resueltas por el usuario el 5 de noviembre de 2026.
 ## Artefactos SDD relacionados
 
 [Plan](plan.md), [tareas](tasks.md) y [checklist de requisitos](checklists/requirements.md). Siguiente fase: aprobación del plan.
+
+## Convergencia con Stitch — 7 de noviembre de 2026
+
+**Estado:** especificada el 7 de noviembre de 2026; plan aprobado el mismo día («Sí, apruebo»); en implementación. **Origen:** [comparación con Stitch](../../docs/sdd/comparacion-stitch-manay-2026-11-07.md) (brechas B1–B8 y resto R1) y [aclaraciones CL-ST01–CL-ST10](../../docs/sdd/aclaraciones-convergencia-stitch-2026-11-07.md).
+
+### Objetivo
+
+Que cada pantalla se lea como su maqueta de Stitch en lo que las reglas aprobadas permiten: la misma cabecera y la misma barra de navegación en toda la app, un menú que diga cómo está el negocio, listas que muestren primero lo que el Mayorista busca (quién debe, cuánto y de qué) y consultas que abran con números y barras. Las diferencias aprobadas (CL-FM01–20) y las aceptadas el 7 de noviembre (CL-ST03) se mantienen.
+
+### Requisitos
+
+| ID | Requisito |
+| --- | --- |
+| RQ-ST01 (B1) | Cada tarjeta del menú tiene número de orden, ícono, título, descripción y, cuando la API lo da, un dato vivo (CL-ST08). Sin conexión el dato se oculta; la tarjeta sigue abriendo su pantalla |
+| RQ-ST02 (B2) | Todas las pantallas tras el acceso tienen una barra inferior fija con «Atrás» y «Menú principal»; compra y venta agregan «Siguiente» para avanzar de paso (CL-ST07). Se retiran los botones «Volver» y «Menú» sueltos |
+| RQ-ST03 (B3) | Todas las pantallas tras el acceso usan la misma cabecera: logo, antetítulo, título y usuario |
+| RQ-ST04 (B4) | Al confirmar una compra o una venta, la pantalla muestra una tarjeta con el resumen (variedades, sacos, kilos, total) y las acciones «Compartir comprobante» (PDF por WhatsApp o correo con la hoja de compartir) y «Nueva compra» o «Nueva venta» |
+| RQ-ST05 (B5) | Ver compras y Ver ventas abren directamente la lista, con buscador y fecha arriba, filtros Todos / Pagadas / Con deuda / Anuladas con su conteo, tres totales del filtro (total, pagado, saldo) y tarjetas con variedades, sacos, kilos, total, estado de pago y saldo. Una compra o venta con deuda ofrece «Abonar» o «Cobrar», que abre su cuenta |
+| RQ-ST06 (B6) | Deudas y Cobranzas muestran arriba tres totales (saldo pendiente, abonado o cobrado este mes, vencido) y los filtros Pendientes / Todos / Al día; cada tarjeta trae «Abonar» o «Registrar cobro» (CL-ST09) además de «Ver detalle» |
+| RQ-ST07 (B7) | Reportes abre con cuatro indicadores del periodo (total, volumen, precio promedio por kilo, participantes), barras por día (CL-ST10) y barras por variedad, antes de los filtros de precios y las descargas |
+| RQ-ST08 (B8) | Analítica abre con la pizarra: por variedad, el precio pactado de la última semana con datos y sus barras de las últimas 8 semanas (CL-ST06); el precio sugerido solo aparece con datos suficientes (CL-FM20). Los filtros quedan debajo |
+| RQ-ST09 (R1) | Ninguna pantalla menciona devoluciones (CL-FM14) |
+
+### Criterios de aceptación
+
+- **Dado** el Mayorista en el menú con conexión, **cuando** hay cuentas por pagar abiertas, **entonces** la tarjeta Deudas muestra «Por pagar S/ X» con el saldo que da el servidor; **sin conexión**, la tarjeta no muestra importe.
+- **Dado** cualquier pantalla tras el acceso, **cuando** el usuario toca «Menú principal», **entonces** vuelve al menú; «Atrás» regresa a la pantalla anterior o al menú si no hay anterior.
+- **Dado** Ver compras con 2 compras pagadas y 2 con deuda en el filtro, **cuando** abre la pantalla, **entonces** ve «Todas 4 · Pagadas 2 · Con deuda 2», los totales del servidor y cada tarjeta con variedades, sacos, kilos y saldo; al tocar «Con deuda» la lista y los totales se filtran en el servidor.
+- **Dado** una cuenta por pagar abierta en Deudas, **cuando** el Mayorista toca «Abonar» en la tarjeta, **entonces** se abre el formulario de pago de esa cuenta con su confirmación, y el pago repetido con el mismo `clientOperationId` no duplica el efecto.
+- **Dado** un periodo con compras en tres días, **cuando** se abre Reportes, **entonces** ve tres barras con el valor escrito junto a cada una.
+- **Dado** una variedad sin 26 semanas de historia, **cuando** se abre Analítica, **entonces** la pizarra muestra su precio pactado y sus barras, y «datos insuficientes» en lugar del precio sugerido.
+- **Dado** un resumen de ventas con devoluciones en el servidor, **cuando** se muestra en Reportes, **entonces** no aparece ninguna mención a devoluciones.
+
+### Calidad
+
+Las de la spec 011: 1280 × 800 y 2560 × 1600, 360 dp, texto al 200 %, contraste AA y AAA en importes, y el valor de cada barra también en texto para el lector de pantalla. Las ampliaciones de la API son de solo lectura, filtran por el negocio de la sesión, usan `@Roles` y no cambian la base de datos.
+
+### Fuera de alcance
+
+Selección rápida de operador, pesaje y liquidación en una sola pantalla y botón flotante en Carros (CL-ST03); gráficos de línea o dona (CL-ST05); serie diaria en Analítica (CL-ST06); impresión directa.
