@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { SymbolView } from '@/ui/components/symbol';
+import { Keyboard, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 import { formatMoney } from '@/domain/reception/reception';
 import {
@@ -7,13 +8,15 @@ import {
   historyStateLabel,
   historyVarieties,
   historyVolume,
+  historyVolumeParts,
   type HistoryCard,
   type HistoryChip,
   type HistoryKind,
 } from '@/domain/shared/history-cards';
-import { validateHistoryFilters } from '@/domain/shared/history-filters';
 import { AppButton, EmptyState, FeedbackState, FormField, LoadingState, MetricTile } from '@/ui/components';
-import { color, radius, spacing, typography } from '@/ui/tokens';
+import { CountChips } from '@/ui/components/count-chips';
+import { color, spacing, typography } from '@/ui/tokens';
+import { DateDialog } from '@/features/sales/components/date-dialog';
 
 export type HistoryQuery = { from?: string; to?: string; search?: string };
 export type HistoryListState = { draft: { from: string; search: string; to: string }; query: HistoryQuery; chip: HistoryChip; offset: number };
@@ -29,22 +32,24 @@ type Props = {
   // Search, chip and page to restore when the list is shown again.
   initial?: HistoryListState;
   onStateChange?: (state: HistoryListState) => void;
+  // «+ Nueva compra» / «+ Nueva venta» of the Stitch toolbar.
+  onNew?: () => void;
+  // Buttons of a purchase card (CL-ST30): ticket, ✎ (detail and
+  // corrections) and 🗑 (void with its reason).
+  onTicket?: (card: HistoryCard) => void;
+  onEdit?: (card: HistoryCard) => void;
+  onVoid?: (card: HistoryCard) => void;
+  // Changes after a payment registered on this screen: reload list and totals.
+  reloadKey?: number;
 };
 
 const pageSize = 20;
 const emptyDraft = { from: '', search: '', to: '' };
 
-const tone = {
-  debt: { box: { backgroundColor: color.dangerMuted, borderColor: color.dangerAccent }, text: { color: color.danger } },
-  paid: { box: { backgroundColor: color.successMuted, borderColor: color.successAccent }, text: { color: color.success } },
-  unsettled: { box: { backgroundColor: color.warningMuted, borderColor: color.border }, text: { color: color.warning } },
-  voided: { box: { backgroundColor: color.surface, borderColor: color.border }, text: { color: color.textSecondary } },
-} as const;
-
 // Spec 011 (RQ-ST05, Stitch «Ver compras» / «Ver ventas»): the list opens at
 // once with search and dates on top, chips with their server counts, three
 // totals for the filter and one card per operation.
-export function CommercialHistoryList({ kind, loadPage, loadSummary, onOpen, onSettle, disabled = false, initial, onStateChange }: Props) {
+export function CommercialHistoryList({ kind, loadPage, loadSummary, onOpen, onSettle, disabled = false, initial, onStateChange, onNew, onTicket, onEdit, onVoid, reloadKey = 0 }: Props) {
   const [draft, setDraft] = useState(initial?.draft ?? emptyDraft);
   const [query, setQuery] = useState<HistoryQuery>(initial?.query ?? {});
   const [chip, setChip] = useState<HistoryChip>(initial?.chip ?? 'all');
@@ -98,18 +103,34 @@ export function CommercialHistoryList({ kind, loadPage, loadSummary, onOpen, onS
     };
   }, [run]);
 
-  function search(next = draft) {
-    const message = validateHistoryFilters(next);
-    if (message) {
-      setError(message);
-      return;
-    }
-    const applied = { from: next.from.trim() || undefined, search: next.search.trim() || undefined, to: next.to.trim() || undefined };
-    setQuery(applied);
-    setChip('all');
-    setOffset(0);
-    run(applied, 'all', 0, true);
+  // Purchases (CL-ST30): the search runs while typing and the date is one day
+  // picked in the calendar, as in the Stitch toolbar; no «Buscar / Limpiar».
+  const [dateOpen, setDateOpen] = useState(false);
+  const live = useRef({ chip, draft, query, run });
+  useEffect(() => { live.current = { chip, draft, query, run }; });
+  const typed = draft.search.trim();
+  useEffect(() => {
+    const current = live.current;
+    if ((current.query.search ?? '') === typed) return undefined;
+    const timer = setTimeout(() => {
+      const next = { ...current.query, search: typed || undefined };
+      setQuery(next); setOffset(0);
+      current.run(next, current.chip, 0, true);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [typed]);
+  function pickDate(value: string | null) {
+    setDateOpen(false);
+    const next = { ...query, from: value ?? undefined, to: value ?? undefined };
+    setDraft((current) => ({ ...current, from: value ?? '', to: value ?? '' }));
+    setQuery(next); setOffset(0);
+    run(next, chip, 0, true);
   }
+  useEffect(() => {
+    if (!reloadKey) return;
+    const current = live.current;
+    current.run(current.query, current.chip, 0, true);
+  }, [reloadKey]);
 
   function choose(next: HistoryChip) {
     if (next === chip) return;
@@ -128,37 +149,33 @@ export function CommercialHistoryList({ kind, loadPage, loadSummary, onOpen, onS
   const total = page?.total ?? 0;
   return (
     <View style={styles.container}>
-      <View style={styles.toolbar}>
-        <View style={styles.search}>
-          <FormField label={purchase ? 'Proveedor' : 'Comprador'} placeholder={purchase ? 'Buscar proveedor' : 'Buscar comprador'} value={draft.search} onChangeText={(value) => setDraft((current) => ({ ...current, search: value }))} onSubmitEditing={() => search()} returnKeyType="search" />
+      <View style={[styles.toolbar, styles.toolbarRow]}>
+          <View style={styles.searchRow}>
+            <FormField accessibilityLabel={purchase ? "Buscar compras por proveedor" : "Buscar ventas por comprador"} appearance="search" autoComplete="off" autoCorrect={false} hideLabel importantForAutofill="no" label={purchase ? "Buscar compras" : "Buscar ventas"} leadingIcon="search" onChangeText={(value) => setDraft((current) => ({ ...current, search: value }))} placeholder={purchase ? "Buscar proveedor…" : "Buscar comprador…"} returnKeyType="search" value={draft.search} />
+          </View>
+          <View style={styles.dateChip}>
+            <Pressable accessibilityHint="Abre el calendario" accessibilityLabel={`Fecha: ${draft.from || 'todas'}`} accessibilityRole="button" disabled={disabled} onPress={() => { Keyboard.dismiss(); setDateOpen(true); }} style={({ pressed }) => [styles.dateButton, pressed && styles.pressed]}>
+              <SymbolView fallback={null} name={{ android: 'calendar_month', ios: 'calendar', web: 'calendar_month' }} size={20} tintColor="#64748B" />
+              <Text style={styles.dateLabel}>FECHA:</Text>
+              <Text style={styles.dateValue}>{draft.from ? draft.from.split('-').reverse().join(' / ') : 'Todas'}</Text>
+            </Pressable>
+            {draft.from ? (
+              <Pressable accessibilityLabel="Quitar fecha" accessibilityRole="button" disabled={disabled} hitSlop={6} onPress={() => pickDate(null)} style={styles.dateClear}>
+                <SymbolView fallback={null} name={{ android: 'close', ios: 'xmark', web: 'close' }} size={16} tintColor="#64748B" />
+              </Pressable>
+            ) : null}
+          </View>
+          <CountChips chips={historyChips(kind, counts).map((item) => ({ ...item, tone: item.id === 'paid' ? 'success' : item.id === 'debt' ? 'danger' : 'neutral' }))} disabled={disabled || loading} onSelect={choose} selected={chip} />
+          {onNew ? <AppButton appearance="stitch-action" disabled={disabled} displayLabel={purchase ? '+ NUEVA COMPRA' : '+ NUEVA VENTA'} label={purchase ? 'Nueva compra' : 'Nueva venta'} onPress={onNew} stitchTone="success" /> : null}
+          {dateOpen ? <DateDialog onCancel={() => setDateOpen(false)} onPick={(value) => pickDate(value)} title={purchase ? 'Fecha de las compras' : 'Fecha de las ventas'} value={draft.from} visible /> : null}
         </View>
-        <View style={styles.date}><FormField label="Desde" placeholder="aaaa-mm-dd" value={draft.from} onChangeText={(value) => setDraft((current) => ({ ...current, from: value }))} /></View>
-        <View style={styles.date}><FormField label="Hasta" placeholder="aaaa-mm-dd" value={draft.to} onChangeText={(value) => setDraft((current) => ({ ...current, to: value }))} /></View>
-        <AppButton disabled={disabled || loading} label="Buscar" onPress={() => search()} />
-        <AppButton disabled={disabled || loading} label="Limpiar" tone="secondary" onPress={() => { setDraft(emptyDraft); search(emptyDraft); }} />
-      </View>
-
-      <View accessibilityRole="radiogroup" style={styles.chips}>
-        {historyChips(kind, counts).map((item) => (
-          <AppButton
-            key={item.id}
-            accessibilityLabel={item.count === null ? item.label : `${item.label}: ${item.count}`}
-            accessibilityRole="radio"
-            accessibilityState={{ checked: chip === item.id }}
-            disabled={disabled || loading}
-            label={item.count === null ? item.label : `${item.label} ${item.count}`}
-            onPress={() => choose(item.id)}
-            tone={chip === item.id ? 'primary' : 'secondary'}
-          />
-        ))}
-      </View>
 
       {summary === 'unavailable' ? <Text style={styles.note}>Totales no disponibles sin conexión.</Text> : null}
       {summary && summary !== 'unavailable' ? (
         <View style={styles.metrics}>
-          <View style={styles.metric}><MetricTile label={purchase ? 'Total compras' : 'Total ventas'} value={formatMoney(summary.totalCents)} /></View>
-          <View style={styles.metric}><MetricTile label={purchase ? 'Total pagado' : 'Total cobrado'} value={formatMoney(summary.paidCents)} /></View>
-          <View style={styles.metric}><MetricTile label={purchase ? 'Saldo pendiente' : 'Saldo por cobrar'} value={formatMoney(summary.balanceCents)} /></View>
+          <MetricTile appearance="stitch" icon={purchase ? 'scale' : 'point_of_sale'} label={`${purchase ? 'Total compras' : 'Total ventas'}${query.from ? (query.from === todayInput() ? ' hoy' : ' del día') : ''}`} value={formatMoney(summary.totalCents)} />
+          <MetricTile appearance="stitch" icon="check_circle" label={purchase ? 'Total pagado' : 'Total cobrado'} tone="success" value={formatMoney(summary.paidCents)} />
+          <MetricTile appearance="stitch" icon="pending_actions" label={purchase ? 'Saldo pendiente' : 'Saldo por cobrar'} tone="danger" value={formatMoney(summary.balanceCents)} />
         </View>
       ) : null}
 
@@ -172,95 +189,148 @@ export function CommercialHistoryList({ kind, loadPage, loadSummary, onOpen, onS
       {!loading && page && !items.length ? (
         <EmptyState title="Sin resultados" message={purchase ? 'No hay compras que coincidan con la búsqueda y el filtro.' : 'No hay ventas que coincidan con la búsqueda y el filtro.'} />
       ) : null}
-      {!loading ? items.map((card) => <HistoryRow key={card.id} card={card} disabled={disabled} kind={kind} onOpen={onOpen} onSettle={onSettle} />) : null}
+      {!loading ? items.map((card) => <HistoryRow key={card.id} card={card} disabled={disabled} kind={kind} onEdit={onEdit} onOpen={onOpen} onSettle={onSettle} onTicket={onTicket} onVoid={onVoid} />) : null}
 
       {!loading && page && total > pageSize ? (
         <View style={styles.pager}>
-          <AppButton disabled={disabled || offset === 0} label="Página anterior" tone="secondary" onPress={() => move(Math.max(0, offset - pageSize))} />
-          <AppButton disabled={disabled || offset + items.length >= total} label="Página siguiente" tone="secondary" onPress={() => move(offset + pageSize)} />
+          <AppButton appearance="stitch-action" disabled={disabled || offset === 0} label="Página anterior" tone="secondary" onPress={() => move(Math.max(0, offset - pageSize))} />
+          <AppButton appearance="stitch-action" disabled={disabled || offset + items.length >= total} label="Página siguiente" tone="secondary" onPress={() => move(offset + pageSize)} />
         </View>
       ) : null}
     </View>
   );
 }
 
-function HistoryRow({ card, disabled, kind, onOpen, onSettle }: { card: HistoryCard; disabled: boolean; kind: HistoryKind; onOpen: (card: HistoryCard) => void; onSettle: (card: HistoryCard) => void }) {
+const stateTone = {
+  debt: { tile: '#FEF2F2', tileBorder: '#FECACA', ink: '#B91C1C', pill: '#FEE2E2', pillInk: '#991B1B' },
+  paid: { tile: '#ECFDF5', tileBorder: '#A7F3D0', ink: '#047857', pill: '#D1FAE5', pillInk: '#065F46' },
+  unsettled: { tile: '#FFFBEB', tileBorder: '#FDE68A', ink: '#B45309', pill: '#FEF3C7', pillInk: '#92400E' },
+  voided: { tile: '#F8FAFC', tileBorder: '#E2E8F0', ink: '#475569', pill: '#E2E8F0', pillInk: '#334155' },
+} as const;
+
+function HistoryRow({ card, disabled, kind, onEdit, onOpen, onSettle, onTicket, onVoid }: { card: HistoryCard; disabled: boolean; kind: HistoryKind; onEdit?: (card: HistoryCard) => void; onOpen: (card: HistoryCard) => void; onSettle: (card: HistoryCard) => void; onTicket?: (card: HistoryCard) => void; onVoid?: (card: HistoryCard) => void }) {
   const state = historyStateLabel(kind, card.state);
   const purchase = kind === 'purchase';
   const debt = card.state === 'debt';
+  const palette = stateTone[card.state];
+  // With large text the blocks need more room and wrap to their own lines (T1190).
+  const grow = Math.min(Math.max(useWindowDimensions().fontScale, 1), 2);
   return (
-    <View style={[styles.row, debt && styles.rowDebt]} testID={`history-${card.id}`}>
-      <View style={styles.party}>
-        <Text numberOfLines={2} style={styles.name}>{card.party}</Text>
-        <View accessibilityLabel={`Estado: ${state}`} style={[styles.badge, tone[card.state].box]}><Text numberOfLines={1} style={[styles.badgeText, tone[card.state].text]}>{state}</Text></View>
-        <Text style={styles.meta}>{card.date}</Text>
+    <View style={[styles.row, !purchase && (debt ? styles.rowDebt : card.state === 'paid' ? styles.rowPaid : null)]} testID={`history-${card.id}`}>
+      <View style={[styles.party, { flexBasis: 240 * grow }]}>
+        <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={[styles.avatar, { backgroundColor: palette.tile, borderColor: palette.tileBorder }]}>
+          <SymbolView fallback={null} name={{ android: 'person', ios: 'person.fill', web: 'person' }} size={24} tintColor={palette.ink} />
+        </View>
+        <View style={styles.partyCopy}>
+          {/* Purchases: pill next to the name; sales: pill with a dot under it (mockups). */}
+          <View style={[styles.nameLine, !purchase && styles.nameStack]}>
+            <Text numberOfLines={2} style={styles.name}>{card.party}</Text>
+            <View accessibilityLabel={`Estado: ${state}`} style={[styles.badge, { backgroundColor: palette.pill }]}>
+              {purchase ? null : <View style={[styles.badgeDot, { backgroundColor: palette.ink }]} />}
+              <Text numberOfLines={1} style={[styles.badgeText, { color: palette.pillInk }]}>{state}</Text>
+            </View>
+          </View>
+          <Text style={styles.meta}>{`#${card.id.slice(0, 8).toUpperCase()} • ${card.date}`}</Text>
+        </View>
       </View>
-      <View style={styles.facts}>
+      <View style={[styles.facts, { flexBasis: 320 * grow }]}>
         <Fact label="Variedad" value={historyVarieties(card)} />
-        <Fact label="Volumen" value={historyVolume(card)} />
-        <Fact label={purchase ? 'Total liquidado' : 'Total'} value={card.totalCents === null ? 'Sin liquidar' : formatMoney(card.totalCents)} />
+        <Fact accessibilityValue={historyVolume(card)} label="Volumen / peso" value={historyVolumeParts(card).sacks} after={historyVolumeParts(card).weight} />
+        <Fact
+          label={purchase ? 'Total / abonado' : 'Total / cobrado'}
+          note={debt ? (card.paidCents === '0' ? { text: purchase ? '(Sin abono previo)' : '(Sin adelanto)', tone: 'danger' } : { text: `(Ab. ${formatMoney(card.paidCents)})`, tone: 'success' }) : undefined}
+          value={card.totalCents === null ? 'Sin liquidar' : formatMoney(card.totalCents)}
+        />
       </View>
       {/* Voided or not settled: no payment to show (spec 011, RQ-ST05). */}
       {debt || card.state === 'paid' ? (
-        <View style={[styles.amountBox, debt ? styles.amountDebt : styles.amountPaid]}>
-          <Text style={[styles.amountLabel, debt ? styles.debtText : styles.paidText]}>{debt ? (purchase ? 'Saldo pendiente' : 'Saldo por cobrar') : purchase ? 'Total pagado' : 'Total cobrado'}</Text>
-          <Text accessibilityLabel={`${debt ? 'Saldo' : 'Pagado'}: ${formatMoney(debt ? card.balanceCents : card.paidCents)}`} style={[styles.amount, debt ? styles.debtText : styles.paidText]}>{formatMoney(debt ? card.balanceCents : card.paidCents)}</Text>
+        <View style={[styles.amountBox, { backgroundColor: debt ? '#FEF2F2' : purchase ? '#FFFFFF' : '#ECFDF5', borderColor: debt ? '#FECACA' : purchase ? '#E2E8F0' : '#A7F3D0' }]}>
+          <Text style={[styles.amountLabel, { color: debt ? '#B91C1C' : '#64748B' }]}>{debt ? (purchase ? 'SALDO PENDIENTE' : 'SALDO POR COBRAR') : purchase ? 'TOTAL PAGADO' : 'TOTAL COBRADO'}</Text>
+          <Text accessibilityLabel={`${debt ? 'Saldo' : 'Pagado'}: ${formatMoney(debt ? card.balanceCents : card.paidCents)}`} style={[styles.amount, { color: debt ? '#B91C1C' : '#047857' }]}>{formatMoney(debt ? card.balanceCents : card.paidCents)}</Text>
         </View>
       ) : (
-        <View style={[styles.amountBox, styles.amountNone]}>
-          <Text style={styles.amountLabel}>{card.state === 'voided' ? 'Sin efecto' : 'Sin liquidar'}</Text>
+        <View style={[styles.amountBox, { backgroundColor: '#F8FAFC', borderColor: '#E2E8F0' }]}>
+          <Text style={[styles.amountLabel, { color: '#64748B' }]}>{card.state === 'voided' ? 'SIN EFECTO' : 'SIN LIQUIDAR'}</Text>
           <Text style={[styles.amount, styles.noneText]}>—</Text>
         </View>
       )}
       <View style={styles.actions}>
-        {debt && card.sourceId ? (
-          <AppButton accessibilityLabel={`${purchase ? 'Abonar' : 'Cobrar'} a ${card.party}, ${card.date}`} disabled={disabled} label={purchase ? 'Abonar' : 'Cobrar'} onPress={() => onSettle(card)} />
-        ) : null}
-        <AppButton accessibilityLabel={`Ver detalle de ${card.party}, ${card.date}, operación ${card.id}`} disabled={disabled} label="Ver detalle" tone="secondary" onPress={() => onOpen(card)} />
-      </View>
+          {debt && card.sourceId ? <AppButton accessibilityLabel={`${purchase ? 'Abonar' : 'Cobrar'} a ${card.party}, ${card.date}`} appearance="stitch-action" disabled={disabled} displayLabel={purchase ? 'ABONAR / LIQUIDAR' : 'COBRAR / LIQUIDAR'} label={purchase ? 'Abonar' : 'Cobrar'} onPress={() => onSettle(card)} stitchTone="danger" /> : null}
+          {card.sourceId && onTicket && card.state !== 'voided' ? <AppButton accessibilityLabel={`Ver ticket de ${card.party}, ${card.date}`} appearance="stitch-action" disabled={disabled} displayLabel={debt ? 'TICKET' : 'VER TICKET'} label="Ver ticket" onPress={() => onTicket(card)} stitchTone={debt ? 'neutral' : 'success'} tone="secondary" /> : null}
+          {!card.sourceId || card.state === 'voided' ? <AppButton accessibilityLabel={`Ver detalle de ${card.party}, ${card.date}, operación ${card.id}`} appearance="stitch-action" disabled={disabled} displayLabel="VER DETALLE" label="Ver detalle" onPress={() => onOpen(card)} stitchTone="success" tone="secondary" /> : null}
+          {onEdit && card.state !== 'voided' && card.sourceId ? <IconAction accessibilityLabel={`Editar ${purchase ? 'compra' : 'venta'} de ${card.party}`} disabled={disabled} icon="edit" onPress={() => onEdit(card)} /> : null}
+          {onVoid && card.state !== 'voided' ? <IconAction accessibilityLabel={`Anular ${purchase ? 'compra' : 'venta'} de ${card.party}`} danger disabled={disabled} icon="delete" onPress={() => onVoid(card)} /> : null}
+        </View>
     </View>
   );
 }
 
-function Fact({ label, value }: { label: string; value: string }) {
+// Square ✎ / 🗑 buttons of a purchase card.
+function IconAction({ accessibilityLabel, danger = false, disabled, icon, onPress }: { accessibilityLabel: string; danger?: boolean; disabled: boolean; icon: 'edit' | 'delete'; onPress: () => void }) {
   return (
-    <View style={styles.fact}>
-      <Text style={styles.factLabel}>{label}</Text>
-      <Text numberOfLines={2} style={styles.factValue}>{value}</Text>
+    <Pressable accessibilityLabel={accessibilityLabel} accessibilityRole="button" disabled={disabled} onPress={onPress} style={({ pressed }) => [styles.iconAction, pressed && styles.pressed]}>
+      <SymbolView fallback={null} name={{ android: icon, ios: icon === 'edit' ? 'pencil' : 'trash', web: icon }} size={20} tintColor={danger ? '#DC2626' : '#334155'} />
+    </Pressable>
+  );
+}
+
+function todayInput() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+function Fact({ accessibilityValue, after, label, note, value }: { accessibilityValue?: string; after?: string; label: string; note?: { text: string; tone: 'success' | 'danger' }; value: string }) {
+  return (
+    <View accessibilityLabel={`${label}: ${accessibilityValue ?? value}${note ? ` ${note.text}` : ''}`} accessible style={styles.fact}>
+      <Text style={styles.factLabel}>{label.toUpperCase()}</Text>
+      <Text numberOfLines={2} style={styles.factValue}>{value}{after ? <Text style={styles.factAfter}>{` ${after}`}</Text> : null}</Text>
+      {note ? <Text style={[styles.factNote, { color: note.tone === 'success' ? '#047857' : '#B91C1C' }]}>{note.text}</Text> : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { gap: spacing.lg },
-  toolbar: { alignItems: 'flex-end', flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
-  search: { flexBasis: 280, flexGrow: 2, flexShrink: 1 },
-  date: { flexBasis: 150, flexGrow: 1, flexShrink: 1 },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  metrics: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
-  metric: { flexBasis: 220, flexGrow: 1 },
+  container: { gap: spacing.md },
+  toolbar: { alignItems: 'flex-end', backgroundColor: color.surfaceRaised, borderColor: '#E2E8F0', borderRadius: 16, borderWidth: 1, boxShadow: '0px 1px 2px rgba(15,23,42,0.05)', flexDirection: 'row', flexWrap: 'wrap', gap: 12, padding: 16 },
+  search: { flexBasis: 260, flexGrow: 2, flexShrink: 1 },
+  date: { flexBasis: 140, flexGrow: 1, flexShrink: 1 },
+  toolbarActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chipRow: { alignItems: 'center', flexBasis: '100%', flexDirection: 'row', flexWrap: 'wrap', gap: 12, justifyContent: 'space-between' },
+  metrics: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   note: { color: color.textSecondary, ...typography.bodySmall },
-  count: { color: color.textSecondary, ...typography.bodySmall },
-  row: { alignItems: 'center', backgroundColor: color.surfaceRaised, borderColor: color.border, borderRadius: radius.lg, borderWidth: 1, flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, padding: spacing.md },
-  rowDebt: { borderColor: color.dangerAccent },
-  party: { flexBasis: 200, flexGrow: 1, flexShrink: 1, gap: spacing.xs, minWidth: 0 },
-  name: { color: color.textPrimary, fontSize: 18, fontWeight: '700', lineHeight: 24 },
-  badge: { alignSelf: 'flex-start', borderLeftWidth: 4, flexShrink: 0, borderRadius: radius.sm, paddingHorizontal: spacing.sm, paddingVertical: 2 },
-  badgeText: { ...typography.bodySmall, flexShrink: 0, fontWeight: '700' },
-  meta: { color: color.textSecondary, ...typography.bodySmall },
-  facts: { backgroundColor: color.surface, borderRadius: radius.md, flexBasis: 300, flexDirection: 'row', flexGrow: 2, flexShrink: 1, flexWrap: 'wrap', gap: spacing.md, padding: spacing.sm },
-  fact: { flexBasis: 90, flexGrow: 1, flexShrink: 1, minWidth: 0 },
-  factLabel: { color: color.textSecondary, fontSize: 12, fontWeight: '700', letterSpacing: 0.4, lineHeight: 16 },
-  factValue: { color: color.textPrimary, ...typography.bodySmall, fontWeight: '700' },
-  amountBox: { borderRadius: radius.md, borderWidth: 1, flexBasis: 150, flexGrow: 0, padding: spacing.sm },
-  amountDebt: { backgroundColor: color.dangerMuted, borderColor: color.dangerAccent },
-  amountPaid: { backgroundColor: color.successMuted, borderColor: color.successAccent },
-  amountLabel: { fontSize: 12, fontWeight: '700', lineHeight: 16 },
-  amount: { fontSize: 20, fontWeight: '800', lineHeight: 26 },
-  amountNone: { backgroundColor: color.surface, borderColor: color.border },
-  noneText: { color: color.textSecondary },
-  debtText: { color: color.danger },
-  paidText: { color: color.success },
-  actions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  count: { color: '#64748B', fontSize: 13, fontWeight: '500' },
+  row: { alignItems: 'center', backgroundColor: color.surfaceRaised, borderColor: '#E2E8F0', borderRadius: 16, borderWidth: 1, boxShadow: '0px 1px 2px rgba(15,23,42,0.05)', flexDirection: 'row', flexWrap: 'wrap', gap: 16, padding: 16 },
+  party: { alignItems: 'center', flexBasis: 240, flexDirection: 'row', flexGrow: 1, flexShrink: 1, gap: 12, minWidth: 0 },
+  avatar: { alignItems: 'center', borderRadius: 12, borderWidth: 1, height: 48, justifyContent: 'center', width: 48 },
+  partyCopy: { flexShrink: 1, gap: 4, minWidth: 0 },
+  nameLine: { alignItems: 'center', flexDirection: 'row', gap: 8, minWidth: 0 },
+  nameStack: { alignItems: 'flex-start', flexDirection: 'column', gap: 4 },
+  rowPaid: { borderColor: '#A7F3D0', borderWidth: 2 },
+  rowDebt: { borderColor: '#FCA5A5', borderWidth: 2 },
+  badgeDot: { borderRadius: 3, height: 6, width: 6 },
+  factAfter: { color: '#64748B', fontSize: 12, fontWeight: '500' },
+  factNote: { fontSize: 11, fontWeight: '700' },
+  name: { color: '#0F172A', flexShrink: 1, fontSize: 16, fontWeight: '700', lineHeight: 22, minWidth: 0 },
+  badge: { alignItems: 'center', borderRadius: 999, flexDirection: 'row', flexShrink: 0, gap: 5, paddingHorizontal: 8, paddingVertical: 2 },
+  badgeText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.4, textTransform: 'uppercase' },
+  meta: { color: '#64748B', fontSize: 12, fontWeight: '500' },
+  facts: { backgroundColor: '#F8FAFC', borderColor: '#E2E8F0', borderRadius: 12, borderWidth: 1, flexBasis: 320, flexDirection: 'row', flexGrow: 2, flexShrink: 1, flexWrap: 'wrap', gap: 12, padding: 12 },
+  fact: { flexBasis: 90, flexGrow: 1, flexShrink: 1, gap: 2, minWidth: 0 },
+  factLabel: { color: '#64748B', fontSize: 10, fontWeight: '700', letterSpacing: 0.6 },
+  factValue: { color: '#0F172A', fontSize: 14, fontWeight: '700' },
+  amountBox: { borderRadius: 12, borderWidth: 1, flexBasis: 140, flexGrow: 0, gap: 2, padding: 10 },
+  amountLabel: { fontSize: 10, fontWeight: '700', letterSpacing: 0.6 },
+  amount: { fontSize: 18, fontWeight: '800' },
+  noneText: { color: '#64748B' },
+  actions: { flexDirection: 'row', flexShrink: 0, flexWrap: 'wrap', gap: 8 },
   pager: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, justifyContent: 'center' },
+  toolbarRow: { alignItems: 'center' },
+  searchRow: { flexBasis: 240, flexGrow: 1, flexShrink: 1 },
+  dateChip: { alignItems: 'center', backgroundColor: '#F8FAFC', borderColor: '#E2E8F0', borderRadius: 12, borderWidth: 1, flexDirection: 'row', flexShrink: 0, minHeight: 46, paddingHorizontal: 12 },
+  dateButton: { alignItems: 'center', flexDirection: 'row', gap: 8, minHeight: 44 },
+  dateLabel: { color: '#64748B', fontSize: 12, fontWeight: '700' },
+  dateValue: { color: '#1F3A2F', fontSize: 14, fontWeight: '700' },
+  dateClear: { alignItems: 'center', height: 32, justifyContent: 'center', marginLeft: 4, width: 28 },
+  iconAction: { alignItems: 'center', backgroundColor: '#FFFFFF', borderColor: '#E2E8F0', borderRadius: 12, borderWidth: 1, height: 44, justifyContent: 'center', width: 44 },
+  pressed: { opacity: 0.6 },
 });

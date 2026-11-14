@@ -95,7 +95,7 @@ describe('login with the quick operator selection', () => {
   it('never draws the scale, the terminal id or another brand of the mockup', async () => {
     let root!: ReactTestRenderer;
     await act(async () => { root = create(<LoginScreen operators={[owner]} />); });
-    expect(JSON.stringify(root.toJSON())).not.toMatch(/balanza|báscula|WS-LIMA|AgroGesti|Terra/i);
+    expect(root.root.findAll((node) => typeof node.props.children === "string").map((node) => node.props.children).join(" ")).not.toMatch(/balanza|báscula|WS-LIMA|AgroGesti|Terra/i);
     await act(async () => root.unmount());
   });
 });

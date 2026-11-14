@@ -217,6 +217,16 @@ describe('Stitch convergence history (PostgreSQL)', () => {
     const paid = await settled(own, 'credit');
     const voided = await settled(own, 'cash');
     const open = await weighedReception(own);
+    // A reception voided before it was settled is «Anulado», not «Sin liquidar» (CL-ST30).
+    const voidedOpen = await weighedReception(own);
+    const voidedOpenReception = (
+      await get(own, `/receptions/${voidedOpen.id}`).expect(200)
+    ).body as { version: number };
+    await post(own, `/receptions/${voidedOpen.id}/void`, {
+      clientOperationId: randomUUID(),
+      expectedReceptionVersion: voidedOpenReception.version,
+      reason: 'Prueba sin liquidar',
+    }).expect(201);
     await settled(other, 'cash');
 
     const account = await accountOf(own, paid.settlement.id);
@@ -244,7 +254,7 @@ describe('Stitch convergence history (PostgreSQL)', () => {
         balanceCents: string;
       }[];
     };
-    expect(page.total).toBe(5);
+    expect(page.total).toBe(6);
     const byReception = new Map(
       page.items.map((item) => [item.receptionId, item]),
     );
@@ -273,6 +283,10 @@ describe('Stitch convergence history (PostgreSQL)', () => {
       paidCents: '0',
       paymentState: 'voided',
     });
+    expect(byReception.get(voidedOpen.id)).toMatchObject({
+      paymentState: 'voided',
+      settlementId: null,
+    });
     expect(byReception.get(open.id)).toMatchObject({
       paymentState: 'unsettled',
       sacks: 2,
@@ -298,7 +312,7 @@ describe('Stitch convergence history (PostgreSQL)', () => {
       .body;
     expect(summary).toEqual({
       balanceCents: '20000',
-      counts: { all: 5, debt: 1, paid: 2, unsettled: 1, voided: 1 },
+      counts: { all: 6, debt: 1, paid: 2, unsettled: 1, voided: 2 },
       paidCents: '40000',
       totalCents: '60000',
     });

@@ -4,6 +4,7 @@ import {SalesHistoryScreen} from '@/features/sales/screens/sales-history-screen'
 import {getSale, listSales} from '@/services/api/sales-api';
 import type {Sale} from '@/domain/sales/sale';
 import {shareReceipt} from '@/services/receipts/receipt-sharing';
+import {AccountPaymentDialog} from '@/features/history/account-payment-dialog';
 import {usePreventRemove} from 'expo-router/react-navigation';
 import { barButton, withChrome } from '../shared/with-chrome';
 
@@ -19,12 +20,17 @@ jest.mock('expo-router/react-navigation',()=>({usePreventRemove:jest.fn()}));
 jest.mock('@/services/api/sales-api',()=>({listSales:jest.fn(),getSale:jest.fn()}));
 jest.mock('@/services/api/history-api',()=>({salesHistorySummary:jest.fn(async()=>({balanceCents:'0',counts:{all:1,debt:0,paid:1,voided:0},paidCents:'2500',totalCents:'2500'}))}));
 jest.mock('@/services/receipts/receipt-sharing',()=>({shareReceipt:jest.fn()}));
+jest.mock('@/features/history/account-payment-dialog',()=>({AccountPaymentDialog:()=>null}));
 jest.mock('@/domain/reception/reception',()=>({...jest.requireActual('@/domain/reception/reception'),createOperationId:()=> 'stable-operation'}));
 jest.mock('@/ui/components',()=>{
   const react=jest.requireActual('react');
   const control=(props:object)=>react.createElement('test-control',props);
   return {AppButton:control,AppCard:control,AppScreen:control,ConfirmationDialog:control,EmptyState:control,FeedbackState:control,FormField:control,LoadingState:control,MetricTile:control,ScreenHeader:control};
 });
+
+// CL-ST32: a card opens its detail with ✎ (Editar venta), no longer with «Ver detalle».
+// One entry per card (a Pressable shows up as several nested nodes with the same label).
+const editButtons=(root:ReactTestRenderer)=>{const seen=new Set<unknown>();return root.root.findAll(node=>String(node.props.accessibilityLabel??'').startsWith('Editar venta de')&&typeof node.props.onPress==='function').filter(node=>{if(seen.has(node.props.onPress))return false;seen.add(node.props.onPress);return true;});};
 
 beforeEach(()=>{
   (globalThis as typeof globalThis & {IS_REACT_ACT_ENVIRONMENT:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
@@ -40,7 +46,7 @@ beforeEach(()=>{
 async function startVoid() {
   let root!:ReactTestRenderer;
   await act(async()=>{root=create(withChrome(<SalesHistoryScreen allowReturns/>))});
-  await act(async()=>{await root.root.findAll(node=>node.props.label==='Ver detalle')[0].props.onPress()});
+  await act(async()=>{await editButtons(root)[0].props.onPress()});
   await act(async()=>{root.root.findAll(node=>node.props.label==='Motivo')[0].props.onChangeText('Error de registro')});
   await act(async()=>{root.root.findAll(node=>node.props.label==='Anular venta')[0].props.onPress()});
   return root;
@@ -50,7 +56,7 @@ it('distinguishes frozen characteristics when reading two lines of the same vari
   const previous=await getSale('test-token','sale-id');
   const line={varietyId:'variety-id',lotId:null,lotVersion:null,sacks:1,weightKg:'10.000',priceBasis:'kilogram' as const,unitPriceCents:'250',subtotalCents:'2500',originId:null,originName:null};
   jest.mocked(getSale).mockResolvedValue({...previous,lines:[{...line,id:'a',qualityId:'quality-a',qualityName:'Primera registrada'},{...line,id:'b',qualityId:'quality-b',qualityName:'Otra calidad registrada'}]});
-  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<SalesHistoryScreen allowReturns/>));});await act(async()=>root.root.findAll(node=>node.props.label==='Ver detalle')[0].props.onPress());
+  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<SalesHistoryScreen allowReturns/>));});await act(async()=>editButtons(root)[0].props.onPress());
   const visible=JSON.stringify(root.toJSON());expect(visible).toContain('Primera registrada');expect(visible).toContain('Otra calidad registrada');expect(mockEnqueue).not.toHaveBeenCalled();await act(async()=>root.unmount());
 });
 
@@ -100,7 +106,7 @@ it('keeps the confirmed return reference available for its receipt',async()=>{
   mockSendQueued.mockResolvedValueOnce({id:'stable-operation',status:'confirmed',centralReference:'confirmed-return'});
   let root!:ReactTestRenderer;
   await act(async()=>{root=create(withChrome(<SalesHistoryScreen allowReturns/>))});
-  await act(async()=>{await root.root.findAll(node=>node.props.label==='Ver detalle')[0].props.onPress()});
+  await act(async()=>{await editButtons(root)[0].props.onPress()});
   await act(async()=>{
     for(const [label,value] of [['Motivo','Devolución comercial acordada'],['Sacos devueltos','1'],['Peso devuelto','10'],['Importe bruto autorizado (S/)','25']]) {
       root.root.findAll(node=>node.props.label===label)[0].props.onChangeText(value);
@@ -128,9 +134,15 @@ it('paginates the central filtered result and does not reset criteria when advan
   expect(listSales).toHaveBeenLastCalledWith('test-token',{limit:20,offset:20});
   await act(async()=>{root.unmount()});
 });
-it('rejects invalid calendar filters without querying or offering a retry of old criteria',async()=>{
-  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<SalesHistoryScreen allowReturns/>))});await act(async()=>{root.root.findAll(node=>node.props.label==='Desde')[0].props.onChangeText('2026-02-30')});
-  await act(async()=>{root.root.findAll(node=>node.props.label==='Buscar')[0].props.onPress()});expect(listSales).toHaveBeenCalledTimes(1);expect(root.root.findAll(node=>node.props.actionLabel==='Reintentar consulta')).toHaveLength(0);await act(async()=>{root.unmount()});
+// CL-ST32: the date is picked in the calendar, so an invalid date cannot be typed.
+it('filters the list by the day picked in the calendar and clears it',async()=>{
+  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<SalesHistoryScreen allowReturns/>))});
+  await act(async()=>{root.root.findAll(node=>node.props.accessibilityLabel==='Fecha: todas'&&typeof node.props.onPress==='function')[0].props.onPress()});
+  await act(async()=>{root.root.findAll(node=>node.props.title==='Fecha de las ventas'&&typeof node.props.onPick==='function')[0].props.onPick('2026-11-07')});
+  expect(listSales).toHaveBeenLastCalledWith('test-token',expect.objectContaining({from:'2026-11-07',to:'2026-11-07',offset:0}));
+  await act(async()=>{root.root.findAll(node=>node.props.accessibilityLabel==='Quitar fecha'&&typeof node.props.onPress==='function')[0].props.onPress()});
+  expect(listSales).toHaveBeenLastCalledWith('test-token',expect.objectContaining({from:undefined,to:undefined}));
+  await act(async()=>root.unmount());
 });
 it('does not send from a closed workspace after the queue finishes conserving the operation',async()=>{
   let finish!:(value:{id:string;status:string})=>void;
@@ -157,14 +169,12 @@ it('clears edited filters and ignores detail responses from the previous session
   let finish!:(value:Awaited<ReturnType<typeof getSale>>)=>void;
   const previous=await getSale('test-token','sale-id');jest.mocked(getSale).mockImplementationOnce(()=>new Promise(done=>{finish=done;}));
   let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<SalesHistoryScreen allowReturns/>))});
-  await act(async()=>root.root.findAll(node=>node.props.label==='Comprador')[0].props.onChangeText('Comprador anterior'));
-  await act(async()=>{root.root.findAll(node=>node.props.label==='Buscar')[0].props.onPress();});
-  await act(async()=>{root.root.findAll(node=>node.props.label==='Ver detalle')[0].props.onPress();});
+  await act(async()=>root.root.findAll(node=>node.props.label==='Buscar ventas')[0].props.onChangeText('Comprador anterior'));
+  await act(async()=>{editButtons(root)[0].props.onPress();});
   mockSession={accessToken:'next-token'};await act(async()=>root.update(<SalesHistoryScreen allowReturns/>));
   await act(async()=>finish(previous));
   expect(root.root.findAll(node=>node.props.title==='Detalle y devoluciones')).toHaveLength(0);
-  expect(root.root.findAll(node=>node.props.label==='Desde')[0].props.value).toBe('');
-  expect(root.root.findAll(node=>node.props.label==='Comprador')[0].props.value).toBe('');
+  expect(root.root.findAll(node=>node.props.label==='Buscar ventas')[0].props.value).toBe('');
   mockSession=null;await act(async()=>root.update(<SalesHistoryScreen allowReturns/>));expect(root.toJSON()).toBeNull();
   await act(async()=>root.unmount());
 });
@@ -184,7 +194,7 @@ it('keeps a dirty detail on cancel and discards it before opening a different sa
   expect(root.root.findAll(node=>node.props.label==='Ajuste de flete (S/)')[0].props.value).toBe('12.50');
   await act(async()=>barButton(root,'Volver al historial').props.onPress());
   await act(async()=>exit().props.onConfirm());
-  await act(async()=>root.root.findAll(node=>node.props.label==='Ver detalle'&&String(node.type)==='test-control')[1].props.onPress());
+  await act(async()=>editButtons(root)[1].props.onPress());
   expect(getSale).toHaveBeenLastCalledWith('test-token','other-sale');
   expect(root.root.findAll(node=>node.props.label==='Motivo')[0].props.value).toBe('');
   expect(root.root.findAll(node=>node.props.label==='Ajuste de flete (S/)')[0].props.value).toBe('0');
@@ -222,7 +232,7 @@ it('protects a line-only edit and stops warning when its original zero value is 
   const previous=await getSale('test-token','sale-id');
   jest.mocked(getSale).mockResolvedValue({...previous,lines:[{id:'line-id',varietyId:'variety-id',sacks:1,weightKg:'10.000',priceBasis:'kilogram',unitPriceCents:'250',subtotalCents:'2500'}]} as Awaited<ReturnType<typeof getSale>>);
   let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<SalesHistoryScreen allowReturns/>))});
-  await act(async()=>root.root.findAll(node=>node.props.label==='Ver detalle')[0].props.onPress());
+  await act(async()=>editButtons(root)[0].props.onPress());
   await act(async()=>root.root.findAll(node=>node.props.label==='Peso devuelto')[0].props.onChangeText('2.125'));
   expect(jest.mocked(usePreventRemove).mock.calls.at(-1)![0]).toBe(true);
   await act(async()=>barButton(root,'Volver al historial').props.onPress());
@@ -285,10 +295,34 @@ it.each(['success','failure'])('ignores a late %s detail refresh after changing 
 it('hides commercial returns by default and keeps the sale void for the Mayorista (CL-FM14)',async()=>{
   let root!:ReactTestRenderer;
   await act(async()=>{root=create(withChrome(<SalesHistoryScreen/>))});
-  await act(async()=>{await root.root.findAll(node=>node.props.label==='Ver detalle')[0].props.onPress()});
+  await act(async()=>{await editButtons(root)[0].props.onPress()});
   expect(root.root.findAll(node=>node.props.title==='Detalle de la venta')).not.toHaveLength(0);
   expect(root.root.findAll(node=>node.props.label==='Confirmar devolución comercial')).toHaveLength(0);
   expect(root.root.findAll(node=>node.props.label==='Ajuste de flete (S/)')).toHaveLength(0);
   expect(root.root.findAll(node=>node.props.label==='Anular venta')).not.toHaveLength(0);
   await act(async()=>root.unmount());
+});
+
+// Spec 011, CL-ST32: the buttons of a sale card in «Ver ventas».
+describe('buttons of the sale card (CL-ST32)',()=>{
+  const byLabel=(root:ReactTestRenderer,label:string)=>root.root.findAll(node=>String(node.props.accessibilityLabel??'').startsWith(label)&&typeof node.props.onPress==='function')[0];
+  it('shares the sale ticket and opens «Cobrar / Liquidar» on this screen',async()=>{
+    const {sale}=await getSale('test-token','sale-id');
+    jest.mocked(listSales).mockResolvedValue({items:[{...sale,paymentState:'debt',balanceCents:'1000',paidCents:'0'}],total:1,limit:20,offset:0} as never);
+    let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<SalesHistoryScreen allowReturns/>))});
+    await act(async()=>{byLabel(root,'Ver ticket de')!.props.onPress();await Promise.resolve();});
+    expect(shareReceipt).toHaveBeenCalledWith('sales',sale.id,'test-token',expect.any(Function));
+    await act(async()=>{byLabel(root,'Cobrar a')!.props.onPress();});
+    expect(root.root.findAllByType(AccountPaymentDialog)).toHaveLength(1);
+    expect(mockPush).not.toHaveBeenCalledWith(expect.objectContaining({pathname:'/collections'}));
+    await act(async()=>root.unmount());
+  });
+  it('opens the detail from the trash can already at the reason of the void',async()=>{
+    const {sale}=await getSale('test-token','sale-id');
+    let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<SalesHistoryScreen allowReturns/>))});
+    await act(async()=>{byLabel(root,'Anular venta de')!.props.onPress();await Promise.resolve();await Promise.resolve();});
+    expect(getSale).toHaveBeenLastCalledWith('test-token',sale.id);
+    expect(root.root.findAll(node=>node.props.label==='Motivo')).not.toHaveLength(0);
+    await act(async()=>root.unmount());
+  });
 });

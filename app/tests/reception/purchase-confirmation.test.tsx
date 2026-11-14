@@ -8,6 +8,7 @@ jest.mock('@/ui/components', () => {
   const control = (props: { children?: React.ReactNode }) => react.createElement('test-control', props, props.children);
   return { AppScreen: control, AppButton: control, AppCard: control, FeedbackState: control, MetricTile: control, ScreenHeader: control, StepProgress: control };
 });
+jest.mock('expo-symbols', () => ({ SymbolView: () => null }));
 jest.mock('@/features/auth/session/session-provider', () => ({ useSession: () => ({ session: { accessToken: 'test-token' } }) }));
 jest.mock('@/services/receipts/receipt-sharing', () => ({ shareReceipt: jest.fn(async () => 'file://receipt.pdf') }));
 import { shareReceipt } from '@/services/receipts/receipt-sharing';
@@ -23,34 +24,30 @@ const settlement: PurchaseSettlement = {
 };
 const texts = (root: ReactTestRenderer) => root.root.findAll((node) => typeof node.type === 'string' && typeof node.props.children === 'string').map((node) => node.props.children as string);
 
-it('shows each confirmed lot and the freight assumed by the wholesaler without deducting it', async () => {
-  let root!: ReactTestRenderer;
-  await act(async () => { root = create(<PurchaseConfirmationScreen settlement={settlement} providerName="Aurelio Mamani" onNew={jest.fn()} />); });
-  expect(texts(root)).toEqual(expect.arrayContaining(['Lote A · Amarilla · Calidad no informada', 'Lote B · Selecta · Canchán · Primera', 'El flete no se descontó al proveedor; queda pendiente con el transportista.']));
-  expect(root.root.findAll((node) => node.props.accessibilityLabel === 'Importe del lote B: S/ 200.00')).not.toHaveLength(0);
-  expect(root.root.findAll((node) => node.props.label === 'Flete a cargo del Mayorista')).not.toHaveLength(0);
-  await act(async () => root.unmount());
-});
+const notes = (root: ReactTestRenderer) => root.root.findAll((node) => typeof node.type === 'string' && Array.isArray(node.props.children) && node.props.children.length === 2 && typeof node.props.children[0] === 'object' && typeof node.props.children[1] === 'string').map((node) => `${[node.props.children[0].props.children].flat().join("")}${node.props.children[1]}`);
 
-it('keeps confirmations from servers without lots readable', async () => {
-  let root!: ReactTestRenderer;
-  await act(async () => { root = create(<PurchaseConfirmationScreen settlement={{ ...settlement, lots: undefined, freightChargedTo: undefined }} providerName="Aurelio Mamani" onNew={jest.fn()} />); });
-  expect(root.root.findAll((node) => node.props.title === 'Lotes')).toHaveLength(0);
-  expect(root.root.findAll((node) => node.props.label === 'Flete descontado')).not.toHaveLength(0);
-  await act(async () => root.unmount());
-});
-
-
-// Spec 011 (RQ-ST04, Stitch «Guardado exitosamente»).
-it('sums up the purchase in one card, shares its PDF receipt and starts a new purchase', async () => {
+// Spec 011 (RQ-ST04, CL-ST18, Stitch «Guardado exitosamente»).
+it('sums up the purchase in the Stitch card, shares its PDF receipt and starts a new purchase', async () => {
   const onNew = jest.fn();
   let root!: ReactTestRenderer;
   await act(async () => { root = create(<PurchaseConfirmationScreen settlement={settlement} providerName="Aurelio Mamani" onNew={onNew} />); });
-  expect(texts(root)).toEqual(expect.arrayContaining(['Compra guardada', 'Aurelio Mamani', 'Amarilla, Canchán', '3 sacos · 145 kg', 'Contado', 'Total neto a pagar', 'S/ 312.50']));
-  await act(async () => { root.root.findAll((node) => node.props.label === 'Compartir comprobante')[0]!.props.onPress(); });
+  expect(texts(root)).toEqual(expect.arrayContaining(['Guardado exitosamente', 'LIQUIDACIÓN DE COMPRA #SETTLEME', 'AURELIO MAMANI', 'Amarilla, Canchán', '3 sacos · 145 kg', '2 lotes con su precio', 'Total neto a pagar', 'S/ 312.50']));
+  await act(async () => { root.root.findAll((node) => node.props.accessibilityLabel === 'Compartir comprobante' && node.props.onPress)[0]!.props.onPress(); });
   expect(shareReceipt).toHaveBeenCalledWith('purchases', 'settlement', 'test-token', expect.any(Function));
-  await act(async () => { root.root.findAll((node) => node.props.label === 'Nueva compra')[0]!.props.onPress(); });
+  for (const label of ['Enviar WhatsApp', 'Enviar correo', 'Imprimir']) expect(root.root.findAll((node) => node.props.accessibilityLabel === label && node.props.onPress)).not.toHaveLength(0);
+  await act(async () => { root.root.findAll((node) => node.props.accessibilityLabel === 'Nueva compra' && node.props.onPress)[0]!.props.onPress(); });
   expect(onNew).toHaveBeenCalledTimes(1);
-  expect(root.root.findAll((node) => node.props.label === 'Volver al menú')).toHaveLength(0);
+  await act(async () => root.unmount());
+});
+
+it('tells freight assumed by the wholesaler apart from deducted freight, and the payment', async () => {
+  let root!: ReactTestRenderer;
+  await act(async () => { root = create(<PurchaseConfirmationScreen settlement={settlement} providerName="Aurelio Mamani" onNew={jest.fn()} />); });
+  expect(notes(root)).toEqual(['Flete a cargo del Mayorista (no se descontó): S/ 15.00', 'Adelanto: S/ 0.00', 'Descuentos: S/ 0.00', 'Pago: Contado']);
+  await act(async () => { root.update(<PurchaseConfirmationScreen settlement={{ ...settlement, lots: [settlement.lots![0]!], freightChargedTo: undefined }} providerName="Aurelio Mamani" onNew={jest.fn()} />); });
+  expect(notes(root)[0]).toBe('Flete descontado: S/ 15.00');
+  expect(texts(root)).toContain('S/ 2.50 / kg');
+  await act(async () => { root.update(<PurchaseConfirmationScreen settlement={{ ...settlement, lots: undefined }} providerName="Aurelio Mamani" onNew={jest.fn()} />); });
+  expect(texts(root)).toContain('Sin variedad');
   await act(async () => root.unmount());
 });

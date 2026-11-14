@@ -1,5 +1,5 @@
 import { useVisualStyles, type VisualPalette } from "@/ui/visual-theme";
-import { useMemo, useRef, type ReactNode } from "react";
+import { useMemo, useRef, type ReactNode, type RefObject } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -21,6 +21,8 @@ type AppScreenProps = {
   testID?: string;
   showsVerticalScrollIndicator?: boolean;
   edgeToEdge?: boolean;
+  // Lets a screen scroll itself to a section (Stitch «Ver cálculo consolidado»).
+  scrollRef?: RefObject<ScrollView | null>;
 };
 
 export function AppScreen({
@@ -30,6 +32,7 @@ export function AppScreen({
   testID,
   showsVerticalScrollIndicator,
   edgeToEdge = false,
+  scrollRef: externalScrollRef,
 }: AppScreenProps) {
   const styles = useVisualStyles(createStyles);
   const { width } = useWindowDimensions();
@@ -41,14 +44,15 @@ export function AppScreen({
   const contentStyle = edgeToEdge
     ? { maxWidth: "100%" as const, paddingVertical: 0 }
     : null;
-  const scrollRef = useRef<ScrollView>(null);
+  const internalScrollRef = useRef<ScrollView>(null);
+  const scrollRef = externalScrollRef ?? internalScrollRef;
   const scrollAdapter = useMemo(
     () => ({
       getViewport: () => scrollRef.current?.getNativeScrollRef() ?? null,
       scrollTo: (offset: number) =>
         scrollRef.current?.scrollTo({ y: offset, animated: true }),
     }),
-    [],
+    [scrollRef],
   );
   const {
     keyboardFocus,

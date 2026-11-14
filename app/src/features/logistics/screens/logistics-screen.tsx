@@ -342,6 +342,7 @@ function LogisticsWorkspace() {
                 value={description}
               />
               <View style={styles.actions}>
+                {editingVehicle ? <AppButton disabled={interactionsBlocked} label="Desactivar vehículo" onPress={()=>{setError(null);setRemoval({kind:'vehicle',value:editingVehicle});}} tone="secondary"/> : null}
                 {editingVehicle ? (
                   <AppButton
                     disabled={interactionsBlocked}
@@ -364,7 +365,7 @@ function LogisticsWorkspace() {
   </>:null;
   return (
     <>
-      <ReferenceLogisticsScreen carriers={carriers} vehicles={vehicles} search={search} onSearchChange={setSearch} canEdit={canEdit} blocked={interactionsBlocked} loading={loading} unavailable={Boolean(catalogError)} editor={editor} onNew={requestNew} onRefresh={refresh} onEditCarrier={requestCarrierEdit} onEditVehicle={requestVehicleEdit} onDeactivateCarrier={value=>{setError(null);setRemoval({kind:'carrier',value});}} onDeactivateVehicle={value=>{setError(null);setRemoval({kind:'vehicle',value});}} feedback={catalogError||loading||(feedbackLocation==='main'&&(notice||(error&&!removal)))?<>
+      <ReferenceLogisticsScreen carriers={carriers} vehicles={vehicles} search={search} onSearchChange={setSearch} canEdit={canEdit} blocked={interactionsBlocked} loading={loading} unavailable={Boolean(catalogError)} editor={editor} onNew={requestNew} onEditCarrier={requestCarrierEdit} onEditVehicle={requestVehicleEdit} feedback={catalogError||loading||(feedbackLocation==='main'&&(notice||(error&&!removal)))?<>
         {catalogError?<FeedbackState title="Logística no disponible" message={catalogError} tone="error" actionLabel="Reintentar logística" onAction={refresh}/>:null}
         {loading?<LoadingState label="Actualizando logística"/>:null}
         {feedbackLocation==='main'&&notice?<FeedbackState title="Operación confirmada" message={notice} tone="success"/>:null}

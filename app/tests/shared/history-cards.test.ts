@@ -4,17 +4,17 @@ import { historyChips, historyStateLabel, historyVarieties, historyVolume, purch
 // Spec 011 (RQ-ST05).
 describe('history cards', () => {
   it('names each payment state as the purchase or the sale says it', () => {
-    expect(historyStateLabel('purchase', 'paid')).toBe('Pagada');
-    expect(historyStateLabel('sale', 'paid')).toBe('Cobrada');
-    expect(historyStateLabel('purchase', 'debt')).toBe('Con deuda');
+    expect(historyStateLabel('purchase', 'paid')).toBe('Pagado');
+    expect(historyStateLabel('sale', 'paid')).toBe('Cobrado');
+    expect(historyStateLabel('purchase', 'debt')).toBe('Falta pagar');
     expect(historyStateLabel('purchase', 'unsettled')).toBe('Sin liquidar');
-    expect(historyStateLabel('sale', 'voided')).toBe('Anulada');
+    expect(historyStateLabel('sale', 'voided')).toBe('Anulado');
   });
 
   it('lists the chips in Stitch order with the server counts, or without counts when they are unknown', () => {
-    expect(historyChips('purchase', { all: 4, debt: 2, paid: 1, unsettled: 1, voided: 0 }).map((chip) => `${chip.label} ${chip.count}`)).toEqual(['Todas 4', 'Pagadas 1', 'Con deuda 2', 'Sin liquidar 1', 'Anuladas 0']);
+    expect(historyChips('purchase', { all: 4, debt: 2, paid: 1, unsettled: 1, voided: 0 }).map((chip) => `${chip.label} ${chip.count}`)).toEqual(['Todos 4', 'Pagados 1', 'Falta pagar 2', 'Sin liquidar 1', 'Anulados 0']);
     expect(historyChips('sale', null).map((chip) => [chip.id, chip.label, chip.count])).toEqual([
-      ['all', 'Todas', null], ['paid', 'Cobradas', null], ['debt', 'Con deuda', null], ['voided', 'Anuladas', null],
+      ['all', 'Todos', null], ['paid', 'Cobradas', null], ['debt', 'Por cobrar / Deuda', null], ['voided', 'Anuladas', null],
     ]);
   });
 
@@ -24,10 +24,10 @@ describe('history cards', () => {
       receptionId: 'r1', sacks: 2, settlementId: 's1', totalCents: '20000', varieties: ['Canchán', 'Yungay'],
     });
     expect(card).toMatchObject({ date: '2026-11-07', id: 'r1', party: 'Proveedor registrado', sourceId: 's1', state: 'debt' });
-    expect(historyVolume(card)).toBe('2 sacos · 100 kg');
+    expect(historyVolume(card)).toBe('2 sacos (100 kg)');
     expect(historyVarieties(card)).toBe('Canchán, Yungay');
     expect(historyVarieties({ varieties: [] })).toBe('Sin sacos registrados');
-    expect(historyVolume({ sacks: 1, weightKg: '50.000' })).toBe('1 saco · 50 kg');
+    expect(historyVolume({ sacks: 1, weightKg: '50.000' })).toBe('1 saco (50 kg)');
   });
 
   it('maps a sale and keeps a voided one without balance or payment', () => {

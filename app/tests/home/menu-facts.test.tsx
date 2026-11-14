@@ -23,10 +23,10 @@ beforeEach(() => {
 it('writes each live line from the server data and the local queue', () => {
   const source = { payableCents: '842000', payableCount: 3, pendingOperations: 3, purchasesToday: 12, purchasesTodayCents: '3150000', receivableCents: '1435000', receivableCount: 1, salesToday: 4, salesTodayCents: '4825000' };
   expect(menuFacts(source)).toEqual({
-    collections: 'Por cobrar S/ 14350.00',
-    debts: 'Por pagar S/ 8420.00',
-    'purchase-history': 'Hoy S/ 31500.00',
-    'sales-history': 'Hoy S/ 48250.00',
+    collections: 'Por cobrar S/ 14,350.00',
+    debts: 'Por pagar S/ 8,420.00',
+    'purchase-history': 'Hoy S/ 31,500.00',
+    'sales-history': 'Hoy S/ 48,250.00',
     'sync-queue': '3 en cola',
   });
   // RQ-ST11: the pill of each card.
@@ -56,9 +56,9 @@ it('reads today counts without voided operations and the open balances of the mo
   jest.mocked(purchaseHistorySummary).mockImplementation(async (_token, filters) => (filters?.from ? summary(5, 1, '0', '120000') : summary(30, 2, '842000', '0', 3)));
   jest.mocked(salesHistorySummary).mockImplementation(async (_token, filters) => (filters?.from ? summary(3, 0, '0', '90000') : summary(9, 1, '1435000', '0', 2)));
   expect(await factsFor(['purchase-history', 'debts', 'sales-history', 'collections', 'sync-queue'])).toEqual({
-    collections: 'Por cobrar S/ 14350.00',
-    debts: 'Por pagar S/ 8420.00',
-    'purchase-history': 'Hoy S/ 1200.00',
+    collections: 'Por cobrar S/ 14,350.00',
+    debts: 'Por pagar S/ 8,420.00',
+    'purchase-history': 'Hoy S/ 1,200.00',
     'sales-history': 'Hoy S/ 900.00',
     'sync-queue': 'Sin pendientes',
   });

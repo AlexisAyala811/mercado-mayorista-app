@@ -24,8 +24,8 @@ export function listReportRows(token: string, selection: ReportSelection, report
 
 // Every row of the variety or the daily report, page after page (the server
 // serves 20 per page).
-export async function listAllReportRows<Report extends 'variety' | 'daily'>(token: string, selection: ReportSelection, report: Report) {
-  type Row = Report extends 'daily' ? DailyReportRow : VarietyReportRow;
+export async function listAllReportRows<Report extends 'variety' | 'daily' | 'detail'>(token: string, selection: ReportSelection, report: Report) {
+  type Row = Report extends 'daily' ? DailyReportRow : Report extends 'detail' ? OperationReportRow : VarietyReportRow;
   const items: Row[] = [];
   for (let offset = 0; ; offset += 20) {
     const query = new URLSearchParams({ ...selection, report, limit: '20', offset: String(offset) });

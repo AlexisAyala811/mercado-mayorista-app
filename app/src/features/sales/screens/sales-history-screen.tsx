@@ -1,12 +1,12 @@
 import { CommercialHistoryList, type HistoryListState, type HistoryQuery } from '@/features/history/commercial-history-list';
-import { saleCard, type HistoryChip } from '@/domain/shared/history-cards';
+import { saleCard, type HistoryCard, type HistoryChip } from '@/domain/shared/history-cards';
 import { salesHistorySummary } from '@/services/api/history-api';
 import { BottomNavSlots } from '@/ui/navigation/app-chrome';
 import {commercialDescription} from '@/domain/catalog/commercial-characteristic';
 import { useBrowserTraversalGuard } from '@/navigation/use-browser-traversal-guard';
 import { useSyncQueue } from "@/features/sync/sync-queue-provider";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Platform, StyleSheet, Text, View } from "react-native";
+import { Platform, type ScrollView, StyleSheet, Text, View } from "react-native";
 import { useRouter, useNavigation, type Href } from "expo-router";
 import {usePreventRemove} from 'expo-router/react-navigation';
 import {
@@ -23,6 +23,7 @@ import {
 } from "@/services/api/sales-api";
 
 import { shareReceipt } from "@/services/receipts/receipt-sharing";
+import { AccountPaymentDialog } from "@/features/history/account-payment-dialog";
 import {
   AppButton,
   AppCard,
@@ -103,6 +104,21 @@ function SalesHistoryWorkspace({allowReturns}:{allowReturns:boolean}) {
     return { items: value.items.map((sale) => saleCard(sale, formatSaleDate(sale.createdAt))), total: value.total };
   }, [token]);
   const loadSummary = useCallback((query: HistoryQuery) => salesHistorySummary(token, query), [token]);
+  // CL-ST32: as in «Ver compras», «Cobrar / Liquidar» opens on this screen,
+  // «Ver ticket» shares the sale receipt, ✎ opens the detail and 🗑 opens it
+  // already at the reason of the void.
+  const [collecting, setCollecting] = useState<HistoryCard | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [notice, setNotice] = useState<string | null>(null);
+  const detailScroll = useRef<ScrollView>(null);
+  const scrollToReason = useRef(false);
+  async function ticket(card: HistoryCard) {
+    if (sharing.current || submitting.current) return;
+    sharing.current = true; setSharingBusy(true); setError(null);
+    try { await shareReceipt('sales', card.id, token, () => active.current); }
+    catch (cause) { if (active.current) setError(cause instanceof Error ? cause.message : 'No se pudo abrir el ticket.'); }
+    finally { sharing.current = false; if (active.current) setSharingBusy(false); }
+  }
   function open(id: string) {
     requestExit(()=>void readSale(id));
   }
@@ -303,7 +319,7 @@ function SalesHistoryWorkspace({allowReturns}:{allowReturns:boolean}) {
   if (detail)
     return (
       <>
-        <AppScreen contentContainerStyle={styles.screen}>
+        <AppScreen contentContainerStyle={styles.screen} scrollRef={detailScroll}>
           <BottomNavSlots back={{ label: "Atrás", accessibilityLabel: "Volver al historial", disabled: busy||sharingBusy||Boolean(exitAction), onPress: () => requestExit(closeDetail) }} />
           <ScreenHeader
             eyebrow="VENTAS"
@@ -351,7 +367,9 @@ function SalesHistoryWorkspace({allowReturns}:{allowReturns:boolean}) {
             />
             <MetricTile label="Versión" value={String(detail.sale.version)} />
           </View>
+          <View onLayout={(event) => { if (scrollToReason.current) { scrollToReason.current = false; detailScroll.current?.scrollTo({ animated: true, y: Math.max(0, event.nativeEvent.layout.y - 12) }); } }}>
           <FormField editable={!busy&&!sharingBusy&&!action&&!exitAction&&!detailStale} label="Motivo" onChangeText={value=>{if(!submitting.current&&!sharing.current&&!action&&!exitAction&&!detailStale)setReason(value);}} value={reason} />
+          </View>
           {allowReturns?<FormField
             editable={!busy&&!sharingBusy&&!action&&!exitAction&&!detailStale}
             keyboardType="decimal-pad"
@@ -437,18 +455,25 @@ function SalesHistoryWorkspace({allowReturns}:{allowReturns:boolean}) {
     );
   return (
     <AppScreen contentContainerStyle={styles.screen}>
-      <ScreenHeader eyebrow="VENTA · VENTAS COBRADAS Y CON DEUDA" title="Ver ventas" />
+      <ScreenHeader eyebrow="VENTA" subtitle="Control de ventas y cobranzas" title="Ver ventas" />
       {error ? <FeedbackState title="No se pudo abrir la venta" message={error} tone="error" /> : null}
+      {notice ? <FeedbackState title="Operación confirmada" message={notice} tone="success" /> : null}
       <CommercialHistoryList
         kind="sale"
-        disabled={busy}
+        disabled={busy || sharingBusy}
         initial={listState}
         onStateChange={setListState}
         loadPage={loadPage}
         loadSummary={loadSummary}
         onOpen={(card) => open(card.id)}
-        onSettle={(card) => router.push({ pathname: '/collections', params: { sourceId: card.sourceId ?? '' } } as Href)}
+        onSettle={(card) => { setNotice(null); setCollecting(card); }}
+        onNew={() => router.push('/sale-flow' as Href)}
+        onTicket={(card) => void ticket(card)}
+        onEdit={(card) => open(card.id)}
+        onVoid={(card) => { scrollToReason.current = true; open(card.id); }}
+        reloadKey={reloadKey}
       />
+      {collecting ? <AccountPaymentDialog card={collecting} kind="sale" onClose={() => setCollecting(null)} onPaid={(message) => { setCollecting(null); setNotice(message); setReloadKey((value) => value + 1); }} onPending={() => { setCollecting(null); router.push('/sync-queue' as Href); }} token={token} /> : null}
     </AppScreen>
   );
 }

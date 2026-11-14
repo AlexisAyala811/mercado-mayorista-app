@@ -7,7 +7,8 @@ let mockMounts=0;let mockUnmounts=0;
 let mockContext={session:{accessToken:'fixture',user:{role:'wholesaler'}} as { accessToken:string; user:{ role:string } } | null,isBootstrapping:false,isRevalidating:false,bootstrapError:null as string|null,retryBootstrap:jest.fn()};
 jest.mock('@/features/auth/session/session-provider',()=>({SessionProvider:()=>null,useSession:()=>mockContext}));
 jest.mock('@/features/sync/sync-queue-provider',()=>({SyncQueueProvider:()=>null}));
-jest.mock('@/features/sync/sync-status-banner',()=>({SyncStatusBanner:()=>null}));
+jest.mock('@/features/sync/use-sync-status',()=>({useSyncStatus:()=>null}));
+jest.mock('@/ui/navigation/bottom-nav',()=>({BottomNav:()=>null}));
 jest.mock('expo-status-bar',()=>({StatusBar:()=>null}));
 jest.mock('react-native',()=>{const react=jest.requireActual('react');const actual=jest.requireActual('react-native');const descriptors=Object.getOwnPropertyDescriptors(actual);delete descriptors.Modal;delete descriptors.View;const control=(props:object)=>react.createElement('test-native',props);return Object.defineProperties({Modal:control,View:control},descriptors);});
 jest.mock('@/ui/components',()=>{const react=jest.requireActual('react');const control=(props:object)=>react.createElement('test-control',props);return {AppScreen:control,FeedbackState:control,LoadingState:control};});
@@ -18,7 +19,10 @@ jest.mock('expo-router',()=>{
     react.useEffect(()=>{mockMounts++;return()=>{mockUnmounts++;};},[]);
     return react.createElement('navigation-state',{route,onMove:()=>setRoute('sync-queue')},props.children);
   };
-  Stack.Screen=()=>null;Stack.Protected=({guard,children}:React.PropsWithChildren<{guard:boolean}>)=>guard?children:null;
+  Stack.Screen = function Screen() { return null; };
+  Stack.Protected = function Protected({ guard, children }: React.PropsWithChildren<{ guard: boolean }>) {
+    return guard ? children : null;
+  };
   return {Stack,usePathname:()=>"/home",useRouter:()=>({back:jest.fn(),canGoBack:()=>false,replace:jest.fn()})};
 });
 beforeEach(()=>{(globalThis as typeof globalThis&{IS_REACT_ACT_ENVIRONMENT:boolean}).IS_REACT_ACT_ENVIRONMENT=true;mockMounts=0;mockUnmounts=0;mockContext={session:{accessToken:'fixture',user:{role:'wholesaler'}},isBootstrapping:false,isRevalidating:false,bootstrapError:null,retryBootstrap:jest.fn()};});

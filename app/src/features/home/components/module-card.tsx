@@ -1,5 +1,5 @@
 import type { AndroidSymbol } from 'expo-symbols';
-import { SymbolView } from 'expo-symbols';
+import { SymbolView } from '@/ui/components/symbol';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { ModuleId } from '@/features/auth/authorization/permissions';
@@ -9,6 +9,11 @@ export type HomeModule = {
   accent: AccentName;
   // Pill at the top right and line at the foot when there is no live data.
   badge: string;
+  // Colour of the pill and of the foot when it is not the card's one, and the
+  // mark drawn before the foot line ('dot' is a small green circle).
+  badgeAccent?: AccentName;
+  footAccent?: AccentName;
+  footIcon?: AndroidSymbol | 'dot';
   description: string;
   foot: string;
   icon: AndroidSymbol;
@@ -38,6 +43,8 @@ export function ModuleCard({ badge, compact = false, dense = false, disabled = f
   const tone = accent[module.accent];
   const pill = badge ?? module.badge;
   const foot = fact ?? module.foot;
+  const pillTone = accent[module.badgeAccent ?? module.accent];
+  const footTone = accent[module.footAccent ?? module.accent];
   return (
     <Pressable
       accessibilityHint={[module.description, badge, fact].filter(Boolean).join('. ')}
@@ -51,8 +58,8 @@ export function ModuleCard({ badge, compact = false, dense = false, disabled = f
           <Text style={[styles.orderText, { color: tone.ink }]}>{String(order).padStart(2, '0')}</Text>
         </View>
         {pill ? (
-          <View style={[styles.pill, { backgroundColor: tone.pill, borderColor: tone.line }]}>
-            <Text numberOfLines={1} style={[styles.pillText, { color: tone.pillInk }]} testID={`badge-${module.id}`}>{pill}</Text>
+          <View style={[styles.pill, { backgroundColor: pillTone.pill, borderColor: pillTone.line }]}>
+            <Text numberOfLines={1} style={[styles.pillText, { color: pillTone.pillInk }]} testID={`badge-${module.id}`}>{pill}</Text>
           </View>
         ) : null}
       </View>
@@ -70,7 +77,8 @@ export function ModuleCard({ badge, compact = false, dense = false, disabled = f
       </View>
       {foot ? (
         <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.foot}>
-          <Text numberOfLines={1} style={[styles.footText, { color: tone.ink }]} testID={`fact-${module.id}`}>{foot}</Text>
+          {module.footIcon === 'dot' ? <View style={styles.footDot} /> : module.footIcon ? <SymbolView fallback={null} name={{ android: module.footIcon, ios: 'circle', web: module.footIcon }} size={14} tintColor={footTone.ink} /> : null}
+          <Text numberOfLines={1} style={[styles.footText, { color: footTone.ink }]} testID={`fact-${module.id}`}>{foot}</Text>
         </View>
       ) : null}
     </Pressable>
@@ -88,24 +96,25 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: spacing.sm,
     justifyContent: 'space-between',
-    minHeight: 200,
+    minHeight: 175,
     padding: 20,
   },
-  cardDense: { gap: 6, minHeight: 0, paddingHorizontal: spacing.md, paddingVertical: 12 },
+  cardDense: { gap: 2, minHeight: 0, paddingHorizontal: spacing.md, paddingVertical: 12 },
   cardCompact: { minHeight: 168, padding: spacing.md },
   pressed: { borderColor: color.successAccent, transform: [{ scale: 0.97 }] },
   disabled: { opacity: 0.45 },
   top: { alignItems: 'flex-start', flexDirection: 'row', gap: spacing.sm, justifyContent: 'space-between', width: '100%' },
-  order: { alignItems: 'center', borderRadius: radius.sm, height: 32, justifyContent: 'center', width: 32 },
-  orderText: { fontSize: 13, fontWeight: '700' },
+  order: { alignItems: 'center', borderRadius: radius.sm, height: 28, justifyContent: 'center', width: 28 },
+  orderText: { fontSize: 12, fontWeight: '700' },
   pill: { borderRadius: 999, borderWidth: 1, flexShrink: 1, paddingHorizontal: 10, paddingVertical: 2 },
-  pillText: { fontSize: 13, fontWeight: '700', lineHeight: 18 },
+  pillText: { fontSize: 11, fontWeight: '700', lineHeight: 16 },
   middle: { alignItems: 'center', alignSelf: 'stretch', gap: 2 },
   icon: { alignItems: 'center', borderRadius: radius.lg, borderWidth: 2, height: 80, justifyContent: 'center', marginBottom: spacing.sm, width: 80 },
-  iconCompact: { height: 64, width: 64 },
+  iconCompact: { height: 60, marginBottom: 4, width: 60 },
   iconText: { fontSize: 16, fontWeight: '800', letterSpacing: 0.6 },
-  title: { alignSelf: 'stretch', color: '#0F172A', fontSize: 17, fontWeight: '900', letterSpacing: 0.4, lineHeight: 22, textAlign: 'center' },
-  description: { alignSelf: 'stretch', color: color.textSecondary, fontSize: 14, fontWeight: '500', lineHeight: 19, textAlign: 'center' },
-  foot: { alignItems: 'center', borderColor: '#F1F5F9', borderTopWidth: 1, paddingTop: 6, width: '100%' },
-  footText: { fontSize: 13, fontWeight: '700', lineHeight: 18 },
+  title: { alignSelf: 'stretch', color: '#0F172A', fontSize: 16, fontWeight: '900', letterSpacing: 0.4, lineHeight: 22, marginTop: 2, textAlign: 'center' },
+  description: { alignSelf: 'stretch', color: '#64748B', fontSize: 12, fontWeight: '500', lineHeight: 16, textAlign: 'center' },
+  foot: { alignItems: 'center', borderColor: '#F1F5F9', borderTopWidth: 1, flexDirection: 'row', gap: 6, justifyContent: 'center', paddingTop: 6, width: '100%' },
+  footDot: { backgroundColor: '#10B981', borderRadius: 4, height: 8, width: 8 },
+  footText: { fontSize: 11, fontWeight: '600', lineHeight: 16 },
 });
