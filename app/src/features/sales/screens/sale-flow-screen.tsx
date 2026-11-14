@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Platform, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useNavigation, useRouter, type Href } from 'expo-router';
 import { usePreventRemove } from 'expo-router/react-navigation';
 import {useBrowserTraversalGuard} from '@/navigation/use-browser-traversal-guard';
@@ -7,14 +7,18 @@ import {useBrowserTraversalGuard} from '@/navigation/use-browser-traversal-guard
 import { createOperationId, formatMoney, moneyInputToCents, type PotatoVariety, type Vehicle } from '@/domain/reception/reception';
 import { calculateSalePreview } from '@/domain/sales/sale-preview';
 import { validateCreditSchedule } from '@/domain/reception/purchase-preview';
-import { validateSaleLine, type Buyer, type Sale, type SaleLineDraft } from '@/domain/sales/sale';
+import { validateSaleLine, withSlots, type Buyer, type Sale, type SaleLineDraft } from '@/domain/sales/sale';
+import { SaleSheet } from '@/features/sales/screens/sale-sheet';
+import { LotDialog, type ChoiceKind, type LotChoice, type NewLot } from '@/features/sales/components/lot-dialog';
+import { formatLocalDateInput } from '@/domain/shared/date';
+import { remainingInstallmentAmount } from '@/domain/shared/installments';
 import { useSession } from '@/features/auth/session/session-provider';
 import { useSyncQueue } from '@/features/sync/sync-queue-provider';
 import type { InstallmentDraft } from '@/features/reception/screens/settlement-screen';
 import {CharacteristicFields} from '@/features/catalog/components/characteristic-fields';
 import {OperationReferenceActions} from '@/features/catalog/components/operation-reference-actions';
 import {OperationReferenceEditor} from '@/features/catalog/screens/catalog-workspace';
-import type {CatalogKind} from '@/services/api/catalog-api';
+import {createCatalogItem,updateCatalogItem,type CatalogKind} from '@/services/api/catalog-api';
 import {captureCommercialSnapshot,commercialDescription,commercialLineKey,type CommercialCharacteristic} from '@/domain/catalog/commercial-characteristic';
 import { ApiError, ApiUnavailableError } from '@/services/api/api-client';
 import { getSale, loadSaleCatalogs, type SaleLine } from '@/services/api/sales-api';
@@ -22,9 +26,10 @@ import { saleConfirmationSummary } from '@/domain/shared/confirmation-summary';
 import { ConfirmationCard } from '@/features/receipts/components/confirmation-card';
 import { AppButton, AppCard, AppScreen, ChoiceDialog, ConfirmationDialog, FeedbackState, FormField, LoadingState, MetricTile, ScreenHeader, SelectionField, StepProgress, type Choice } from '@/ui/components';
 import { useBottomNav } from '@/ui/navigation/app-chrome';
+import { AppHeader } from '@/ui/navigation/app-header';
 import { color, spacing, typography } from '@/ui/tokens';
 
-type Dialog = 'buyer' | 'vehicle' | 'variety' | null;
+type Dialog = 'buyer' | 'vehicle' | 'variety' | 'lot-edit' | null;
 const steps = ['Despacho', 'Variedades', 'Liquidación', 'Confirmación'] as const;
 
 export function SaleFlowScreen() {
@@ -33,6 +38,17 @@ export function SaleFlowScreen() {
   const { invalidateSession, session, isOfflineSession } = useSession();
   const { enqueue, sendQueued } = useSyncQueue();
   const token = session?.accessToken ?? '';
+  // Spec 011 (RQ-ST14, CL-ST19): on the tablet the sale is one screen, as in
+  // Stitch; narrower screens and large text keep the form.
+  const { fontScale, width } = useWindowDimensions();
+  const sheet = width >= 1100 && fontScale <= 1.2;
+  const [activeLineId, setActiveLineId] = useState<string | null>(null);
+  const [dispatchDate, setDispatchDate] = useState(() => formatLocalDateInput());
+  // CL-ST23: the buyer is typed in the sheet. A new name is registered when the
+  // sale is saved; RUC / DNI and the date stay on this tablet.
+  const [buyerName, setBuyerName] = useState('');
+  const [buyerPhone, setBuyerPhone] = useState('');
+  const [buyerDocument, setBuyerDocument] = useState('');
   const [buyers, setBuyers] = useState<Buyer[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [varieties, setVarieties] = useState<PotatoVariety[]>([]);
@@ -43,6 +59,9 @@ export function SaleFlowScreen() {
   const [destination, setDestination] = useState('');
   const [driver, setDriver] = useState('');
   const [lines, setLines] = useState<SaleLineDraft[]>([]);
+  // CL-ST23: as in the mockup, the sheet opens with «Lote A» of the first
+  // variety and ten empty cells. It becomes a real line on its first change.
+  const [initialLotId] = useState(() => createOperationId());
   const [draft, setDraft] = useState<SaleLineDraft>({ id: createOperationId(), varietyId: '', priceBasis: 'kilogram', sacks: '', unitPrice: '', weightKg: '' });
   const [freightBasis, setFreightBasis] = useState<'none' | 'kilogram' | 'sack'>('none');
   const [freightRate, setFreightRate] = useState('0');
@@ -140,7 +159,15 @@ export function SaleFlowScreen() {
     exitAllowed.current = true; setSavedOrDiscarded(true); leave();
   }
 
-  const preview = calculateSalePreview(lines, {freightBasis,freightRate,freightIncluded,discounts});
+  // CL-ST23: the sheet offers «Por sacos» / «Por kilaje»; a rate of 0 means
+  // the sale goes without freight.
+  const sheetFreightBasis = freightBasis === 'none' ? 'sack' : freightBasis;
+  const effectiveFreightBasis = sheet ? ((moneyInputToCents(freightRate) ?? 0) > 0 ? sheetFreightBasis : 'none') : freightBasis;
+  const initialLot = useMemo(() => (sheet && varieties.length ? withSlots({ id: initialLotId, varietyId: varieties[0]!.id, priceBasis: 'kilogram', sacks: '0', unitPrice: '', weightKg: '0', qualityId: null, qualityName: null, originId: null, originName: null }, Array.from({ length: 10 }, () => '')) : null), [initialLotId, sheet, varieties]);
+  const sheetLines = lines.length || !initialLot ? lines : [initialLot];
+  // Lots still without sacks stay on the sheet (0 sacos, S/ 0.00) but are not sent.
+  const sentLines = sheet ? sheetLines.filter((line) => Number(line.sacks) > 0) : lines;
+  const preview = calculateSalePreview(sentLines, {freightBasis: effectiveFreightBasis,freightRate,freightIncluded,discounts});
   function retryCatalogs() {setLoading(true);setError(null);setCatalogRevision(value=>value+1);}
   const buyer = buyers.find((item) => item.id === buyerId);
   const vehicle = vehicles.find((item) => item.id === vehicleId);
@@ -157,6 +184,47 @@ export function SaleFlowScreen() {
     else if (dialog === 'variety') { setDraft((current) => ({ ...current, varietyId: choice.id })); setDialog(null); }
   }
 
+  // Sheet: each lot is a line whose sacks are weighed one by one.
+  // «Crear lote» of the sheet (CL-ST22): variety, quality, price and the
+  // number of empty cells the lot starts with.
+  function addLot(lot: NewLot) {
+    setError(null);
+    let line = withSlots({ id: createOperationId(), varietyId: lot.varietyId, priceBasis: 'kilogram', sacks: '0', unitPrice: lot.unitPrice, weightKg: '0', qualityId: lot.qualityId, originId: lot.originId }, Array.from({ length: lot.plannedSacks }, () => ''));
+    if (sheetLines.some((item) => commercialLineKey(item) === commercialLineKey(line))) { setError('Esta variedad ya tiene un lote con esa calidad; cambia la calidad o la procedencia para añadir otro.'); return false; }
+    try { line = { ...line, ...captureCommercialSnapshot(line, qualities, origins) }; }
+    catch (cause) { setError(cause instanceof Error ? cause.message : 'Revisa la calidad del lote.'); return false; }
+    setLines((current) => [...withInitial(current), line]);
+    setActiveLineId(line.id);
+    return true;
+  }
+  // The initial lot becomes a real line the first time it changes.
+  const withInitial = (current: SaleLineDraft[]) => (current.length || !initialLot ? current : [initialLot]);
+  function updateLine(id: string, change: (line: SaleLineDraft) => SaleLineDraft) {
+    setLines((current) => withInitial(current).map((line) => (line.id === id ? change(line) : line)));
+  }
+  // ✎ of the lot: variety, quality, origin and price of the active lot.
+  function editLot(lot: NewLot) {
+    const active = sheetLines.find((line) => line.id === activeLineId) ?? sheetLines[0];
+    if (!active) return false;
+    const next = { ...active, varietyId: lot.varietyId, qualityId: lot.qualityId, originId: lot.originId, unitPrice: lot.unitPrice };
+    if (sheetLines.some((item) => item.id !== active.id && commercialLineKey(item) === commercialLineKey(next))) { setError('Esta combinación de variedad, calidad y procedencia ya está en otro lote.'); return false; }
+    try { const snapshot = captureCommercialSnapshot(next, qualities, origins); setError(null); updateLine(active.id, () => ({ ...next, ...snapshot })); return true; }
+    catch (cause) { setError(cause instanceof Error ? cause.message : 'Revisa calidad y procedencia.'); return false; }
+  }
+  function changeLotCharacteristic(field: 'qualityId' | 'originId', id: string | null) {
+    const active = lines.find((line) => line.id === activeLineId);
+    if (!active || busy) return;
+    const next = { ...active, [field]: id };
+    if (lines.some((item) => item.id !== active.id && commercialLineKey(item) === commercialLineKey(next))) { setError('Esta combinación de variedad, calidad y procedencia ya está agregada.'); return; }
+    try { const snapshot = captureCommercialSnapshot(next, qualities, origins); setError(null); updateLine(active.id, () => ({ ...next, ...snapshot })); }
+    catch (cause) { setError(cause instanceof Error ? cause.message : 'Revisa calidad y procedencia.'); }
+  }
+  function clearSale() {
+    if (busy) return;
+    setBuyerId(''); setVehicleId(''); setDestination(''); setDriver(''); setLines([]); setActiveLineId(null);
+    setFreightBasis('none'); setFreightRate('0'); setFreightIncluded(false); setDiscounts('0'); setPaymentMode('cash'); setInstallments([]); setError(null);
+  }
+
   function addLine() {
     setError(null);
     const issue = validateSaleLine(draft, selectedVariety);
@@ -171,9 +239,11 @@ export function SaleFlowScreen() {
     if (submitting.current||referenceWorking.current) return;
     setError(null);
     if (unfinishedLine) {setError('Agrega la variedad en edición o vacía sus campos antes de revisar la venta.');return;}
-    if (!buyerId || !destination.trim() || preview.kind !== 'ready') {
+    if (!(buyerId || (sheet && buyerName.trim())) || !destination.trim() || preview.kind !== 'ready') {
       setError(preview.kind === 'invalid' ? preview.message : 'Completa comprador y destino.'); return;
     }
+    if (sheet && !buyerId && session?.user.role !== 'wholesaler') { setError('Solo el Mayorista registra compradores nuevos: elige uno de la lista.'); return; }
+    if (sheet && !buyerId && isOfflineSession) { setError('Para registrar un comprador nuevo necesitas conexión.'); return; }
     const issue = paymentMode === 'credit' ? validateCreditSchedule(installments,preview.totalCents) : null;
     if (issue) {setError(issue.replace('monto líquido','total de venta'));return;}
     setConfirming(true);
@@ -185,12 +255,13 @@ export function SaleFlowScreen() {
     let saved = false;
     operationRef.current ??= createOperationId(); setConfirming(false); setBusy(true); setError(null);
     try {
+    const saleBuyerId = sheet ? await ensureBuyer() : buyerId;
     const payload = {
-      buyerId, clientOperationId: operationRef.current!, destinationDepartment: destination.trim(), discountsCents: moneyInputToCents(discounts)!,
+      buyerId: saleBuyerId, clientOperationId: operationRef.current!, destinationDepartment: destination.trim(), discountsCents: moneyInputToCents(discounts)!,
       driverName: driver.trim() || undefined, freightIncludedInTotal: freightIncluded,
-      ...(freightBasis === 'none' ? {} : { freightBasis, freightRateCents: moneyInputToCents(freightRate)! }),
+      ...(effectiveFreightBasis === 'none' ? {} : { freightBasis: effectiveFreightBasis, freightRateCents: moneyInputToCents(freightRate)! }),
       installments: paymentMode === 'cash' ? [] : installments.map((item) => ({ amountCents: moneyInputToCents(item.amount)!, dueOn: item.dueOn })),
-      lines: lines.map((line) => ({ varietyId: line.varietyId, qualityId:line.qualityId??null,originId:line.originId??null,priceBasis: line.priceBasis, sacks: Number(line.sacks), unitPriceCents: moneyInputToCents(line.unitPrice)!, weightKg: line.weightKg.trim().replace(',', '.') })),
+      lines: sentLines.map((line) => ({ varietyId: line.varietyId, qualityId:line.qualityId??null,originId:line.originId??null,priceBasis: line.priceBasis, sacks: Number(line.sacks), unitPriceCents: moneyInputToCents(line.unitPrice)!, weightKg: line.weightKg.trim().replace(',', '.') })),
       paymentMode, vehicleId: vehicleId || undefined,
     };
       await enqueue({body:payload,id:payload.clientOperationId,method:'POST',path:'/sales',type:'sale.create'});
@@ -209,6 +280,55 @@ export function SaleFlowScreen() {
     } finally {submitting.current=false;setBusy(false);}
   }
 
+  // The buyer of the sheet: a new name is created and a changed phone is kept
+  // in the catalog (only the Mayorista, online). After creating it the id is
+  // kept, so a retry does not create it twice.
+  // «Escribir otra…» of the lot window (CL-ST26): an existing name is reused;
+  // a new one is registered in the catalog (Mayorista, con conexión).
+  const canWriteChoices = session?.user.role === 'wholesaler' && !isOfflineSession;
+  async function createChoice(kind: ChoiceKind, name: string): Promise<LotChoice> {
+    const same = (value: string) => value.trim().toLocaleLowerCase('es') === name.trim().toLocaleLowerCase('es');
+    if (kind === 'variety') {
+      const known = varieties.find((item) => same(item.name));
+      if (known) return { id: known.id, label: known.name };
+      const created = await createCatalogItem<PotatoVariety>(token, 'varieties', { name });
+      setVarieties((all) => [...all, created]);
+      return { id: created.id, label: created.name };
+    }
+    const list = kind === 'quality' ? qualities : origins;
+    const known = list.find((item) => item.isActive && same(item.name));
+    if (known) return { id: known.id, label: known.name };
+    const created = await createCatalogItem<CommercialCharacteristic>(token, kind === 'quality' ? 'qualities' : 'origins', { name });
+    (kind === 'quality' ? setQualities : setOrigins)((all) => [...all, created]);
+    return { id: created.id, label: created.name };
+  }
+  async function ensureBuyer() {
+    const name = buyerName.trim();
+    const phone = buyerPhone.trim();
+    if (buyerId) {
+      const current = buyers.find((item) => item.id === buyerId);
+      if (current && session?.user.role === 'wholesaler' && !isOfflineSession && phone !== (current.phone ?? '')) {
+        const updated = await updateCatalogItem<Buyer>(token, 'buyers', buyerId, { phone: phone || undefined });
+        setBuyers((all) => all.map((item) => (item.id === buyerId ? { ...item, ...updated } : item)));
+      }
+      return buyerId;
+    }
+    const created = await createCatalogItem<Buyer>(token, 'buyers', { name, phone: phone || undefined, destinationDepartment: destination.trim() || undefined });
+    setBuyers((all) => [...all, created]);
+    setBuyerId(created.id);
+    return created.id;
+  }
+  function typeBuyerName(value: string) {
+    setBuyerName(value);
+    const match = buyers.find((item) => item.name.trim().toLowerCase() === value.trim().toLowerCase());
+    setBuyerId(match?.id ?? '');
+  }
+  function pickBuyer(id: string) {
+    const selected = buyers.find((item) => item.id === id);
+    if (!selected) return;
+    setBuyerId(selected.id); setBuyerName(selected.name); setBuyerPhone(selected.phone ?? ''); setDestination(selected.destinationDepartment ?? '');
+  }
+
   async function reloadConfirmedSale() {
     if(!confirmedSaleId)return;
     setBusy(true);setError(null);
@@ -218,7 +338,7 @@ export function SaleFlowScreen() {
   }
   // Spec 011 (RQ-ST02, CL-ST07): while editing, the bottom bar leaves through
   // the unsaved-sale check and offers the review as its step action.
-  const editing = Boolean(session) && !loading && catalogLoaded && !sale && !confirmedSaleId;
+  const editing = Boolean(session) && !loading && catalogLoaded && !sale && !confirmedSaleId && !sheet;
   useBottomNav({
     back: editing ? { label: 'Atrás', disabled: busy, onPress: () => requestExit() } : null,
     home: editing ? { label: 'Menú principal', disabled: busy, onPress: () => requestExit('home') } : null,
@@ -227,13 +347,11 @@ export function SaleFlowScreen() {
   if (!session) return null;
   if (loading) return <AppScreen contentContainerStyle={{ justifyContent: 'center' }} scrollable={false}><LoadingState label="Cargando compradores y variedades" /></AppScreen>;
   if (!catalogLoaded) return <AppScreen><FeedbackState actionLabel="Reintentar" onAction={retryCatalogs} title="No se pudieron cargar los catálogos" message={error ?? 'Reintenta la consulta.'} tone="error" /></AppScreen>;
+  // Spec 011 (RQ-ST04, CL-ST18): the Stitch «Guardado exitosamente» screen.
   if (sale || confirmedSaleId) return (
-    <AppScreen contentContainerStyle={styles.screen}>
-      <ScreenHeader eyebrow="VENTAS Y DESPACHOS" title="Venta confirmada" description="La venta y su efecto financiero fueron registrados por el servidor." />
-      <StepProgress activeIndex={3} steps={steps} />
-      {sale ? <ConfirmationCard title="Venta guardada" party={sale.buyerName ?? buyer?.name ?? 'Comprador registrado'} summary={saleConfirmationSummary(sale, saleLines, (id) => varieties.find((item) => item.id === id)?.name)} receipt={{ kind: 'sales', id: sale.id }} newLabel="Nueva venta" onNew={() => router.replace({ pathname: '/sale-flow', params: { nueva: String(Date.now()) } } as Href)} /> : null}
-      <FeedbackState title="Operación confirmada" message="La venta fue registrada de forma idempotente." tone="success" />
-      {sale ? <View style={styles.metrics}><MetricTile label="Importe bruto" value={formatMoney(sale.grossAmountCents)} /><MetricTile label="Flete" value={formatMoney(sale.freightAmountCents)} /><MetricTile label="Descuentos" value={formatMoney(sale.discountsCents)} /><MetricTile label="Total" value={formatMoney(sale.totalAmountCents)} /></View> : null}
+    <AppScreen contentContainerStyle={styles.saved}>
+      <AppHeader eyebrow="DESPACHO" subtitle="Venta y despacho confirmados" title="Venta" />
+      {sale ? <ConfirmationCard documentLabel="NOTA DE VENTA" title="La venta" party={sale.buyerName ?? buyer?.name ?? 'Comprador registrado'} summary={saleConfirmationSummary(sale, saleLines, (id) => varieties.find((item) => item.id === id)?.name)} receipt={{ kind: 'sales', id: sale.id }} newLabel="Nueva venta" onNew={() => router.replace({ pathname: '/sale-flow', params: { nueva: String(Date.now()) } } as Href)} /> : <FeedbackState title="Venta confirmada" message="La venta fue registrada por el servidor. Falta cargar su detalle." tone="success" />}
       {error ? <FeedbackState title="No se pudo cargar el detalle de la venta confirmada" message={error} tone="error" /> : null}
       {!sale ? <AppButton disabled={busy} label={busy?'Cargando detalle…':'Reintentar consulta del detalle'} onPress={()=>void reloadConfirmedSale()} tone="secondary" /> : null}
     </AppScreen>
@@ -243,6 +361,43 @@ export function SaleFlowScreen() {
     const cents = moneyInputToCents(item.amount);
     return `Cuota ${index + 1}: ${item.dueOn || 'Fecha pendiente'} · ${cents === null ? 'Importe pendiente' : formatMoney(cents)}.`;
   }).join(' ') : '';
+  const dialogs = <>
+    <ChoiceDialog choices={dialog === 'buyer' ? buyers.map((item) => ({ id: item.id, label: item.name, supportingText: item.destinationDepartment ?? undefined })) : dialog === 'vehicle' ? vehicles.map((item) => ({ id: item.id, label: item.plate, supportingText: item.description ?? undefined })) : varietyChoices} onClose={() => setDialog(null)} onSelect={select} selectedIds={[buyerId, vehicleId, draft.varietyId]} title={dialog === 'buyer' ? 'Seleccionar comprador' : dialog === 'vehicle' ? 'Seleccionar vehículo' : 'Seleccionar variedad'} visible={dialog !== null && dialog !== 'lot-edit' && !(sheet && dialog === 'variety')} />
+    <LotDialog onCreateChoice={canWriteChoices ? createChoice : undefined} key={`${dialog}-${activeLineId}`} initial={dialog === 'lot-edit' ? (() => { const active = sheetLines.find((line) => line.id === activeLineId) ?? sheetLines[0]; return active ? { varietyId: active.varietyId, qualityId: active.qualityId ?? null, originId: active.originId ?? null, unitPrice: active.unitPrice } : undefined; })() : undefined} onCancel={() => setDialog(null)} onCreate={(lot) => { if (dialog === 'lot-edit' ? editLot(lot) : addLot(lot)) setDialog(null); }} origins={origins.filter((item) => item.isActive).map((item) => ({ id: item.id, label: item.name }))} qualities={qualities.filter((item) => item.isActive).map((item) => ({ id: item.id, label: item.name }))} varieties={varietyChoices.map((item) => ({ id: item.id, label: item.label }))} visible={sheet && (dialog === 'variety' || dialog === 'lot-edit')} />
+    <ConfirmationDialog busy={busy} confirmLabel="Confirmar venta" message={preview.kind === 'ready' ? `${buyer?.name ?? 'Comprador'} · ${destination}. Bruto ${formatMoney(preview.grossCents)}, flete ${formatMoney(preview.freightCents)} (${freightIncluded ? 'incluido' : 'separado'}), descuento ${formatMoney(preview.discountsCents)} y total ${formatMoney(preview.totalCents)}. Pago ${paymentMode === 'cash' ? 'al contado' : 'a crédito'}. ${scheduleReview} Se registrará la venta y su efecto financiero.` : 'Revisa los datos de la venta.'} onCancel={() => setConfirming(false)} onConfirm={() => void submit()} title="¿Confirmar la venta?" visible={confirming} />
+    <ConfirmationDialog busy={busy} confirmLabel="Salir sin guardar" title="¿Salir de la venta?" message="Los datos en edición todavía no se han guardado. Si sales, perderás este borrador de venta." visible={exitAction !== null} onCancel={()=>setExitAction(null)} onConfirm={confirmExit} />
+  </>;
+  if (sheet) {
+    const activeLine = sheetLines.find((line) => line.id === activeLineId) ?? sheetLines[0];
+    const lineName = (line: SaleLineDraft) => { const name = varieties.find((item) => item.id === line.varietyId)?.name ?? 'Variedad'; return line.qualityName ? `${name} · ${line.qualityName}` : name; };
+    return <>
+      {referenceEditor}
+      <SaleSheet
+        errorMessage={error ?? undefined} busy={busy}
+        notice={<>{referenceFeedback}{catalogNotice ? <FeedbackState title="Datos de referencia" message={catalogNotice} /> : null}</>}
+        buyerName={buyerName} onBuyerNameChange={typeBuyerName} onPickBuyer={pickBuyer}
+        buyerSuggestions={buyerName.trim().length >= 2 && !buyerId ? buyers.filter((item) => item.name.toLowerCase().includes(buyerName.trim().toLowerCase())).slice(0, 5).map((item) => ({ id: item.id, label: item.name, supportingText: item.destinationDepartment ?? undefined })) : []}
+        buyerNotice={[buyerName.trim() && !buyerId ? (session?.user.role === 'wholesaler' ? 'Comprador nuevo: se registrará al guardar la venta.' : 'Elige un comprador de la lista: solo el Mayorista registra compradores nuevos.') : null, buyerDocument || dispatchDate !== formatLocalDateInput() ? 'RUC / DNI y fecha de despacho quedan en esta tablet; el servidor registra la venta con la fecha y hora en que se guarda.' : null].filter(Boolean).join(' ') || undefined}
+        buyerPhone={buyerPhone} onBuyerPhoneChange={setBuyerPhone} phoneEditable={!buyerId || session?.user.role === 'wholesaler'}
+        buyerDocument={buyerDocument} onBuyerDocumentChange={setBuyerDocument}
+        dispatchDate={dispatchDate} onDispatchDateChange={setDispatchDate}
+        destination={destination} onDestinationChange={setDestination} vehiclePlate={vehicle?.plate} driver={driver} onDriverChange={setDriver}
+        onSelectVehicle={() => setDialog('vehicle')}
+        lotCharacteristics={activeLine ? <CharacteristicFields appearance="stitch" value={activeLine} qualities={qualities} origins={origins} disabled={busy} onChange={changeLotCharacteristic}/> : null}
+        lines={sheetLines} lineName={lineName} activeLineId={activeLine?.id ?? null} onSelectLine={setActiveLineId}
+        onAddLot={() => setDialog('variety')} onEditLot={() => setDialog('lot-edit')} onRemoveLot={(id) => { setLines((current) => withInitial(current).filter((line) => line.id !== id)); setActiveLineId(null); }}
+        onChangeSlots={(id, slots) => updateLine(id, (line) => withSlots(line, slots))}
+        onChangeLine={(id, field, value) => updateLine(id, (line) => ({ ...line, [field]: value }))}
+        preview={preview} freightBasis={sheetFreightBasis} freightRate={freightRate} freightIncluded={freightIncluded} discounts={discounts} paymentMode={paymentMode} installments={installments}
+        onChange={(field, value) => { if (field === 'freightBasis') setFreightBasis(value as typeof freightBasis); else if (field === 'freightRate') setFreightRate(value); else if (field === 'freightIncluded') setFreightIncluded(value === 'true'); else if (field === 'discounts') setDiscounts(value); else setPaymentMode(value as typeof paymentMode); }}
+        onAddInstallment={() => setInstallments((all) => [...all, { amount: preview.kind === 'ready' ? remainingInstallmentAmount(preview.totalCents, all) : '', dueOn: '', id: createOperationId() }])}
+        onChangeInstallment={(id, field, value) => setInstallments((all) => all.map((item) => (item.id === id ? { ...item, [field]: value } : item)))}
+        onRemoveInstallment={(id) => setInstallments((all) => all.filter((item) => item.id !== id))}
+        onClear={clearSale} onSave={requestConfirmation} onBack={() => requestExit()} onGoHome={() => requestExit('home')}
+      />
+      {dialogs}
+    </>;
+  }
   return <>
     {referenceEditor}
     <AppScreen contentContainerStyle={styles.screen}>
@@ -275,9 +430,7 @@ export function SaleFlowScreen() {
       {preview.kind === 'ready' ? <View style={styles.metrics}><MetricTile label="Bruto provisional" value={formatMoney(preview.grossCents)} /><MetricTile label="Flete provisional" value={formatMoney(preview.freightCents)} /><MetricTile label="Descuentos" value={formatMoney(preview.discountsCents)} /><MetricTile label="Total provisional" value={formatMoney(preview.totalCents)} /></View> : null}
       <View style={styles.actions}><AppButton disabled={busy} label={busy ? 'Confirmando…' : 'Revisar y confirmar'} onPress={requestConfirmation} /></View>
     </AppScreen>
-    <ChoiceDialog choices={dialog === 'buyer' ? buyers.map((item) => ({ id: item.id, label: item.name, supportingText: item.destinationDepartment ?? undefined })) : dialog === 'vehicle' ? vehicles.map((item) => ({ id: item.id, label: item.plate, supportingText: item.description ?? undefined })) : varietyChoices} onClose={() => setDialog(null)} onSelect={select} selectedIds={[buyerId, vehicleId, draft.varietyId]} title={dialog === 'buyer' ? 'Seleccionar comprador' : dialog === 'vehicle' ? 'Seleccionar vehículo' : 'Seleccionar variedad'} visible={dialog !== null} />
-    <ConfirmationDialog busy={busy} confirmLabel="Confirmar venta" message={preview.kind === 'ready' ? `${buyer?.name ?? 'Comprador'} · ${destination}. Bruto ${formatMoney(preview.grossCents)}, flete ${formatMoney(preview.freightCents)} (${freightIncluded ? 'incluido' : 'separado'}), descuento ${formatMoney(preview.discountsCents)} y total ${formatMoney(preview.totalCents)}. Pago ${paymentMode === 'cash' ? 'al contado' : 'a crédito'}. ${scheduleReview} Se registrará la venta y su efecto financiero.` : 'Revisa los datos de la venta.'} onCancel={() => setConfirming(false)} onConfirm={() => void submit()} title="¿Confirmar la venta?" visible={confirming} />
-    <ConfirmationDialog busy={busy} confirmLabel="Salir sin guardar" title="¿Salir de la venta?" message="Los datos en edición todavía no se han guardado. Si sales, perderás este borrador de venta." visible={exitAction !== null} onCancel={()=>setExitAction(null)} onConfirm={confirmExit} />
+    {dialogs}
   </>;
 }
 
@@ -289,7 +442,8 @@ function errorMessage(error: unknown) {
 
 const styles = StyleSheet.create({
   installmentFields: {flexGrow:1,flexBasis:400,minWidth:0,maxWidth:'100%'},
-  screen: { gap: spacing.xl }, columns: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }, column: { flexBasis: 230, flexGrow: 1 },
+  screen: { gap: spacing.xl },
+  saved: { gap: spacing.md, justifyContent: 'center', paddingBottom: spacing.md, paddingTop: spacing.sm }, columns: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }, column: { flexBasis: 230, flexGrow: 1 },
   toggle: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }, line: { alignItems: 'center', borderTopColor: color.border, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, paddingTop: spacing.md },
   lineTitle: { color: color.textPrimary, ...typography.bodySmall, fontWeight: '700' }, help: { color: color.textSecondary, ...typography.bodySmall }, actions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, justifyContent: 'flex-end' }, metrics: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
 });

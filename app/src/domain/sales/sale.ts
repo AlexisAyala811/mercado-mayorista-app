@@ -50,7 +50,33 @@ export type SaleLineDraft = Partial<CommercialSnapshot>&{
   weightKg: string;
   priceBasis: 'kilogram' | 'sack';
   unitPrice: string;
+  // Spec 011 (CL-ST19): sacks weighed one by one on the tablet sheet, in whole
+  // kilograms. The line is sent with their count and the sum of their weights.
+  weights?: string[];
+  // Cells of the lot on the sheet (CL-ST22): typed weights or empty. Only the
+  // valid ones become sacks; the cells are never sent to the server.
+  slots?: string[];
 };
+
+export function saleLineGrams(line: Pick<SaleLineDraft, 'weights'>): bigint {
+  return (line.weights ?? []).reduce((total, weight) => total + BigInt(weight) * 1000n, 0n);
+}
+
+// A cell counts as a sack when it holds whole kilograms greater than zero.
+export function validSackWeight(value: string) {
+  const trimmed = value.trim();
+  return /^\d{1,7}$/.test(trimmed) && Number(trimmed) > 0;
+}
+
+// Cells of the sheet: their valid weights are the sacks of the line.
+export function withSlots(line: SaleLineDraft, slots: string[]): SaleLineDraft {
+  return { ...withWeights(line, slots.map((value) => value.trim()).filter(validSackWeight)), slots };
+}
+
+// Keeps sacks and weightKg equal to the weighed sacks.
+export function withWeights(line: SaleLineDraft, weights: string[]): SaleLineDraft {
+  return { ...line, weights, sacks: String(weights.length), weightKg: (saleLineGrams({ weights }) / 1000n).toString() };
+}
 
 export function validateSaleLine(line: SaleLineDraft, variety?: PotatoVariety) {
   const sacks = Number(line.sacks);

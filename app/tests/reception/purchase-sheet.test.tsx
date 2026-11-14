@@ -81,11 +81,11 @@ describe('grid of sacks', () => {
     expect(drawn.slice(0, sheetColumns)).toEqual([1, 2, 3, 4, 5]);
     expect(drawn.length).toBeGreaterThan(0);
     expect(drawn.length).toBeLessThan(100);
-    // The spacer after the drawn rows keeps the height of the 50 rows.
+    // The spacers keep the height of the 50 rows of sacks plus the row of the next one.
     const grid = root.root.findAll((node) => node.props.testID === 'sack-grid' && typeof node.props.onScroll === 'function')[0]!;
     const spacers = grid.findAll((node) => typeof node.type === 'string' && typeof node.props.style?.height === 'number' && node.props.children === undefined);
     const drawnRows = drawn.length / sheetColumns;
-    expect(spacers.reduce((total, node) => total + node.props.style.height, 0)).toBe((50 - drawnRows) * sheetRowHeight);
+    expect(spacers.reduce((total, node) => total + node.props.style.height, 0)).toBe((51 - drawnRows) * sheetRowHeight);
     expect(labelled(root, 'Lote A: Canchán, 250 sacos')).not.toHaveLength(0);
     // Scrolling moves the window.
     await act(async () => { grid.props.onScroll({ nativeEvent: { contentOffset: { y: 40 * sheetRowHeight } } }); });
@@ -107,13 +107,15 @@ describe('grid of sacks', () => {
     expect(handlers.onSelectVariety).toHaveBeenCalledTimes(1);
   });
 
-  it('shows the net weight in the cell and corrects gross and tare from the capture bar', async () => {
-    const root = await render({ sacks: cells(7) });
+  it('shows the gross weight in the cell and corrects it in place with the tare of the capture bar', async () => {
+    const root = await render({ sacks: cells(7).map((sack) => ({ ...sack, grossDisplay: '51' })) });
+    // CL-ST20: the cell shows the gross weight as typed, like the mockup.
+    expect(root.root.findAll((node) => typeof node.type === 'string' && node.props.children === '51')).toHaveLength(7);
     const cell = button(root, 'Saco 7: 50 kilos netos. Bruto 50 kg, tara 0 kg.');
     await act(async () => { cell.props.onPress(); });
     expect(handlers.onEditSack).toHaveBeenCalledWith('sack-7');
     await act(async () => { root.update(<Harness sacks={cells(7)} editingSequence={7} gross="51" tare="1" />); });
-    expect(root.root.findAll((node) => node.props.children === 'Corregir saco 7')).not.toHaveLength(0);
+    expect(root.root.findAll((node) => node.props.children === 'Guardar corrección del saco 7')).not.toHaveLength(0);
     await act(async () => { button(root, 'Guardar corrección').props.onPress(); });
     expect(handlers.onSaveSack).toHaveBeenCalledTimes(1);
     await act(async () => { button(root, 'Cancelar corrección').props.onPress(); });
@@ -136,15 +138,15 @@ describe('grid of sacks', () => {
 });
 
 describe('lots, freight and settlement on the same screen', () => {
-  it('recalculates provisional money for kilogram and sack bases and saves only when it is ready', async () => {
+  it('recalculates provisional money per kilogram and saves only when it is ready', async () => {
     const root = await render();
     expect(nextAction()).toMatchObject({ label: 'Guardar compra', disabled: true });
     expect(button(root, 'Guardar compra').props.disabled).toBe(true);
     await act(async () => { input(root, 'Precio por kilogramo, lote A (S/)').props.onChangeText('2.50'); });
     expect(labelled(root, 'Importe del lote A: S/ 125.00')).not.toHaveLength(0);
     expect(labelled(root, 'Total neto a liquidar: S/ 125.00')).not.toHaveLength(0);
-    await act(async () => { button(root, 'Lote A: por saco').props.onPress(); });
-    expect(labelled(root, 'Total neto a liquidar: S/ 2.50')).not.toHaveLength(0);
+    // CL-ST28: as in the sale, the price is per kilogram only.
+    expect(root.root.findAll((node) => node.props.accessibilityLabel === 'Lote A: por saco')).toHaveLength(0);
     expect(handlers.onSave).not.toHaveBeenCalled();
     expect(nextAction().disabled).toBe(false);
     await act(async () => { button(root, 'Guardar compra').props.onPress(); });
@@ -164,9 +166,13 @@ describe('lots, freight and settlement on the same screen', () => {
 
   it('edits credit installments in the summary through the same draft', async () => {
     const root = await render();
-    await act(async () => { control(root, 'Crédito').props.onPress(); });
+    await act(async () => { button(root, 'Crédito').props.onPress(); });
     await act(async () => { control(root, 'Agregar cuota').props.onPress(); });
-    await act(async () => { control(root, 'Vence el').props.onChangeText('2030-03-01'); control(root, 'Importe (S/)').props.onChangeText('125'); });
+    // CL-ST29: the due date comes from the calendar, the amount is typed.
+    await act(async () => { button(root, 'Vencimiento cuota 1: sin fecha').props.onPress(); });
+    const calendar = root.root.findAll((node) => node.props.title === 'Vencimiento de la cuota' && typeof node.props.onPick === 'function')[0]!;
+    await act(async () => { calendar.props.onPick('2030-03-01'); });
+    await act(async () => { control(root, 'Importe (S/)').props.onChangeText('125'); });
     expect(root.root.findByType(PurchaseSheet).props.values).toMatchObject({ paymentMode: 'credit', installments: [{ id: 'installment', dueOn: '2030-03-01', amount: '125' }] });
     expect(root.root.findAll((node) => node.props.children === 'Saldo a crédito, en cuotas')).not.toHaveLength(0);
   });
@@ -185,10 +191,10 @@ describe('lots, freight and settlement on the same screen', () => {
 
   it('locks the provider data once the reception exists and offers Limpiar registro only before', async () => {
     const root = await render();
-    expect(control(root, 'Nombre del proveedor').props.disabled).toBe(true);
+    expect(control(root, 'Nombre del proveedor / productor').props.disabled).toBe(true);
     expect(control(root, 'Conductor').props.editable).toBe(false);
     await act(async () => { root.update(<Harness detailsLocked={false} />); });
-    expect(control(root, 'Nombre del proveedor').props.disabled).toBe(false);
+    expect(control(root, 'Nombre del proveedor / productor').props.disabled).toBe(false);
     await act(async () => { button(root, 'Limpiar registro').props.onPress(); button(root, 'Añadir lote o variedad').props.onPress(); });
     expect(handlers.onClear).toHaveBeenCalledTimes(1);
     expect(handlers.onAddVariety).toHaveBeenCalledTimes(1);
@@ -197,8 +203,72 @@ describe('lots, freight and settlement on the same screen', () => {
     expect(root.root.findAll((node) => node.props.accessibilityLabel === 'Añadir lote o variedad')).toHaveLength(0);
   });
 
+  it('keeps «Añadir lote» visible but disabled after the first sack and lists varieties without sacks (CL-ST21)', async () => {
+    const root = await render({ onAddVariety: undefined, addVarietyLockedReason: 'Las variedades se eligen antes del primer saco.' });
+    const add = root.root.findAll((node) => node.props.accessibilityLabel === 'Añadir lote o variedad' && typeof node.props.disabled === 'boolean')[0]!;
+    expect(add.props.disabled).toBe(true);
+    expect(add.props.accessibilityHint).toBe('Las variedades se eligen antes del primer saco.');
+    expect(labelled(root, 'Peruanita: sin sacos, S/ 0.00')).not.toHaveLength(0);
+    expect(labelled(root, 'Canchán: sin sacos, S/ 0.00')).toHaveLength(0);
+  });
+
   it('never draws a scale, an automatic load or the removal of a sack', async () => {
     const root = await render({ sacks: cells(10) });
     expect(JSON.stringify(root.toJSON())).not.toMatch(/balanza|báscula|carga rápida|quitar lote|eliminar/i);
+  });
+});
+
+describe('improvements brought from the sale (CL-ST27)', () => {
+  it('shows ten cells per lot: the weighed ones, the next one and the empty ones', async () => {
+    const root = await render({ sacks: cells(3) });
+    const blanks = root.root.findAll((node) => typeof node.type === 'string' && /^sack-blank-\d+$/.test(String(node.props.testID ?? '')));
+    expect(drawnSacks(root)).toHaveLength(3);
+    expect(labelled(root, 'Peso bruto (kg)')).not.toHaveLength(0);
+    expect(blanks).toHaveLength(6);
+    expect(root.root.findAll((node) => typeof node.type === 'string' && [node.props.children].flat().join('') === '3 de 10 sacos registrados')).not.toHaveLength(0);
+    // With the weighing closed there is nothing left to type.
+    const closed = await render({ sacks: cells(3), weighingLocked: true });
+    expect(closed.root.findAll((node) => /^sack-blank-\d+$/.test(String(node.props.testID ?? '')))).toHaveLength(0);
+  });
+
+  it('saves the sack with the keyboard key and asks it not to suggest', async () => {
+    const root = await render({ gross: '50' });
+    const cell = input(root, 'Peso bruto (kg)');
+    expect(cell.props).toMatchObject({ returnKeyType: 'next', submitBehavior: 'submit', autoCorrect: false, autoComplete: 'off' });
+    await act(async () => { cell.props.onSubmitEditing(); });
+    expect(handlers.onSaveSack).toHaveBeenCalledTimes(1);
+  });
+
+  it('picks the date in a calendar before the reception exists and offers the quick load', async () => {
+    const onQuickLoad = jest.fn();
+    const root = await render({ detailsLocked: false, onQuickLoad });
+    await act(async () => { button(root, 'Fecha de acopio: 2026-11-09').props.onPress(); });
+    await act(async () => { button(root, '10 de noviembre de 2026').props.onPress(); });
+    expect(handlers.onChangeDetail).toHaveBeenCalledWith('date', '2026-11-10');
+    await act(async () => { button(root, 'Carga rápida de 10 sacos a 50 kilos').props.onPress(); });
+    expect(onQuickLoad).toHaveBeenCalledTimes(1);
+    // Once the reception exists the date is fixed.
+    const locked = await render({ onQuickLoad });
+    expect(button(locked, 'Fecha de acopio: 2026-11-09').props.disabled).toBe(true);
+  });
+});
+
+describe('× in every cell, as in the sale (CL-ST28)', () => {
+  it('clears the weight being typed, voids a weighed sack and keeps only digits', async () => {
+    const onVoidSack = jest.fn();
+    const root = await render({ gross: '45', onVoidSack });
+    await act(async () => { button(root, 'Limpiar el peso del saco 2').props.onPress(); });
+    expect(handlers.onGrossChange).toHaveBeenCalledWith('');
+    await act(async () => { button(root, 'Anular saco 1').props.onPress(); });
+    expect(onVoidSack).toHaveBeenCalledWith('sack-1');
+    await act(async () => { input(root, 'Peso bruto (kg)').props.onChangeText('4+5'); });
+    expect(handlers.onGrossChange).toHaveBeenLastCalledWith('45');
+    // Empty cells draw the × too.
+    expect(root.root.findAll((node) => typeof node.type === 'string' && /^sack-blank-\d+$/.test(String(node.props.testID ?? ''))).length).toBe(8);
+  });
+
+  it('keeps the × of a weighed sack visible but disabled without connection', async () => {
+    const root = await render();
+    expect(button(root, 'Anular saco 1').props.disabled).toBe(true);
   });
 });

@@ -11,6 +11,7 @@ let mockDistinctIds=false;let mockNextId=0;
 
 const mockPreventRemove=jest.fn();const mockBack=jest.fn();const mockDispatch=jest.fn();
 const mockEnqueue=jest.fn();const mockSendQueued=jest.fn();const mockReplace=jest.fn();const mockInvalidate=jest.fn();
+jest.mock('expo-symbols',()=>({SymbolView:()=>null}));
 jest.mock('@/features/sync/sync-queue-provider',()=>({useSyncQueue:()=>({enqueue:mockEnqueue,sendQueued:mockSendQueued})}));
 const mockSession={accessToken:'test-token',expiresAt:'2099-01-01T00:00:00Z',user:{businessId:'11111111-1111-4111-8111-111111111111',userId:'22222222-2222-4222-8222-222222222222',username:'Mayorista de prueba',role:'wholesaler',expiresAt:'2099-01-01T00:00:00Z'}};
 jest.mock('@/features/auth/session/session-provider',()=>({useSession:()=>({session:mockSession,invalidateSession:mockInvalidate})}));
@@ -109,12 +110,12 @@ it('saves the complete sale before sending and loads the confirmed central detai
   expect(mockEnqueue).toHaveBeenCalledWith(expect.objectContaining({id:'sale-operation',method:'POST',path:'/sales',type:'sale.create',body:expect.objectContaining({buyerId:'buyer',clientOperationId:'sale-operation',lines:[{varietyId:'variety',qualityId:null,originId:null,priceBasis:'kilogram',sacks:1,unitPriceCents:250,weightKg:'10'}]})}));
   expect(mockEnqueue.mock.invocationCallOrder[0]).toBeLessThan(mockSendQueued.mock.invocationCallOrder[0]);
   expect(getSale).toHaveBeenCalledWith('test-token','central-sale');expect(mockReplace).not.toHaveBeenCalled();
-  expect(root.root.findAll(node=>node.props.title==='Venta confirmada')).not.toHaveLength(0);
+  expect(root.root.findAll(node=>(node.props.title==='Venta confirmada'||node.props.testID==='confirmation-card'))).not.toHaveLength(0);
   // Spec 011 (RQ-ST04): one card with the receipt to share and the next sale.
   expect(root.root.findAll(node=>node.props.testID==='confirmation-card')).not.toHaveLength(0);
-  await act(async()=>root.root.findAll(node=>node.props.label==='Compartir comprobante')[0].props.onPress());
+  await act(async()=>root.root.findAll(node=>node.props.accessibilityLabel==='Compartir comprobante'&&node.props.onPress)[0].props.onPress());
   expect(shareReceipt).toHaveBeenCalledWith('sales',expect.any(String),'test-token',expect.any(Function));
-  await act(async()=>root.root.findAll(node=>node.props.label==='Nueva venta')[0].props.onPress());
+  await act(async()=>root.root.findAll(node=>node.props.accessibilityLabel==='Nueva venta'&&node.props.onPress)[0].props.onPress());
   expect(mockReplace).toHaveBeenCalledWith(expect.objectContaining({pathname:'/sale-flow'}));
   await act(async()=>{root.unmount()});
 });
@@ -143,16 +144,16 @@ it('opens recovery when the saved sale is not centrally confirmed',async()=>{
   mockSendQueued.mockResolvedValueOnce({id:'sale-operation',status:'pending'});
   const root=await prepare();await confirm(root);
   expect(mockReplace).toHaveBeenCalledWith('/sync-queue');expect(getSale).not.toHaveBeenCalled();
-  expect(root.root.findAll(node=>node.props.title==='Venta confirmada')).toHaveLength(0);
+  expect(root.root.findAll(node=>(node.props.title==='Venta confirmada'||node.props.testID==='confirmation-card'))).toHaveLength(0);
   await act(async()=>{root.unmount()});
 });
 it('retries only the detail lookup after a centrally confirmed sale',async()=>{
   jest.mocked(getSale).mockRejectedValueOnce(new Error('Detail unavailable'));
   const root=await prepare();await confirm(root);
-  expect(root.root.findAll(node=>node.props.title==='Venta confirmada')).not.toHaveLength(0);
+  expect(root.root.findAll(node=>(node.props.title==='Venta confirmada'||node.props.testID==='confirmation-card'))).not.toHaveLength(0);
   await act(async()=>{root.root.findAll(node=>node.props.label==='Reintentar consulta del detalle')[0].props.onPress();await Promise.resolve()});
   expect(mockEnqueue).toHaveBeenCalledTimes(1);expect(mockSendQueued).toHaveBeenCalledTimes(1);
-  expect(getSale).toHaveBeenCalledTimes(2);expect(root.root.findAll(node=>node.props.label==='Total')).not.toHaveLength(0);
+  expect(getSale).toHaveBeenCalledTimes(2);expect(root.root.findAll(node=>node.props.testID==='confirmation-card')).not.toHaveLength(0);
   await act(async()=>{root.unmount()});
 });
 
@@ -192,6 +193,6 @@ it('disables editing and prevents route changes while durable saving is in progr
   const callback=mockPreventRemove.mock.calls.at(-1)![1];await act(async()=>{callback({data:{action:{type:'GO_BACK'}}})});
   expect(root.root.findAll(node=>node.props.title==='¿Salir de la venta?')[0].props.visible).toBe(false);expect(mockDispatch).not.toHaveBeenCalled();
   await act(async()=>{finish();await Promise.resolve();await Promise.resolve()});
-  expect(root.root.findAll(node=>node.props.title==='Venta confirmada')).not.toHaveLength(0);
+  expect(root.root.findAll(node=>(node.props.title==='Venta confirmada'||node.props.testID==='confirmation-card'))).not.toHaveLength(0);
   expect(mockPreventRemove.mock.calls.at(-1)![0]).toBe(false);await act(async()=>{root.unmount()});
 });

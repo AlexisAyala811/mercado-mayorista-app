@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Image } from "expo-image";
 import { useFonts } from "expo-font";
-import { SymbolView } from "expo-symbols";
+import { SymbolView } from "@/ui/components/symbol";
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 
 import {
@@ -52,6 +52,8 @@ export function LoginScreen({
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const [keepStation, setKeepStation] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
+  const [forgotOpen, setForgotOpen] = useState(false);
   const [errors, setErrors] = useState<LoginValidationErrors>({});
   const isWide = width >= 1000;
   const [fontsLoaded, fontError] = useFonts({
@@ -126,16 +128,16 @@ export function LoginScreen({
               </View>
               <View>
                 <Text style={styles.brandName}>MAÑAY</Text>
-                <Text style={styles.brandKind}>GESTIÓN COMERCIAL</Text>
+                <Text style={styles.brandKind}>CENTRO DE ACOPIO</Text>
               </View>
             </View>
             <Text
-              accessibilityLabel="MAÑAY. Gestión comercial de papa"
+              accessibilityLabel="MAÑAY. Gestión comercial de papa y tubérculos"
               accessibilityRole="header"
               style={[styles.brandTitle, !isWide && styles.brandTitleCompact]}
             >
               Gestión comercial{"\n"}
-              <Text style={styles.brandTitleAccent}>de papa</Text>
+              <Text style={styles.brandTitleAccent}>de papa y tubérculos</Text>
             </Text>
             <Text
               style={[
@@ -146,6 +148,12 @@ export function LoginScreen({
               Registra el pesaje por saco, las compras, las ventas y los
               comprobantes del mercado desde un solo lugar.
             </Text>
+            {/* The two tiles of the mockup, with what the app really does
+                (no scale is connected, CL-ST12). */}
+            <View style={styles.facts}>
+              <BrandFact icon="scale" label="PESAJE POR SACO" value="Kilos enteros y tara" />
+              <BrandFact icon="inventory_2" label="VARIEDADES" value="Por lote y calidad" />
+            </View>
           </View>
 
           <View style={[styles.roleNotice, !isWide && styles.roleNoticeCompact]}>
@@ -169,9 +177,12 @@ export function LoginScreen({
           ]}
         >
           <View style={[styles.formCard, !isWide && styles.formCardCompact]}>
-            <View style={styles.securePill}>
-              <SymbolView fallback={null} name={{ android: "lock", ios: "lock", web: "lock" }} size={16} tintColor={accent.emerald.ink} />
-              <Text style={styles.securePillText}>Acceso seguro</Text>
+            <View style={styles.cardTop}>
+              <View style={styles.securePill}>
+                <SymbolView fallback={null} name={{ android: "lock", ios: "lock", web: "lock" }} size={14} tintColor={accent.emerald.ink} />
+                <Text style={styles.securePillText}>Acceso seguro</Text>
+              </View>
+              <Text style={styles.stationId}>TABLET MAÑAY</Text>
             </View>
             <Text accessibilityRole="header" style={styles.formTitle}>
               Iniciar sesión
@@ -184,9 +195,9 @@ export function LoginScreen({
               <View style={styles.operators}>
                 <View style={styles.operatorsHeader}>
                   <Text accessibilityRole="header" style={styles.operatorsTitle}>
-                    SELECCIÓN RÁPIDA DE OPERADOR
+                    SELECCIÓN RÁPIDA DE OPERADOR:
                   </Text>
-                  <Text style={styles.operatorsHint}>Tocar para llenar el usuario</Text>
+                  <Text style={styles.operatorsHint}>Tocar para autollenar</Text>
                 </View>
                 <View style={styles.operatorsGrid}>
                   {operators.map((operator) => {
@@ -234,7 +245,8 @@ export function LoginScreen({
                 autoComplete="username"
                 autoCorrect={false}
                 error={errors.username}
-                label="Usuario"
+                label="Usuario de terminal"
+                leadingIcon="badge"
                 onBlur={() => {
                   setErrors((current) => ({
                     ...current,
@@ -249,7 +261,7 @@ export function LoginScreen({
                       username: undefined,
                     }));
                 }}
-                placeholder="Ingresa tu usuario"
+                placeholder="Tu usuario asignado"
                 returnKeyType="next"
                 textContentType="username"
                 value={username}
@@ -259,7 +271,13 @@ export function LoginScreen({
                 autoCapitalize="none"
                 autoComplete="current-password"
                 error={errors.password}
-                label="Contraseña"
+                label="Contraseña de acceso"
+                labelAction={
+                  <Pressable accessibilityRole="button" accessibilityState={{ expanded: forgotOpen }} hitSlop={8} onPress={() => setForgotOpen((current) => !current)}>
+                    <Text style={styles.forgot}>¿Olvidó su clave?</Text>
+                  </Pressable>
+                }
+                leadingIcon="key"
                 onBlur={() => {
                   setErrors((current) => ({
                     ...current,
@@ -275,12 +293,22 @@ export function LoginScreen({
                     }));
                 }}
                 onSubmitEditing={handleSubmit}
-                placeholder="Ingresa tu contraseña"
+                placeholder="Tu contraseña"
                 returnKeyType="done"
-                secureTextEntry
+                secureTextEntry={!showPassword}
+                trailing={
+                  <Pressable accessibilityLabel={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"} accessibilityRole="button" onPress={() => setShowPassword((current) => !current)} style={styles.eye}>
+                    <SymbolView fallback={null} name={{ android: showPassword ? "visibility" : "visibility_off", ios: "eye", web: "visibility" }} size={22} tintColor="#64748B" />
+                  </Pressable>
+                }
                 textContentType="password"
                 value={password}
               />
+              {forgotOpen ? (
+                <Text accessibilityLiveRegion="polite" style={styles.forgotHelp}>
+                  Pide al Mayorista que restablezca tu clave en Usuarios y reemplazos.
+                </Text>
+              ) : null}
               <Pressable
                 accessibilityHint="Recuerda tu usuario en la selección rápida de esta tablet."
                 accessibilityLabel="Mantener estación activa"
@@ -316,14 +344,17 @@ export function LoginScreen({
                 displayLabel={isSubmitting ? "Ingresando…" : "Iniciar sesión en MAÑAY"}
                 label={isSubmitting ? "Ingresando…" : "Iniciar sesión"}
                 onPress={handleSubmit}
+                trailingVisual={<SymbolView fallback={null} name={{ android: "login", ios: "arrow.right.square", web: "login" }} size={20} tintColor="#FFFFFF" />}
               />
-              <Text style={styles.securityMessage}>
-                Tu información se valida de forma segura.
-              </Text>
+              <View style={styles.securityRow}>
+                <SymbolView fallback={null} name={{ android: "verified_user", ios: "checkmark.shield", web: "verified_user" }} size={15} tintColor={accent.emerald.ink} />
+                <Text style={styles.securityMessage}>
+                  Conexión segura • Sincronización con el servidor
+                </Text>
+              </View>
               <View style={styles.divider} />
               <Text style={styles.helpMessage}>
-                Si no puedes acceder, comunícate con la persona responsable del
-                mercado.
+                ¿No puedes ingresar? Comunícate con el Mayorista.
               </Text>
             </View>
           </View>
@@ -333,8 +364,34 @@ export function LoginScreen({
   );
 }
 
+function BrandFact({ icon, label, value }: { icon: "scale" | "inventory_2"; label: string; value: string }) {
+  return (
+    <View accessible accessibilityLabel={`${label}: ${value}`} style={styles.fact}>
+      <View style={styles.factIcon}>
+        <SymbolView fallback={null} name={{ android: icon, ios: "square", web: icon }} size={18} tintColor="#6EE7B7" />
+      </View>
+      <View style={styles.factCopy}>
+        <Text numberOfLines={1} style={styles.factLabel}>{label}</Text>
+        <Text numberOfLines={1} style={styles.factValue}>{value}</Text>
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   screen: { flexGrow: 1 },
+  facts: { flexDirection: "row", gap: 10, marginTop: 24 },
+  fact: { alignItems: "center", backgroundColor: "rgba(27,59,44,0.7)", borderColor: "rgba(16,185,129,0.2)", borderRadius: 12, borderWidth: 1, flex: 1, flexDirection: "row", gap: 10, padding: 10 },
+  factIcon: { alignItems: "center", backgroundColor: "rgba(16,185,129,0.15)", borderRadius: 8, height: 32, justifyContent: "center", width: 32 },
+  factCopy: { flex: 1, minWidth: 0 },
+  factLabel: { color: "#6EE7B7", fontFamily: "LoginInterBold", fontSize: 10, letterSpacing: 0.5, lineHeight: 14 },
+  factValue: { color: "#FFFFFF", fontFamily: "LoginInterSemiBold", fontSize: 13, lineHeight: 18 },
+  cardTop: { alignItems: "center", flexDirection: "row", justifyContent: "space-between", marginBottom: 10 },
+  stationId: { backgroundColor: "#F1F5F9", borderRadius: 6, color: "#64748B", fontFamily: "monospace", fontSize: 11, paddingHorizontal: 8, paddingVertical: 3 },
+  forgot: { color: accent.emerald.ink, fontFamily: "LoginInterSemiBold", fontSize: 13 },
+  forgotHelp: { color: color.textSecondary, fontFamily: "LoginInterRegular", fontSize: 13, lineHeight: 18 },
+  eye: { alignItems: "center", height: 44, justifyContent: "center", width: 44 },
+  securityRow: { alignItems: "center", flexDirection: "row", gap: 6, justifyContent: "center", marginTop: 10 },
   shell: { width: "100%", backgroundColor: color.surface },
   shellWide: { flexDirection: "row" },
   shellCompact: { flexDirection: "column" },
@@ -389,19 +446,19 @@ const styles = StyleSheet.create({
   brandTitle: {
     color: color.textOnBrand,
     fontFamily: "LoginInterBold",
-    fontSize: 40,
-    lineHeight: 46,
-    marginTop: 28,
+    fontSize: 34,
+    lineHeight: 40,
+    marginTop: 24,
   },
   brandTitleCompact: { fontSize: 26, lineHeight: 32, marginTop: 16 },
   brandTitleAccent: { color: "#34D399" },
   brandDescription: {
     color: "#D1E4D9",
     fontFamily: "LoginInterRegular",
-    fontSize: 17,
-    lineHeight: 26,
+    fontSize: 15,
+    lineHeight: 23,
     maxWidth: 380,
-    marginTop: 20,
+    marginTop: 16,
   },
   brandDescriptionCompact: { fontSize: 16, lineHeight: 24, marginTop: 12 },
   roleNotice: {
@@ -411,7 +468,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     flexDirection: "row",
     gap: spacing.md,
-    marginTop: 40,
+    marginTop: 24,
     maxWidth: 400,
     padding: spacing.md,
   },
@@ -441,16 +498,16 @@ const styles = StyleSheet.create({
   formPanelWide: { flex: 1, paddingHorizontal: 40, paddingVertical: 16 },
   formPanelCompact: { padding: 24 },
   formCard: {
-    width: 500,
+    width: 440,
     backgroundColor: color.surfaceRaised,
     borderColor: "#E2E8F0",
     borderRadius: 24,
     borderWidth: 1,
-    paddingHorizontal: 40,
-    paddingVertical: 28,
+    paddingHorizontal: 32,
+    paddingVertical: 24,
     boxShadow: "0px 16px 50px rgba(10,35,24,0.12)",
   },
-  formCardCompact: { width: "100%", maxWidth: 500, padding: 24 },
+  formCardCompact: { width: "100%", maxWidth: 440, padding: 24 },
   securePill: {
     alignItems: "center",
     alignSelf: "flex-start",
@@ -460,9 +517,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     flexDirection: "row",
     gap: 6,
-    marginBottom: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
   },
   securePillText: {
     color: accent.emerald.pillInk,
@@ -473,15 +529,15 @@ const styles = StyleSheet.create({
   formTitle: {
     color: "#0C2317",
     fontFamily: "LoginInterBold",
-    fontSize: 28,
-    lineHeight: 34,
+    fontSize: 26,
+    lineHeight: 32,
   },
   formDescription: {
     color: color.textSecondary,
     fontFamily: "LoginInterRegular",
-    fontSize: 15,
-    lineHeight: 21,
-    marginTop: 6,
+    fontSize: 14,
+    lineHeight: 20,
+    marginTop: 4,
   },
   operators: {
     backgroundColor: "#F8FAFC",
@@ -489,8 +545,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     borderWidth: 1,
     gap: spacing.sm,
-    marginTop: 14,
-    padding: 12,
+    marginTop: 12,
+    padding: 10,
   },
   operatorsHeader: {
     alignItems: "center",
@@ -512,7 +568,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 16,
   },
-  operatorsGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  operatorsGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   operator: {
     alignItems: "center",
     backgroundColor: color.surfaceRaised,
@@ -522,6 +578,7 @@ const styles = StyleSheet.create({
     flexBasis: "45%",
     flexDirection: "row",
     flexGrow: 1,
+    maxWidth: "49%",
     gap: 10,
     minHeight: 52,
     paddingHorizontal: 12,
@@ -555,27 +612,27 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 17,
   },
-  fields: { marginTop: 14, gap: 12 },
-  keep: { alignItems: "center", flexDirection: "row", gap: 10, minHeight: 44 },
+  fields: { marginTop: 12, gap: 10 },
+  keep: { alignItems: "center", flexDirection: "row", gap: 10, minHeight: 40 },
   checkbox: {
     alignItems: "center",
     backgroundColor: color.surfaceRaised,
     borderColor: "#94A3B8",
-    borderRadius: 6,
+    borderRadius: 4,
     borderWidth: 2,
-    height: 24,
+    height: 20,
     justifyContent: "center",
-    width: 24,
+    width: 20,
   },
   checkboxChecked: { backgroundColor: accent.emerald.ink, borderColor: accent.emerald.ink },
-  checkboxMark: { color: color.textOnBrand, fontSize: 15, fontWeight: "800", lineHeight: 18 },
+  checkboxMark: { color: color.textOnBrand, fontSize: 13, fontWeight: "800", lineHeight: 16 },
   keepText: {
     color: color.textSecondary,
     fontFamily: "LoginInterSemiBold",
     fontSize: 15,
     lineHeight: 20,
   },
-  formActions: { marginTop: 10 },
+  formActions: { marginTop: 6 },
   loginError: {
     backgroundColor: color.dangerMuted,
     borderRadius: radius.md,
@@ -592,15 +649,14 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 17,
     textAlign: "center",
-    marginTop: 14,
   },
-  divider: { backgroundColor: "#F1F5F9", height: 1, marginTop: 16 },
+  divider: { backgroundColor: "#F1F5F9", height: 1, marginTop: 12 },
   helpMessage: {
     color: color.textSecondary,
     fontFamily: "LoginInterRegular",
     fontSize: 13,
-    lineHeight: 20,
+    lineHeight: 18,
     textAlign: "center",
-    marginTop: 14,
+    marginTop: 10,
   },
 });

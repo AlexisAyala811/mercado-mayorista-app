@@ -105,9 +105,9 @@ it("distinguishes no matches from empty catalogs and preserves edits while searc
   await act(async () => {
     root.root
       .findAll(
-        (node) => node.props.accessibilityLabel === "Limpiar búsqueda de logística",
+        (node) => node.props.accessibilityLabel === "Buscar transportista o vehículo",
       )[0]
-      .props.onPress();
+      .props.onChangeText("");
   });
   expect(
     root.root.findAll(
@@ -126,7 +126,7 @@ it('distinguishes a failed initial load from empty collections and retries witho
   (globalThis as typeof globalThis & {IS_REACT_ACT_ENVIRONMENT:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
   jest.mocked(listCarriers).mockRejectedValueOnce(new Error('network')).mockResolvedValue({items:[],total:0,offset:0,limit:100});
   jest.mocked(listVehicles).mockResolvedValue({items:[],total:0,offset:0,limit:100});
-  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});
+  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});await act(async()=>{root.root.findAll(node=>node.props.testID==='logistics-new'&&typeof node.props.onPress==='function')[0]?.props.onPress();});
   expect(JSON.stringify(root.toJSON())).toContain('Logística no disponible');expect(JSON.stringify(root.toJSON())).not.toContain('Sin registros de logística');
   await act(async()=>{root.root.findAll(node=>node.props.actionLabel==='Reintentar logística')[0]!.props.onAction();});
   expect(JSON.stringify(root.toJSON())).toContain('Sin registros de logística');expect(JSON.stringify(root.toJSON())).not.toContain('Logística no disponible');
@@ -137,7 +137,7 @@ it('drops a previous session response after remounting the workspace',async()=>{
   let resolveOld!:(value:Awaited<ReturnType<typeof listCarriers>>)=>void;
   jest.mocked(listCarriers).mockReturnValueOnce(new Promise(done=>{resolveOld=done;})).mockResolvedValue({items:[],total:0,offset:0,limit:100});
   jest.mocked(listVehicles).mockResolvedValue({items:[],total:0,offset:0,limit:100});
-  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});
+  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});await act(async()=>{root.root.findAll(node=>node.props.testID==='logistics-new'&&typeof node.props.onPress==='function')[0]?.props.onPress();});
   mockSession.accessToken='new-session';await act(async()=>root.update(<LogisticsScreen/>));
   await act(async()=>resolveOld({items:[{id:'old',name:'Previous session carrier',phone:null}],total:1,offset:0,limit:100}));
   expect(JSON.stringify(root.toJSON())).not.toContain('Previous session carrier');expect(JSON.stringify(root.toJSON())).toContain('Sin registros de logística');
@@ -148,7 +148,7 @@ it('invalidates an expired session without presenting failed catalogs as empty',
   (globalThis as typeof globalThis & {IS_REACT_ACT_ENVIRONMENT:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
   mockInvalidate.mockClear();jest.mocked(listCarriers).mockRejectedValueOnce(new ApiError('expired',401));
   jest.mocked(listVehicles).mockResolvedValue({items:[],total:0,offset:0,limit:100});
-  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});
+  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});await act(async()=>{root.root.findAll(node=>node.props.testID==='logistics-new'&&typeof node.props.onPress==='function')[0]?.props.onPress();});
   expect(mockInvalidate).toHaveBeenCalledTimes(1);expect(JSON.stringify(root.toJSON())).not.toContain('Sin registros de logística');
   await act(async()=>root.unmount());
 });
@@ -156,7 +156,7 @@ it('invalidates an expired session without presenting failed catalogs as empty',
 it('protects modified fields on return, preserves cancellation, and discards only after confirmation',async()=>{
   (globalThis as typeof globalThis & {IS_REACT_ACT_ENVIRONMENT:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
   mockBack.mockClear();jest.mocked(listCarriers).mockResolvedValue({items:[],total:0,offset:0,limit:100});jest.mocked(listVehicles).mockResolvedValue({items:[],total:0,offset:0,limit:100});
-  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});
+  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});await act(async()=>{root.root.findAll(node=>node.props.testID==='logistics-new'&&typeof node.props.onPress==='function')[0]?.props.onPress();});
   const field=()=>root.root.findAll(node=>node.props.label==='Nombre')[0]!;
   const dialog=()=>root.root.findAll(node=>node.props.title==='¿Salir de logística?')[0]!;
   const back=()=>barButton(root,'Atrás');
@@ -169,7 +169,7 @@ it('protects modified fields on return, preserves cancellation, and discards onl
 it('returns without warning when the forms remain unchanged',async()=>{
   (globalThis as typeof globalThis & {IS_REACT_ACT_ENVIRONMENT:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
   mockBack.mockClear();jest.mocked(listCarriers).mockResolvedValue({items:[],total:0,offset:0,limit:100});jest.mocked(listVehicles).mockResolvedValue({items:[],total:0,offset:0,limit:100});
-  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});
+  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});await act(async()=>{root.root.findAll(node=>node.props.testID==='logistics-new'&&typeof node.props.onPress==='function')[0]?.props.onPress();});
   await act(async()=>barButton(root,'Atrás').props.onPress());expect(mockBack).toHaveBeenCalledTimes(1);
   expect(root.root.findAll(node=>node.props.title==='¿Salir de logística?')[0]!.props.visible).toBe(false);await act(async()=>root.unmount());
 });
@@ -178,17 +178,17 @@ it('confirms replacing a modified carrier and keeps the separate vehicle draft',
   (globalThis as typeof globalThis & {IS_REACT_ACT_ENVIRONMENT:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
   jest.mocked(createCarrier).mockClear();jest.mocked(updateCarrier).mockClear();
   jest.mocked(listCarriers).mockResolvedValue({items:[{id:'c1',name:'Primer transportista',phone:null},{id:'c2',name:'Segundo transportista',phone:null}],total:2,limit:100,offset:0});jest.mocked(listVehicles).mockResolvedValue({items:[],total:0,limit:100,offset:0});
-  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});
+  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});await act(async()=>{root.root.findAll(node=>node.props.testID==='logistics-new'&&typeof node.props.onPress==='function')[0]?.props.onPress();});
   const field=(label:string)=>root.root.findAll(node=>node.props.label===label)[0]!;
   const dialog=()=>root.root.findAll(node=>node.props.title==='¿Reemplazar la edición?')[0]!;
-  await act(async()=>root.root.findAll(node=>String(node.type)==='test-control'&&node.props.label==='Editar')[0]!.props.onPress());
+  await act(async()=>root.root.findAll(node=>String(node.props.accessibilityLabel).startsWith('Ver registro de')&&typeof node.props.onPress==='function')[0]!.props.onPress());
   await act(async()=>{field('Nombre').props.onChangeText('Mi edición');field('Placa').props.onChangeText('QA-OTRO');});
   const previousEditor=field('Nombre');
-  await act(async()=>root.root.findAll(node=>String(node.type)==='test-control'&&node.props.label==='Editar')[0]!.props.onPress());expect(dialog().props.visible).toBe(false);expect(field('Nombre').props.value).toBe('Mi edición');
+  await act(async()=>root.root.findAll(node=>String(node.props.accessibilityLabel).startsWith('Ver registro de')&&typeof node.props.onPress==='function')[0]!.props.onPress());expect(dialog().props.visible).toBe(false);expect(field('Nombre').props.value).toBe('Mi edición');
   expect(field('Nombre')).not.toBe(previousEditor);expect(field('Nombre').props.autoFocus).toBe(true);expect(field('Placa').props.value).toBe('QA-OTRO');
-  await act(async()=>root.root.findAll(node=>String(node.type)==='test-control'&&node.props.label==='Editar')[1]!.props.onPress());expect(dialog().props.visible).toBe(true);expect(field('Nombre').props.editable).toBe(false);
+  await act(async()=>root.root.findAll(node=>String(node.props.accessibilityLabel).startsWith('Ver registro de')&&typeof node.props.onPress==='function')[1]!.props.onPress());expect(dialog().props.visible).toBe(true);expect(field('Nombre').props.editable).toBe(false);
   await act(async()=>dialog().props.onCancel());expect(field('Nombre').props.value).toBe('Mi edición');
-  await act(async()=>root.root.findAll(node=>String(node.type)==='test-control'&&node.props.label==='Editar')[1]!.props.onPress());await act(async()=>dialog().props.onConfirm());
+  await act(async()=>root.root.findAll(node=>String(node.props.accessibilityLabel).startsWith('Ver registro de')&&typeof node.props.onPress==='function')[1]!.props.onPress());await act(async()=>dialog().props.onConfirm());
   expect(field('Nombre').props.value).toBe('Segundo transportista');expect(field('Placa').props.value).toBe('QA-OTRO');expect(createCarrier).not.toHaveBeenCalled();expect(updateCarrier).not.toHaveBeenCalled();
   await act(async()=>root.unmount());
 });
@@ -198,18 +198,16 @@ it('keeps both drafts through pagination and search, and discards them only afte
   const carriers=Array.from({length:5},(_,i)=>({id:`c${i}`,name:`Transportista ${i}`,phone:null}));
   jest.mocked(listCarriers).mockResolvedValue({items:carriers,total:5,limit:100,offset:0});
   jest.mocked(listVehicles).mockResolvedValue({items:[],total:0,limit:100,offset:0});
-  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});
+  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});await act(async()=>{root.root.findAll(node=>node.props.testID==='logistics-new'&&typeof node.props.onPress==='function')[0]?.props.onPress();});
   const field=(label:string)=>root.root.findAll(node=>node.props.label===label)[0]!;
   const action=(label:string)=>root.root.findAll(node=>node.props.accessibilityLabel===label)[0]!;
   const dialog=()=>root.root.findAll(node=>node.props.title==='¿Abrir un registro nuevo?')[0]!;
   await act(async()=>{field('Nombre').props.onChangeText('Nombre pendiente');field('Placa').props.onChangeText('ABC-PEND');});
-  await act(async()=>action('Página siguiente de Carros').props.onPress());
-  expect(action('Editar transportista Transportista 4')).toBeDefined();
-  expect(action('Página siguiente de Carros').props.disabled).toBe(true);
+  expect(action('Ver registro de transportista Transportista 4')).toBeDefined();
   await act(async()=>action('Buscar transportista o vehículo').props.onChangeText('Transportista 0'));
-  expect(action('Editar transportista Transportista 0')).toBeDefined();
+  expect(action('Ver registro de transportista Transportista 0')).toBeDefined();
   expect(field('Nombre').props.value).toBe('Nombre pendiente');expect(field('Placa').props.value).toBe('ABC-PEND');
-  await act(async()=>action('Limpiar búsqueda de logística').props.onPress());
+  await act(async()=>action('Buscar transportista o vehículo').props.onChangeText(''));
   await act(async()=>action('Nuevo transportista o vehículo').props.onPress());
   expect(dialog().props.visible).toBe(true);
   await act(async()=>dialog().props.onCancel());expect(field('Nombre').props.value).toBe('Nombre pendiente');expect(field('Placa').props.value).toBe('ABC-PEND');
@@ -229,7 +227,7 @@ it('reports a confirmed save separately from failed refresh and retries only the
   jest.mocked(listCarriers).mockResolvedValueOnce(page).mockRejectedValueOnce(new Error('Lectura interrumpida')).mockResolvedValue(page);
   jest.mocked(listVehicles).mockResolvedValue({items:[],total:0,limit:100,offset:0});
   jest.mocked(createCarrier).mockResolvedValue({id:'new',name:'Nuevo',phone:null});
-  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});
+  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});await act(async()=>{root.root.findAll(node=>node.props.testID==='logistics-new'&&typeof node.props.onPress==='function')[0]?.props.onPress();});
   const field=()=>root.root.findAll(node=>node.props.label==='Nombre')[0]!;
   await act(async()=>field().props.onChangeText('Nuevo'));
   await act(async()=>root.root.findAll(node=>node.props.label==='Registrar transportista')[0]!.props.onPress());
@@ -248,10 +246,10 @@ it('keeps failed deactivation open and preserves the other draft after a success
   jest.mocked(listCarriers).mockResolvedValue({items:[carrier],total:1,limit:100,offset:0});
   jest.mocked(listVehicles).mockResolvedValue({items:[],total:0,limit:100,offset:0});
   jest.mocked(deactivateCarrier).mockRejectedValueOnce(new Error('Servidor no disponible')).mockResolvedValueOnce(undefined);
-  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});
+  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});await act(async()=>{root.root.findAll(node=>node.props.testID==='logistics-new'&&typeof node.props.onPress==='function')[0]?.props.onPress();});
   const field=(label:string)=>root.root.findAll(node=>node.props.label===label)[0]!;
   const dialog=()=>root.root.findAll(node=>node.props.title==='¿Desactivar registro?')[0]!;
-  await act(async()=>root.root.findAll(node=>node.props.accessibilityLabel==='Editar transportista Transportista activo')[0]!.props.onPress());
+  await act(async()=>root.root.findAll(node=>node.props.accessibilityLabel==='Ver registro de transportista Transportista activo')[0]!.props.onPress());
   await act(async()=>field('Placa').props.onChangeText('BORRADOR'));
   await act(async()=>root.root.findAll(node=>node.props.label==='Desactivar transportista')[0]!.props.onPress());
   await act(async()=>dialog().props.onConfirm());
@@ -260,5 +258,25 @@ it('keeps failed deactivation open and preserves the other draft after a success
   await act(async()=>dialog().props.onConfirm());
   expect(deactivateCarrier).toHaveBeenCalledTimes(2);expect(dialog().props.visible).toBe(false);
   expect(field('Nombre').props.value).toBe('');expect(field('Placa').props.value).toBe('BORRADOR');
+  await act(async()=>root.unmount());
+});
+
+// Spec 011, CL-ST35: filter chips with counts and «Ver Registro» as in the mockup.
+it('filters the cards by vehicle or carrier only and opens the record with «Ver Registro»',async()=>{
+  jest.clearAllMocks();
+  const carriers=[{id:'c1',name:'Con camión',phone:'999'},{id:'c2',name:'Sin camión',phone:null}];
+  jest.mocked(listCarriers).mockResolvedValue({items:carriers,total:2,limit:100,offset:0});
+  jest.mocked(listVehicles).mockResolvedValue({items:[{id:'v1',plate:'ABC-789',carrierId:'c1',description:'Volvo FMX 440',carrier:carriers[0]!}],total:1,limit:100,offset:0});
+  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});
+  const byLabel=(label:string)=>root.root.findAll(node=>node.props.accessibilityLabel===label&&typeof node.props.onPress==='function')[0]!;
+  expect(byLabel('Todos los Carros (2)')).toBeDefined();
+  expect(byLabel('Con vehículo (1)')).toBeDefined();
+  expect(byLabel('Solo transportista (1)')).toBeDefined();
+  await act(async()=>byLabel('Solo transportista (1)').props.onPress());
+  expect(root.root.findAll(node=>node.props.accessibilityLabel==='Ver registro de vehículo ABC-789')).toHaveLength(0);
+  expect(byLabel('Ver registro de transportista Sin camión')).toBeDefined();
+  await act(async()=>byLabel('Con vehículo (1)').props.onPress());
+  await act(async()=>byLabel('Ver registro de vehículo ABC-789').props.onPress());
+  expect(root.root.findAll(node=>node.props.label==='Desactivar vehículo').length).toBeGreaterThan(0);
   await act(async()=>root.unmount());
 });

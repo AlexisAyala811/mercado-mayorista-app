@@ -130,6 +130,7 @@ it('downloads the consulted period and invalidates sharing after changing operat
   try {
     expect(root.root.findAll(node => node.props.title === 'Reportes disponibles')).toHaveLength(0);
     await act(async () => { control(root, 'Generar').props.onPress(); });
+    await act(async () => { control(root, 'Exportar PDF o Excel').props.onPress(); });
     await act(async () => { control(root, 'Descargar Resumen del período (PDF)').props.onPress(); });
     expect(shareReport).toHaveBeenCalledWith(expect.objectContaining({ operation: 'purchase' }), 'summary', 'test-token', expect.any(Function));
     expect(canContinue()).toBe(true);
@@ -151,15 +152,15 @@ it('switches report operation without keeping the previous summary or mixing glo
   const root = await open();
   try {
     await act(async () => { control(root, 'Generar').props.onPress(); });
-    expect(control(root, 'Total de compras').props.value).toBe('S/ 123.45');
+    expect(control(root, 'Total inversión en compras').props.value).toBe('S/ 123.45');
     expect(control(root, 'Saldo pendiente del período').props.value).toBe('S/ 60.00');
     expect(control(root, 'Por pagar').props.value).toBe('S/ 70.00');
     await act(async () => { control(root, 'Venta').props.onPress(); });
-    expect(root.root.findAll(node => node.props.label === 'Total de compras')).toHaveLength(0);
+    expect(root.root.findAll(node => node.props.label === 'Total inversión en compras')).toHaveLength(0);
     expect(control(root, 'Venta').props.accessibilityState.selected).toBe(true);
     await act(async () => { control(root, 'Generar').props.onPress(); });
     expect(operationOverview).toHaveBeenLastCalledWith('test-token', 'sale', expect.any(String), expect.any(String));
-    expect(control(root, 'Total de ventas').props.value).toBe('S/ 123.45');
+    expect(control(root, 'Facturación total').props.value).toBe('S/ 123.45');
   } finally { await act(async () => { root.unmount(); }); }
 });
 
@@ -171,7 +172,7 @@ it('ignores a delayed overview after switching operation', async () => {
     await act(async () => { control(root, 'Generar').props.onPress(); });
     await act(async () => { control(root, 'Venta').props.onPress(); });
     await act(async () => { resolve({ operation: 'purchase', period: { from: '2026-10-01', to: '2026-10-17' }, operationCount: '1', totalAmountCents: '99999', sacks: '1', weightKg: '1', currentBalanceCents: '0', openAccountCount: '0', returnCount: '0', returnAmountCents: '0', generatedAt: '2026-10-17T23:00:00Z', balanceScope: 'current-for-period-operations', returnsScope: 'confirmed-in-period' }); });
-    expect(root.root.findAll(node => node.props.label === 'Total de compras')).toHaveLength(0);
+    expect(root.root.findAll(node => node.props.label === 'Total inversión en compras')).toHaveLength(0);
     expect(root.root.findAll(node => node.props.label === 'Por pagar')).toHaveLength(0);
   } finally { await act(async () => { root.unmount(); }); }
 });
@@ -336,7 +337,7 @@ it('does not mention returns in the sales summary even when the server reports t
   try {
     await act(async () => { control(root, 'Venta').props.onPress(); });
     await act(async () => { control(root, 'Generar').props.onPress(); });
-    expect(control(root, 'Total de ventas').props.value).toBe('S/ 123.45');
+    expect(control(root, 'Facturación total').props.value).toBe('S/ 123.45');
     const texts = root.root.findAll(node => typeof node.type === 'string' || typeof node.props.children === 'string')
       .map(node => [node.props.children].flat().join(''));
     expect(texts.some(text => /devoluci/i.test(text))).toBe(false);
@@ -350,10 +351,27 @@ it('queries the current period on opening and again after switching operation', 
   await act(async () => { root = create(<ReportsScreen />); });
   await act(async () => { await Promise.resolve(); });
   expect(operationOverview).toHaveBeenCalledWith('test-token', 'purchase', expect.any(String), expect.any(String));
-  expect(root.root.findAll(node => node.props.label === 'Total de compras')[0]!.props.value).toBe('S/ 123.45');
-  expect(root.root.findAll(node => node.props.label === 'Precio promedio')[0]!.props.value).toBe('S/ 3.98 / kg');
+  expect(root.root.findAll(node => node.props.label === 'Total inversión en compras')[0]!.props.value).toBe('S/ 123.45');
+  expect(root.root.findAll(node => node.props.label === 'Precio prom. ponderado')[0]!.props.value).toBe('S/ 3.98 / kg');
   await act(async () => { root.root.findAll(node => node.props.label === 'Venta')[0]!.props.onPress(); });
   await act(async () => { await Promise.resolve(); });
   expect(operationOverview).toHaveBeenLastCalledWith('test-token', 'sale', expect.any(String), expect.any(String));
+  await act(async () => { root.unmount(); });
+});
+
+// Spec 011, CL-ST33: the sales report shows the four indicators of the mockup.
+it('shows facturación, cobrado, saldo por cobrar and volumen despachado for sales with the collection effectiveness', async () => {
+  let root!: ReactTestRenderer;
+  await act(async () => { root = create(<ReportsScreen />); });
+  await act(async () => { await Promise.resolve(); });
+  await act(async () => { root.root.findAll(node => node.props.label === 'Venta')[0]!.props.onPress(); });
+  await act(async () => { await Promise.resolve(); });
+  const value = (label: string) => root.root.findAll(node => node.props.label === label)[0]!.props.value;
+  expect(value('Facturación total')).toBe('S/ 123.45');
+  expect(root.root.findAll(node => node.props.label === 'Cobrado / en caja')).not.toHaveLength(0);
+  expect(root.root.findAll(node => node.props.label === 'Saldo por cobrar')).not.toHaveLength(0);
+  expect(root.root.findAll(node => node.props.label === 'Volumen despachado')).not.toHaveLength(0);
+  expect(root.root.findAll(node => node.props.label === 'Precio prom. ponderado')).toHaveLength(0);
+  expect(root.root.findAll(node => typeof node.type === 'string' && node.props.testID === 'collection-effectiveness')).toHaveLength(1);
   await act(async () => { root.unmount(); });
 });

@@ -26,7 +26,7 @@ it('opens on Compra with its six cards and switches to the six of Venta', async 
   expect(cards(root).map(module => module.title)).toEqual(['Anote', 'Ver compras', 'Carros', 'Deudas', 'Analítica', 'Reportes']);
   await act(async () => { tabs(root)[1]!.props.onPress(); });
   expect(tabs(root).map(tab => tab.props.accessibilityState.selected)).toEqual([false, true]);
-  expect(cards(root).map(module => module.title)).toEqual(['Anote de venta', 'Ver ventas', 'Carros', 'Cobranzas', 'Analítica', 'Reportes']);
+  expect(cards(root).map(module => module.title)).toEqual(['Anote', 'Ver ventas', 'Carros', 'Cobranzas', 'Analítica', 'Reportes']);
   expect(titles('purchase')).toHaveLength(6);
   expect(titles('sale')).toHaveLength(6);
   await act(async () => root.unmount());
@@ -61,7 +61,7 @@ it('gives the Encargado only Anote, Anote de venta and Pendientes de envío', as
   let root!: ReactTestRenderer; await act(async () => { root = create(screen(modulesFor('assistant'))); });
   expect(cards(root).map(module => module.title)).toEqual(['Anote']);
   await act(async () => { tabs(root)[1]!.props.onPress(); });
-  expect(cards(root).map(module => module.title)).toEqual(['Anote de venta']);
+  expect(cards(root).map(module => module.title)).toEqual(['Anote']);
   expect(more(root).map(node => node.props.accessibilityLabel)).toEqual(['Pendientes de envío']);
   await act(async () => root.unmount());
 });
@@ -69,7 +69,7 @@ it('gives the Encargado only Anote, Anote de venta and Pendientes de envío', as
 it('keeps logout available and presents an empty state without modules', async () => {
   let root!: ReactTestRenderer; await act(async () => { root = create(screen([])); });
   expect(root.root.findAll(node => node.props.title === 'Sin módulos disponibles')).not.toHaveLength(0);
-  await act(async () => { root.root.findAll(node => node.props.label === 'Cerrar sesión')[0]!.props.onPress(); });
+  await act(async () => { root.root.findAll(node => node.props.accessibilityLabel === 'Cerrar sesión' && typeof node.props.onPress === 'function')[0]!.props.onPress(); });
   expect(logout).toHaveBeenCalledTimes(1); expect(openModule).not.toHaveBeenCalled();
   await act(async () => root.unmount());
 });

@@ -50,11 +50,11 @@ it("connects the visible recovery action to session removal and blocks button an
   });
   await act(async () => {
     root.root
-      .find((node) => node.props.label === "Usuario" && node.props.onChangeText)
+      .find((node) => node.props.label === "Usuario de terminal" && node.props.onChangeText)
       .props.onChangeText("Test");
     root.root
       .find(
-        (node) => node.props.label === "Contraseña" && node.props.onChangeText,
+        (node) => node.props.label === "Contraseña de acceso" && node.props.onChangeText,
       )
       .props.onChangeText("test-only");
   });
@@ -67,7 +67,7 @@ it("connects the visible recovery action to session removal and blocks button an
     root.root
       .find(
         (node) =>
-          node.props.label === "Contraseña" && node.props.onSubmitEditing,
+          node.props.label === "Contraseña de acceso" && node.props.onSubmitEditing,
       )
       .props.onSubmitEditing();
   });

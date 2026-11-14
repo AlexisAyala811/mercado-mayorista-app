@@ -1,4 +1,5 @@
-import { Stack, usePathname } from "expo-router";
+import { Stack, usePathname, useRouter, type Href } from "expo-router";
+import { useMemo } from "react";
 import { useInitialPurchaseDraftSession } from "@/features/reception/use-initial-purchase-draft-session";
 import { StatusBar } from "expo-status-bar";
 
@@ -7,7 +8,7 @@ import {
   useSession,
 } from "@/features/auth/session/session-provider";
 import { SyncQueueProvider } from "@/features/sync/sync-queue-provider";
-import { SyncStatusBanner } from "@/features/sync/sync-status-banner";
+import { useSyncStatus } from "@/features/sync/use-sync-status";
 import { Modal, View } from "react-native";
 import { AppScreen, FeedbackState, LoadingState } from "@/ui/components";
 import { AppChromeProvider } from "@/ui/navigation/app-chrome";
@@ -19,7 +20,6 @@ export default function RootLayout() {
       <SyncQueueProvider>
         <StatusBar style="dark" />
         <View style={{ flex: 1 }}>
-          <SyncStatusBanner />
           <RootNavigator />
         </View>
       </SyncQueueProvider>
@@ -36,7 +36,16 @@ export function RootNavigator() {
     session,
   } = useSession();
   const pathname = usePathname();
+  const router = useRouter();
   useInitialPurchaseDraftSession();
+  // Spec 011 (CL-ST18): the state of the queue goes in the Stitch header.
+  const sync = useSyncStatus();
+  const connection = useMemo(
+    () => (sync ? { ...sync, onPress: () => router.push("/sync-queue" as Href) } : null),
+    // The text fields stand for the whole state.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [sync?.tone, sync?.title, sync?.detail, sync?.accessibilityLabel, router],
+  );
   if (isBootstrapping) {
     return (
       <AppScreen
@@ -63,10 +72,14 @@ export function RootNavigator() {
       </AppScreen>
     );
   }
-  // Spec 011 (RQ-ST02): the bottom bar on every screen after sign-in except the menu.
-  const showBottomNav = Boolean(session) && pathname !== "/home" && pathname !== "/";
+  // Spec 011 (RQ-ST02, CL-ST18): the Stitch dock on every screen after sign-in, the menu included.
+  const showBottomNav = Boolean(session) && pathname !== "/";
   return (
-    <AppChromeProvider username={session?.user?.username ?? null}>
+    <AppChromeProvider
+      connection={connection}
+      role={session ? (session.user.role === "wholesaler" ? "Mayorista" : "Encargado con reemplazo vigente") : null}
+      username={session?.user?.username ?? null}
+    >
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Protected guard={!session}>
           <Stack.Screen name="index" />
@@ -92,7 +105,7 @@ export function RootNavigator() {
           <Stack.Screen name="audit" />
         </Stack.Protected>
       </Stack>
-      {showBottomNav ? <BottomNav /> : null}
+      {showBottomNav ? <BottomNav onMenu={pathname === "/home"} /> : null}
       <Modal
         visible={
           Boolean(session) && (isRevalidating || Boolean(bootstrapError))

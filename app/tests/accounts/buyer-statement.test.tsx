@@ -46,9 +46,9 @@ async function render() {
 it('previews totals, sales and overdue installments from the server', async () => {
   const root = await render();
   expect(getBuyerStatement).toHaveBeenCalledWith('test-token', 'buyer-id');
-  expect(host(root, (p) => p.label === 'Saldo pendiente')[0]!.props.value).toBe('S/ 1500.00');
+  expect(host(root, (p) => p.label === 'Saldo pendiente')[0]!.props.value).toBe('S/ 1,500.00');
   expect(host(root, (p) => p.label === 'Vencido')[0]!.props.value).toBe('S/ 500.00');
-  expect(host(root, (p) => p.label === 'Próximo vencimiento')[0]!.props.value).toBe('2026-11-20 · S/ 1000.00');
+  expect(host(root, (p) => p.label === 'Próximo vencimiento')[0]!.props.value).toBe('2026-11-20 · S/ 1,000.00');
   expect(host(root, (p) => p.title === 'Venta V-0042 · 2026-10-01')).toHaveLength(1);
   expect(host(root, (p) => p.accessibilityLabel === 'Cuota vencida')).toHaveLength(1);
   await act(async () => root.unmount());

@@ -41,11 +41,25 @@ it('reads the series once on opening and says when there are no prices, never in
   let root!: ReactTestRenderer;
   await act(async () => { root = create(<PriceBoard token="t" />); });
   expect(analyticsSeries).toHaveBeenCalledTimes(1);
-  expect(texts(root)).toEqual(expect.arrayContaining(['Pizarra de precios', 'Canchán', 'S/ 1.95 / kg', 'Venta por semana']));
+  // CL-ST18: indicators, quote cards and the weekly evolution of the Stitch board.
+  expect(texts(root)).toEqual(expect.arrayContaining(['Pizarra de precios', 'PRECIO DE VENTA CANCHÁN', 'COTIZACIONES POR VARIEDAD', 'Canchán', 'Compra pactada', 'Venta pactada', 'Diferencia venta − compra', 'Evolución de precio (1 semana)', '1.95']));
+  expect(texts(root).some((text) => /margen|sugerida/i.test(text))).toBe(false);
   expect(texts(root).some((text) => /sugerido: S\//.test(text))).toBe(false);
   await act(async () => root.unmount());
   jest.mocked(analyticsSeries).mockResolvedValue({ points: [] } as never);
   await act(async () => { root = create(<PriceBoard token="t" />); });
   expect(texts(root)).toContain('Sin compras ni ventas confirmadas en las últimas 8 semanas.');
   await act(async () => root.unmount());
+});
+
+it('computes the difference of agreed prices, the trend and the weekly volume with integers', () => {
+  const { priceDifference, priceTrend, latestWeekVolume, largestDifference } = jest.requireActual('@/domain/analytics/price-board-summary');
+  const [canchan, yungay] = priceBoard([point('purchase', 'Canchán', '2026-11-02', '1.45'), point('sale', 'Canchán', '2026-11-02', '1.9550'), point('purchase', 'Yungay', '2026-11-02', '1.10'), point('sale', 'Yungay', '2026-11-02', '1.20')]);
+  expect(priceDifference(canchan)).toEqual({ display: '+S/ 0.51', value: 5050n });
+  expect(priceDifference({ purchase: canchan!.purchase, sale: null })).toBeNull();
+  expect(largestDifference([canchan, yungay]).card.varietyName).toBe('Canchán');
+  expect([priceTrend('+2,6 %').label, priceTrend('−1,0 %').label, priceTrend(null).label]).toEqual(['ALZA (+2,6%)', 'BAJA (−1,0%)', 'SIN COMPARACIÓN']);
+  const volume = latestWeekVolume([point('sale', 'Canchán', '2026-10-26', '1.80'), point('sale', 'Canchán', '2026-11-02', '1.95'), point('purchase', 'Yungay', '2026-11-02', '1.10')]);
+  expect(volume).toMatchObject({ sacks: 2, total: '100 kg', weekStart: '2026-11-02' });
+  expect(volume.byVariety('canchán')).toBe('50 kg');
 });

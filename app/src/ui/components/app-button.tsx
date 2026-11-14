@@ -1,17 +1,21 @@
 import { useVisualStyles, type VisualPalette } from "@/ui/visual-theme";
 import { Pressable, StyleSheet, Text, type PressableProps } from "react-native";
 
-import { color as brandColor, radius, spacing, typography } from "@/ui/tokens";
+import { color as brandColor } from "@/ui/tokens";
 import type { ReactNode } from 'react';
 import { reportVisual } from '@/ui/report-tokens';
 
 type AppButtonProps = Omit<PressableProps, "children" | "style"> & {
   label: string;
   tone?: "primary" | "secondary";
-  appearance?: "default" | "login" | "report" | "report-operation" | "report-query" | "report-link";
+  appearance?: "default" | "login" | "report" | "report-operation" | "report-query" | "report-link" | "stitch-chip" | "stitch-action";
+  // Spec 011 (CL-ST18): colour of a Stitch chip or action.
+  stitchTone?: "neutral" | "success" | "danger" | "brand";
   expandLabel?: boolean;
   displayLabel?: string;
   leadingVisual?: ReactNode;
+  // Icon after the label (the «entrar» arrow of the Stitch login).
+  trailingVisual?: ReactNode;
   reportFontsLoaded?: boolean;
 };
 
@@ -25,9 +29,14 @@ export function AppButton({
   expandLabel = false,
   displayLabel,
   leadingVisual,
+  trailingVisual,
   reportFontsLoaded = false,
+  stitchTone = "neutral",
   ...props
 }: AppButtonProps) {
+  const checked = Boolean(accessibilityState?.checked || accessibilityState?.selected);
+  const stitch = appearance === "stitch-chip" || appearance === "stitch-action";
+  const palette = stitchPalette[stitchTone];
   const styles = useVisualStyles(createStyles);
   const isPrimary = tone === "primary";
 
@@ -49,13 +58,19 @@ export function AppButton({
         appearance === 'report-link' && [reportStyles.base, {backgroundColor:'transparent',borderWidth:0,paddingHorizontal:0}],
         appearance === "report-operation" && reportOperationStyles.base,
         appearance === "report-operation" && accessibilityState?.selected && reportOperationStyles.selected,
+        appearance === "stitch-chip" && [stitchStyles.chip, { backgroundColor: checked ? palette.solid : palette.soft, borderColor: checked ? palette.solid : palette.border }],
+        appearance === "stitch-action" && [stitchStyles.action, { backgroundColor: isPrimary ? palette.solid : "#FFFFFF", borderColor: isPrimary ? palette.solid : palette.border }],
         pressed && !disabled && styles.pressed,
         disabled && styles.disabled,
       ]}
       {...props}
     >
       {leadingVisual}
+      {/* Stitch chips and actions: one line with a minimum width estimated from
+          the text. Android measured some bold labels short (a count arriving
+          later or an uppercase label) and wrapped the last word out of sight. */}
       <Text
+        numberOfLines={stitch ? 1 : undefined}
         style={[
           styles.label,
           expandLabel && styles.expandedLabel,
@@ -67,13 +82,39 @@ export function AppButton({
           appearance === 'report-link' && [reportStyles.label,{fontSize:leadingVisual ? 15 : 13,fontWeight:'500'}, reportFontsLoaded && {fontFamily:'ReportInterMedium'}],
           appearance === "report-operation" && reportOperationStyles.label,
           appearance === "report-operation" && reportFontsLoaded && { fontFamily: 'ReportInterRegular' },
+          stitch && stitchStyles.label,
+          stitch && { minWidth: labelWidth(displayLabel ?? label) },
+          appearance === "stitch-chip" && { color: checked ? "#FFFFFF" : palette.ink },
+          appearance === "stitch-action" && { color: isPrimary ? "#FFFFFF" : palette.ink },
         ]}
       >
         {displayLabel ?? label}
       </Text>
+      {trailingVisual}
     </Pressable>
   );
 }
+
+// Width of a 13 px bold label, a little generous: upper case and digits are
+// wider than lower case.
+function labelWidth(text: string) {
+  let width = 0;
+  for (const char of text) width += char === " " ? 3.8 : /[A-ZÁÉÍÓÚÑ0-9+]/.test(char) ? 9.2 : /[il.,:;|!]/.test(char) ? 4 : 7.6;
+  return Math.ceil(width);
+}
+
+const stitchPalette = {
+  neutral: { solid: brandColor.brand, soft: '#FFFFFF', border: '#E2E8F0', ink: '#334155' },
+  brand: { solid: brandColor.brand, soft: '#FFFFFF', border: '#E2E8F0', ink: brandColor.brand },
+  success: { solid: '#047857', soft: '#ECFDF5', border: '#A7F3D0', ink: '#065F46' },
+  danger: { solid: '#DC2626', soft: '#FEF2F2', border: '#FECACA', ink: '#B91C1C' },
+} as const;
+
+const stitchStyles = StyleSheet.create({
+  chip: { borderRadius: 10, borderWidth: 1, minHeight: 44, paddingHorizontal: 14 },
+  action: { borderRadius: 12, borderWidth: 1, minHeight: 44, paddingHorizontal: 16 },
+  label: { flexShrink: 0, fontSize: 13, fontWeight: '700', lineHeight: 18 },
+});
 
 const reportOperationStyles = StyleSheet.create({
   base: { width: 313, maxWidth: '100%', minHeight: 67, borderRadius: 10, borderWidth: 0, backgroundColor: reportVisual.control, paddingVertical: 12 },
@@ -85,27 +126,27 @@ const createStyles = (color: VisualPalette) =>
   StyleSheet.create({
     base: {
       alignItems: "center",
-      borderRadius: radius.lg,
+      borderRadius: 12,
       justifyContent: "center",
-      minHeight: 52,
-      paddingHorizontal: spacing.lg,
+      minHeight: 48,
+      paddingHorizontal: 20,
     },
-    primary: { backgroundColor: color.brand },
+    primary: { backgroundColor: color.brand, boxShadow: '0px 2px 4px rgba(15,23,42,0.15)' },
     secondary: {
       backgroundColor: color.surfaceRaised,
-      borderColor: color.brand,
+      borderColor: '#CBD5E1',
       borderWidth: 1,
     },
     pressed: { opacity: 0.84 },
     disabled: { opacity: 0.46 },
-    label: { ...typography.bodySmall, fontWeight: "700" },
+    label: { fontSize: 15, fontWeight: "700", lineHeight: 21 },
     expandedLabel: { width: "100%", textAlign: "center" },
     primaryLabel: { color: color.textOnBrand },
-    secondaryLabel: { color: color.brand },
+    secondaryLabel: { color: '#1E293B' },
   });
 
 const loginStyles = StyleSheet.create({
-  base: { minHeight: 56 },
+  base: { flexDirection: 'row', gap: 10, minHeight: 52 },
   label: {
     fontFamily: "LoginInterSemiBold",
     fontSize: 17,

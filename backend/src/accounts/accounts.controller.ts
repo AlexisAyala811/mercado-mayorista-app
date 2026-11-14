@@ -21,7 +21,11 @@ import { Roles } from '../identity/http/roles.decorator.js';
 import { RolesGuard } from '../identity/http/roles.guard.js';
 import { SessionAuthGuard } from '../identity/http/session-auth.guard.js';
 import { AccountsService } from './accounts.service.js';
-import { RegisterPaymentDto, ReversePaymentDto } from './http/account.dto.js';
+import {
+  AccountSourceQueryDto,
+  RegisterPaymentDto,
+  ReversePaymentDto,
+} from './http/account.dto.js';
 
 @Controller('accounts')
 @ApiTags('accounts')
@@ -40,6 +44,14 @@ export class AccountsController {
     @Query() page: PageQueryDto,
   ) {
     return this.accounts.list(identity.businessId, page);
+  }
+
+  @Get('by-source')
+  bySource(
+    @CurrentIdentity() identity: SessionIdentity,
+    @Query() source: AccountSourceQueryDto,
+  ) {
+    return this.accounts.findBySource(identity.businessId, source);
   }
 
   @Get('cash/movements')

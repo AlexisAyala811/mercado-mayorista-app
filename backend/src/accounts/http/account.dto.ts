@@ -1,4 +1,5 @@
 import {
+  IsIn,
   IsInt,
   IsString,
   IsUUID,
@@ -9,6 +10,14 @@ import {
 } from 'class-validator';
 
 import { Trim } from '../../common/validation/trim.decorator.js';
+
+export class AccountSourceQueryDto {
+  @IsIn(['purchase-settlement', 'sale'])
+  sourceType!: 'purchase-settlement' | 'sale';
+
+  @IsUUID()
+  sourceId!: string;
+}
 
 export class RegisterPaymentDto {
   @IsUUID()

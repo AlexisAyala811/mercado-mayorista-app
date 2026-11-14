@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { SymbolView } from '@/ui/components/symbol';
 import { analyticsExclusionReason, analyticsFilterLabel, analyticsPointKey, weeklyComparisons, type AnalyticsFilterOption, type AnalyticsSeries, type PredictionReadiness } from '@/domain/analytics/analytics';
 import { formatLimaDateInput, formatLimaDateTime, isValidCivilDate } from '@/domain/shared/date';
 import { validateAnalyticsPeriod } from '@/domain/analytics/period';
@@ -27,8 +28,23 @@ export function AnalyticsScreen({ priceBoard = true }: { priceBoard?: boolean })
   return session ? <AnalyticsContent key={session.accessToken} priceBoard={priceBoard} /> : null;
 }
 
+// Tabs of the Stitch mockup (CL-ST31): the price board, the filtered analysis
+// and the estimates with their publications.
+type AnalyticsTab = 'board' | 'performance' | 'estimates';
+const analyticsTabs: { id: AnalyticsTab; label: string }[] = [
+  { id: 'board', label: 'Pizarra de precios' },
+  { id: 'performance', label: 'Rendimiento por variedad' },
+  { id: 'estimates', label: 'Estimaciones y publicaciones' },
+];
+function todayLabel() {
+  const [year, month, day] = formatLimaDateInput().split('-');
+  return `Hoy ${day} / ${month} / ${year}`;
+}
+
 function AnalyticsContent({ priceBoard }: { priceBoard: boolean }) {
   const { session, invalidateSession } = useSession();
+  const [tab, setTab] = useState<AnalyticsTab>('board');
+  const [boardRefresh, setBoardRefresh] = useState(0);
   const token = session?.accessToken ?? '';
   const [period, setPeriod] = useState(() => { const to = formatLimaDateInput(); return { from: `${to.slice(0, 8)}01`, to }; });
   const [varietyId, setVarietyId] = useState('');
@@ -100,9 +116,31 @@ function AnalyticsContent({ priceBoard }: { priceBoard: boolean }) {
   };
   const selectedDialog = dialogs[dialog ?? 'variety'];
   return <><AppScreen contentContainerStyle={styles.screen}>
-    <ScreenHeader eyebrow="ANALÍTICA" title="Tendencias comerciales" description="Precios pactados y cantidades de operaciones confirmadas, separados por semana y variedad." />
-    {priceBoard ? <PriceBoard token={token} /> : null}
-    <AppCard title="Periodo, variedad y participantes">
+    <ScreenHeader eyebrow="ANALÍTICA" subtitle="Pizarra de precios, volumen y tendencias de operaciones confirmadas" title="Analítica de mercado" />
+    {priceBoard ? (
+      <View style={styles.bar}>
+        <View accessibilityRole="tablist" style={styles.tabs}>
+          {analyticsTabs.map((item) => (
+            <Pressable accessibilityLabel={item.label} accessibilityRole="tab" accessibilityState={{ selected: tab === item.id }} key={item.id} onPress={() => setTab(item.id)} style={[styles.tab, tab === item.id && styles.tabSelected]}>
+              <Text style={[styles.tabText, tab === item.id && styles.tabTextSelected]}>{item.label}</Text>
+            </Pressable>
+          ))}
+        </View>
+        <View style={styles.barEnd}>
+          <View style={styles.dateChip}>
+            <SymbolView fallback={null} name={{ android: 'calendar_today', ios: 'calendar', web: 'calendar_today' }} size={18} tintColor="#1F3A2F" />
+            <Text style={styles.dateText}>{todayLabel()}</Text>
+          </View>
+          {tab === 'board' ? <Pressable accessibilityHint="Vuelve a leer los precios y el volumen" accessibilityLabel="Actualizar precios" accessibilityRole="button" onPress={() => setBoardRefresh((value) => value + 1)} style={({ pressed }) => [styles.refresh, pressed && styles.pressed]}>
+            <SymbolView fallback={null} name={{ android: 'sync', ios: 'arrow.clockwise', web: 'sync' }} size={20} tintColor="#6FFBBE" />
+            <Text style={styles.refreshText}>ACTUALIZAR PRECIOS</Text>
+          </Pressable> : null}
+        </View>
+      </View>
+    ) : null}
+    {priceBoard && tab === 'board' ? <PriceBoard refreshKey={boardRefresh} token={token} /> : null}
+    {!priceBoard || tab !== 'board' ? <>
+    {!priceBoard || tab === 'performance' ? <AppCard title="Periodo, variedad y participantes">
       <View style={styles.fields}>
         <View style={styles.field}><FormField editable={!busy} label="Desde" value={period.from} onChangeText={from => { clearResult(); setPeriod(current => ({ ...current, from })); }} /></View>
         <View style={styles.field}><FormField editable={!busy} label="Hasta" value={period.to} onChangeText={to => { clearResult(); setPeriod(current => ({ ...current, to })); }} /></View>
@@ -119,7 +157,9 @@ function AnalyticsContent({ priceBoard }: { priceBoard: boolean }) {
       {error ? <FeedbackState title="No se pudo consultar" message={error} tone="error" actionLabel="Reintentar análisis" onAction={() => void run()} /> : null}
       {busy ? <LoadingState label="Consultando operaciones confirmadas" /> : null}
       <AppButton disabled={busy} label={busy ? 'Consultando…' : 'Consultar análisis'} onPress={() => void run()} />
-    </AppCard>
+    </AppCard> : null}
+    {!priceBoard || tab === 'estimates' ? <>
+    {priceBoard ? <SelectionField disabled={busy || catalogError || catalogLoading} label="Variedad" placeholder="Elige la variedad a estimar" value={filterName(varieties, varietyId)} onPress={() => setDialog('variety')} /> : null}
     <AppCard title="Disponibilidad de estimaciones" description={`Corte ${period.to}. Se revisan 26 semanas completas, independientemente de la fecha Desde.`}>
       {!varietyId ? <Text style={styles.text}>Selecciona una variedad específica para revisar las condiciones de estimación.</Text> : null}
       <AppButton disabled={!varietyId || checking || busy} label={checking ? 'Revisando historial…' : 'Revisar disponibilidad predictiva'} onPress={() => void checkHistory()} tone="secondary" />
@@ -141,6 +181,8 @@ function AnalyticsContent({ priceBoard }: { priceBoard: boolean }) {
     {readiness?.dataSufficient && varietyId ? <EvaluationPanel key={`${token}:${varietyId}:${period.to}`} token={token} varietyId={varietyId} asOf={period.to} onSaved={()=>setHistoryRefresh(current=>current+1)} onPublished={()=>setPublicationRefresh(current=>current+1)}/> : null}
     {varietyId ? <PublicationHistory key={`publications:${token}:${varietyId}:${publicationRefresh}`} token={token} varietyId={varietyId}/> : null}
     {varietyId ? <EvaluationHistory key={`evaluations:${token}:${varietyId}:${historyRefresh}`} token={token} varietyId={varietyId} onPublished={()=>setPublicationRefresh(current=>current+1)}/> : null}
+    </> : null}
+    {!priceBoard || tab === 'performance' ? <>
     {!data && !busy && !error ? <EmptyState title="Selecciona un periodo" message="Consulta hasta 366 días para comparar precios y cantidades registrados." /> : null}
     {data ? <>
       <Text style={styles.meta}>Periodo {data.filters.from} – {data.filters.to} · {data.timeZone}{'\n'}Actualizado {formatLimaDateTime(data.generatedAt)}</Text>
@@ -157,6 +199,20 @@ function AnalyticsContent({ priceBoard }: { priceBoard: boolean }) {
       {data.excluded.length ? <FeedbackState title="Operaciones excluidas" message={`${data.excluded.length} registros no aportan cantidades válidas o quedaron totalmente compensados. No se rellenaron precios ni pesos.`} tone="warning" /> : null}
       {data.excluded.map((item, index) => <AppCard key={`${item.operationId}:${item.varietyId}:${index}`} title={`${item.operationType === 'purchase' ? 'Compra' : 'Venta'} excluida · ${item.varietyName}`} description={`Semana ${item.weekStart}`}><Text style={styles.text}>{analyticsExclusionReason(item.reason)}</Text><Text style={styles.meta}>Referencia de operación: {item.operationId}</Text></AppCard>)}
     </> : null}
+    </> : null}
+    </> : null}
   </AppScreen><ChoiceDialog visible={dialog !== null && !busy} title={selectedDialog.title} choices={[{ id: '', label: selectedDialog.all }, ...(dialog === 'quality' || dialog === 'origin' ? [{ id: 'unreported', label: 'No informada' }] : []), ...selectedDialog.options.map(item => ({ id: item.id, label: analyticsFilterLabel(item) }))]} selectedIds={[selectedDialog.selected]} onClose={() => setDialog(null)} onSelect={choice => { if (!dialog) return; clearResult(); selectedDialog.select(choice.id); setDialog(null); }} /></>;
 }
-const styles = StyleSheet.create({ screen: { gap: spacing.lg }, fields: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }, field: { flexGrow: 1, flexBasis: 220 }, text: { color: color.textPrimary, ...typography.body }, meta: { color: color.textSecondary, ...typography.bodySmall }, price: { color: color.textPrimary, ...typography.body, fontWeight: '700' } });
+const styles = StyleSheet.create({ screen: { gap: spacing.lg },
+  bar: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', gap: 12, justifyContent: 'space-between' },
+  tabs: { backgroundColor: '#EFF4FF', borderRadius: 12, flexDirection: 'row', flexWrap: 'wrap', gap: 4, padding: 6 },
+  tab: { alignItems: 'center', borderRadius: 8, justifyContent: 'center', minHeight: 44, paddingHorizontal: 16 },
+  tabSelected: { backgroundColor: '#1F3A2F' },
+  tabText: { color: '#424844', fontSize: 14, fontWeight: '600' },
+  tabTextSelected: { color: '#FFFFFF', fontWeight: '700' },
+  barEnd: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  dateChip: { alignItems: 'center', backgroundColor: '#E5EEFF', borderRadius: 8, flexDirection: 'row', gap: 8, minHeight: 44, paddingHorizontal: 14 },
+  dateText: { color: '#0B1C30', fontSize: 13, fontWeight: '700' },
+  refresh: { alignItems: 'center', backgroundColor: '#1F3A2F', borderRadius: 12, flexDirection: 'row', gap: 8, minHeight: 48, paddingHorizontal: 20 },
+  refreshText: { color: '#FFFFFF', fontSize: 13, fontWeight: '700', letterSpacing: 0.5 },
+  pressed: { opacity: 0.6 }, fields: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }, field: { flexGrow: 1, flexBasis: 220 }, text: { color: color.textPrimary, ...typography.body }, meta: { color: color.textSecondary, ...typography.bodySmall }, price: { color: color.textPrimary, ...typography.body, fontWeight: '700' } });
