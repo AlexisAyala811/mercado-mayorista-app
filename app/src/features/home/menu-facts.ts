@@ -10,9 +10,13 @@ import { purchaseHistorySummary, salesHistorySummary } from '@/services/api/hist
 // out, never shown stale.
 export type MenuFactsSource = {
   purchasesToday?: number;
+  purchasesTodayCents?: string;
   salesToday?: number;
+  salesTodayCents?: string;
   payableCents?: string;
+  payableCount?: number;
   receivableCents?: string;
+  receivableCount?: number;
   pendingOperations: number;
 };
 
@@ -22,12 +26,25 @@ export function menuFacts(source: MenuFactsSource): MenuFacts {
   const facts: MenuFacts = {
     'sync-queue': source.pendingOperations > 0 ? `${source.pendingOperations} en cola` : 'Sin pendientes',
   };
-  if (source.purchasesToday !== undefined) facts['purchase-history'] = `${source.purchasesToday} hoy`;
-  if (source.salesToday !== undefined) facts['sales-history'] = `${source.salesToday} hoy`;
+  if (source.purchasesTodayCents !== undefined) facts['purchase-history'] = `Hoy ${formatMoney(source.purchasesTodayCents)}`;
+  if (source.salesTodayCents !== undefined) facts['sales-history'] = `Hoy ${formatMoney(source.salesTodayCents)}`;
   if (source.payableCents !== undefined) facts.debts = `Por pagar ${formatMoney(source.payableCents)}`;
   if (source.receivableCents !== undefined) facts.collections = `Por cobrar ${formatMoney(source.receivableCents)}`;
   return facts;
 }
+
+// Spec 011 (RQ-ST11): the pill of each card, as in Stitch ("12 hoy",
+// "3 pendientes"), only from data the server gave.
+export function menuBadges(source: MenuFactsSource): MenuFacts {
+  const badges: MenuFacts = {};
+  if (source.purchasesToday !== undefined) badges['purchase-history'] = `${source.purchasesToday} hoy`;
+  if (source.salesToday !== undefined) badges['sales-history'] = `${source.salesToday} hoy`;
+  if (source.payableCount !== undefined) badges.debts = pendingLabel(source.payableCount);
+  if (source.receivableCount !== undefined) badges.collections = pendingLabel(source.receivableCount);
+  return badges;
+}
+
+const pendingLabel = (count: number) => (count === 1 ? '1 pendiente' : `${count} pendientes`);
 
 type Remote = Omit<MenuFactsSource, 'pendingOperations'>;
 
@@ -52,9 +69,13 @@ export function useMenuFacts(token: string | null, modules: readonly ModuleId[],
       if (current !== request.current) return;
       setRemote({
         payableCents: payable?.balanceCents,
+        payableCount: payable?.counts.debt,
         purchasesToday: purchasesToday ? purchasesToday.counts.all - purchasesToday.counts.voided : undefined,
+        purchasesTodayCents: purchasesToday?.totalCents,
         receivableCents: receivable?.balanceCents,
+        receivableCount: receivable?.counts.debt,
         salesToday: salesToday ? salesToday.counts.all - salesToday.counts.voided : undefined,
+        salesTodayCents: salesToday?.totalCents,
       });
     });
   }, [token, wanted]);
@@ -64,5 +85,6 @@ export function useMenuFacts(token: string | null, modules: readonly ModuleId[],
       request.current += 1;
     };
   }, [load]);
-  return { facts: menuFacts({ ...remote, pendingOperations }), reload: load };
+  const source = { ...remote, pendingOperations };
+  return { badges: menuBadges(source), facts: menuFacts(source), reload: load };
 }

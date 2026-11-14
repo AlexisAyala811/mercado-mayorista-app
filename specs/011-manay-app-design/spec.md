@@ -208,3 +208,24 @@ Las de la spec 011: 1280 × 800 y 2560 × 1600, 360 dp, texto al 200 %, contrast
 ### Fuera de alcance
 
 Selección rápida de operador, pesaje y liquidación en una sola pantalla y botón flotante en Carros (CL-ST03); gráficos de línea o dona (CL-ST05); serie diaria en Analítica (CL-ST06); impresión directa.
+
+## Igualdad con Stitch — 9 de noviembre de 2026
+
+**Estado:** especificada el 9 de noviembre de 2026; plan aprobado por el usuario el mismo día («Sí, apruebo»). **Origen:** pedido del usuario «el frontend hazlo igual a lo que te mande, igual al stich» y [aclaraciones CL-ST11–CL-ST17](../../docs/sdd/aclaraciones-convergencia-stitch-2026-11-07.md#igualdad-con-stitch--9-de-noviembre-de-2026).
+
+### Requisitos
+
+| ID | Requisito |
+| --- | --- |
+| RQ-ST10 | El menú tiene el interruptor Compra / Venta de Stitch con seis tarjetas por lado (número, ícono de color en su recuadro, insignia, título en mayúsculas, descripción y línea viva al pie). Lo que no cabe en las seis va en «Más opciones», con el permiso de cada rol (CL-ST15) |
+| RQ-ST11 | El acceso es igual a su maqueta, con selección rápida de los operadores que ya entraron en esta tablet y «Mantener estación activa» (CL-ST16); la contraseña se escribe siempre |
+| RQ-ST12 | La compra se registra en una sola pantalla como en Stitch: datos del proveedor arriba, pestañas por lote, cuadrícula de sacos de cinco columnas que admite 200 o más sacos, «Añadir 1 saco», subtotal por lote, tabla consolidada con precio por lote, flete, resumen de liquidación y «Guardar compra». Bruto y tara por saco en kilos enteros (CL-ST17). Se conservan la cola sin conexión, la idempotencia y la versión de la recepción |
+| RQ-ST13 | Venta, Ver compras, Ver ventas, Deudas, Cobranzas, Carros, Reportes de compras y de ventas, Analítica y Guardado tienen la disposición, tamaños, colores e íconos de su maqueta |
+| RQ-ST14 | No se muestran balanza, SUNAT, devoluciones ni la marca de Stitch (CL-ST12); donde la maqueta muestra un dato que la app no tiene, el lugar se ocupa con un dato real o se omite |
+
+### Criterios de aceptación
+
+- **Dado** el Mayorista en el menú, **cuando** toca «Venta» en el interruptor, **entonces** ve las seis tarjetas de venta y «Más opciones»; el Encargado ve solo las tarjetas que su rol permite.
+- **Dado** un operador que ya entró en la tablet, **cuando** abre el acceso, **entonces** lo ve en la selección rápida y al tocarlo se llena su usuario; sin «Mantener estación activa» deja de aparecer.
+- **Dado** una compra con 250 sacos en dos lotes, **cuando** el Encargado la registra en la pantalla única, **entonces** la cuadrícula responde, el subtotal y la tabla consolidada se actualizan y «Guardar compra» cierra el pesaje y liquida con la misma idempotencia que hoy.
+- **Dado** cualquier pantalla con maqueta, **cuando** se compara su captura en 1280 × 800 con la maqueta, **entonces** coinciden disposición, jerarquía, colores e íconos, salvo las diferencias de CL-ST12 y CL-ST14.

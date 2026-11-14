@@ -133,3 +133,36 @@ Cada fase pasa tipos, lint, pruebas, build y auditoría (backend o app), e2e cua
 | 8 de noviembre de 2026 | Los datos vivos del menú salen de los resúmenes de la fase B (`/purchases/history/summary`, `/sales/summary`) y de la cola local; no se usa `GET /accounts` | Una consulta por dato, ya filtrada en el servidor |
 | 9 de noviembre de 2026 | «Vencido» de Deudas y Cobranzas suma el saldo de las cuentas cuyo próximo vencimiento ya pasó, con las cuentas que la pantalla ya lee, y no consulta `reports/overdue-accounts` | Un dato menos que pedir; la etiqueta lo dice («Saldo de cuentas con un vencimiento pasado») |
 | 9 de noviembre de 2026 | Los totales de caja (entradas, salidas, neto) pasan dentro de la tarjeta «Movimientos de caja» | Stitch pone arriba los totales de la cuenta; los de caja siguen visibles y exactos |
+
+## Igualdad con Stitch — 9 de noviembre de 2026
+
+**Estado:** aprobado por el usuario el 9 de noviembre de 2026 («Sí, apruebo») · **Especificación:** [RQ-ST10–RQ-ST14](spec.md#igualdad-con-stitch--9-de-noviembre-de-2026)
+
+### Diseño
+
+| Pieza | Cambio |
+| --- | --- |
+| Medidas | Las maquetas son HTML con Tailwind (`code.html` de cada pantalla): se toman de ahí colores, radios, tamaños de letra y espaciados, y se agregan a `ui/tokens.ts` los que falten (verde esmeralda de las insignias, fondo `terra-surface`) con su prueba de contraste |
+| Menú | `features/home`: interruptor con dos lados; cada lado lista seis entradas de `menu-modules.ts` (Compra: Anote, Ver compras, Carros, Deudas, Analítica, Reportes; Venta: Anote de venta, Ver ventas, Carros, Cobranzas, Analítica, Reportes); tarjeta de Stitch con ícono a color por módulo; «Más opciones» con el resto |
+| Acceso | `features/auth`: operadores recientes en almacenamiento seguro del dispositivo (`expo-secure-store`, ya usado por la sesión); maqueta de dos paneles |
+| Compra | `features/reception`: nueva `PurchaseSheet` (pantalla única) sobre la lógica actual de `purchase-flow-screen` (crear recepción, añadir sacos, cerrar, liquidar). La cuadrícula es una `FlatList` con `numColumns={5}` para 200 o más sacos; al tocar una celda se editan bruto y tara. «Guardar compra» encola cierre y liquidación en orden, como hoy |
+| Venta | `sale-flow-screen` con la disposición de «Anote de venta»: datos del cliente, lotes con su peso y precio, tabla, flete y resumen |
+| Listas, cuentas, Carros, Reportes, Analítica | Ajuste de disposición y estilos a cada maqueta sobre los componentes de las fases C a E; Carros con botón flotante «+»; Reportes con indicadores con ícono, barras (sin librería, CL-ST05), tabla por variedad y principales proveedores o compradores; Analítica con pestañas, tarjetas de cotización por variedad (precio pactado de compra y venta y su diferencia) y barras de 7 días |
+
+### Fases
+
+| Fase | Contenido | Rama |
+| --- | --- | --- |
+| F | Menú, acceso y tokens | `feat/011-stitch-igual` |
+| G | Compra en una pantalla | `feat/011-stitch-compra` |
+| H | Venta, listas, cuentas, Carros, Reportes, Analítica y Guardado | `feat/011-stitch-pantallas` |
+
+Cada fase: tipos, lint, pruebas y comparación en el emulador de cada pantalla junto a su maqueta.
+
+### Riesgos
+
+| Riesgo | Mitigación |
+| --- | --- |
+| La pantalla única de compra rompe la recuperación sin conexión | Reusa los mismos pasos y la misma cola; pruebas actuales de recuperación y cola en verde |
+| 250 sacos en cuadrícula | `FlatList` virtualizada con alto de fila fijo; prueba con 250 sacos como en la fase 3 |
+| Lista de operadores expone usuarios | Solo los que ya entraron en esa tablet, guardados en el dispositivo (CL-ST16) |
