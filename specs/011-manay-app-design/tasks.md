@@ -61,9 +61,9 @@ T1101 → T1102 → T1103 → T1104 → T1105
 Especificación: [RQ-ST01–RQ-ST09](spec.md#convergencia-con-stitch--7-de-noviembre-de-2026) · Plan: [sección del 7 de noviembre](plan.md#convergencia-con-stitch--7-de-noviembre-de-2026)
 
 - [x] **T1160** Comparación con las 16 pantallas de Stitch y retiro del resto de devoluciones en Reportes (R1). *Verificación:* documento de comparación; prueba que falla con el código anterior y pasa con el nuevo. **Hecho:** [comparación con Stitch](../../docs/sdd/comparacion-stitch-manay-2026-11-07.md); `tests/reports/reports-without-inventory.test.tsx` («does not mention returns…») falla sin el cambio y pasa con él; 654 pruebas en 93 suites.
-- [ ] **T1161** Backend: `GET /purchases/history` y `/summary` con la regla CL-MD05. *Verificación:* pruebas unitarias y e2e (filtros, conteos, otro negocio, roles, 300 recepciones).
-- [ ] **T1162** Backend: datos de pago y resumen en `GET /sales`. *Verificación:* pruebas unitarias y e2e.
-- [ ] **T1163** Backend: `report=daily` en `/reports/rows`. *Verificación:* e2e con operaciones en tres días y cambio de día en hora de Lima.
+- [x] **T1161** Backend: `GET /purchases/history` y `/summary` con la regla CL-MD05. *Verificación:* pruebas unitarias y e2e (filtros, conteos, otro negocio, roles, 300 recepciones). **Hecho:** [verificación de la fase B](../../docs/sdd/verificacion-stitch-backend-2026-11-07.md), `test/stitch-history.e2e-spec.ts` en PostgreSQL portable.
+- [x] **T1162** Backend: datos de pago y resumen en `GET /sales`. *Verificación:* pruebas unitarias y e2e. **Hecho:** [verificación de la fase B](../../docs/sdd/verificacion-stitch-backend-2026-11-07.md), `test/stitch-history.e2e-spec.ts` en PostgreSQL portable.
+- [x] **T1163** Backend: `report=daily` en `/reports/rows`. *Verificación:* e2e con operaciones en tres días y cambio de día en hora de Lima. **Hecho:** [verificación de la fase B](../../docs/sdd/verificacion-stitch-backend-2026-11-07.md), `test/stitch-history.e2e-spec.ts` en PostgreSQL portable.
 - [ ] **T1164** App: cabecera y barra inferior en todas las pantallas autenticadas (B2, B3). *Verificación:* pruebas de navegación; capturas de las quince rutas a 1280 × 800 y 360 dp.
 - [ ] **T1165** App: menú con número, ícono y dato vivo (B1). *Verificación:* pruebas con y sin conexión; captura junto a Stitch.
 - [ ] **T1166** App: Ver compras y Ver ventas con lista, filtros con conteo, totales y «Abonar» (B5). *Verificación:* pruebas de pantalla; captura junto a Stitch.

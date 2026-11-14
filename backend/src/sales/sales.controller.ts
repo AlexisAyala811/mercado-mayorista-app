@@ -13,7 +13,10 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuditService } from '../audit/audit.service.js';
 import { auditForeignAccess } from '../audit/foreign-access.js';
 import { SaleEntity } from './entities/sale.entity.js';
-import { SalesHistoryQueryDto } from './http/sales-history-query.dto.js';
+import {
+  SalesHistoryFilterDto,
+  SalesHistoryQueryDto,
+} from './http/sales-history-query.dto.js';
 import type { SessionIdentity } from '../identity/application/ports/session-identity-reader.js';
 import { UserRole } from '../identity/entities/user.entity.js';
 import { CurrentIdentity } from '../identity/http/current-identity.decorator.js';
@@ -46,6 +49,15 @@ export class SalesController {
     @Query() page: SalesHistoryQueryDto,
   ) {
     return this.sales.list(identity.businessId, page);
+  }
+
+  // Spec 011 (RQ-ST05): counts and totals of «Ver ventas» for the filters.
+  @Get('summary')
+  summary(
+    @CurrentIdentity() identity: SessionIdentity,
+    @Query() filters: SalesHistoryFilterDto,
+  ) {
+    return this.sales.summary(identity.businessId, filters);
   }
 
   @Get(':id')

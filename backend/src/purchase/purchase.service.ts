@@ -50,6 +50,11 @@ import {
 } from './domain/purchase-lots.js';
 import { purchasePaymentStatus } from './domain/payment-status.js';
 import { PurchaseSettlementLotEntity } from './entities/purchase-settlement-lot.entity.js';
+import type {
+  PurchaseHistoryFilterDto,
+  PurchaseHistoryQueryDto,
+} from './http/purchase-history-query.dto.js';
+import { purchaseHistory, purchaseHistorySummary } from './purchase-history.js';
 import {
   CalculationBasis,
   FreightChargeParty,
@@ -70,6 +75,15 @@ export class PurchaseService {
     private readonly dataSource: DataSource,
     private readonly audit: AuditService,
   ) {}
+
+  // Spec 011 (RQ-ST05): «Ver compras» with sacks, kilos, totals and payment state.
+  history(businessId: string, query: PurchaseHistoryQueryDto) {
+    return purchaseHistory(this.dataSource, businessId, query);
+  }
+
+  historySummary(businessId: string, filters: PurchaseHistoryFilterDto) {
+    return purchaseHistorySummary(this.dataSource, businessId, filters);
+  }
 
   async getByReception(businessId: string, receptionId: string) {
     const settlement = await this.dataSource
