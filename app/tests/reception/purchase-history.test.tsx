@@ -1,7 +1,8 @@
 import React from 'react';
 import {act,create,type ReactTestRenderer} from 'react-test-renderer';
 import {PurchaseHistoryScreen} from '@/features/reception/screens/purchase-history-screen';
-import {getPurchaseSettlement,getReception,getSacks,listReceptions} from '@/services/api/reception-api';
+import {getPurchaseSettlement,getReception,getSacks} from '@/services/api/reception-api';
+import {listPurchaseHistory,purchaseHistorySummary} from '@/services/api/history-api';
 import type {Reception} from '@/domain/reception/reception';
 import { barButton, withChrome } from '../shared/with-chrome';
 
@@ -9,18 +10,22 @@ const mockEnqueue=jest.fn();const mockSendQueued=jest.fn();const mockPush=jest.f
 jest.mock('@/features/sync/sync-queue-provider',()=>({useSyncQueue:()=>({enqueue:mockEnqueue,sendQueued:mockSendQueued})}));
 jest.mock('@/features/auth/session/session-provider',()=>({useSession:()=>({session:{accessToken:'test-token',user:{role:'wholesaler'}}})}));
 jest.mock('expo-router',()=>({useRouter:()=>({push:mockPush,back:jest.fn()})}));
-jest.mock('@/services/api/reception-api',()=>({getPurchaseSettlement:jest.fn(),getReception:jest.fn(),getSacks:jest.fn(),listReceptions:jest.fn()}));
+jest.mock('@/services/api/reception-api',()=>({getPurchaseSettlement:jest.fn(),getReception:jest.fn(),getSacks:jest.fn()}));
+jest.mock('@/services/api/history-api',()=>({listPurchaseHistory:jest.fn(),purchaseHistorySummary:jest.fn()}));
 jest.mock('@/domain/reception/reception',()=>({...jest.requireActual('@/domain/reception/reception'),createOperationId:()=> 'history-operation'}));
 jest.mock('@/ui/components',()=>{
   const react=jest.requireActual('react');const control=(props:object)=>react.createElement('test-control',props);
   return {AppButton:control,AppCard:control,AppScreen:control,ConfirmationDialog:control,EmptyState:control,FeedbackState:control,FormField:control,LoadingState:control,MetricTile:control,ScreenHeader:control};
 });
 const reception:Reception={id:'reception-id',providerId:'provider-id',providerPhone:null,vehicleId:null,driverName:'Conductor',receivedOn:'2026-10-04',state:'weighed',version:3,expectedVarieties:[{id:'variety-id',name:'Papa'}]};
+// Spec 011 (RQ-ST05): the list now comes from GET /purchases/history.
+const historyItem={receptionId:'reception-id',receivedOn:'2026-10-04',receptionState:'weighed',providerId:'provider-id',providerName:null,settlementId:null,varieties:['Papa'],sacks:1,netWeightKg:'100.000',totalCents:null,paidCents:'0',balanceCents:'0',paymentState:'unsettled' as const};
 beforeEach(()=>{
   (globalThis as typeof globalThis & {IS_REACT_ACT_ENVIRONMENT:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
   jest.clearAllMocks();mockEnqueue.mockResolvedValue({id:'history-operation',status:'pending'});
   mockSendQueued.mockResolvedValue({id:'history-operation',status:'confirmed',centralReference:'central-result'});
-  jest.mocked(listReceptions).mockResolvedValue({items:[reception],total:1,limit:100,offset:0});
+  jest.mocked(listPurchaseHistory).mockResolvedValue({items:[historyItem],total:1,limit:20,offset:0});
+  jest.mocked(purchaseHistorySummary).mockResolvedValue({balanceCents:'0',counts:{all:1,debt:0,paid:0,unsettled:1,voided:0},paidCents:'0',totalCents:'0'});
   jest.mocked(getReception).mockResolvedValue(reception);
   jest.mocked(getSacks).mockResolvedValue([{id:'sack-id',sequence:1,varietyId:'variety-id',grossWeightKg:'100.000',tareKg:'0.000',netWeightKg:'100.000'}]);
   jest.mocked(getPurchaseSettlement).mockResolvedValue({id:'purchase-id',grossAmountCents:'25000',freightAmountCents:'0',advancesCents:'0',discountsCents:'0',liquidAmountCents:'25000',paymentMode:'cash',state:'confirmed',version:2});
@@ -30,7 +35,7 @@ it.each(['draft', 'weighing', 'weighed'] as const)('offers continuation for %s u
   jest.mocked(getReception).mockResolvedValue({ ...reception, state });
   let root!: ReactTestRenderer;
   await act(async () => { root = create(withChrome(<PurchaseHistoryScreen />)); });
-  await act(async () => { root.root.findAll(node => node.props.label === 'Abrir detalle')[0].props.onPress(); });
+  await act(async () => { root.root.findAll(node => node.props.label === 'Ver detalle')[0].props.onPress(); });
   const label = state === 'weighed' ? 'Continuar liquidación' : 'Continuar pesaje';
   await act(async () => { root.root.findAll(node => node.props.label === label)[0].props.onPress(); });
   expect(mockPush).toHaveBeenCalledWith({ pathname: '/purchase-flow', params: { receptionId: reception.id } });
@@ -42,7 +47,7 @@ it.each(['settled', 'voided'] as const)('does not offer continuation for %s rece
   jest.mocked(getReception).mockResolvedValue({ ...reception, state });
   let root!: ReactTestRenderer;
   await act(async () => { root = create(withChrome(<PurchaseHistoryScreen />)); });
-  await act(async () => { root.root.findAll(node => node.props.label === 'Abrir detalle')[0].props.onPress(); });
+  await act(async () => { root.root.findAll(node => node.props.label === 'Ver detalle')[0].props.onPress(); });
   expect(root.root.findAll(node => node.props.label === 'Continuar liquidación' || node.props.label === 'Continuar pesaje')).toHaveLength(0);
   await act(async () => { root.unmount(); });
 });
@@ -52,7 +57,7 @@ async function prepare(kind:Kind='void-reception'){
   if(kind==='correct-open')jest.mocked(getReception).mockResolvedValue({...reception,state:'weighing'});
   let root!:ReactTestRenderer;
   await act(async()=>{root=create(withChrome(<PurchaseHistoryScreen/>))});
-  await act(async()=>{root.root.findAll(node=>node.props.label==='Abrir detalle')[0].props.onPress();await Promise.resolve()});
+  await act(async()=>{root.root.findAll(node=>node.props.label==='Ver detalle')[0].props.onPress();await Promise.resolve()});
   const correction=kind.startsWith('correct');
   await act(async()=>{root.root.findAll(node=>node.props.label===(correction?'Corregir':kind==='void-reception'?'Anular recepción':kind==='void-purchase'?'Anular compra':'Anular saco'))[0].props.onPress()});
   await act(async()=>{root.root.findAll(node=>node.props.label==='Motivo')[0].props.onChangeText('Corrección autorizada');if(correction)root.root.findAll(node=>node.props.label==='Peso bruto (kg)')[0].props.onChangeText('110')});
@@ -99,65 +104,3 @@ it('locks new actions and retries only the detail after a confirmed operation',a
   await act(async()=>{root.unmount()});
 });
 
-
-it('queries the full central history with combined filters and removes old results during editing',async()=>{
-  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<PurchaseHistoryScreen/>))});
-  expect(listReceptions).toHaveBeenCalledWith('test-token',{limit:20,offset:0});
-  await act(async()=>{for(const [label,value] of [['Desde','2026-10-07'],['Hasta','2026-10-07'],['Participante comercial',' Proveedor QA ']])root.root.findAll(node=>node.props.label===label)[0].props.onChangeText(value)});
-  expect(root.root.findAll(node=>node.props.label==='Abrir detalle')).toHaveLength(0);
-  await act(async()=>{root.root.findAll(node=>node.props.label==='Liquidada')[0].props.onPress()});
-  await act(async()=>{root.root.findAll(node=>node.props.label==='Buscar')[0].props.onPress();await Promise.resolve()});
-  expect(listReceptions).toHaveBeenLastCalledWith('test-token',{limit:20,offset:0,from:'2026-10-07',to:'2026-10-07',search:'Proveedor QA',state:'settled'});
-  await act(async()=>{root.unmount()});
-});
-it('keeps filtered pagination and its position after returning from the detail',async()=>{
-  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<PurchaseHistoryScreen/>))});
-  await act(async()=>{root.root.findAll(node=>node.props.label==='Participante comercial')[0].props.onChangeText('Proveedor QA')});
-  jest.mocked(listReceptions).mockResolvedValueOnce({items:Array.from({length:20},(_,index)=>({...reception,id:`r-${index}`})),total:21,limit:20,offset:0});
-  await act(async()=>{root.root.findAll(node=>node.props.label==='Buscar')[0].props.onPress();await Promise.resolve()});
-  jest.mocked(listReceptions).mockResolvedValueOnce({items:[reception],total:21,limit:20,offset:20});
-  await act(async()=>{root.root.findAll(node=>node.props.label==='Página siguiente')[0].props.onPress();await Promise.resolve()});
-  expect(listReceptions).toHaveBeenLastCalledWith('test-token',expect.objectContaining({search:'Proveedor QA',offset:20}));
-  await act(async()=>{root.root.findAll(node=>node.props.label==='Abrir detalle')[0].props.onPress();await Promise.resolve()});
-  await act(async()=>{barButton(root,'Volver al historial').props.onPress()});
-  expect(listReceptions).toHaveBeenCalledTimes(3);
-  expect(root.root.findAll(node=>node.props.label==='Participante comercial')[0].props.value).toBe('Proveedor QA');
-  expect(root.root.findAll(node=>node.props.label==='Página siguiente')[0].props.disabled).toBe(true);
-  await act(async()=>{root.unmount()});
-});
-it('ignores late reception results after a new filter is entered',async()=>{
-  let finish!:(value:Awaited<ReturnType<typeof listReceptions>>)=>void;
-  jest.mocked(listReceptions).mockImplementationOnce(()=>new Promise(resolve=>{finish=resolve}));
-  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<PurchaseHistoryScreen/>))});
-  await act(async()=>{root.root.findAll(node=>node.props.label==='Participante comercial')[0].props.onChangeText('Nuevo proveedor')});
-  await act(async()=>{finish({items:[reception],total:1,limit:20,offset:0});await Promise.resolve()});
-  expect(root.root.findAll(node=>node.props.label==='Abrir detalle')).toHaveLength(0);
-  expect(root.root.findAll(node=>node.props.title==='Aplica los filtros')).not.toHaveLength(0);
-  await act(async()=>{root.unmount()});
-});
-it('distinguishes a query error from an empty result and retries its criteria',async()=>{
-  jest.mocked(listReceptions).mockRejectedValueOnce(new Error('History unavailable'));
-  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<PurchaseHistoryScreen/>))});
-  expect(root.root.findAll(node=>node.props.title==='Sin resultados')).toHaveLength(0);
-  await act(async()=>{root.root.findAll(node=>node.props.actionLabel==='Reintentar consulta')[0].props.onAction();await Promise.resolve()});
-  expect(root.root.findAll(node=>node.props.label==='Abrir detalle')).not.toHaveLength(0);
-  expect(listReceptions).toHaveBeenCalledTimes(2);await act(async()=>{root.unmount()});
-});
-it('rejects nonexistent dates without querying and clears filters with a new central request',async()=>{
-  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<PurchaseHistoryScreen/>))});
-  await act(async()=>{root.root.findAll(node=>node.props.label==='Desde')[0].props.onChangeText('2026-02-30')});
-  await act(async()=>{root.root.findAll(node=>node.props.label==='Buscar')[0].props.onPress()});
-  expect(listReceptions).toHaveBeenCalledTimes(1);expect(root.root.findAll(node=>node.props.actionLabel==='Reintentar consulta')).toHaveLength(0);
-  await act(async()=>{root.root.findAll(node=>node.props.label==='Limpiar filtros')[0].props.onPress();await Promise.resolve()});
-  expect(listReceptions).toHaveBeenLastCalledWith('test-token',expect.objectContaining({offset:0,from:undefined,to:undefined,search:undefined}));
-  expect(root.root.findAll(node=>node.props.label==='Desde')[0].props.value).toBe('');await act(async()=>{root.unmount()});
-});
-it('returns once to the first filtered page when the last page has disappeared',async()=>{
-  jest.mocked(listReceptions).mockResolvedValueOnce({items:Array.from({length:20},(_,index)=>({...reception,id:`r-${index}`})),total:21,limit:20,offset:0});
-  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<PurchaseHistoryScreen/>))});
-  jest.mocked(listReceptions).mockResolvedValueOnce({items:[],total:20,limit:20,offset:20});
-  await act(async()=>{root.root.findAll(node=>node.props.label==='Página siguiente')[0].props.onPress();await Promise.resolve()});
-  expect(listReceptions).toHaveBeenNthCalledWith(2,'test-token',{limit:20,offset:20});
-  expect(listReceptions).toHaveBeenLastCalledWith('test-token',{limit:20,offset:0});
-  expect(listReceptions).toHaveBeenCalledTimes(3);await act(async()=>{root.unmount()});
-});

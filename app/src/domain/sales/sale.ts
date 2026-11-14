@@ -19,6 +19,13 @@ export type InventoryLot = {
   initialWeightKg: string;
   version: number;
   createdAt: string;
+  // Spec 011 (RQ-ST05): history data from GET /sales (backend T1162).
+  varieties?: string[];
+  sacks?: number;
+  weightKg?: string;
+  paidCents?: string;
+  balanceCents?: string;
+  paymentState?: 'paid' | 'debt' | 'voided';
 };
 
 export type Sale = {

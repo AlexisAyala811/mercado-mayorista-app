@@ -38,14 +38,18 @@ import {
   filterAccounts,
   type AccountFilters,
 } from "@/domain/accounts/account-filters";
+import { accountTotals } from "@/domain/accounts/account-totals";
+import { formatLimaDateInput } from "@/domain/shared/date";
 
 // Spec 011 (CL-FM18): one screen per kind, Deudas or Cobranzas.
-export function AccountsScreen({ kind }: { kind: AccountKind }) {
+// openSourceId (spec 011, RQ-ST05): «Abonar» / «Cobrar» from Ver compras or Ver
+// ventas opens the account of that settlement or sale with its payment form.
+export function AccountsScreen({ kind, openSourceId }: { kind: AccountKind; openSourceId?: string }) {
   const { session } = useSession();
-  return session ? <AccountsContent key={`${session.accessToken}:${kind}`} kind={kind} /> : null;
+  return session ? <AccountsContent key={`${session.accessToken}:${kind}`} kind={kind} openSourceId={openSourceId} /> : null;
 }
 
-function AccountsContent({ kind }: { kind: AccountKind }) {
+function AccountsContent({ kind, openSourceId }: { kind: AccountKind; openSourceId?: string }) {
   const copy = accountKindCopy[kind];
   const router = useRouter();
   const { session, invalidateSession } = useSession();
@@ -79,6 +83,8 @@ function AccountsContent({ kind }: { kind: AccountKind }) {
   const submitting = useRef(false);
   const [result, setResult] = useState<string | null>(null);
   const [needsRefresh, setNeedsRefresh] = useState(false);
+  const [focusAmount, setFocusAmount] = useState(false);
+  const openedSource = useRef(false);
   const paymentReview = detail
     ? reviewAccountPayment(detail.account, amount)
     : null;
@@ -162,9 +168,10 @@ function AccountsContent({ kind }: { kind: AccountKind }) {
       active = false;
     };
   }, [token, invalidateSession]);
-  async function open(account: Account) {
+  async function open(account: Account, payNow = false) {
     setLoading(true);
     setError(null);
+    setFocusAmount(payNow);
     try {
       const value = await getAccount(token, account.id);
       if (!mounted.current) return;
@@ -178,6 +185,14 @@ function AccountsContent({ kind }: { kind: AccountKind }) {
       if (mounted.current) setLoading(false);
     }
   }
+  useEffect(() => {
+    if (!openSourceId || openedSource.current || !collectionsReady) return;
+    const account = accounts.find((item) => item.kind === kind && item.sourceId === openSourceId);
+    if (!account) return;
+    openedSource.current = true;
+    void Promise.resolve().then(() => open(account, account.state === "open"));
+    // open only reads the account; running once per request is intended.
+  }, [accounts, collectionsReady, kind, openSourceId]); // eslint-disable-line react-hooks/exhaustive-deps
   async function refreshDetail(accountId: string) {
     const value = await getAccount(token, accountId);
     if (!mounted.current) return false;
@@ -376,6 +391,7 @@ function AccountsContent({ kind }: { kind: AccountKind }) {
           ) : null}
           <AppCard title="Registrar movimiento">
             <FormField
+              autoFocus={focusAmount}
               editable={!busy && !confirm && !needsRefresh}
               keyboardType="decimal-pad"
               label={copy.amountLabel}
@@ -463,6 +479,16 @@ function AccountsContent({ kind }: { kind: AccountKind }) {
     .reduce((sum, x) => sum + BigInt(x.amountCents), 0n);
   const kindAccounts = accounts.filter((account) => account.kind === kind);
   const visibleAccounts = filterAccounts(kindAccounts, accountFilters);
+  const stateCounts = {
+    all: kindAccounts.length,
+    open: kindAccounts.filter((account) => account.state === "open").length,
+    paid: kindAccounts.filter((account) => account.state === "paid").length,
+    voided: kindAccounts.filter((account) => account.state === "voided").length,
+  };
+  const sourceMissing = Boolean(openSourceId) && collectionsReady && !kindAccounts.some((account) => account.sourceId === openSourceId);
+  const totals = collectionsReady
+    ? accountTotals(kind, accounts, cash, formatLimaDateInput(), (iso) => formatLimaDateInput(new Date(iso)))
+    : null;
   return (
     <AccountsOverview
       copy={copy}
@@ -470,22 +496,24 @@ function AccountsContent({ kind }: { kind: AccountKind }) {
       search={accountFilters.search}
       onSearch={(search) => setAccountFilters(current => ({ ...current, search }))}
       onOpen={(account) => void open(account)} onRefresh={() => void load()}
+      onSettle={(account) => void open(account, true)}
+      totals={totals} counts={stateCounts} stateFilter={accountFilters.state}
+      onStateFilter={(state) => setAccountFilters((current) => ({ ...current, state }))}
+      onClearFilters={() => setAccountFilters({ search: "", kind, state: "all" })}
       onNewSource={() => router.push((copy.originSource === "purchase" ? "/purchase-flow" : "/sale-flow") as Href)}
-      feedback={error || !collectionsReady ? <>
+      feedback={error || !collectionsReady || sourceMissing ? <>
+        {sourceMissing ? <FeedbackState title="Cuenta no encontrada" message="No hay una cuenta abierta de esa operación. Puede estar saldada o anulada." tone="error" /> : null}
         {error ? <FeedbackState title="No se pudo completar" message={error} tone="error" /> : null}
         {!collectionsReady ? <FeedbackState title="Datos financieros no disponibles" message={collectionError ?? "No se pudo completar la consulta de cuentas y caja. No se muestran saldos ni resultados parciales."} tone="error" actionLabel="Reintentar cuentas y caja" onAction={() => void load()} /> : null}
       </> : null}
     >
       {collectionsReady ? <>
-      <View style={styles.metrics}>
-        <MetricTile label="Entradas" value={formatMoney(incoming.toString())} />
-        <MetricTile label="Salidas" value={formatMoney(outgoing.toString())} />
-        <MetricTile
-          label="Neto"
-          value={formatMoney((incoming - outgoing).toString())}
-        />
-      </View>
-      <AppCard title="Movimientos de caja" description={`${cash.length} movimientos consultados. Los totales incluyen la colección completa.`}>
+      <AppCard title="Movimientos de caja" description={`${cash.length} movimientos de toda la caja del negocio. Los totales incluyen la colección completa.`}>
+        <View style={styles.metrics}>
+          <MetricTile label="Entradas" value={formatMoney(incoming.toString())} />
+          <MetricTile label="Salidas" value={formatMoney(outgoing.toString())} />
+          <MetricTile label="Neto" value={formatMoney((incoming - outgoing).toString())} />
+        </View>
         {cash.length ? (
           <>
           <AppButton label={showCash ? "Ocultar movimientos de caja" : "Ver movimientos de caja"} tone="secondary" accessibilityState={{ expanded: showCash }} onPress={() => setShowCash(current => !current)} />
@@ -513,42 +541,6 @@ function AccountsContent({ kind }: { kind: AccountKind }) {
             message="No existen entradas o salidas registradas."
           />
         )}
-      </AppCard>
-      <AppCard
-        title="Filtrar por estado"
-        description="Estos filtros no cambian los totales ni los movimientos de caja."
-      >
-        <View style={styles.metrics}>
-          {(
-            [
-              ["all", "Todos los estados"],
-              ["open", "Pendiente"],
-              ["paid", "Pagada"],
-              ["voided", "Anulada"],
-            ] as const
-          ).map(([state, label]) => (
-            <AppButton
-              key={state}
-              label={label}
-              accessibilityRole="radio"
-              accessibilityState={{ checked: accountFilters.state === state }}
-              tone={accountFilters.state === state ? "primary" : "secondary"}
-              onPress={() =>
-                setAccountFilters((current) => ({ ...current, state }))
-              }
-            />
-          ))}
-        </View>
-        <AppButton
-          label="Limpiar búsqueda de cuentas"
-          tone="secondary"
-          onPress={() =>
-            setAccountFilters({ search: "", kind, state: "all" })
-          }
-        />
-        <Text style={styles.text}>
-          {visibleAccounts.length} de {kindAccounts.length} cuentas
-        </Text>
       </AppCard>
       </> : null}
     </AccountsOverview>
