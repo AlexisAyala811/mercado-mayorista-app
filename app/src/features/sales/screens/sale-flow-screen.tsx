@@ -17,7 +17,9 @@ import {OperationReferenceEditor} from '@/features/catalog/screens/catalog-works
 import type {CatalogKind} from '@/services/api/catalog-api';
 import {captureCommercialSnapshot,commercialDescription,commercialLineKey,type CommercialCharacteristic} from '@/domain/catalog/commercial-characteristic';
 import { ApiError, ApiUnavailableError } from '@/services/api/api-client';
-import { getSale, loadSaleCatalogs } from '@/services/api/sales-api';
+import { getSale, loadSaleCatalogs, type SaleLine } from '@/services/api/sales-api';
+import { saleConfirmationSummary } from '@/domain/shared/confirmation-summary';
+import { ConfirmationCard } from '@/features/receipts/components/confirmation-card';
 import { AppButton, AppCard, AppScreen, ChoiceDialog, ConfirmationDialog, FeedbackState, FormField, LoadingState, MetricTile, ScreenHeader, SelectionField, StepProgress, type Choice } from '@/ui/components';
 import { useBottomNav } from '@/ui/navigation/app-chrome';
 import { color, spacing, typography } from '@/ui/tokens';
@@ -83,6 +85,7 @@ export function SaleFlowScreen() {
   const referenceManage=canManageReferences?manageReference:undefined;
 
   const [sale, setSale] = useState<Sale | null>(null);
+  const [saleLines, setSaleLines] = useState<SaleLine[]>([]);
   const operationRef = useRef<string | null>(null);
   const submitting = useRef(false);
   const exitAllowed = useRef(false);
@@ -199,7 +202,7 @@ export function SaleFlowScreen() {
       if(outcome.status!=='confirmed'||!outcome.centralReference){router.replace('/sync-queue' as Href);return;}
       saved=false;
       setConfirmedSaleId(outcome.centralReference);
-      setSale((await getSale(token,outcome.centralReference)).sale);
+      const confirmed=await getSale(token,outcome.centralReference);setSale(confirmed.sale);setSaleLines(confirmed.lines);
     } catch (cause) {
       if(saved){router.replace('/sync-queue' as Href);return;}
       setError(errorMessage(cause));
@@ -209,7 +212,7 @@ export function SaleFlowScreen() {
   async function reloadConfirmedSale() {
     if(!confirmedSaleId)return;
     setBusy(true);setError(null);
-    try{setSale((await getSale(token,confirmedSaleId)).sale)}
+    try{const confirmed=await getSale(token,confirmedSaleId);setSale(confirmed.sale);setSaleLines(confirmed.lines)}
     catch(cause){setError(errorMessage(cause))}
     finally{setBusy(false)}
   }
@@ -228,6 +231,7 @@ export function SaleFlowScreen() {
     <AppScreen contentContainerStyle={styles.screen}>
       <ScreenHeader eyebrow="VENTAS Y DESPACHOS" title="Venta confirmada" description="La venta y su efecto financiero fueron registrados por el servidor." />
       <StepProgress activeIndex={3} steps={steps} />
+      {sale ? <ConfirmationCard title="Venta guardada" party={sale.buyerName ?? buyer?.name ?? 'Comprador registrado'} summary={saleConfirmationSummary(sale, saleLines, (id) => varieties.find((item) => item.id === id)?.name)} receipt={{ kind: 'sales', id: sale.id }} newLabel="Nueva venta" onNew={() => router.replace({ pathname: '/sale-flow', params: { nueva: String(Date.now()) } } as Href)} /> : null}
       <FeedbackState title="Operación confirmada" message="La venta fue registrada de forma idempotente." tone="success" />
       {sale ? <View style={styles.metrics}><MetricTile label="Importe bruto" value={formatMoney(sale.grossAmountCents)} /><MetricTile label="Flete" value={formatMoney(sale.freightAmountCents)} /><MetricTile label="Descuentos" value={formatMoney(sale.discountsCents)} /><MetricTile label="Total" value={formatMoney(sale.totalAmountCents)} /></View> : null}
       {error ? <FeedbackState title="No se pudo cargar el detalle de la venta confirmada" message={error} tone="error" /> : null}

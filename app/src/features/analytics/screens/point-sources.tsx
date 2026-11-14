@@ -12,9 +12,9 @@ export function PointSources({point}:{point:AnalyticsPoint}) {
       accessibilityLabel={`${expanded?'Ocultar':'Ver'} referencias de ${context}`}
       accessibilityState={{expanded}} tone="secondary" onPress={()=>setExpanded(value=>!value)}/>
     {expanded?<>
-      <Text style={styles.meta}>Referencias centrales utilizadas para este resultado. Las devoluciones son compensaciones, no operaciones nuevas.</Text>
+      {/* Spec 011 (CL-FM14): returns are not shown in the app; historical compensations stay in the server. */}
+      <Text style={styles.meta}>Referencias centrales utilizadas para este resultado.</Text>
       <ReferencePage title="Operaciones incluidas" ids={point.operationIds} context={context}/>
-      <ReferencePage title="Devoluciones incorporadas" ids={point.compensationIds} context={context}/>
     </>:null}
   </View>;
 }

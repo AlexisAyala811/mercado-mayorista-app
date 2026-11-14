@@ -435,7 +435,7 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
     <ConfirmationDialog busy={busy} confirmLabel="Liquidar compra" message={settlementConfirmationMessage} onCancel={() => setConfirmation(null)} onConfirm={() => void confirmSettlement()} title="¿Confirmar la liquidación?" visible={confirmation === 'settle'} />
   </>;
   if(confirmedPurchase&&!settlement)return <AppScreen><FeedbackState title="Compra confirmada" message="La liquidación fue confirmada por el servidor. Falta cargar su detalle." tone="success"/>{error?<FeedbackState title="No se pudo cargar el detalle" message={error} tone="error"/>:null}<FeedbackState title="Consultar liquidación" message={busy?'Cargando el detalle confirmado…':'Reintenta la consulta sin registrar otra compra.'} actionLabel={busy?undefined:'Reintentar consulta de liquidación'} onAction={busy?undefined:()=>void reloadConfirmedPurchase()}/></AppScreen>;
-  if (settlement) return <PurchaseConfirmationScreen onFinish={() => router.replace('/home' as Href)} settlement={settlement} />;
+  if (settlement) return <PurchaseConfirmationScreen providerName={displayContext.providerName} onNew={() => router.replace({ pathname: '/purchase-flow', params: { nueva: String(Date.now()) } } as Href)} settlement={settlement} />;
   return <AppScreen><FeedbackState title="No se pudo mostrar la operación" message="Vuelve al menú e inténtalo nuevamente." actionLabel="Volver al menú" onAction={() => router.replace('/home' as Href)} tone="error" /></AppScreen>;
 }
 

@@ -35,6 +35,7 @@ import { AppHeader } from "@/ui/navigation/app-header";
 import { color, spacing, typography } from "@/ui/tokens";
 import { ReportDownloads } from './report-downloads';
 import { ReportIndicators } from './report-indicators';
+import { ReportCharts } from './report-charts';
 import { useReportFonts } from '@/ui/report-fonts';
 import { reportVisual } from '@/ui/report-tokens';
 import { ReportAsset } from '@/ui/components/report-asset';
@@ -42,12 +43,14 @@ import { ReportAsset } from '@/ui/components/report-asset';
 type Dialog = "buyer" | "operation" | "provider" | "variety" | "quality" | "origin" | "period" | null;
 type OperationFilter = "all" | "purchase" | "sale";
 
-export function ReportsScreen() {
+// autoQuery (spec 011, RQ-ST07): Reportes opens with the figures of the period;
+// false keeps the screen empty until «Consultar» (used to test the manual query).
+export function ReportsScreen({ autoQuery = true }: { autoQuery?: boolean }) {
   const { session } = useSession();
-  return session ? <ReportsWorkspace key={session.accessToken} /> : null;
+  return session ? <ReportsWorkspace key={session.accessToken} autoQuery={autoQuery} /> : null;
 }
 
-function ReportsWorkspace() {
+function ReportsWorkspace({ autoQuery }: { autoQuery: boolean }) {
   const { width, fontScale } = useWindowDimensions();
   const wide = width >= 1100 && fontScale <= 1.3;
   const reportFontsLoaded = useReportFonts();
@@ -171,6 +174,17 @@ function ReportsWorkspace() {
     }
   }
 
+  // Spec 011 (RQ-ST07): Reportes opens with the figures of the current period,
+  // and again when switching between Compra and Venta.
+  const autoRun = useRef(run);
+  useEffect(() => {
+    autoRun.current = run;
+  });
+  useEffect(() => {
+    if (!token || !autoQuery) return;
+    void Promise.resolve().then(() => autoRun.current());
+  }, [autoQuery, reportOperation, token]);
+
   if (!session) return null;
 
   const visiblePrices =
@@ -282,6 +296,7 @@ function ReportsWorkspace() {
         </View>
       </View>
       {overview ? <ReportIndicators overview={overview} /> : null}
+      {overview ? <ReportCharts key={`charts:${token}:${overview.operation}:${overview.period.from}:${overview.period.to}:${overview.generatedAt}`} token={token} selection={{ operation: overview.operation, ...overview.period }} /> : null}
       {overview ? <ReportDownloads key={`${token}:${overview.operation}:${overview.period.from}:${overview.period.to}:${overview.generatedAt}`}
         token={token} counts={overview} onSessionExpired={invalidateSession} selection={{ operation: overview.operation, ...overview.period }} /> : null}
       <AppCard

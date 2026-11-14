@@ -2,6 +2,7 @@ import React from 'react';
 import {act,create,type ReactTestRenderer} from 'react-test-renderer';
 import {SaleFlowScreen} from '@/features/sales/screens/sale-flow-screen';
 import {getSale,loadSaleCatalogs} from '@/services/api/sales-api';
+import {shareReceipt} from '@/services/receipts/receipt-sharing';
 import type {Sale} from '@/domain/sales/sale';
 import {CharacteristicFields} from '@/features/catalog/components/characteristic-fields';
 import { barButton, withChrome } from '../shared/with-chrome';
@@ -16,6 +17,7 @@ jest.mock('@/features/auth/session/session-provider',()=>({useSession:()=>({sess
 jest.mock('expo-router',()=>({useNavigation:()=>({dispatch:mockDispatch}),useRouter:()=>({replace:mockReplace,back:mockBack,canGoBack:()=>true})}));
 jest.mock('expo-router/react-navigation',()=>({usePreventRemove:(...args:unknown[])=>mockPreventRemove(...args)}));
 jest.mock('@/services/api/sales-api',()=>({getSale:jest.fn(),loadSaleCatalogs:jest.fn()}));
+jest.mock('@/services/receipts/receipt-sharing',()=>({shareReceipt:jest.fn(async()=>'file://sale.pdf')}));
 jest.mock('@/features/catalog/screens/catalog-workspace',()=>({OperationReferenceEditor:(props:object)=>jest.requireActual('react').createElement('test-control',{...props,screenKind:'reference-editor'})}));
 jest.mock('@/domain/reception/reception',()=>({...jest.requireActual('@/domain/reception/reception'),createOperationId:()=> mockDistinctIds?`sale-operation-${++mockNextId}`:'sale-operation'}));
 jest.mock('@/ui/components',()=>{
@@ -108,6 +110,12 @@ it('saves the complete sale before sending and loads the confirmed central detai
   expect(mockEnqueue.mock.invocationCallOrder[0]).toBeLessThan(mockSendQueued.mock.invocationCallOrder[0]);
   expect(getSale).toHaveBeenCalledWith('test-token','central-sale');expect(mockReplace).not.toHaveBeenCalled();
   expect(root.root.findAll(node=>node.props.title==='Venta confirmada')).not.toHaveLength(0);
+  // Spec 011 (RQ-ST04): one card with the receipt to share and the next sale.
+  expect(root.root.findAll(node=>node.props.testID==='confirmation-card')).not.toHaveLength(0);
+  await act(async()=>root.root.findAll(node=>node.props.label==='Compartir comprobante')[0].props.onPress());
+  expect(shareReceipt).toHaveBeenCalledWith('sales',expect.any(String),'test-token',expect.any(Function));
+  await act(async()=>root.root.findAll(node=>node.props.label==='Nueva venta')[0].props.onPress());
+  expect(mockReplace).toHaveBeenCalledWith(expect.objectContaining({pathname:'/sale-flow'}));
   await act(async()=>{root.unmount()});
 });
 it('adds and sends two lines of the same variety with different commercial characteristics',async()=>{

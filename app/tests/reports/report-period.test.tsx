@@ -26,7 +26,7 @@ it('applies a preset only on selection and preserves manual dates as custom', as
   jest.useFakeTimers({ now: new Date(2030, 0, 15), doNotFake: ['setTimeout', 'setInterval', 'setImmediate', 'nextTick', 'queueMicrotask', 'performance', 'hrtime'] });
   let root!: ReactTestRenderer;
   try {
-    await act(async () => { root = create(<ReportsScreen />); });
+    await act(async () => { root = create(<ReportsScreen autoQuery={false} />); });
     const control = (label: string) => root.root.findAll(node => node.props.label === label)[0];
     await act(async () => { control('Período').props.onPress(); });
     const dialog = root.root.findAll(node => node.props.title === 'Seleccionar período')[0];
@@ -50,16 +50,16 @@ it('starts a new report in the current month after midnight without changing an 
   let first: ReactTestRenderer | undefined;
   let second: ReactTestRenderer | undefined;
   try {
-    await act(async () => { first = create(<ReportsScreen />); });
+    await act(async () => { first = create(<ReportsScreen autoQuery={false} />); });
     const field = (root: ReactTestRenderer, label: string) => root.root.findAll(node => node.props.label === label)[0];
     expect(field(first!, 'Desde').props.value).toBe('2030-09-01');
     expect(field(first!, 'Hasta').props.value).toBe('2030-09-30');
     await act(async () => { field(first!, 'Desde').props.onChangeText('2030-08-15'); });
     jest.setSystemTime(new Date(2030, 9, 1, 0, 5));
-    await act(async () => { first!.update(<ReportsScreen />); });
+    await act(async () => { first!.update(<ReportsScreen autoQuery={false} />); });
     expect(field(first!, 'Desde').props.value).toBe('2030-08-15');
     expect(field(first!, 'Hasta').props.value).toBe('2030-09-30');
-    await act(async () => { second = create(<ReportsScreen />); });
+    await act(async () => { second = create(<ReportsScreen autoQuery={false} />); });
     expect(field(second!, 'Desde').props.value).toBe('2030-10-01');
     expect(field(second!, 'Hasta').props.value).toBe('2030-10-01');
     expect(commercialSummary).not.toHaveBeenCalled();

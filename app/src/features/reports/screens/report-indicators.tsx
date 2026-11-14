@@ -4,6 +4,8 @@ import { MetricTile } from '@/ui/components';
 import { reportVisual } from '@/ui/report-tokens';
 import { formatMoney } from '@/domain/reception/reception';
 import type { OperationOverview } from '@/services/api/operations-api';
+import { averagePricePerKilogram } from '@/domain/shared/report-figures';
+import { formatKilograms } from '@/domain/reception/whole-kilograms';
 
 export function ReportIndicators({ overview: o }: { overview: OperationOverview }) {
   const fontsLoaded = useReportFonts();
@@ -16,8 +18,10 @@ export function ReportIndicators({ overview: o }: { overview: OperationOverview 
     </View>
     <View style={styles.tiles}>
       <MetricTile {...tile} label={purchase ? 'Total de compras' : 'Total de ventas'} value={formatMoney(o.totalAmountCents)} description="Importe confirmado del período" />
-      <MetricTile {...tile} label={purchase ? 'Compras registradas' : 'Ventas registradas'} value={o.operationCount} description="Operaciones confirmadas del período" />
-      <MetricTile {...tile} label="Total de sacos" value={o.sacks} description={`${o.weightKg} kg de peso total`} />
+      {/* Spec 011 (RQ-ST07): Stitch indicators: amount, volume, average price and participants. */}
+      <MetricTile {...tile} label="Volumen" value={formatKilograms(o.weightKg)} description={`${o.sacks} sacos en ${o.operationCount} ${purchase ? 'compras' : 'ventas'}`} />
+      <MetricTile {...tile} label="Precio promedio" value={averagePricePerKilogram(o.totalAmountCents, o.weightKg) ?? 'Sin peso'} description="Importe del período entre sus kilos" />
+      {o.counterpartyCount !== undefined ? <MetricTile {...tile} label={purchase ? 'Proveedores atendidos' : 'Compradores atendidos'} value={o.counterpartyCount} description={`${o.varietyCount ?? '—'} variedades`} /> : null}
       <MetricTile {...tile} label="Saldo pendiente del período" value={formatMoney(o.currentBalanceCents)} description={`${o.openAccountCount} cuentas abiertas de estas operaciones`} />
     </View>
     <Text style={styles.detail}>El saldo es actual, no histórico al cierre del período. Cantidades originales de las operaciones.</Text>
