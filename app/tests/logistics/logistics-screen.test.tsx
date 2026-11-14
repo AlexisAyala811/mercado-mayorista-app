@@ -105,9 +105,9 @@ it("distinguishes no matches from empty catalogs and preserves edits while searc
   await act(async () => {
     root.root
       .findAll(
-        (node) => node.props.accessibilityLabel === "Limpiar búsqueda de logística",
+        (node) => node.props.accessibilityLabel === "Buscar transportista o vehículo",
       )[0]
-      .props.onPress();
+      .props.onChangeText("");
   });
   expect(
     root.root.findAll(
@@ -181,14 +181,14 @@ it('confirms replacing a modified carrier and keeps the separate vehicle draft',
   let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});await act(async()=>{root.root.findAll(node=>node.props.testID==='logistics-new'&&typeof node.props.onPress==='function')[0]?.props.onPress();});
   const field=(label:string)=>root.root.findAll(node=>node.props.label===label)[0]!;
   const dialog=()=>root.root.findAll(node=>node.props.title==='¿Reemplazar la edición?')[0]!;
-  await act(async()=>root.root.findAll(node=>String(node.type)==='test-control'&&node.props.label==='Editar')[0]!.props.onPress());
+  await act(async()=>root.root.findAll(node=>String(node.props.accessibilityLabel).startsWith('Ver registro de')&&typeof node.props.onPress==='function')[0]!.props.onPress());
   await act(async()=>{field('Nombre').props.onChangeText('Mi edición');field('Placa').props.onChangeText('QA-OTRO');});
   const previousEditor=field('Nombre');
-  await act(async()=>root.root.findAll(node=>String(node.type)==='test-control'&&node.props.label==='Editar')[0]!.props.onPress());expect(dialog().props.visible).toBe(false);expect(field('Nombre').props.value).toBe('Mi edición');
+  await act(async()=>root.root.findAll(node=>String(node.props.accessibilityLabel).startsWith('Ver registro de')&&typeof node.props.onPress==='function')[0]!.props.onPress());expect(dialog().props.visible).toBe(false);expect(field('Nombre').props.value).toBe('Mi edición');
   expect(field('Nombre')).not.toBe(previousEditor);expect(field('Nombre').props.autoFocus).toBe(true);expect(field('Placa').props.value).toBe('QA-OTRO');
-  await act(async()=>root.root.findAll(node=>String(node.type)==='test-control'&&node.props.label==='Editar')[1]!.props.onPress());expect(dialog().props.visible).toBe(true);expect(field('Nombre').props.editable).toBe(false);
+  await act(async()=>root.root.findAll(node=>String(node.props.accessibilityLabel).startsWith('Ver registro de')&&typeof node.props.onPress==='function')[1]!.props.onPress());expect(dialog().props.visible).toBe(true);expect(field('Nombre').props.editable).toBe(false);
   await act(async()=>dialog().props.onCancel());expect(field('Nombre').props.value).toBe('Mi edición');
-  await act(async()=>root.root.findAll(node=>String(node.type)==='test-control'&&node.props.label==='Editar')[1]!.props.onPress());await act(async()=>dialog().props.onConfirm());
+  await act(async()=>root.root.findAll(node=>String(node.props.accessibilityLabel).startsWith('Ver registro de')&&typeof node.props.onPress==='function')[1]!.props.onPress());await act(async()=>dialog().props.onConfirm());
   expect(field('Nombre').props.value).toBe('Segundo transportista');expect(field('Placa').props.value).toBe('QA-OTRO');expect(createCarrier).not.toHaveBeenCalled();expect(updateCarrier).not.toHaveBeenCalled();
   await act(async()=>root.unmount());
 });
@@ -203,13 +203,11 @@ it('keeps both drafts through pagination and search, and discards them only afte
   const action=(label:string)=>root.root.findAll(node=>node.props.accessibilityLabel===label)[0]!;
   const dialog=()=>root.root.findAll(node=>node.props.title==='¿Abrir un registro nuevo?')[0]!;
   await act(async()=>{field('Nombre').props.onChangeText('Nombre pendiente');field('Placa').props.onChangeText('ABC-PEND');});
-  await act(async()=>action('Página siguiente de Carros').props.onPress());
-  expect(action('Editar transportista Transportista 4')).toBeDefined();
-  expect(action('Página siguiente de Carros').props.disabled).toBe(true);
+  expect(action('Ver registro de transportista Transportista 4')).toBeDefined();
   await act(async()=>action('Buscar transportista o vehículo').props.onChangeText('Transportista 0'));
-  expect(action('Editar transportista Transportista 0')).toBeDefined();
+  expect(action('Ver registro de transportista Transportista 0')).toBeDefined();
   expect(field('Nombre').props.value).toBe('Nombre pendiente');expect(field('Placa').props.value).toBe('ABC-PEND');
-  await act(async()=>action('Limpiar búsqueda de logística').props.onPress());
+  await act(async()=>action('Buscar transportista o vehículo').props.onChangeText(''));
   await act(async()=>action('Nuevo transportista o vehículo').props.onPress());
   expect(dialog().props.visible).toBe(true);
   await act(async()=>dialog().props.onCancel());expect(field('Nombre').props.value).toBe('Nombre pendiente');expect(field('Placa').props.value).toBe('ABC-PEND');
@@ -251,7 +249,7 @@ it('keeps failed deactivation open and preserves the other draft after a success
   let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});await act(async()=>{root.root.findAll(node=>node.props.testID==='logistics-new'&&typeof node.props.onPress==='function')[0]?.props.onPress();});
   const field=(label:string)=>root.root.findAll(node=>node.props.label===label)[0]!;
   const dialog=()=>root.root.findAll(node=>node.props.title==='¿Desactivar registro?')[0]!;
-  await act(async()=>root.root.findAll(node=>node.props.accessibilityLabel==='Editar transportista Transportista activo')[0]!.props.onPress());
+  await act(async()=>root.root.findAll(node=>node.props.accessibilityLabel==='Ver registro de transportista Transportista activo')[0]!.props.onPress());
   await act(async()=>field('Placa').props.onChangeText('BORRADOR'));
   await act(async()=>root.root.findAll(node=>node.props.label==='Desactivar transportista')[0]!.props.onPress());
   await act(async()=>dialog().props.onConfirm());
@@ -260,5 +258,25 @@ it('keeps failed deactivation open and preserves the other draft after a success
   await act(async()=>dialog().props.onConfirm());
   expect(deactivateCarrier).toHaveBeenCalledTimes(2);expect(dialog().props.visible).toBe(false);
   expect(field('Nombre').props.value).toBe('');expect(field('Placa').props.value).toBe('BORRADOR');
+  await act(async()=>root.unmount());
+});
+
+// Spec 011, CL-ST35: filter chips with counts and «Ver Registro» as in the mockup.
+it('filters the cards by vehicle or carrier only and opens the record with «Ver Registro»',async()=>{
+  jest.clearAllMocks();
+  const carriers=[{id:'c1',name:'Con camión',phone:'999'},{id:'c2',name:'Sin camión',phone:null}];
+  jest.mocked(listCarriers).mockResolvedValue({items:carriers,total:2,limit:100,offset:0});
+  jest.mocked(listVehicles).mockResolvedValue({items:[{id:'v1',plate:'ABC-789',carrierId:'c1',description:'Volvo FMX 440',carrier:carriers[0]!}],total:1,limit:100,offset:0});
+  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<LogisticsScreen/>));});
+  const byLabel=(label:string)=>root.root.findAll(node=>node.props.accessibilityLabel===label&&typeof node.props.onPress==='function')[0]!;
+  expect(byLabel('Todos los Carros (2)')).toBeDefined();
+  expect(byLabel('Con vehículo (1)')).toBeDefined();
+  expect(byLabel('Solo transportista (1)')).toBeDefined();
+  await act(async()=>byLabel('Solo transportista (1)').props.onPress());
+  expect(root.root.findAll(node=>node.props.accessibilityLabel==='Ver registro de vehículo ABC-789')).toHaveLength(0);
+  expect(byLabel('Ver registro de transportista Sin camión')).toBeDefined();
+  await act(async()=>byLabel('Con vehículo (1)').props.onPress());
+  await act(async()=>byLabel('Ver registro de vehículo ABC-789').props.onPress());
+  expect(root.root.findAll(node=>node.props.label==='Desactivar vehículo').length).toBeGreaterThan(0);
   await act(async()=>root.unmount());
 });
