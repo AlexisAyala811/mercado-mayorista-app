@@ -19,7 +19,7 @@ jest.mock('expo-router',()=>{
     return react.createElement('navigation-state',{route,onMove:()=>setRoute('sync-queue')},props.children);
   };
   Stack.Screen=()=>null;Stack.Protected=({guard,children}:React.PropsWithChildren<{guard:boolean}>)=>guard?children:null;
-  return {Stack};
+  return {Stack,usePathname:()=>"/home",useRouter:()=>({back:jest.fn(),canGoBack:()=>false,replace:jest.fn()})};
 });
 beforeEach(()=>{(globalThis as typeof globalThis&{IS_REACT_ACT_ENVIRONMENT:boolean}).IS_REACT_ACT_ENVIRONMENT=true;mockMounts=0;mockUnmounts=0;mockContext={session:{accessToken:'fixture',user:{role:'wholesaler'}},isBootstrapping:false,isRevalidating:false,bootstrapError:null,retryBootstrap:jest.fn()};});
 it('preserves navigator state behind a blocking modal throughout session revalidation',async()=>{

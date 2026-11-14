@@ -11,11 +11,11 @@ import { AppButton, AppCard, AppScreen, EmptyState, FeedbackState, LoadingState,
 import { color, radius, spacing, typography } from '@/ui/tokens';
 
 type Channel = ShareInput['channel'];
-type Props = { buyerId: string; onBack: () => void };
+type Props = { buyerId: string };
 
 // Spec 009 (T941–T943) inside Cobranzas (spec 011, CL-FM13): preview of the
 // buyer statement and sending its PDF or image through Mensajería.
-export function BuyerStatementScreen({ buyerId, onBack }: Props) {
+export function BuyerStatementScreen({ buyerId }: Props) {
   const { session } = useSession();
   const token = session?.accessToken ?? '';
   const active = useRef(true);
@@ -67,7 +67,6 @@ export function BuyerStatementScreen({ buyerId, onBack }: Props) {
 
   if (loading) return <AppScreen><LoadingState label="Preparando el estado de cuenta" /></AppScreen>;
   return <AppScreen contentContainerStyle={styles.screen} testID="buyer-statement-screen">
-    <View style={styles.top}><AppButton label="Volver a cobranzas" tone="secondary" onPress={onBack} /></View>
     <ScreenHeader eyebrow="VENTA · COBRANZAS" title="Estado de cuenta" description={statement ? `${statement.buyer.name} · N.⁠° ${statement.statementNumber} · corte ${statement.cutoffDate}` : 'Resumen de lo que debe el comprador, calculado por el servidor.'} />
     {offline ? <FeedbackState title="Sin conexión" message="El estado de cuenta se calcula en el servidor con las cuentas confirmadas. Conéctate para verlo." tone="warning" actionLabel="Reintentar" onAction={() => void load()} /> : null}
     {error ? <FeedbackState title="No se pudo preparar el estado de cuenta" message={error} tone="error" actionLabel="Reintentar" onAction={() => void load()} /> : null}
@@ -102,7 +101,6 @@ export function BuyerStatementScreen({ buyerId, onBack }: Props) {
 
 const styles = StyleSheet.create({
   screen: { gap: spacing.lg },
-  top: { flexDirection: 'row' },
   metrics: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
   line: { color: color.textSecondary, ...typography.bodySmall },
   outstanding: { color: color.danger, ...typography.body, fontWeight: '800' },

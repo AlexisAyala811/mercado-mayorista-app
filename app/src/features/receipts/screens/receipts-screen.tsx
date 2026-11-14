@@ -1,8 +1,6 @@
 import {ApiError} from '@/services/api/api-client';
-import { backOrHome } from "@/navigation/back-or-home";
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
-import { useRouter } from 'expo-router';
 
 import { formatMoney, type Page } from '@/domain/reception/reception';
 import type {ReceiptHistoryRow,ReceiptHistoryKind} from '@/domain/receipts/receipt';
@@ -20,7 +18,6 @@ export function ReceiptsScreen(){
   const {session}=useSession();return session?<ReceiptsWorkspace key={session.accessToken}/>:null;
 }
 function ReceiptsWorkspace() {
-  const router = useRouter();
   const { session,invalidateSession } = useSession();
   const active=useRef(true);const request=useRef(0);const processing=useRef(false);const previewUri=useRef<string|null>(null);
   const {width}=useWindowDimensions();
@@ -91,8 +88,8 @@ function ReceiptsWorkspace() {
   return (
     <>
       <AppScreen contentContainerStyle={styles.screen}>
-        <View style={styles.top}><AppButton label="Volver" onPress={() => backOrHome(router)} tone="secondary" /><AppButton label="Actualizar" disabled={Boolean(working)} onPress={load} tone="secondary" /></View>
         <ScreenHeader eyebrow="COMPROBANTES" title="Historial y documentos" description="Previsualiza el PDF vigente y compártelo mediante el panel seguro del dispositivo." />
+        <View style={styles.top}><AppButton label="Actualizar" disabled={Boolean(working)} onPress={load} tone="secondary" /></View>
         {historyError?<FeedbackState actionLabel="Reintentar historial" onAction={load} title="Historial no disponible" message={historyError} tone="error"/>:null}
         {error?<FeedbackState actionLabel={failedAction?'Reintentar documento':undefined} onAction={failedAction?()=>void documentAction(failedAction.kind,failedAction.id,failedAction.title,failedAction.mode):undefined} title="Documento no disponible" message={error} tone="error"/>:null}
         {!historyError?<>{historyCard('purchases',purchases,purchaseOffset)}{historyCard('sales',sales,saleOffset)}</>:null}

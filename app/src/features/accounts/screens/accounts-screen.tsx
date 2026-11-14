@@ -30,7 +30,7 @@ import {
   ScreenHeader,
 } from "@/ui/components";
 import { color, spacing, typography } from "@/ui/tokens";
-import { backOrHome } from "@/navigation/back-or-home";
+import { useBottomNav } from "@/ui/navigation/app-chrome";
 import { reviewAccountPayment } from "@/domain/accounts/payment-review";
 import { paymentWasReversed, reviewPaymentReversal } from "@/domain/accounts/reversal-review";
 import {
@@ -303,6 +303,12 @@ function AccountsContent({ kind }: { kind: AccountKind }) {
       "Reverso confirmado. Se registró el movimiento compensatorio.",
     );
   }
+  // Spec 011 (RQ-ST02): with an account open, «Atrás» returns to the list.
+  useBottomNav({
+    back: detail
+      ? { label: "Atrás", accessibilityLabel: `Volver a ${copy.title.toLowerCase()}`, disabled: busy || confirm, onPress: () => { setDetail(null); setReverseTarget(null); setReason(""); setConfirm(false); } }
+      : null,
+  });
   if (!session) return null;
   if (loading)
     return (
@@ -317,14 +323,6 @@ function AccountsContent({ kind }: { kind: AccountKind }) {
     return (
       <>
         <AppScreen contentContainerStyle={styles.screen}>
-          <View style={styles.top}>
-            <AppButton
-              label={`Volver a ${copy.title.toLowerCase()}`}
-              disabled={busy || confirm}
-              onPress={() => { setDetail(null); setReverseTarget(null); setReason(""); setConfirm(false); }}
-              tone="secondary"
-            />
-          </View>
           <ScreenHeader
             eyebrow={copy.eyebrow}
             title={copy.detailTitle}
@@ -468,12 +466,10 @@ function AccountsContent({ kind }: { kind: AccountKind }) {
   return (
     <AccountsOverview
       copy={copy}
-      username={session.user?.username ?? "Mayorista"}
       accounts={visibleAccounts} total={kindAccounts.length} ready={collectionsReady}
       search={accountFilters.search}
       onSearch={(search) => setAccountFilters(current => ({ ...current, search }))}
       onOpen={(account) => void open(account)} onRefresh={() => void load()}
-      onBack={() => backOrHome(router)} onHome={() => router.replace("/home" as Href)}
       onNewSource={() => router.push((copy.originSource === "purchase" ? "/purchase-flow" : "/sale-flow") as Href)}
       feedback={error || !collectionsReady ? <>
         {error ? <FeedbackState title="No se pudo completar" message={error} tone="error" /> : null}

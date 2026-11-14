@@ -59,7 +59,7 @@ export function TabletWeighingWorkspace(props: WeighingScreenProps) {
           <Text accessibilityRole="header" style={styles.cardTitle}>Siguiente paso</Text>
           <Text style={styles.detail}>El precio por lote, el flete, los adelantos y el total por pagar se revisan en la liquidación. Todavía no se ha confirmado una compra.</Text>
         </View>
-        <View style={styles.actions}>{props.onBack ? <AppButton label="Volver a datos" tone="secondary" onPress={props.onBack} /> : null}<AppButton label="Revisar y cerrar pesaje" disabled={!props.onContinue || props.entries.length === 0 || props.isSubmitting} onPress={props.onContinue} /></View>
+        <View style={styles.actions}><AppButton label="Revisar y cerrar pesaje" disabled={!props.onContinue || props.entries.length === 0 || props.isSubmitting} onPress={props.onContinue} /></View>
       </ScrollView>
       <View style={styles.listColumn}>
         <View style={styles.listHeading}>
@@ -79,7 +79,7 @@ export function TabletWeighingWorkspace(props: WeighingScreenProps) {
         </KeyboardFocusContext.Provider>
       </View>
     </View>
-    <PurchaseReferenceNavigation onBack={props.onGoHistory} onHome={props.onGoHome} onContinue={props.onContinue} busy={props.isSubmitting} canContinue={props.entries.length > 0} />
+    <PurchaseReferenceNavigation onStepBack={props.onBack} onHome={props.onGoHome} onContinue={props.onContinue} busy={props.isSubmitting} canContinue={props.entries.length > 0} />
   </AppScreen>;
 }
 

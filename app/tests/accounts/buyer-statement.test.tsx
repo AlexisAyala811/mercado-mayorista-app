@@ -39,7 +39,7 @@ beforeEach(() => {
 const host = (root: ReactTestRenderer, test: (props: Record<string, unknown>) => boolean) => root.root.findAll((node) => typeof node.type === 'string' && test(node.props));
 async function render() {
   let root!: ReactTestRenderer;
-  await act(async () => { root = create(<BuyerStatementScreen buyerId="buyer-id" onBack={jest.fn()} />); });
+  await act(async () => { root = create(<BuyerStatementScreen buyerId="buyer-id" />); });
   return root;
 }
 

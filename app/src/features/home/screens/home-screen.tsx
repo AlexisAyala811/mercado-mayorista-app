@@ -1,11 +1,13 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { ModuleCard } from '@/features/home/components/module-card';
+import type { MenuFacts } from '@/features/home/menu-facts';
 import { menuSections, type MenuModule } from '@/features/home/menu-modules';
 import { AppButton, AppScreen, BrandMark, EmptyState } from '@/ui/components';
 import { color, radius, spacing, typography } from '@/ui/tokens';
 
 export type HomeScreenProps = {
+  facts?: MenuFacts;
   modules: MenuModule[];
   onLogout?: () => void;
   onOpenModule?: (module: MenuModule) => void;
@@ -14,7 +16,7 @@ export type HomeScreenProps = {
 };
 
 // MAÑAY menu (spec 011): every section the profile allows is visible at once.
-export function HomeScreen({ modules, onLogout, onOpenModule, roleLabel, userDisplayName }: HomeScreenProps) {
+export function HomeScreen({ facts = {}, modules, onLogout, onOpenModule, roleLabel, userDisplayName }: HomeScreenProps) {
   const sections = menuSections
     .map((section) => ({ ...section, modules: modules.filter((module) => module.section === section.id) }))
     .filter((section) => section.modules.length > 0);
@@ -42,9 +44,9 @@ export function HomeScreen({ modules, onLogout, onOpenModule, roleLabel, userDis
           <View key={section.id} style={styles.section}>
             <Text accessibilityRole="header" style={styles.sectionTitle}>{section.title}</Text>
             <View style={styles.grid}>
-              {section.modules.map((module) => (
+              {section.modules.map((module, index) => (
                 <View key={module.id} style={styles.slot}>
-                  <ModuleCard module={module} disabled={!onOpenModule} onPress={() => onOpenModule?.(module)} />
+                  <ModuleCard fact={facts[module.id]} module={module} order={index + 1} disabled={!onOpenModule} onPress={() => onOpenModule?.(module)} />
                 </View>
               ))}
             </View>

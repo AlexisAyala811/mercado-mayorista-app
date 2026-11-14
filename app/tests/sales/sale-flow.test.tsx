@@ -4,6 +4,7 @@ import {SaleFlowScreen} from '@/features/sales/screens/sale-flow-screen';
 import {getSale,loadSaleCatalogs} from '@/services/api/sales-api';
 import type {Sale} from '@/domain/sales/sale';
 import {CharacteristicFields} from '@/features/catalog/components/characteristic-fields';
+import { barButton, withChrome } from '../shared/with-chrome';
 
 let mockDistinctIds=false;let mockNextId=0;
 
@@ -33,7 +34,7 @@ beforeEach(()=>{
 
 async function prepare() {
   let root!:ReactTestRenderer;
-  await act(async()=>{root=create(<SaleFlowScreen/>)});
+  await act(async()=>{root=create(withChrome(<SaleFlowScreen/>))});
   await act(async()=>{root.root.findAll(node=>node.props.label==='Comprador')[0].props.onPress()});
   await act(async()=>{root.root.findAll(node=>node.props.title==='Seleccionar comprador')[0].props.onSelect({id:'buyer'})});
   await act(async()=>{root.root.findAll(node=>node.props.label==='Variedad')[0].props.onPress()});
@@ -150,7 +151,7 @@ it('retries only the detail lookup after a centrally confirmed sale',async()=>{
 it('warns before cancel and retains every edited field when the exit is cancelled',async()=>{
   const root=await prepare();
   await act(async()=>{root.root.findAll(node=>node.props.title==='¿Confirmar la venta?')[0].props.onCancel()});
-  await act(async()=>{root.root.findAll(node=>node.props.label==='Cancelar')[0].props.onPress()});
+  await act(async()=>{barButton(root,'Atrás').props.onPress()});
   const prompt=root.root.findAll(node=>node.props.title==='¿Salir de la venta?')[0];expect(prompt.props.visible).toBe(true);expect(mockBack).not.toHaveBeenCalled();
   await act(async()=>{prompt.props.onCancel()});
   expect(root.root.findAll(node=>node.props.label==='Comprador')[0].props.value).toBe('Comprador');

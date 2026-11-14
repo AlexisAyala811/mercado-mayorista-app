@@ -1,7 +1,5 @@
-import { backOrHome } from "@/navigation/back-or-home";
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View, useWindowDimensions } from "react-native";
-import { useRouter } from "expo-router";
 
 import { formatMoney } from "@/domain/reception/reception";
 import { formatLocalDateInput, isValidCivilDate } from "@/domain/shared/date";
@@ -33,13 +31,13 @@ import {
   ScreenHeader,
   SelectionField,
 } from "@/ui/components";
+import { AppHeader } from "@/ui/navigation/app-header";
 import { color, spacing, typography } from "@/ui/tokens";
 import { ReportDownloads } from './report-downloads';
 import { ReportIndicators } from './report-indicators';
 import { useReportFonts } from '@/ui/report-fonts';
 import { reportVisual } from '@/ui/report-tokens';
 import { ReportAsset } from '@/ui/components/report-asset';
-import { BrandMark } from '@/ui/components/brand-mark';
 
 type Dialog = "buyer" | "operation" | "provider" | "variety" | "quality" | "origin" | "period" | null;
 type OperationFilter = "all" | "purchase" | "sale";
@@ -53,7 +51,6 @@ function ReportsWorkspace() {
   const { width, fontScale } = useWindowDimensions();
   const wide = width >= 1100 && fontScale <= 1.3;
   const reportFontsLoaded = useReportFonts();
-  const router = useRouter();
   const { session, invalidateSession } = useSession();
   const token = session?.accessToken ?? '';
   const [initialPeriod] = useState(() => {
@@ -220,18 +217,8 @@ function ReportsWorkspace() {
 
   return (
     <AppScreen edgeToEdge contentContainerStyle={styles.screen}>
-      <View style={[styles.accountBar, !wide && styles.compactAccountBar]}>
-        <View style={styles.identity}>
-          <BrandMark size={44} />
-          <Text accessibilityRole="header" style={styles.brandTitle}>Reportes</Text>
-          <Text numberOfLines={1} accessibilityLabel={`Usuario ${session.user?.username ?? ''}`} style={[styles.username, !wide && styles.compactUsername, reportFontsLoaded && {fontFamily:'ReportInterRegular'}]}>{session.user?.username ?? ''}</Text>
-        </View>
-        <AppButton
-          label="Volver al menú" appearance="report-link" reportFontsLoaded={reportFontsLoaded}
-          leadingVisual={<ReportAsset kind="back" />}
-          onPress={() => backOrHome(router)}
-          tone="secondary"
-        />
+      <View style={styles.headerWrap}>
+        <AppHeader eyebrow={reportOperation === 'purchase' ? 'COMPRA · REPORTES' : 'VENTA · REPORTES'} title="Reportes" />
       </View>
       <View style={styles.operationTabs} accessibilityRole="tablist">
         {(['purchase', 'sale'] as const).map(kind => (
@@ -562,12 +549,7 @@ function ReportsWorkspace() {
 
 const styles = StyleSheet.create({
   screen: { gap:31, paddingTop:23,paddingBottom:28,paddingHorizontal:21,backgroundColor:reportVisual.surface },
-  accountBar: {minHeight:75,backgroundColor:reportVisual.control,paddingHorizontal:35,paddingVertical:12,flexDirection:'row',justifyContent:'space-between',alignItems:'center',gap:20},
-  compactAccountBar: {paddingHorizontal:14,flexWrap:'wrap'},
-  identity: {flexDirection:'row',alignItems:'center',gap:19,flexShrink:1,minWidth:0},
-  username: {fontSize:18,lineHeight:24,fontWeight:'700',color:reportVisual.value,flexShrink:1},
-  brandTitle: {fontSize:26,lineHeight:32,fontWeight:'800',color:color.brand},
-  compactUsername: {fontSize:16,lineHeight:22},
+  headerWrap: {},
   body: {gap:24},
   wideBody: {paddingHorizontal:99,paddingTop:3},
   periodField: {flexBasis:200,flexGrow:1,minWidth:0,maxWidth:'100%'},

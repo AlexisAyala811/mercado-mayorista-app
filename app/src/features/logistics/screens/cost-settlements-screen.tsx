@@ -45,7 +45,6 @@ import {
   type Choice,
 } from "@/ui/components";
 import { color, spacing, typography } from "@/ui/tokens";
-import { backOrHome } from "@/navigation/back-or-home";
 
 type OperationChoice = { id: string; label: string; type: "purchase" | "sale" };
 
@@ -351,24 +350,17 @@ function CostSettlementsWorkspace({ token }: { token: string }) {
   return (
     <>
       <AppScreen contentContainerStyle={styles.screen}>
-        <View style={styles.top}>
-          <AppButton
-            label="Volver"
-            onPress={() => backOrHome(router)}
-            tone="secondary"
-          />
-          <AppButton
-            disabled={busy || Boolean(confirm) || Boolean(deleteGroup)}
-            label="Actualizar"
-            onPress={() => void load()}
-            tone="secondary"
-          />
-        </View>
         <ScreenHeader
           eyebrow="LOGÍSTICA"
           title="Flete y estiba"
           description="Registra costos operativos y liquida únicamente entradas pendientes."
         />
+        <View style={styles.top}><AppButton
+              disabled={busy || Boolean(confirm) || Boolean(deleteGroup)}
+              label="Actualizar"
+              onPress={() => void load()}
+              tone="secondary"
+            /></View>
         {error ? (
           <FeedbackState
             title="Revisa la operación"

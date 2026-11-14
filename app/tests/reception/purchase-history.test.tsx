@@ -3,6 +3,7 @@ import {act,create,type ReactTestRenderer} from 'react-test-renderer';
 import {PurchaseHistoryScreen} from '@/features/reception/screens/purchase-history-screen';
 import {getPurchaseSettlement,getReception,getSacks,listReceptions} from '@/services/api/reception-api';
 import type {Reception} from '@/domain/reception/reception';
+import { barButton, withChrome } from '../shared/with-chrome';
 
 const mockEnqueue=jest.fn();const mockSendQueued=jest.fn();const mockPush=jest.fn();
 jest.mock('@/features/sync/sync-queue-provider',()=>({useSyncQueue:()=>({enqueue:mockEnqueue,sendQueued:mockSendQueued})}));
@@ -28,7 +29,7 @@ type Kind='void-reception'|'void-purchase'|'void-sack'|'correct-open'|'correct-c
 it.each(['draft', 'weighing', 'weighed'] as const)('offers continuation for %s using the existing reception identity', async (state) => {
   jest.mocked(getReception).mockResolvedValue({ ...reception, state });
   let root!: ReactTestRenderer;
-  await act(async () => { root = create(<PurchaseHistoryScreen />); });
+  await act(async () => { root = create(withChrome(<PurchaseHistoryScreen />)); });
   await act(async () => { root.root.findAll(node => node.props.label === 'Abrir detalle')[0].props.onPress(); });
   const label = state === 'weighed' ? 'Continuar liquidación' : 'Continuar pesaje';
   await act(async () => { root.root.findAll(node => node.props.label === label)[0].props.onPress(); });
@@ -40,7 +41,7 @@ it.each(['draft', 'weighing', 'weighed'] as const)('offers continuation for %s u
 it.each(['settled', 'voided'] as const)('does not offer continuation for %s receptions', async (state) => {
   jest.mocked(getReception).mockResolvedValue({ ...reception, state });
   let root!: ReactTestRenderer;
-  await act(async () => { root = create(<PurchaseHistoryScreen />); });
+  await act(async () => { root = create(withChrome(<PurchaseHistoryScreen />)); });
   await act(async () => { root.root.findAll(node => node.props.label === 'Abrir detalle')[0].props.onPress(); });
   expect(root.root.findAll(node => node.props.label === 'Continuar liquidación' || node.props.label === 'Continuar pesaje')).toHaveLength(0);
   await act(async () => { root.unmount(); });
@@ -50,7 +51,7 @@ async function prepare(kind:Kind='void-reception'){
   if(kind==='void-purchase')jest.mocked(getReception).mockResolvedValue({...reception,state:'settled'});
   if(kind==='correct-open')jest.mocked(getReception).mockResolvedValue({...reception,state:'weighing'});
   let root!:ReactTestRenderer;
-  await act(async()=>{root=create(<PurchaseHistoryScreen/>)});
+  await act(async()=>{root=create(withChrome(<PurchaseHistoryScreen/>))});
   await act(async()=>{root.root.findAll(node=>node.props.label==='Abrir detalle')[0].props.onPress();await Promise.resolve()});
   const correction=kind.startsWith('correct');
   await act(async()=>{root.root.findAll(node=>node.props.label===(correction?'Corregir':kind==='void-reception'?'Anular recepción':kind==='void-purchase'?'Anular compra':'Anular saco'))[0].props.onPress()});
@@ -100,7 +101,7 @@ it('locks new actions and retries only the detail after a confirmed operation',a
 
 
 it('queries the full central history with combined filters and removes old results during editing',async()=>{
-  let root!:ReactTestRenderer;await act(async()=>{root=create(<PurchaseHistoryScreen/>)});
+  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<PurchaseHistoryScreen/>))});
   expect(listReceptions).toHaveBeenCalledWith('test-token',{limit:20,offset:0});
   await act(async()=>{for(const [label,value] of [['Desde','2026-10-07'],['Hasta','2026-10-07'],['Participante comercial',' Proveedor QA ']])root.root.findAll(node=>node.props.label===label)[0].props.onChangeText(value)});
   expect(root.root.findAll(node=>node.props.label==='Abrir detalle')).toHaveLength(0);
@@ -110,7 +111,7 @@ it('queries the full central history with combined filters and removes old resul
   await act(async()=>{root.unmount()});
 });
 it('keeps filtered pagination and its position after returning from the detail',async()=>{
-  let root!:ReactTestRenderer;await act(async()=>{root=create(<PurchaseHistoryScreen/>)});
+  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<PurchaseHistoryScreen/>))});
   await act(async()=>{root.root.findAll(node=>node.props.label==='Participante comercial')[0].props.onChangeText('Proveedor QA')});
   jest.mocked(listReceptions).mockResolvedValueOnce({items:Array.from({length:20},(_,index)=>({...reception,id:`r-${index}`})),total:21,limit:20,offset:0});
   await act(async()=>{root.root.findAll(node=>node.props.label==='Buscar')[0].props.onPress();await Promise.resolve()});
@@ -118,7 +119,7 @@ it('keeps filtered pagination and its position after returning from the detail',
   await act(async()=>{root.root.findAll(node=>node.props.label==='Página siguiente')[0].props.onPress();await Promise.resolve()});
   expect(listReceptions).toHaveBeenLastCalledWith('test-token',expect.objectContaining({search:'Proveedor QA',offset:20}));
   await act(async()=>{root.root.findAll(node=>node.props.label==='Abrir detalle')[0].props.onPress();await Promise.resolve()});
-  await act(async()=>{root.root.findAll(node=>node.props.label==='Volver al historial')[0].props.onPress()});
+  await act(async()=>{barButton(root,'Volver al historial').props.onPress()});
   expect(listReceptions).toHaveBeenCalledTimes(3);
   expect(root.root.findAll(node=>node.props.label==='Participante comercial')[0].props.value).toBe('Proveedor QA');
   expect(root.root.findAll(node=>node.props.label==='Página siguiente')[0].props.disabled).toBe(true);
@@ -127,7 +128,7 @@ it('keeps filtered pagination and its position after returning from the detail',
 it('ignores late reception results after a new filter is entered',async()=>{
   let finish!:(value:Awaited<ReturnType<typeof listReceptions>>)=>void;
   jest.mocked(listReceptions).mockImplementationOnce(()=>new Promise(resolve=>{finish=resolve}));
-  let root!:ReactTestRenderer;await act(async()=>{root=create(<PurchaseHistoryScreen/>)});
+  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<PurchaseHistoryScreen/>))});
   await act(async()=>{root.root.findAll(node=>node.props.label==='Participante comercial')[0].props.onChangeText('Nuevo proveedor')});
   await act(async()=>{finish({items:[reception],total:1,limit:20,offset:0});await Promise.resolve()});
   expect(root.root.findAll(node=>node.props.label==='Abrir detalle')).toHaveLength(0);
@@ -136,14 +137,14 @@ it('ignores late reception results after a new filter is entered',async()=>{
 });
 it('distinguishes a query error from an empty result and retries its criteria',async()=>{
   jest.mocked(listReceptions).mockRejectedValueOnce(new Error('History unavailable'));
-  let root!:ReactTestRenderer;await act(async()=>{root=create(<PurchaseHistoryScreen/>)});
+  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<PurchaseHistoryScreen/>))});
   expect(root.root.findAll(node=>node.props.title==='Sin resultados')).toHaveLength(0);
   await act(async()=>{root.root.findAll(node=>node.props.actionLabel==='Reintentar consulta')[0].props.onAction();await Promise.resolve()});
   expect(root.root.findAll(node=>node.props.label==='Abrir detalle')).not.toHaveLength(0);
   expect(listReceptions).toHaveBeenCalledTimes(2);await act(async()=>{root.unmount()});
 });
 it('rejects nonexistent dates without querying and clears filters with a new central request',async()=>{
-  let root!:ReactTestRenderer;await act(async()=>{root=create(<PurchaseHistoryScreen/>)});
+  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<PurchaseHistoryScreen/>))});
   await act(async()=>{root.root.findAll(node=>node.props.label==='Desde')[0].props.onChangeText('2026-02-30')});
   await act(async()=>{root.root.findAll(node=>node.props.label==='Buscar')[0].props.onPress()});
   expect(listReceptions).toHaveBeenCalledTimes(1);expect(root.root.findAll(node=>node.props.actionLabel==='Reintentar consulta')).toHaveLength(0);
@@ -153,7 +154,7 @@ it('rejects nonexistent dates without querying and clears filters with a new cen
 });
 it('returns once to the first filtered page when the last page has disappeared',async()=>{
   jest.mocked(listReceptions).mockResolvedValueOnce({items:Array.from({length:20},(_,index)=>({...reception,id:`r-${index}`})),total:21,limit:20,offset:0});
-  let root!:ReactTestRenderer;await act(async()=>{root=create(<PurchaseHistoryScreen/>)});
+  let root!:ReactTestRenderer;await act(async()=>{root=create(withChrome(<PurchaseHistoryScreen/>))});
   jest.mocked(listReceptions).mockResolvedValueOnce({items:[],total:20,limit:20,offset:20});
   await act(async()=>{root.root.findAll(node=>node.props.label==='Página siguiente')[0].props.onPress();await Promise.resolve()});
   expect(listReceptions).toHaveBeenNthCalledWith(2,'test-token',{limit:20,offset:20});

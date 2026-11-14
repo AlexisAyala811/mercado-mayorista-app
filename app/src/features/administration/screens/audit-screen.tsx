@@ -1,7 +1,5 @@
-import { backOrHome } from '@/navigation/back-or-home';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useSession } from '@/features/auth/session/session-provider';
 import { auditEventsFilters, emptyAuditFilters, type AuditFilters } from '@/domain/audit/audit-filters';
 import type { Page } from '@/domain/reception/reception';
@@ -17,7 +15,6 @@ export function AuditScreen() {
 }
 
 function AuditWorkspace({ token }: { token: string }) {
-  const router = useRouter();
   const [draft, setDraft] = useState<AuditFilters>(emptyAuditFilters);
   const [applied, setApplied] = useState<AuditFilters>(emptyAuditFilters);
   const [page, setPage] = useState<Page<AuditEvent> | null>(null);
@@ -66,7 +63,6 @@ function AuditWorkspace({ token }: { token: string }) {
   }
 
   return <AppScreen contentContainerStyle={styles.screen}>
-    <View style={styles.top}><AppButton label="Volver" onPress={() => backOrHome(router)} tone="secondary" /></View>
     <ScreenHeader eyebrow="AUDITORÍA" title="Trazabilidad del negocio" description="Consulta quién realizó cada creación, cambio, pago, anulación o intento denegado. Fechas y horas de Lima." />
     <AppCard title="Filtros">
       <View style={styles.filters}>

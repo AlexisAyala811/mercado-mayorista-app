@@ -8,6 +8,7 @@ import {
   type AccountDetail,
 } from "@/services/api/operations-api";
 import { ApiError } from "@/services/api/api-client";
+import { barButton, withChrome } from '../shared/with-chrome';
 
 jest.mock('expo-font', () => ({ useFonts: () => [true, null] }));
 jest.mock('expo-image', () => ({ Image: (props: object) => jest.requireActual('react').createElement('test-image', props) }));
@@ -104,7 +105,7 @@ beforeEach(() => {
 async function prepare(kind: "payment" | "reversal" = "payment") {
   let root!: ReactTestRenderer;
   await act(async () => {
-    root = create(<AccountsScreen kind="payable" />);
+    root = create(withChrome(<AccountsScreen kind="payable" />));
   });
   await act(async () => {
     root.root
@@ -159,7 +160,7 @@ it('lists every account of its kind and narrows them by search without writing',
   const accounts = Array.from({ length: 9 }, (_, index) => ({ ...detail.account, id: `account-${index}`, counterpartyName: `Persona ${index}` }));
   jest.mocked(listAccounts).mockResolvedValue({ items: accounts, total: 9, limit: 100, offset: 0 });
   let root!: ReactTestRenderer;
-  await act(async () => { root = create(<AccountsScreen kind="payable" />); });
+  await act(async () => { root = create(withChrome(<AccountsScreen kind="payable" />)); });
   const identities = () => [...new Set(root.root.findAll(node => node.props.label === 'Ver detalle').map(node => node.props.accessibilityLabel))];
   expect(identities()).toEqual(accounts.map(a => `Ver detalle de ${a.counterpartyName}, referencia ${a.id}`));
   await act(async () => { root.root.findAll(node => node.props.label === 'Proveedor o referencia')[0].props.onChangeText('Persona 0'); });
@@ -180,7 +181,7 @@ it.each([
     { ...detail.account, id: 'buyer-account', kind: 'receivable', counterpartyName: 'Comprador' },
   ], total: 2, limit: 100, offset: 0 });
   let root!: ReactTestRenderer;
-  await act(async () => { root = create(<AccountsScreen kind={kind} />); });
+  await act(async () => { root = create(withChrome(<AccountsScreen kind={kind} />)); });
   expect(root.root.findAll(node => typeof node.type === 'string' && node.props.accessibilityRole === 'header' && node.props.children === title)).toHaveLength(1);
   const shown = root.root.findAll(node => typeof node.type === 'string' && node.props.label === 'Ver detalle').map(node => node.props.accessibilityLabel as string);
   expect(shown).toHaveLength(1);
@@ -195,7 +196,7 @@ it.each(["accounts", "cash"])("does not present zero balances or empty results w
   if (source === "accounts") jest.mocked(listAccounts).mockRejectedValueOnce(new Error("Accounts offline"));
   else jest.mocked(listCashMovements).mockRejectedValueOnce(new Error("Cash offline"));
   let root!: ReactTestRenderer;
-  await act(async () => { root = create(<AccountsScreen kind="payable" />); });
+  await act(async () => { root = create(withChrome(<AccountsScreen kind="payable" />)); });
   expect(root.root.findAll(node => node.props.title === "Datos financieros no disponibles")).not.toHaveLength(0);
   expect(root.root.findAll(node => node.props.label === "Neto")).toHaveLength(0);
   expect(root.root.findAll(node => node.props.title === "Sin cuentas" || node.props.title === "Sin movimientos")).toHaveLength(0);
@@ -213,7 +214,7 @@ it.each(["accounts", "cash"])("does not present zero balances or empty results w
 it("invalidates an unauthorized initial read without treating it as an empty account list", async () => {
   jest.mocked(listAccounts).mockRejectedValueOnce(new ApiError("Sesión vencida", 401));
   let root!: ReactTestRenderer;
-  await act(async () => { root = create(<AccountsScreen kind="payable" />); });
+  await act(async () => { root = create(withChrome(<AccountsScreen kind="payable" />)); });
   expect(mockInvalidate).toHaveBeenCalledTimes(1);
   expect(root.root.findAll(node => node.props.label === "Neto")).toHaveLength(0);
   expect(root.root.findAll(node => node.props.title === "Sin cuentas")).toHaveLength(0);
@@ -237,7 +238,7 @@ it("does not present an old account detail after the authenticated token changes
   let resolve!: (value: AccountDetail) => void;
   jest.mocked(getAccount).mockReturnValueOnce(new Promise(done => { resolve = done; }));
   let root!: ReactTestRenderer;
-  await act(async () => { root = create(<AccountsScreen kind="payable" />); });
+  await act(async () => { root = create(withChrome(<AccountsScreen kind="payable" />)); });
   await act(async () => { root.root.findAll(node => node.props.label === "Ver detalle")[0].props.onPress(); });
   mockAccessToken = "new-session-token";
   await act(async () => { root.update(<AccountsScreen kind="payable" />); });
@@ -286,7 +287,7 @@ it("renders exact cash totals beyond the safe integer limit while every movement
   });
   let root!: ReactTestRenderer;
   await act(async () => {
-    root = create(<AccountsScreen kind="payable" />);
+    root = create(withChrome(<AccountsScreen kind="payable" />));
   });
   const metric = (label: string) =>
     root.root.findAll(
@@ -305,7 +306,7 @@ it("keeps account search accessible before expanding cash and preserves totals w
     id: "cash-entry", direction: "in", amountCents: "1234", category: "sale-collection", sourceType: "sale", sourceId: "sale-id", createdByUserId: "test-user", createdAt: "2026-10-11T12:00:00Z",
   }] });
   let root!: ReactTestRenderer;
-  await act(async () => { root = create(<AccountsScreen kind="payable" />); });
+  await act(async () => { root = create(withChrome(<AccountsScreen kind="payable" />)); });
   const control = (label: string) => root.root.findAll(node => node.props.label === label)[0];
   expect(control("Proveedor o referencia")).toBeDefined();
   expect(control("Ver movimientos de caja").props.accessibilityState.expanded).toBe(false);
@@ -396,7 +397,7 @@ it("preserves the payment and compensation history without offering a second rev
     { ...detail.payments[0]!, id: "reversal-id", isReversal: true, reversedPaymentId: "payment-id", reason: "Corrección" },
   ] });
   let root!: ReactTestRenderer;
-  await act(async () => { root = create(<AccountsScreen kind="payable" />); });
+  await act(async () => { root = create(withChrome(<AccountsScreen kind="payable" />)); });
   await act(async () => { root.root.findAll(node => node.props.label === "Ver detalle")[0].props.onPress(); });
   expect(root.root.findAll(node => node.props.label === "Revertir")).toHaveLength(0);
   expect(JSON.stringify(root.toJSON())).toContain("Movimiento revertido");
@@ -443,7 +444,7 @@ it("searches counterparties and preserves filters after opening and leaving deta
   jest.mocked(getAccount).mockResolvedValueOnce({ ...detail, account: named });
   let root!: ReactTestRenderer;
   await act(async () => {
-    root = create(<AccountsScreen kind="payable" />);
+    root = create(withChrome(<AccountsScreen kind="payable" />));
   });
   await act(async () => {
     root.root
@@ -468,9 +469,7 @@ it("searches counterparties and preserves filters after opening and leaving deta
     ),
   ).not.toHaveLength(0);
   await act(async () => {
-    root.root
-      .findAll((node) => node.props.label === "Volver a deudas")[0]
-      .props.onPress();
+    barButton(root, "Volver a deudas").props.onPress();
   });
   expect(
     root.root.findAll(
@@ -578,7 +577,7 @@ it("identifies collections and their provisional remaining balance separately fr
   });
   let root!: ReactTestRenderer;
   await act(async () => {
-    root = create(<AccountsScreen kind="receivable" />);
+    root = create(withChrome(<AccountsScreen kind="receivable" />));
   });
   await act(async () => {
     root.root
@@ -667,7 +666,7 @@ it.each([
   jest.mocked(listAccounts).mockResolvedValue({ items: [account], total: 1, limit: 100, offset: 0 });
   jest.mocked(getAccount).mockResolvedValueOnce({ ...detail, account });
   let root!: ReactTestRenderer;
-  await act(async () => { root = create(<AccountsScreen kind={kind} />); });
+  await act(async () => { root = create(withChrome(<AccountsScreen kind={kind} />)); });
   await act(async () => { root.root.findAll(node => node.props.label === "Ver detalle")[0]!.props.onPress(); });
   const buttons = root.root.findAll(node => typeof node.type === "string" && node.props.label === "Estado de cuenta");
   expect(buttons).toHaveLength(expected);
@@ -687,7 +686,7 @@ it("shows the installments of a voided credit sale as «Anulada» in Cobranzas",
     { id: "i2", dueOn: "2026-12-20", initialAmountCents: "5000", balanceCents: "0", state: "voided" },
   ] });
   let root!: ReactTestRenderer;
-  await act(async () => { root = create(<AccountsScreen kind="receivable" />); });
+  await act(async () => { root = create(withChrome(<AccountsScreen kind="receivable" />)); });
   await act(async () => { root.root.findAll(node => node.props.label === "Ver detalle")[0]!.props.onPress(); });
   const text = JSON.stringify(root.toJSON());
   expect(text.match(/Anulada/g)?.length).toBeGreaterThanOrEqual(2);

@@ -4,6 +4,7 @@ import {useRouter,useNavigation} from 'expo-router';
 import {usePreventRemove} from 'expo-router/react-navigation';
 import {useBrowserTraversalGuard} from '@/navigation/use-browser-traversal-guard';
 import {backOrHome} from '@/navigation/back-or-home';
+import {useBottomNav} from '@/ui/navigation/app-chrome';
 import {formatMoney,moneyInputToCents,type PotatoVariety,type Provider} from '@/domain/reception/reception';
 import type {Buyer} from '@/domain/sales/sale';
 import type {CommercialCharacteristic} from '@/domain/catalog/commercial-characteristic';
@@ -130,8 +131,13 @@ function CatalogWorkspace({referenceKind,onClose,onEditingState}:EmbeddedProps={
   }
   const locked=busy||loading||pending!==null||deleting!==null;const items:Item[]=data?.[kind]??[];
   const leave=()=>embedded?onClose?.(changed.current):backOrHome(router);
+  // Spec 011 (RQ-ST02): the bottom bar leaves through the same unsaved-changes check.
+  useBottomNav({
+    back:embedded?null:{label:'Atrás',disabled:locked,onPress:()=>requestChange(leave,true)},
+    home:embedded?null:{label:'Menú principal',disabled:locked,onPress:()=>requestChange(()=>router.replace('/home'),true)},
+  });
   const content=<><AppScreen contentContainerStyle={styles.screen}>
-    <View style={styles.top}><AppButton disabled={locked} label={embedded?'Volver al formulario':'Volver'} onPress={()=>requestChange(leave,!embedded)} tone="secondary"/><AppButton disabled={locked} label="Actualizar" onPress={()=>void load()} tone="secondary"/></View>
+    <View style={styles.top}>{embedded?<AppButton disabled={locked} label='Volver al formulario' onPress={()=>requestChange(leave,false)} tone="secondary"/>:null}<AppButton disabled={locked} label="Actualizar" onPress={()=>void load()} tone="secondary"/></View>
     <ScreenHeader eyebrow={embedded?'DATOS DE LA OPERACIÓN':'CATÁLOGOS'} title={embedded?kinds.find(item=>item.id===kind)!.label:'Datos maestros'} description={embedded?'Registra o edita una opción y vuelve al formulario de la operación.':'Proveedores, compradores, variedades, calidades y procedencias del negocio.'}/>
     {!embedded?<View style={styles.tabs}>{kinds.map(option=><AppButton key={option.id} disabled={locked} label={option.label} accessibilityState={{selected:kind===option.id}} onPress={()=>choose(option.id)} tone={kind===option.id?'primary':'secondary'}/>)}</View>:null}
     {notice?<FeedbackState title="Operación confirmada" message={notice}/>:null}

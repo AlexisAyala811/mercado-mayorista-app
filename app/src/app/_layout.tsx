@@ -1,4 +1,4 @@
-import { Stack } from "expo-router";
+import { Stack, usePathname } from "expo-router";
 import { useInitialPurchaseDraftSession } from "@/features/reception/use-initial-purchase-draft-session";
 import { StatusBar } from "expo-status-bar";
 
@@ -10,6 +10,8 @@ import { SyncQueueProvider } from "@/features/sync/sync-queue-provider";
 import { SyncStatusBanner } from "@/features/sync/sync-status-banner";
 import { Modal, View } from "react-native";
 import { AppScreen, FeedbackState, LoadingState } from "@/ui/components";
+import { AppChromeProvider } from "@/ui/navigation/app-chrome";
+import { BottomNav } from "@/ui/navigation/bottom-nav";
 
 export default function RootLayout() {
   return (
@@ -33,6 +35,7 @@ export function RootNavigator() {
     retryBootstrap,
     session,
   } = useSession();
+  const pathname = usePathname();
   useInitialPurchaseDraftSession();
   if (isBootstrapping) {
     return (
@@ -60,8 +63,10 @@ export function RootNavigator() {
       </AppScreen>
     );
   }
+  // Spec 011 (RQ-ST02): the bottom bar on every screen after sign-in except the menu.
+  const showBottomNav = Boolean(session) && pathname !== "/home" && pathname !== "/";
   return (
-    <>
+    <AppChromeProvider username={session?.user?.username ?? null}>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Protected guard={!session}>
           <Stack.Screen name="index" />
@@ -87,6 +92,7 @@ export function RootNavigator() {
           <Stack.Screen name="audit" />
         </Stack.Protected>
       </Stack>
+      {showBottomNav ? <BottomNav /> : null}
       <Modal
         visible={
           Boolean(session) && (isRevalidating || Boolean(bootstrapError))
@@ -111,6 +117,6 @@ export function RootNavigator() {
           )}
         </AppScreen>
       </Modal>
-    </>
+    </AppChromeProvider>
   );
 }
