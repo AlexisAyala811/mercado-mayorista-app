@@ -17,11 +17,11 @@ export function ReportIndicators({ overview: o }: { overview: OperationOverview 
   return <View style={styles.container}>
     {purchase ? (
       <View style={styles.tiles}>
-        <MetricTile appearance="stitch" label="Total de compras" value={formatMoney(o.totalAmountCents)} description={`${o.operationCount} compras confirmadas`} />
-        <MetricTile appearance="stitch" label="Volumen total" tone="success" value={formatKilograms(o.weightKg)} description={`${o.sacks} sacos en el período`} />
-        <MetricTile appearance="stitch" label="Precio promedio" value={averagePricePerKilogram(o.totalAmountCents, o.weightKg) ?? 'Sin peso'} description="Importe entre kilos del período" />
-        {o.counterpartyCount !== undefined ? <MetricTile appearance="stitch" label="Proveedores atendidos" value={o.counterpartyCount} description={`${o.varietyCount ?? '—'} variedades`} /> : null}
-        <MetricTile appearance="stitch" label="Saldo pendiente del período" tone="danger" value={formatMoney(o.currentBalanceCents)} description={`${o.openAccountCount} cuentas abiertas`} />
+        <MetricTile appearance="stitch" icon="payments" label="Total inversión en compras" value={formatMoney(o.totalAmountCents)} description={`${o.operationCount} ${o.operationCount === '1' ? 'compra confirmada' : 'compras confirmadas'}`} />
+        <MetricTile appearance="stitch" icon="inventory_2" label="Volumen total acopiado" tone="success" value={formatKilograms(o.weightKg)} description={`${o.sacks} sacos${perSack ? ` · prom. ${perSack} kg/saco` : ''}`} />
+        <MetricTile appearance="stitch" icon="price_change" label="Precio prom. ponderado" value={averagePricePerKilogram(o.totalAmountCents, o.weightKg) ?? 'Sin peso'} description="Importe entre kilos del período" />
+        {o.counterpartyCount !== undefined ? <MetricTile appearance="stitch" icon="groups" label="Productores atendidos" value={o.counterpartyCount} description={`${o.varietyCount ?? '—'} variedades`} /> : null}
+        <MetricTile appearance="stitch" icon="pending_actions" label="Saldo pendiente del período" tone="danger" value={formatMoney(o.currentBalanceCents)} description={`${o.openAccountCount} cuentas abiertas`} />
       </View>
     ) : (
       <>
