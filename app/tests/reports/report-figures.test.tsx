@@ -47,3 +47,26 @@ it('reads the daily and the variety reports of the consulted period and shows bo
   expect(texts(root)).toEqual(expect.arrayContaining(['Evolución de compras', '420.00', '03/11', 'Distribución por variedad', '400 kg', '(100.0%)', 'Consolidado por variedad de papa', 'S/ 1.05', 'S/ 420.00', 'Principales proveedores', 'Aurelio', 'Liquidado']));
   await act(async () => root.unmount());
 });
+
+// Spec 011, CL-ST34: variety filter, day badge and figures window of the purchases board.
+it('isolates a variety, writes the badge of a touched day and opens the figures of a variety', async () => {
+  jest.mocked(listAllReportRows).mockImplementation(async (_token, _selection, report) => (report === 'daily'
+    ? [{ amount: '42000', date: '2026-11-03', id: '2026-11-03', operations: '2', sacks: '8', weight: '400.000' }]
+    : report === 'detail'
+      ? [{ id: 'o1', date: '2026-11-03', counterpartyId: 'p1', counterparty: 'Aurelio', gross: '42000', freight: '0', discounts: '0', advances: '0', amount: '42000', balance: '0', sacks: '8', weight: '400.000' }]
+      : [{ id: 'v', name: 'Canchán', operations: '2', sacks: '8', subtotal: '42000', weight: '400.000' }, { id: 'w', name: 'Yungay', operations: '1', sacks: '2', subtotal: '20000', weight: '100.000' }]) as never);
+  let root!: ReactTestRenderer;
+  await act(async () => { root = create(<ReportCharts token="t" selection={{ from: '2026-11-01', operation: 'purchase', to: '2026-11-09' }} />); });
+  const press = async (label: string) => { await act(async () => { root.root.findAll((node) => node.props.accessibilityLabel === label && node.props.onPress)[0]!.props.onPress(); }); };
+  expect(texts(root)).toContain('TOTAL GENERAL');
+  await press('Variedad Yungay');
+  expect(texts(root)).toContain('SUBTOTAL');
+  expect(root.root.findAll((node) => node.props.testID === 'variety-row-v')).toHaveLength(0);
+  await press('Ver todas las variedades');
+  expect(texts(root)).toContain('TOTAL GENERAL');
+  await press('Día 03/11: S/ 420.00');
+  expect(texts(root)).toContain('03/11: 400 kg · S/ 420.00 · 8 sacos · 2 operaciones');
+  await press('Detalle de Canchán');
+  expect(texts(root)).toEqual(expect.arrayContaining(['Total de sacos', 'Total liquidado:']));
+  await act(async () => root.unmount());
+});
