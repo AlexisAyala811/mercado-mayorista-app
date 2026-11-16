@@ -54,7 +54,15 @@ import { MessagingModule } from './messaging/messaging.module.js';
         autoLoadEntities: true,
       }),
     }),
-    ThrottlerModule.forRoot([{ limit: 100, ttl: seconds(60) }]),
+    ThrottlerModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => [
+        {
+          limit: config.getOrThrow<number>('THROTTLE_LIMIT'),
+          ttl: seconds(60),
+        },
+      ],
+    }),
     HealthModule,
     IdentityModule,
     CatalogModule,
