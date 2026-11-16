@@ -1,4 +1,4 @@
-import { Stack, usePathname, useRouter, type Href } from "expo-router";
+import { Stack, usePathname, useRouter, type ErrorBoundaryProps, type Href } from "expo-router";
 import { useMemo } from "react";
 import { useInitialPurchaseDraftSession } from "@/features/reception/use-initial-purchase-draft-session";
 import { StatusBar } from "expo-status-bar";
@@ -24,6 +24,23 @@ export default function RootLayout() {
         </View>
       </SyncQueueProvider>
     </SessionProvider>
+  );
+}
+
+// Spec 011 (CL-ST36): a failure while drawing a screen no longer closes the
+// app. Expo Router shows this in place of the route that failed; what was
+// captured stays in the encrypted queue.
+export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
+  return (
+    <AppScreen contentContainerStyle={{ justifyContent: "center" }} scrollable={false}>
+      <FeedbackState
+        actionLabel="Reintentar"
+        message="Lo que ya guardaste sigue en la tablet. Vuelve a intentar; si se repite, cierra y abre la aplicación."
+        onAction={() => void retry()}
+        title="Algo falló en esta pantalla"
+        tone="error"
+      />
+    </AppScreen>
   );
 }
 
