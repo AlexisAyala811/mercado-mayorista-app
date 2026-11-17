@@ -2,6 +2,7 @@ import { precedingUnresolvedOperation } from '@/domain/sync/operation-order';
 import { retiredContractReason } from '@/domain/sync/retired-contract';
 import { createSerialExecutor } from '@/domain/sync/serial-executor';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type PropsWithChildren } from 'react';
+import { AppState } from 'react-native';
 import { createOperationId } from '@/domain/reception/reception';
 import { recoverInterruptedOperations, transitionOperation, type SyncOperation } from '@/domain/sync/sync-operation';
 import { useSession } from '@/features/auth/session/session-provider';
@@ -84,6 +85,33 @@ function IdentitySyncQueueProvider({ children }: PropsWithChildren) {
     await persist(working); return working;
   }, [findCentralResult, persist, scope, session]);
   const synchronize = useCallback(async () => { let current = currentOperations.current; for (const item of current.filter((value) => value.status === 'pending')) current = await runOne(item, current); }, [runOne]);
+  // Spec 011 (CL-ST36): the queue sends itself when the app comes to the front
+  // and every minute while something is pending. It stops at the first
+  // operation that the network did not let through, so a tablet without
+  // connection neither spends the five sends nor holds new captures behind it.
+  const synchronizeAvailable = useCallback(async () => {
+    let current = currentOperations.current;
+    for (const item of current.filter((value) => value.status === 'pending')) {
+      const next = await runOne(item, current);
+      const after = next.find((value) => value.id === item.id);
+      const blockedByNetwork = next === current || (after?.status === 'pending' && after.attempts > item.attempts);
+      current = next;
+      if (blockedByNetwork) break;
+    }
+  }, [runOne]);
+  const hasPending = operations.some((item) => item.status === 'pending');
+  const autoRunning = useRef(false);
+  useEffect(() => {
+    if (!session) return;
+    const run = () => {
+      if (autoRunning.current) return;
+      autoRunning.current = true;
+      void serial.current(synchronizeAvailable).catch(() => undefined).finally(() => { autoRunning.current = false; });
+    };
+    const subscription = AppState.addEventListener('change', (state) => { if (state === 'active') run(); });
+    const timer = hasPending ? setInterval(run, autoSyncIntervalMs) : null;
+    return () => { subscription.remove(); if (timer) clearInterval(timer); };
+  }, [hasPending, session, synchronizeAvailable]);
   const retry = useCallback(async (id: string) => { const item = currentOperations.current.find((value) => value.id === id); if (item) await runOne(item, currentOperations.current); }, [runOne]);
   const sendQueued = useCallback(async (id: string) => {
     const item = currentOperations.current.find((value) => value.id === id);
@@ -95,6 +123,7 @@ function IdentitySyncQueueProvider({ children }: PropsWithChildren) {
   const value = useMemo(() => ({ isLoadingQueue, reloadQueue:()=>serial.current(reloadQueue), queueError, operations, pendingCount: operations.filter((item) => item.status === 'pending' || item.status === 'syncing').length, enqueue:(input:EnqueueInput)=>serial.current(()=>enqueue(input)), sendQueued:(id:string)=>serial.current(()=>sendQueued(id)), synchronize:()=>serial.current(synchronize), retry:(id:string)=>serial.current(()=>retry(id)), discard:(id:string,reason:string)=>serial.current(()=>discard(id,reason)) }), [discard, enqueue, isLoadingQueue, operations, queueError, reloadQueue, retry, sendQueued, synchronize]);
   return <Context.Provider value={value}>{children}</Context.Provider>;
 }
+export const autoSyncIntervalMs = 60_000;
 export function useSyncQueue() { const value = useContext(Context); if (!value) throw new Error('useSyncQueue requiere SyncQueueProvider.'); return value; }
 function centralReferenceFromResponse(type: string, result: Record<string, unknown>) {
   const resource = type === 'sale.return' ? result?.saleReturn : result;

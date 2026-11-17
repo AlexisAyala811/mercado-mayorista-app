@@ -358,3 +358,40 @@ it('recovers a previously applied historic sale before inspecting its retired pa
   expect(apiRequest).toHaveBeenCalledTimes(1);expect(latest.operations[0]).toMatchObject({id:'historic-applied',body,status:'confirmed',centralReference:'historic-central-sale',attempts:0});
   await act(async()=>{root.unmount()});
 });
+
+// Spec 011, CL-ST36: the queue sends itself when the app comes back to the front.
+describe('automatic synchronization', () => {
+  const pending = (id: string) => ({ id, businessId: 'business-auto', userId: 'user-auto', type: 'reception.create', path: '/receptions', method: 'POST' as const, body: { clientOperationId: id }, status: 'pending' as const, attempts: 0, createdAt: '2026-11-16T10:00:00.000Z', updatedAt: '2026-11-16T10:00:00.000Z' });
+  async function mountWith(items: ReturnType<typeof pending>[]) {
+    const { AppState } = jest.requireActual('react-native') as typeof import('react-native');
+    let listener: ((state: string) => void) | undefined;
+    const remove = jest.fn();
+    jest.spyOn(AppState, 'addEventListener').mockImplementation(((_: string, handler: (state: string) => void) => { listener = handler; return { remove }; }) as never);
+    (globalThis as typeof globalThis & {IS_REACT_ACT_ENVIRONMENT: boolean}).IS_REACT_ACT_ENVIRONMENT = true;
+    mockSession = { accessToken: 'test-token', user: { businessId: 'business-auto', userId: 'user-auto' } };
+    jest.mocked(readEncryptedQueue).mockResolvedValueOnce(items as never);
+    jest.mocked(apiRequest).mockReset();
+    let root!: ReactTestRenderer;
+    await act(async () => { root = create(<Tree />); });
+    return { root, remove, activate: async () => { await act(async () => { listener?.('active'); await Promise.resolve(); }); await act(async () => { await new Promise((resolve) => setTimeout(resolve, 0)); }); } };
+  }
+  afterEach(() => { jest.restoreAllMocks(); });
+
+  it('sends the pending operations when the app becomes active', async () => {
+    const { root, remove, activate } = await mountWith([pending('auto-1'), pending('auto-2')]);
+    jest.mocked(apiRequest).mockImplementation(async (path: string) => { if (path.startsWith('/operations/')) throw new ApiError('Missing', 404); return { id: `central-${path}` } as never; });
+    await activate();
+    expect(latest.operations.map((item) => item.status)).toEqual(['confirmed', 'confirmed']);
+    await act(async () => root.unmount());
+    expect(remove).toHaveBeenCalled();
+  });
+
+  it('stops at the first operation the network does not let through, without spending sends', async () => {
+    const { root, activate } = await mountWith([pending('auto-3'), pending('auto-4')]);
+    jest.mocked(apiRequest).mockRejectedValue(new ApiUnavailableError());
+    await activate();
+    expect(apiRequest).toHaveBeenCalledTimes(1);
+    expect(latest.operations.map((item) => [item.status, item.attempts])).toEqual([['pending', 0], ['pending', 0]]);
+    await act(async () => root.unmount());
+  });
+});

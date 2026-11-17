@@ -101,3 +101,30 @@ describe('identity API client', () => {
     unsubscribe();
   });
 });
+
+// Spec 011, CL-ST36.
+describe('API address and cancellation', () => {
+  const { apiRequest, isAllowedApiUrl, ApiUnavailableError } = jest.requireActual('../../src/services/api/api-client') as typeof import('../../src/services/api/api-client');
+  const originalUrl = process.env.EXPO_PUBLIC_API_URL;
+  afterEach(() => { process.env.EXPO_PUBLIC_API_URL = originalUrl; jest.restoreAllMocks(); });
+
+  it('accepts HTTP only in development or when a test build says so on purpose', () => {
+    expect(isAllowedApiUrl('https://api.example.pe/api/v1', { development: false, allowInsecure: false })).toBe(true);
+    expect(isAllowedApiUrl('http://192.168.0.10:3100/api/v1', { development: false, allowInsecure: false })).toBe(false);
+    expect(isAllowedApiUrl('http://192.168.0.10:3100/api/v1', { development: true, allowInsecure: false })).toBe(true);
+    expect(isAllowedApiUrl('http://192.168.0.10:3100/api/v1', { development: false, allowInsecure: true })).toBe(true);
+    expect(isAllowedApiUrl('ftp://api.example.pe', { development: true, allowInsecure: true })).toBe(false);
+  });
+
+  it('cancels the request when the caller aborts it', async () => {
+    process.env.EXPO_PUBLIC_API_URL = 'http://localhost:3000/api/v1';
+    const fetchMock = jest.spyOn(globalThis, 'fetch').mockImplementation((_input, init) => new Promise((_resolve, reject) => {
+      init?.signal?.addEventListener('abort', () => reject(new Error('aborted')));
+    }));
+    const controller = new AbortController();
+    const request = apiRequest('/health', { signal: controller.signal });
+    controller.abort();
+    await expect(request).rejects.toBeInstanceOf(ApiUnavailableError);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+});

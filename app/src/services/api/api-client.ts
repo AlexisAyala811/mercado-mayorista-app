@@ -29,6 +29,22 @@ export class ApiConfigurationError extends Error {
   }
 }
 
+// Spec 011 (CL-ST36): outside development the token and the password only
+// travel over HTTPS. A test build on a local network must say so on purpose
+// with EXPO_PUBLIC_ALLOW_INSECURE_API=true.
+export class ApiInsecureUrlError extends ApiConfigurationError {
+  constructor() {
+    super();
+    this.message = 'La dirección de la API debe usar HTTPS.';
+    this.name = 'ApiInsecureUrlError';
+  }
+}
+
+export function isAllowedApiUrl(url: string, mode: { development: boolean; allowInsecure: boolean }) {
+  if (/^https:\/\//i.test(url)) return true;
+  return /^http:\/\//i.test(url) && (mode.development || mode.allowInsecure);
+}
+
 export class ApiUnavailableError extends Error {
   constructor() {
     super('No se pudo conectar con el servidor.');
@@ -39,6 +55,8 @@ export class ApiUnavailableError extends Error {
 type RequestOptions = {
   body?: unknown;
   method?: 'DELETE' | 'GET' | 'PATCH' | 'POST';
+  // Lets a screen cancel the request when it goes away.
+  signal?: AbortSignal;
   token?: string;
 };
 
@@ -78,6 +96,9 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}) 
   const baseUrl = getApiBaseUrl();
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 12_000);
+  const cancel = () => controller.abort();
+  if (options.signal?.aborted) cancel();
+  else options.signal?.addEventListener('abort', cancel, { once: true });
   try {
     const response = await fetch(`${baseUrl}${path}`, {
       body: options.body === undefined ? undefined : JSON.stringify(options.body),
@@ -106,12 +127,14 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}) 
     throw new ApiUnavailableError();
   } finally {
     clearTimeout(timeout);
+    options.signal?.removeEventListener('abort', cancel);
   }
 }
 
 export function getApiBaseUrl() {
   const configured = process.env.EXPO_PUBLIC_API_URL?.trim();
   if (!configured) throw new ApiConfigurationError();
+  if (!isAllowedApiUrl(configured, { development: __DEV__, allowInsecure: process.env.EXPO_PUBLIC_ALLOW_INSECURE_API === 'true' })) throw new ApiInsecureUrlError();
   return configured.replace(/\/+$/, '');
 }
 
