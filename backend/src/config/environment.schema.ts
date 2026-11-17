@@ -31,6 +31,9 @@ export const environmentSchema = Joi.object({
     .default(true),
   // Express "trust proxy": false, true, a hop count or a comma-separated list
   // of addresses/subnets. Needed so login throttling sees each client's IP.
+  // Requests per minute and per address before answering 429. Raised only for
+  // load tests on a disposable database (spec 012).
+  THROTTLE_LIMIT: Joi.number().integer().min(1).max(100000).default(100),
   TRUST_PROXY: Joi.string()
     .pattern(/^(false|true|\d{1,2}|[\w.:/,\s-]+)$/)
     .default('false'),

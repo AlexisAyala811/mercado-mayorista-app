@@ -27,6 +27,18 @@ describe('environment schema', () => {
     ).toBe(true);
   });
 
+  // Spec 012: the limit of requests per minute is configurable for load tests.
+  it('keeps 100 requests per minute unless THROTTLE_LIMIT says otherwise', () => {
+    expect(environmentSchema.validate(base).value.THROTTLE_LIMIT).toBe(100);
+    expect(
+      environmentSchema.validate({ ...base, THROTTLE_LIMIT: '100000' }).value
+        .THROTTLE_LIMIT,
+    ).toBe(100000);
+    expect(
+      environmentSchema.validate({ ...base, THROTTLE_LIMIT: '0' }).error,
+    ).toBeDefined();
+  });
+
   it('does not trust proxies unless configured', () => {
     expect(environmentSchema.validate(base).value.TRUST_PROXY).toBe('false');
   });

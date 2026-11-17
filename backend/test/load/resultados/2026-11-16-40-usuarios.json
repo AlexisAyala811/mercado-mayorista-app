@@ -1,0 +1,297 @@
+{
+  "options": {
+    "summaryTrendStats": [
+      "avg",
+      "min",
+      "med",
+      "max",
+      "p(90)",
+      "p(95)"
+    ],
+    "summaryTimeUnit": "",
+    "noColor": false
+  },
+  "state": {
+    "isStdOutTTY": false,
+    "isStdErrTTY": false,
+    "testRunDurationMs": 171317.2874
+  },
+  "metrics": {
+    "http_req_duration{expected_response:true}": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "p(95)": 17.597839999999998,
+        "avg": 7.55990179299099,
+        "min": 0,
+        "med": 6.3309,
+        "max": 197.1384,
+        "p(90)": 14.15076
+      }
+    },
+    "group_duration": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "avg": 29.63346467842325,
+        "min": 1.1524,
+        "med": 26.80825,
+        "max": 225.2649,
+        "p(90)": 47.6806,
+        "p(95)": 57.067724999999996
+      }
+    },
+    "vus": {
+      "type": "gauge",
+      "contains": "default",
+      "values": {
+        "value": 1,
+        "min": 1,
+        "max": 40
+      }
+    },
+    "iterations": {
+      "type": "counter",
+      "contains": "default",
+      "values": {
+        "count": 1928,
+        "rate": 11.25397225966117
+      }
+    },
+    "http_reqs": {
+      "values": {
+        "count": 13497,
+        "rate": 78.7836429401695
+      },
+      "type": "counter",
+      "contains": "default"
+    },
+    "data_received": {
+      "type": "counter",
+      "contains": "data",
+      "values": {
+        "count": 26484501,
+        "rate": 154593.27778266
+      }
+    },
+    "http_req_failed": {
+      "type": "rate",
+      "contains": "default",
+      "values": {
+        "rate": 0,
+        "passes": 0,
+        "fails": 13497
+      },
+      "thresholds": {
+        "rate<0.01": {
+          "ok": true
+        }
+      }
+    },
+    "http_req_connecting": {
+      "contains": "time",
+      "values": {
+        "avg": 0.0024899014595836113,
+        "min": 0,
+        "med": 0,
+        "max": 1.8555,
+        "p(90)": 0,
+        "p(95)": 0
+      },
+      "type": "trend"
+    },
+    "http_req_tls_handshaking": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "med": 0,
+        "max": 0,
+        "p(90)": 0,
+        "p(95)": 0,
+        "avg": 0,
+        "min": 0
+      }
+    },
+    "http_req_duration": {
+      "contains": "time",
+      "values": {
+        "avg": 7.55990179299099,
+        "min": 0,
+        "med": 6.3309,
+        "max": 197.1384,
+        "p(90)": 14.15076,
+        "p(95)": 17.597839999999998
+      },
+      "thresholds": {
+        "p(95)<3000": {
+          "ok": true
+        }
+      },
+      "type": "trend"
+    },
+    "vus_max": {
+      "type": "gauge",
+      "contains": "default",
+      "values": {
+        "min": 40,
+        "max": 40,
+        "value": 40
+      }
+    },
+    "data_sent": {
+      "type": "counter",
+      "contains": "data",
+      "values": {
+        "count": 3241169,
+        "rate": 18919.100630121233
+      }
+    },
+    "http_req_sending": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "med": 0,
+        "max": 11.4061,
+        "p(90)": 0,
+        "p(95)": 0,
+        "avg": 0.03386890420093357,
+        "min": 0
+      }
+    },
+    "checks": {
+      "type": "rate",
+      "contains": "default",
+      "values": {
+        "rate": 1,
+        "passes": 13496,
+        "fails": 0
+      },
+      "thresholds": {
+        "rate>0.99": {
+          "ok": true
+        }
+      }
+    },
+    "http_req_blocked": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "max": 8.7746,
+        "p(90)": 0,
+        "p(95)": 0,
+        "avg": 0.013561391420315627,
+        "min": 0,
+        "med": 0
+      }
+    },
+    "http_req_waiting": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "p(95)": 17.103379999999994,
+        "avg": 7.007880795732348,
+        "min": 0,
+        "med": 5.798,
+        "max": 197.1384,
+        "p(90)": 13.655059999999999
+      }
+    },
+    "http_req_receiving": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "avg": 0.5181520930577166,
+        "min": 0,
+        "med": 0,
+        "max": 16.0376,
+        "p(90)": 1.8542199999999998,
+        "p(95)": 3.6698599999999995
+      }
+    },
+    "iteration_duration": {
+      "type": "trend",
+      "contains": "time",
+      "values": {
+        "max": 4126.6413,
+        "p(90)": 3850.95208,
+        "p(95)": 3951.567015,
+        "avg": 3044.4413659751076,
+        "min": 2028.1645,
+        "med": 3048.63385
+      }
+    }
+  },
+  "root_group": {
+    "checks": [],
+    "name": "",
+    "path": "",
+    "id": "d41d8cd98f00b204e9800998ecf8427e",
+    "groups": [
+      {
+        "path": "::reportes",
+        "id": "4c3329317220366aedee92e405a0713a",
+        "groups": [],
+        "checks": [
+          {
+            "path": "::reportes::resumen de compras responde 200",
+            "id": "f2543e5f651541541ba7092c14665022",
+            "passes": 1928,
+            "fails": 0,
+            "name": "resumen de compras responde 200"
+          },
+          {
+            "path": "::reportes::resumen de ventas responde 200",
+            "id": "eb632172696cb85950e9d48797e20ab2",
+            "passes": 1928,
+            "fails": 0,
+            "name": "resumen de ventas responde 200"
+          },
+          {
+            "passes": 1928,
+            "fails": 0,
+            "name": "compras por día responde 200",
+            "path": "::reportes::compras por día responde 200",
+            "id": "fd8973115ea1c73193cae185179af501"
+          },
+          {
+            "path": "::reportes::ventas por variedad responde 200",
+            "id": "7606f5f8899bd688da088ee64488c00e",
+            "passes": 1928,
+            "fails": 0,
+            "name": "ventas por variedad responde 200"
+          }
+        ],
+        "name": "reportes"
+      },
+      {
+        "name": "historiales",
+        "path": "::historiales",
+        "id": "0b50a576228cefabb4c8da46e27faa87",
+        "groups": [],
+        "checks": [
+          {
+            "name": "historial de compras responde 200",
+            "path": "::historiales::historial de compras responde 200",
+            "id": "8b7c929e598071cbc363ac9b37d76f8f",
+            "passes": 1928,
+            "fails": 0
+          },
+          {
+            "name": "totales de compras responde 200",
+            "path": "::historiales::totales de compras responde 200",
+            "id": "e6c1d998f5528b2fd4160d6b2c8549ad",
+            "passes": 1928,
+            "fails": 0
+          },
+          {
+            "passes": 1928,
+            "fails": 0,
+            "name": "totales de ventas responde 200",
+            "path": "::historiales::totales de ventas responde 200",
+            "id": "10e60e3968a96af4d39c21d8e56ebfe4"
+          }
+        ]
+      }
+    ]
+  }
+}
