@@ -18,6 +18,7 @@ import type { SessionIdentity } from '../identity/application/ports/session-iden
 import { ProviderEntity } from './entities/provider.entity.js';
 import { PotatoVarietyEntity } from './entities/potato-variety.entity.js';
 import { BuyerEntity } from './entities/buyer.entity.js';
+import { CatalogCache, type CatalogKind } from './catalog-cache.js';
 import type {
   CreateBuyerDto,
   CreateProviderDto,
@@ -38,19 +39,22 @@ export class CatalogService {
     private readonly varieties: Repository<PotatoVarietyEntity>,
     @InjectRepository(BuyerEntity)
     private readonly buyers: Repository<BuyerEntity>,
+    private readonly cache: CatalogCache = new CatalogCache(),
   ) {}
 
   async listBuyers(businessId: string, page: PageQueryDto) {
-    const [items, total] = await this.buyers.findAndCount({
-      where: { businessId, isActive: true },
-      order: { name: 'ASC' },
-      skip: page.offset,
-      take: page.limit,
+    return this.cache.remember(businessId, 'buyers', page, async () => {
+      const [items, total] = await this.buyers.findAndCount({
+        where: { businessId, isActive: true },
+        order: { name: 'ASC' },
+        skip: page.offset,
+        take: page.limit,
+      });
+      return toPage(items, total, page);
     });
-    return toPage(items, total, page);
   }
 
-  async createBuyer(identity: SessionIdentity, input: CreateBuyerDto) {
+  private async createBuyerNow(identity: SessionIdentity, input: CreateBuyerDto) {
     return this.withUniqueConstraint(
       'Ya existe un comprador activo con ese nombre.',
       () =>
@@ -84,7 +88,7 @@ export class CatalogService {
     );
   }
 
-  async updateBuyer(
+  private async updateBuyerNow(
     identity: SessionIdentity,
     id: string,
     input: UpdateBuyerDto,
@@ -126,7 +130,7 @@ export class CatalogService {
     );
   }
 
-  async deactivateBuyer(identity: SessionIdentity, id: string) {
+  private async deactivateBuyerNow(identity: SessionIdentity, id: string) {
     await this.dataSource.transaction(async (manager) => {
       const result = await manager
         .getRepository(BuyerEntity)
@@ -141,16 +145,18 @@ export class CatalogService {
   }
 
   async listProviders(businessId: string, page: PageQueryDto) {
-    const [items, total] = await this.providers.findAndCount({
-      where: { businessId, isActive: true },
-      order: { name: 'ASC' },
-      skip: page.offset,
-      take: page.limit,
+    return this.cache.remember(businessId, 'providers', page, async () => {
+      const [items, total] = await this.providers.findAndCount({
+        where: { businessId, isActive: true },
+        order: { name: 'ASC' },
+        skip: page.offset,
+        take: page.limit,
+      });
+      return toPage(items, total, page);
     });
-    return toPage(items, total, page);
   }
 
-  async createProvider(identity: SessionIdentity, input: CreateProviderDto) {
+  private async createProviderNow(identity: SessionIdentity, input: CreateProviderDto) {
     return this.withUniqueConstraint(
       'Ya existe un proveedor activo con ese nombre.',
       () =>
@@ -176,7 +182,7 @@ export class CatalogService {
     );
   }
 
-  async updateProvider(
+  private async updateProviderNow(
     identity: SessionIdentity,
     id: string,
     input: UpdateProviderDto,
@@ -208,7 +214,7 @@ export class CatalogService {
     );
   }
 
-  async deactivateProvider(identity: SessionIdentity, id: string) {
+  private async deactivateProviderNow(identity: SessionIdentity, id: string) {
     await this.dataSource.transaction(async (manager) => {
       const result = await manager
         .getRepository(ProviderEntity)
@@ -229,16 +235,18 @@ export class CatalogService {
   }
 
   async listVarieties(businessId: string, page: PageQueryDto) {
-    const [items, total] = await this.varieties.findAndCount({
-      where: { businessId, isActive: true },
-      order: { name: 'ASC' },
-      skip: page.offset,
-      take: page.limit,
+    return this.cache.remember(businessId, 'varieties', page, async () => {
+      const [items, total] = await this.varieties.findAndCount({
+        where: { businessId, isActive: true },
+        order: { name: 'ASC' },
+        skip: page.offset,
+        take: page.limit,
+      });
+      return toPage(items, total, page);
     });
-    return toPage(items, total, page);
   }
 
-  async createVariety(identity: SessionIdentity, input: CreateVarietyDto) {
+  private async createVarietyNow(identity: SessionIdentity, input: CreateVarietyDto) {
     return this.withUniqueConstraint(
       'Ya existe una variedad activa con ese nombre.',
       () =>
@@ -263,7 +271,7 @@ export class CatalogService {
     );
   }
 
-  async updateVariety(
+  private async updateVarietyNow(
     identity: SessionIdentity,
     id: string,
     input: UpdateVarietyDto,
@@ -292,7 +300,7 @@ export class CatalogService {
     );
   }
 
-  async deactivateVariety(identity: SessionIdentity, id: string) {
+  private async deactivateVarietyNow(identity: SessionIdentity, id: string) {
     await this.dataSource.transaction(async (manager) => {
       const result = await manager
         .getRepository(PotatoVarietyEntity)
@@ -310,6 +318,74 @@ export class CatalogService {
         id,
       );
     });
+  }
+
+  // Spec 013: every change of a catalog drops its cached pages once the
+  // transaction has finished, whether it was saved or rejected.
+  createBuyer(identity: SessionIdentity, input: CreateBuyerDto) {
+    return this.changing(identity.businessId, 'buyers', () =>
+      this.createBuyerNow(identity, input),
+    );
+  }
+
+  updateBuyer(identity: SessionIdentity, id: string, input: UpdateBuyerDto) {
+    return this.changing(identity.businessId, 'buyers', () =>
+      this.updateBuyerNow(identity, id, input),
+    );
+  }
+
+  deactivateBuyer(identity: SessionIdentity, id: string) {
+    return this.changing(identity.businessId, 'buyers', () =>
+      this.deactivateBuyerNow(identity, id),
+    );
+  }
+
+  createProvider(identity: SessionIdentity, input: CreateProviderDto) {
+    return this.changing(identity.businessId, 'providers', () =>
+      this.createProviderNow(identity, input),
+    );
+  }
+
+  updateProvider(identity: SessionIdentity, id: string, input: UpdateProviderDto) {
+    return this.changing(identity.businessId, 'providers', () =>
+      this.updateProviderNow(identity, id, input),
+    );
+  }
+
+  deactivateProvider(identity: SessionIdentity, id: string) {
+    return this.changing(identity.businessId, 'providers', () =>
+      this.deactivateProviderNow(identity, id),
+    );
+  }
+
+  createVariety(identity: SessionIdentity, input: CreateVarietyDto) {
+    return this.changing(identity.businessId, 'varieties', () =>
+      this.createVarietyNow(identity, input),
+    );
+  }
+
+  updateVariety(identity: SessionIdentity, id: string, input: UpdateVarietyDto) {
+    return this.changing(identity.businessId, 'varieties', () =>
+      this.updateVarietyNow(identity, id, input),
+    );
+  }
+
+  deactivateVariety(identity: SessionIdentity, id: string) {
+    return this.changing(identity.businessId, 'varieties', () =>
+      this.deactivateVarietyNow(identity, id),
+    );
+  }
+
+  private async changing<T>(
+    businessId: string,
+    kind: CatalogKind,
+    work: () => Promise<T>,
+  ): Promise<T> {
+    try {
+      return await work();
+    } finally {
+      this.cache.invalidate(businessId, kind);
+    }
   }
 
   private async withUniqueConstraint<T>(

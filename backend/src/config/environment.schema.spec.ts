@@ -39,6 +39,21 @@ describe('environment schema', () => {
     ).toBeDefined();
   });
 
+  // Spec 013: the catalogs stay 60 seconds in memory; 0 turns the cache off.
+  it('keeps the catalogs 60 seconds in memory unless configured', () => {
+    expect(
+      environmentSchema.validate(base).value.CATALOG_CACHE_TTL_SECONDS,
+    ).toBe(60);
+    expect(
+      environmentSchema.validate({ ...base, CATALOG_CACHE_TTL_SECONDS: '0' })
+        .value.CATALOG_CACHE_TTL_SECONDS,
+    ).toBe(0);
+    expect(
+      environmentSchema.validate({ ...base, CATALOG_CACHE_TTL_SECONDS: '-1' })
+        .error,
+    ).toBeDefined();
+  });
+
   it('does not trust proxies unless configured', () => {
     expect(environmentSchema.validate(base).value.TRUST_PROXY).toBe('false');
   });

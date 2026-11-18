@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { IdentityModule } from '../identity/identity.module.js';
 import { CatalogController } from './catalog.controller.js';
+import { CatalogCache } from './catalog-cache.js';
 import { CatalogService } from './catalog.service.js';
 import { PotatoVarietyEntity } from './entities/potato-variety.entity.js';
 import { ProviderEntity } from './entities/provider.entity.js';
@@ -22,6 +23,6 @@ import {CharacteristicsService} from './characteristics.service.js';
       CommercialCharacteristicEntity,
     ]),
   ],
-  providers: [CatalogService,CharacteristicsService],
+  providers: [CatalogCache, CatalogService, CharacteristicsService],
 })
 export class CatalogModule {}
