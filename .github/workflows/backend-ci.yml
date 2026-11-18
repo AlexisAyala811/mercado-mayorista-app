@@ -44,7 +44,9 @@ jobs:
       - run: npm test
       - run: npm run build
       - name: Sin vulnerabilidades altas en producción
-        run: npm audit --omit=dev --audit-level=high
+        # Same rule as npm audit --audit-level=high, with dated exceptions
+        # in .github/audit-excepciones.json (docs/sdd/excepcion-auditoria-picomatch-2026-11-17.md).
+        run: node ../.github/scripts/audit-high.mjs
 
   postgres:
     name: Migraciones y pruebas e2e en PostgreSQL 17
