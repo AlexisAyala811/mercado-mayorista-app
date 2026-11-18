@@ -15,6 +15,9 @@ import { check, group, sleep } from 'k6';
 const base = (__ENV.BASE_URL || 'http://127.0.0.1:3100/api/v1').replace(/\/+$/, '');
 const users = Number(__ENV.VUS || 20);
 const hold = __ENV.HOLD || '2m';
+// PAUSA multiplies the think time between iterations; 0 sends without pause,
+// to find how much one or two instances can serve (spec 016).
+const pause = Number(__ENV.PAUSA ?? 1);
 
 export const options = {
   stages: [
@@ -54,13 +57,13 @@ export default function (data) {
     read('compras por día', `/reports/rows?operation=purchase&${period}&report=daily&limit=20&offset=0`);
     read('ventas por variedad', `/reports/rows?operation=sale&${period}&report=variety&limit=20&offset=0`);
   });
-  sleep(1);
+  sleep(1 * pause);
   group('historiales', () => {
     read('historial de compras', `/purchases/history?${period}&limit=20&offset=0`);
     read('totales de compras', `/purchases/history/summary?${period}`);
     read('totales de ventas', `/sales/summary?${period}`);
   });
-  sleep(1 + Math.random() * 2);
+  sleep((1 + Math.random() * 2) * pause);
 }
 
 // Short text for the terminal and the whole data for the evidence file.
