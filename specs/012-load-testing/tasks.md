@@ -9,4 +9,4 @@ Cada tarea se marca `[x]` solo con evidencia enlazable.
 - [x] **T1203** Corrida de 20 usuarios sobre la base de simulación. *Verificación:* archivo JSON y cifras en el documento de verificación. **Hecho:** p95 de 16 ms y 0 % de fallos, [verificación del 16 de noviembre de 2026](../../docs/sdd/verificacion-carga-k6-2026-11-16.md).
 - [x] **T1204** Corrida de 40 usuarios en una instancia, como referencia de AC06. *Verificación:* igual que T1203. **Hecho:** p95 de 18 ms y 0 % de fallos, [verificación del 16 de noviembre de 2026](../../docs/sdd/verificacion-carga-k6-2026-11-16.md). AC06 sigue sin evidencia: falta la segunda instancia.
 - [ ] **T1205** Decidir si el límite de solicitudes debe ser por sesión y no por dirección (hallazgo de la spec).
-- [ ] **T1206** Repetir la prueba con una base sembrada con volumen real (miles de operaciones).
+- [x] **T1206** Repetir la prueba con una base sembrada con volumen real (miles de operaciones). **Hecho:** spec 014, [verificación del 17 de noviembre de 2026](../../docs/sdd/verificacion-volumen-bd-2026-11-17.md).
