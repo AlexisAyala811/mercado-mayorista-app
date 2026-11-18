@@ -17,6 +17,7 @@ Este índice conecta la línea base documental, el diseño de Figma y el trabajo
 | [011](011-manay-app-design/spec.md) | Diseño MAÑAY en la app | RF01–RF27 visibles (HU01–HU16) | Fases 1 a 5 implementadas; convergencia con Stitch implementada el 9 de noviembre de 2026 (T1160–T1171, B1–B8 cerradas); pendientes T944 y T1150 | CL-FM01–20; CL-MD01–05; CL-ST01–10 |
 | [012](012-load-testing/spec.md) | Pruebas de carga con k6 | AC01, AC06 | Corridas de 20 y 40 usuarios hechas el 16 de noviembre de 2026 ([verificación](../docs/sdd/verificacion-carga-k6-2026-11-16.md)); falta volumen real y segunda instancia | Aprobada por el usuario el 16 de noviembre de 2026 |
 | [013](013-catalog-cache/spec.md) | Caché de catálogos | AC01 | Implementada y verificada el 16 de noviembre de 2026 ([verificación](../docs/sdd/verificacion-cache-catalogos-2026-11-16.md)) | Alcance aprobado por el usuario; pizarra de precios fuera de alcance |
+| [014](014-database-volume/spec.md) | Escalabilidad de la base de datos con volumen | AC01 | Implementada y verificada el 17 de noviembre de 2026 ([verificación](../docs/sdd/verificacion-volumen-bd-2026-11-17.md)) | Migración 030; cuentas y reportes por año pendientes |
 
 ## Artefactos transversales
 

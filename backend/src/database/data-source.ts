@@ -3,6 +3,7 @@ import { Messaging1792972800026 } from './migrations/202610260026-messaging.js';
 import { InstallmentVoidedState1793232000027 } from './migrations/202610290027-installment-voided-state.js';
 import { ReceiptDocumentsPng1793318400028 } from './migrations/202610300028-receipt-documents-png.js';
 import { PurchaseSettlementLots1793750400029 } from './migrations/202611040029-purchase-settlement-lots.js';
+import { PurchaseSettlementsTimeIndex1794873600030 } from './migrations/202611170030-purchase-settlements-time-index.js';
 import { ShareAttemptEntity } from '../messaging/share-attempt.entity.js';
 
 import { DataSource } from 'typeorm';
@@ -151,6 +152,7 @@ export default new DataSource({
     InstallmentVoidedState1793232000027,
     ReceiptDocumentsPng1793318400028,
     PurchaseSettlementLots1793750400029,
+    PurchaseSettlementsTimeIndex1794873600030,
   ],
 });
 

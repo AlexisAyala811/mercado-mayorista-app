@@ -58,17 +58,9 @@ function base(filters: PurchaseHistoryFilterDto) {
       SELECT DISTINCT ON (s.reception_id) s.reception_id, s.id, s.state, s.payment_mode, s.liquid_amount_cents
       FROM purchase_settlements s WHERE s.business_id = ${business}
       ORDER BY s.reception_id, s.created_at DESC, s.id DESC
-    ), sacks AS (
-      SELECT k.reception_id, COUNT(*)::int AS sacks, COALESCE(SUM(k.net_weight_kg), 0) AS weight,
-        array_agg(DISTINCT v.name ORDER BY v.name) AS varieties
-      FROM reception_sacks k
-      JOIN potato_varieties v ON v.id = k.variety_id AND v.business_id = k.business_id
-      WHERE k.business_id = ${business} AND k.voided_at IS NULL
-      GROUP BY k.reception_id
     ), history AS (
       SELECT r.id, r.received_on, r.state::text AS reception_state, r.provider_id, r.created_at,
         p.name AS provider_name, l.id AS settlement_id, l.liquid_amount_cents,
-        COALESCE(k.sacks, 0) AS sacks, COALESCE(k.weight, 0) AS weight, COALESCE(k.varieties, '{}') AS varieties,
         CASE
           WHEN l.id IS NULL AND r.state::text = 'voided' THEN 'voided'
           WHEN l.id IS NULL THEN 'unsettled'
@@ -85,10 +77,9 @@ function base(filters: PurchaseHistoryFilterDto) {
       LEFT JOIN latest l ON l.reception_id = r.id
       LEFT JOIN accounts a ON a.business_id = r.business_id
         AND a.source_type = 'purchase-settlement' AND a.source_id = l.id
-      LEFT JOIN sacks k ON k.reception_id = r.id
       WHERE ${where.join(' AND ')}
     )`;
-  return { bind, parameters, sql };
+  return { bind, business, parameters, sql };
 }
 
 export async function purchaseHistory(
@@ -96,7 +87,7 @@ export async function purchaseHistory(
   businessId: string,
   query: PurchaseHistoryQueryDto,
 ) {
-  const { bind, parameters, sql } = base(query);
+  const { bind, business, parameters, sql } = base(query);
   parameters[0] = businessId;
   const state = query.paymentState
     ? `WHERE payment_state = ${bind(query.paymentState)}`
@@ -111,13 +102,22 @@ export async function purchaseHistory(
       COALESCE((SELECT jsonb_agg(jsonb_build_object(
         'receptionId', f.id, 'receivedOn', to_char(f.received_on, 'YYYY-MM-DD'),
         'receptionState', f.reception_state, 'providerId', f.provider_id, 'providerName', f.provider_name,
-        'settlementId', f.settlement_id, 'varieties', to_jsonb(f.varieties), 'sacks', f.sacks,
-        'netWeightKg', to_char(f.weight, 'FM999999999990.000'),
+        'settlementId', f.settlement_id, 'varieties', to_jsonb(k.varieties), 'sacks', k.sacks,
+        'netWeightKg', to_char(k.weight, 'FM999999999990.000'),
         'totalCents', CASE WHEN f.settlement_id IS NULL THEN NULL ELSE f.liquid_amount_cents::text END,
         'paidCents', CASE WHEN f.payment_state IN ('paid', 'debt') THEN (f.liquid_amount_cents - f.balance_cents)::text ELSE '0' END,
         'balanceCents', f.balance_cents::text, 'paymentState', f.payment_state
       ) ORDER BY f.received_on DESC, f.created_at DESC, f.id DESC)
-      FROM (SELECT * FROM filtered ORDER BY received_on DESC, created_at DESC, id DESC LIMIT ${limit} OFFSET ${offset}) f),
+      FROM (SELECT * FROM filtered ORDER BY received_on DESC, created_at DESC, id DESC LIMIT ${limit} OFFSET ${offset}) f
+      -- Spec 014: the live sacks are added only for the receptions of this page;
+      -- grouping every sack of the business made the list slow with volume.
+      CROSS JOIN LATERAL (
+        SELECT COUNT(*)::int AS sacks, COALESCE(SUM(s.net_weight_kg), 0) AS weight,
+          COALESCE(array_agg(DISTINCT v.name ORDER BY v.name), '{}') AS varieties
+        FROM reception_sacks s
+        JOIN potato_varieties v ON v.id = s.variety_id AND v.business_id = s.business_id
+        WHERE s.reception_id = f.id AND s.business_id = ${business} AND s.voided_at IS NULL
+      ) k),
       '[]'::jsonb) AS items`,
     parameters,
   );
