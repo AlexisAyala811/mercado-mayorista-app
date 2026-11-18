@@ -45,3 +45,7 @@ example
 # generated from node_modules (postinstall and web/Android exports)
 /public/pdfjs/
 /dist-android/
+
+# Spec 015: resultados de Playwright
+/e2e-report/
+/e2e-results/
