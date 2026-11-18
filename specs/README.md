@@ -18,6 +18,7 @@ Este índice conecta la línea base documental, el diseño de Figma y el trabajo
 | [012](012-load-testing/spec.md) | Pruebas de carga con k6 | AC01, AC06 | Corridas de 20 y 40 usuarios hechas el 16 de noviembre de 2026 ([verificación](../docs/sdd/verificacion-carga-k6-2026-11-16.md)); falta volumen real y segunda instancia | Aprobada por el usuario el 16 de noviembre de 2026 |
 | [013](013-catalog-cache/spec.md) | Caché de catálogos | AC01 | Implementada y verificada el 16 de noviembre de 2026 ([verificación](../docs/sdd/verificacion-cache-catalogos-2026-11-16.md)) | Alcance aprobado por el usuario; pizarra de precios fuera de alcance |
 | [014](014-database-volume/spec.md) | Escalabilidad de la base de datos con volumen | AC01 | Implementada y verificada el 17 de noviembre de 2026 ([verificación](../docs/sdd/verificacion-volumen-bd-2026-11-17.md)) | Migración 030; cuentas y reportes por año pendientes |
+| [015](015-app-e2e/spec.md) | Pruebas end to end de la app | RF01–RF27 visibles | Siete pruebas de Playwright en verde el 17 de noviembre de 2026 ([verificación](../docs/sdd/verificacion-e2e-app-2026-11-17.md)) | Falta la CI y los flujos que escriben |
 
 ## Artefactos transversales
 
