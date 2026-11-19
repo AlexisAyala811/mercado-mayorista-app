@@ -49,3 +49,6 @@ example
 # Spec 015: resultados de Playwright
 /e2e-report/
 /e2e-results/
+
+# Sprint 2: informe de cobertura de Jest
+/coverage/

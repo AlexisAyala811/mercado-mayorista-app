@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { HttpAdapterHost } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { applyOperationSummaries } from './openapi/operation-summaries.js';
 
 import { ApiExceptionFilter } from './common/http/api-exception.filter.js';
 import { parseTrustProxy } from './config/environment.schema.js';
@@ -48,8 +49,11 @@ export function configureHttpApplication(app: NestExpressApplication) {
         'session',
       )
       .build();
-    const documentFactory = () =>
-      SwaggerModule.createDocument(app, openApiConfig);
+    const documentFactory = () => {
+      const document = SwaggerModule.createDocument(app, openApiConfig);
+      applyOperationSummaries(document);
+      return document;
+    };
     SwaggerModule.setup('api/v1/docs', app, documentFactory, {
       jsonDocumentUrl: 'api/v1/openapi.json',
       raw: ['json'],
