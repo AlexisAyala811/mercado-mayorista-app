@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import type { AbstractHttpAdapter, HttpAdapterHost } from '@nestjs/core';
 
-import { ApiExceptionFilter } from './api-exception.filter.js';
+import { ApiExceptionFilter, isDatabaseSaturation } from './api-exception.filter.js';
 
 describe('ApiExceptionFilter', () => {
   const request = {
@@ -20,8 +20,9 @@ describe('ApiExceptionFilter', () => {
 
   function setup() {
     const reply = vi.fn();
+    const setHeader = vi.fn();
     const adapterHost = {
-      httpAdapter: { reply } as unknown as AbstractHttpAdapter,
+      httpAdapter: { reply, setHeader } as unknown as AbstractHttpAdapter,
     } as HttpAdapterHost;
     const host = {
       switchToHttp: vi.fn().mockReturnValue({
@@ -29,8 +30,39 @@ describe('ApiExceptionFilter', () => {
         getResponse: vi.fn().mockReturnValue(response),
       }),
     } as unknown as ArgumentsHost;
-    return { filter: new ApiExceptionFilter(adapterHost), host, reply };
+    return { filter: new ApiExceptionFilter(adapterHost), host, reply, setHeader };
   }
+
+  // Spec 017 (T1704).
+  it('answers 503 with Retry-After when the database pool is saturated', () => {
+    vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+    const { filter, host, reply, setHeader } = setup();
+
+    filter.catch(new Error('timeout exceeded when trying to connect'), host);
+
+    expect(setHeader).toHaveBeenCalledWith(response, 'Retry-After', '5');
+    expect(reply).toHaveBeenCalledWith(
+      response,
+      expect.objectContaining({
+        code: 'service-saturated',
+        message: 'El servidor está ocupado. La operación se reintentará en unos segundos.',
+        statusCode: 503,
+      }),
+      503,
+    );
+  });
+
+  it('keeps 500 for any other unexpected error and sets no Retry-After', () => {
+    vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+    const { filter, host, reply, setHeader } = setup();
+
+    filter.catch(new Error('relation does not exist'), host);
+
+    expect(setHeader).not.toHaveBeenCalled();
+    expect(reply).toHaveBeenCalledWith(response, expect.objectContaining({ statusCode: 500 }), 500);
+    expect(isDatabaseSaturation(new Error('Connection terminated due to connection timeout'))).toBe(true);
+    expect(isDatabaseSaturation('timeout exceeded when trying to connect')).toBe(false);
+  });
 
   it('preserves safe client error messages and includes the request ID', () => {
     const { filter, host, reply } = setup();
