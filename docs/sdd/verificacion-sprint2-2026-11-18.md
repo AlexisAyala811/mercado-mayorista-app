@@ -36,6 +36,19 @@ Comprobación contra la API real con una sola conexión y 1 s de espera: de 60 l
 
 La cobertura se mide sobre todos los archivos de `src`, tengan prueba o no. En el backend no incluye las 10 pruebas de integración en PostgreSQL, que cubren la mayor parte de servicios y consultas; por eso módulos como logística (27 %), estiba (32 %), inventario (40 %) y reportes (41 %) aparecen bajos. En la app, el dominio está al 98,6 % y las pantallas al 87,2 %.
 
+**Actualizado el 19 de noviembre de 2026.** Pruebas nuevas de logística y estiba, sobre un gestor de base de datos en memoria, cubren altas, ediciones, bajas, aislamiento por negocio, reintentos con el mismo `clientOperationId` y la liquidación de estiba con su total en céntimos y su salida de caja.
+
+| Medida del backend | 18 de noviembre | 19 de noviembre |
+| --- | --- | --- |
+| Pruebas | 349 | 363 |
+| Líneas | 62,8 % | 68,2 % |
+| Ramas | 53,0 % | 57,8 % |
+| Logística | 26,9 % | 86,1 % |
+| Estiba | 31,7 % | 84,9 % |
+| Reportes | 40,8 % | 40,8 % |
+
+De la subida total, cerca de 1,5 puntos se deben a excluir el servicio de inventario retirado, que nadie llama porque el sistema no maneja inventario; el resto se debe a las pruebas nuevas. Reportes sigue bajo porque son consultas SQL, que se prueban contra PostgreSQL en las pruebas de integración.
+
 La CI genera ambos informes en cada PR y los guarda 14 días como artefactos `cobertura-backend` y `cobertura-app`.
 
 ## Documentación OpenAPI
