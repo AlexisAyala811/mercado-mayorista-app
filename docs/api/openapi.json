@@ -1,0 +1,7877 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/v1/audit/events": {
+      "get": {
+        "operationId": "AuditController_events",
+        "parameters": [
+          {
+            "name": "fromDay",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "pattern": "^(?!0000)\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "toDay",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "pattern": "^(?!0000)\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "action",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          },
+          {
+            "name": "resourceType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maxLength": 80,
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "audit"
+        ],
+        "summary": "Lista los eventos de auditoría del negocio"
+      }
+    },
+    "/api/v1/auth/sessions": {
+      "post": {
+        "operationId": "IdentityController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "identity"
+        ],
+        "summary": "Inicia sesión y devuelve el token de sesión"
+      }
+    },
+    "/api/v1/auth/session": {
+      "get": {
+        "operationId": "IdentityController_current",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "identity"
+        ],
+        "summary": "Devuelve la sesión y el usuario actuales"
+      },
+      "delete": {
+        "operationId": "IdentityController_logout",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "identity"
+        ],
+        "summary": "Cierra y revoca la sesión actual"
+      }
+    },
+    "/api/v1/identity/assistants": {
+      "get": {
+        "operationId": "IdentityAdministrationController_assistants",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "identity-administration"
+        ],
+        "summary": "Lista los Encargados del negocio"
+      },
+      "post": {
+        "operationId": "IdentityAdministrationController_createAssistant",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAssistantDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "identity-administration"
+        ],
+        "summary": "Crea un Encargado"
+      }
+    },
+    "/api/v1/identity/assistants/{id}/password": {
+      "patch": {
+        "operationId": "IdentityAdministrationController_resetPassword",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetAssistantPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "identity-administration"
+        ],
+        "summary": "Cambia la contraseña de un Encargado"
+      }
+    },
+    "/api/v1/identity/assistants/{id}": {
+      "delete": {
+        "operationId": "IdentityAdministrationController_deactivateAssistant",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "identity-administration"
+        ],
+        "summary": "Desactiva un Encargado"
+      }
+    },
+    "/api/v1/identity/delegations": {
+      "get": {
+        "operationId": "IdentityAdministrationController_listDelegations",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "identity-administration"
+        ],
+        "summary": "Lista los reemplazos autorizados"
+      }
+    },
+    "/api/v1/identity/assistants/{id}/delegations": {
+      "post": {
+        "operationId": "IdentityAdministrationController_createDelegation",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDelegationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DelegationEntity"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "identity-administration"
+        ],
+        "summary": "Autoriza un reemplazo de hasta 24 horas a un Encargado"
+      }
+    },
+    "/api/v1/identity/delegations/{id}": {
+      "delete": {
+        "operationId": "IdentityAdministrationController_revokeDelegation",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "identity-administration"
+        ],
+        "summary": "Revoca un reemplazo"
+      }
+    },
+    "/api/v1/health/live": {
+      "get": {
+        "operationId": "HealthController_live",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "health"
+        ],
+        "summary": "Indica que el proceso está vivo"
+      }
+    },
+    "/api/v1/health/ready": {
+      "get": {
+        "operationId": "HealthController_ready",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The Health Check is successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "ok",
+                        "degraded"
+                      ],
+                      "example": "ok"
+                    },
+                    "info": {
+                      "type": "object",
+                      "example": {
+                        "database": {
+                          "status": "up",
+                          "responseTime": 12
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "up",
+                              "degraded",
+                              "down"
+                            ]
+                          },
+                          "responseTime": {
+                            "type": "number",
+                            "description": "Time the health indicator took to respond, in ms"
+                          }
+                        },
+                        "additionalProperties": true
+                      },
+                      "nullable": true
+                    },
+                    "error": {
+                      "type": "object",
+                      "example": {},
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "up",
+                              "degraded",
+                              "down"
+                            ]
+                          },
+                          "responseTime": {
+                            "type": "number",
+                            "description": "Time the health indicator took to respond, in ms"
+                          }
+                        },
+                        "additionalProperties": true
+                      },
+                      "nullable": true
+                    },
+                    "details": {
+                      "type": "object",
+                      "example": {
+                        "database": {
+                          "status": "up",
+                          "responseTime": 12
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "up",
+                              "degraded",
+                              "down"
+                            ]
+                          },
+                          "responseTime": {
+                            "type": "number",
+                            "description": "Time the health indicator took to respond, in ms"
+                          }
+                        },
+                        "additionalProperties": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The Health Check is not successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "error",
+                        "shutting_down"
+                      ],
+                      "example": "error"
+                    },
+                    "info": {
+                      "type": "object",
+                      "example": {
+                        "database": {
+                          "status": "up",
+                          "responseTime": 12
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "up",
+                              "degraded",
+                              "down"
+                            ]
+                          },
+                          "responseTime": {
+                            "type": "number",
+                            "description": "Time the health indicator took to respond, in ms"
+                          }
+                        },
+                        "additionalProperties": true
+                      },
+                      "nullable": true
+                    },
+                    "error": {
+                      "type": "object",
+                      "example": {
+                        "redis": {
+                          "status": "down",
+                          "message": "Could not connect",
+                          "responseTime": 3005
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "up",
+                              "degraded",
+                              "down"
+                            ]
+                          },
+                          "responseTime": {
+                            "type": "number",
+                            "description": "Time the health indicator took to respond, in ms"
+                          }
+                        },
+                        "additionalProperties": true
+                      },
+                      "nullable": true
+                    },
+                    "details": {
+                      "type": "object",
+                      "example": {
+                        "database": {
+                          "status": "up",
+                          "responseTime": 12
+                        },
+                        "redis": {
+                          "status": "down",
+                          "message": "Could not connect",
+                          "responseTime": 3005
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "up",
+                              "degraded",
+                              "down"
+                            ]
+                          },
+                          "responseTime": {
+                            "type": "number",
+                            "description": "Time the health indicator took to respond, in ms"
+                          }
+                        },
+                        "additionalProperties": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "health"
+        ],
+        "summary": "Indica que la API y la base de datos están listas"
+      }
+    },
+    "/api/v1/catalog/buyers": {
+      "get": {
+        "operationId": "CatalogController_buyers",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Lista los compradores activos"
+      },
+      "post": {
+        "operationId": "CatalogController_createBuyer",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBuyerDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuyerEntity"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Registra un comprador"
+      }
+    },
+    "/api/v1/catalog/buyers/{id}": {
+      "patch": {
+        "operationId": "CatalogController_updateBuyer",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBuyerDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BuyerEntity"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Edita un comprador"
+      },
+      "delete": {
+        "operationId": "CatalogController_deactivateBuyer",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Desactiva un comprador"
+      }
+    },
+    "/api/v1/catalog/providers": {
+      "get": {
+        "operationId": "CatalogController_providers",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Lista los proveedores activos"
+      },
+      "post": {
+        "operationId": "CatalogController_createProvider",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProviderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderEntity"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Registra un proveedor"
+      }
+    },
+    "/api/v1/catalog/providers/{id}": {
+      "patch": {
+        "operationId": "CatalogController_updateProvider",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProviderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderEntity"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Edita un proveedor"
+      },
+      "delete": {
+        "operationId": "CatalogController_deactivateProvider",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Desactiva un proveedor"
+      }
+    },
+    "/api/v1/catalog/varieties": {
+      "get": {
+        "operationId": "CatalogController_varieties",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Lista las variedades de papa activas"
+      },
+      "post": {
+        "operationId": "CatalogController_createVariety",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVarietyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PotatoVarietyEntity"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Registra una variedad de papa"
+      }
+    },
+    "/api/v1/catalog/varieties/{id}": {
+      "patch": {
+        "operationId": "CatalogController_updateVariety",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateVarietyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PotatoVarietyEntity"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Edita una variedad de papa"
+      },
+      "delete": {
+        "operationId": "CatalogController_deactivateVariety",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Desactiva una variedad de papa"
+      }
+    },
+    "/api/v1/catalog/qualities": {
+      "get": {
+        "operationId": "CharacteristicsController_qualities",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Lista las calidades comerciales"
+      },
+      "post": {
+        "operationId": "CharacteristicsController_createQuality",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVarietyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommercialCharacteristicEntity"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Registra una calidad comercial"
+      }
+    },
+    "/api/v1/catalog/origins": {
+      "get": {
+        "operationId": "CharacteristicsController_origins",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Lista las procedencias de la papa"
+      },
+      "post": {
+        "operationId": "CharacteristicsController_createOrigin",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVarietyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommercialCharacteristicEntity"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Registra una procedencia"
+      }
+    },
+    "/api/v1/catalog/qualities/{id}": {
+      "patch": {
+        "operationId": "CharacteristicsController_updateQuality",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVarietyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommercialCharacteristicEntity"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Edita una calidad comercial"
+      },
+      "delete": {
+        "operationId": "CharacteristicsController_deactivateQuality",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Desactiva una calidad comercial"
+      }
+    },
+    "/api/v1/catalog/origins/{id}": {
+      "patch": {
+        "operationId": "CharacteristicsController_updateOrigin",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVarietyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommercialCharacteristicEntity"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Edita una procedencia"
+      },
+      "delete": {
+        "operationId": "CharacteristicsController_deactivateOrigin",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Desactiva una procedencia"
+      }
+    },
+    "/api/v1/logistics/carriers": {
+      "get": {
+        "operationId": "LogisticsController_carriers",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "logistics"
+        ],
+        "summary": "Lista los transportistas"
+      },
+      "post": {
+        "operationId": "LogisticsController_createCarrier",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCarrierDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CarrierEntity"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "logistics"
+        ],
+        "summary": "Registra un transportista"
+      }
+    },
+    "/api/v1/logistics/carriers/{id}": {
+      "patch": {
+        "operationId": "LogisticsController_updateCarrier",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCarrierDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CarrierEntity"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "logistics"
+        ],
+        "summary": "Edita un transportista"
+      },
+      "delete": {
+        "operationId": "LogisticsController_deactivateCarrier",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "logistics"
+        ],
+        "summary": "Desactiva un transportista"
+      }
+    },
+    "/api/v1/logistics/vehicles": {
+      "get": {
+        "operationId": "LogisticsController_vehicles",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "logistics"
+        ],
+        "summary": "Lista los vehículos"
+      },
+      "post": {
+        "operationId": "LogisticsController_createVehicle",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVehicleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleEntity"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "logistics"
+        ],
+        "summary": "Registra un vehículo"
+      }
+    },
+    "/api/v1/logistics/vehicles/{id}": {
+      "patch": {
+        "operationId": "LogisticsController_updateVehicle",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateVehicleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VehicleEntity"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "logistics"
+        ],
+        "summary": "Edita un vehículo"
+      },
+      "delete": {
+        "operationId": "LogisticsController_deactivateVehicle",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "logistics"
+        ],
+        "summary": "Desactiva un vehículo"
+      }
+    },
+    "/api/v1/receptions": {
+      "get": {
+        "operationId": "ReceptionController_list",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "pattern": "^(?!0000)\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "pattern": "^(?!0000)\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minLength": 1,
+              "maxLength": 160,
+              "type": "string"
+            }
+          },
+          {
+            "name": "providerId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "state",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "draft",
+                "weighing",
+                "weighed",
+                "settled",
+                "voided"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "receptions"
+        ],
+        "summary": "Lista las recepciones de cargamentos"
+      },
+      "post": {
+        "operationId": "ReceptionController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateReceptionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceptionEntity"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "receptions"
+        ],
+        "summary": "Abre la recepción de un cargamento"
+      }
+    },
+    "/api/v1/receptions/{id}": {
+      "get": {
+        "operationId": "ReceptionController_get",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "receptions"
+        ],
+        "summary": "Devuelve una recepción"
+      }
+    },
+    "/api/v1/receptions/{id}/void": {
+      "post": {
+        "operationId": "ReceptionController_void",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VoidReceptionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceptionEntity"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "receptions"
+        ],
+        "summary": "Anula una recepción con su motivo"
+      }
+    },
+    "/api/v1/receptions/{id}/sacks": {
+      "get": {
+        "operationId": "ReceptionController_sacks",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReceptionSackEntity"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "receptions"
+        ],
+        "summary": "Lista los sacos pesados de una recepción"
+      },
+      "post": {
+        "operationId": "ReceptionController_addSack",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddSackDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceptionSackEntity"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "receptions"
+        ],
+        "summary": "Registra el peso de un saco"
+      }
+    },
+    "/api/v1/receptions/{id}/sacks/{sackId}": {
+      "patch": {
+        "operationId": "ReceptionController_correctSack",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sackId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CorrectSackDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceptionSackEntity"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "receptions"
+        ],
+        "summary": "Corrige el peso de un saco antes del cierre"
+      }
+    },
+    "/api/v1/receptions/{id}/sacks/{sackId}/void": {
+      "post": {
+        "operationId": "ReceptionController_voidSack",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sackId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VoidSackDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceptionSackEntity"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "receptions"
+        ],
+        "summary": "Anula un saco con su motivo"
+      }
+    },
+    "/api/v1/receptions/{id}/sacks/{sackId}/correct-closed": {
+      "post": {
+        "operationId": "ReceptionController_correctClosedSack",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sackId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CorrectClosedSackDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceptionSackEntity"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "receptions"
+        ],
+        "summary": "Corrige un saco de una recepción ya cerrada"
+      }
+    },
+    "/api/v1/receptions/{id}/close-weighing": {
+      "post": {
+        "operationId": "ReceptionController_closeWeighing",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CloseWeighingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReceptionEntity"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "receptions"
+        ],
+        "summary": "Cierra el pesaje de una recepción"
+      }
+    },
+    "/api/v1/purchases/history": {
+      "get": {
+        "operationId": "PurchaseController_history",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "paymentState",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "paid",
+                "debt",
+                "voided",
+                "unsettled"
+              ]
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "pattern": "^(?!0000)\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "pattern": "^(?!0000)\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minLength": 1,
+              "maxLength": 160,
+              "type": "string"
+            }
+          },
+          {
+            "name": "providerId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "purchases"
+        ],
+        "summary": "Lista las compras con su estado de pago (Ver compras)"
+      }
+    },
+    "/api/v1/purchases/history/summary": {
+      "get": {
+        "operationId": "PurchaseController_historySummary",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "pattern": "^(?!0000)\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "pattern": "^(?!0000)\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minLength": 1,
+              "maxLength": 160,
+              "type": "string"
+            }
+          },
+          {
+            "name": "providerId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "purchases"
+        ],
+        "summary": "Totales y conteos del historial de compras"
+      }
+    },
+    "/api/v1/purchases/payment-status": {
+      "get": {
+        "operationId": "PurchaseController_paymentStatus",
+        "parameters": [
+          {
+            "name": "receptionIds",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minItems": 1,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "purchases"
+        ],
+        "summary": "Estado de pago de las compras liquidadas"
+      }
+    },
+    "/api/v1/purchases/receptions/{receptionId}/settlement": {
+      "get": {
+        "operationId": "PurchaseController_get",
+        "parameters": [
+          {
+            "name": "receptionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "purchases"
+        ],
+        "summary": "Devuelve la liquidación de una recepción"
+      },
+      "post": {
+        "operationId": "PurchaseController_settle",
+        "parameters": [
+          {
+            "name": "receptionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SettlePurchaseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "purchases"
+        ],
+        "summary": "Liquida la compra de una recepción, con lotes y flete"
+      }
+    },
+    "/api/v1/purchases/receptions/{receptionId}/settlement-groups": {
+      "get": {
+        "operationId": "PurchaseController_groups",
+        "parameters": [
+          {
+            "name": "receptionId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "purchases"
+        ],
+        "summary": "Agrupa los sacos de una recepción por variedad y calidad"
+      }
+    },
+    "/api/v1/purchases/{id}/void": {
+      "post": {
+        "operationId": "PurchaseController_void",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VoidPurchaseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseSettlementEntity"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "purchases"
+        ],
+        "summary": "Anula una liquidación de compra con su compensación"
+      }
+    },
+    "/api/v1/inventory/lots": {
+      "get": {
+        "operationId": "InventoryController_lots",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "inventory"
+        ],
+        "summary": "Lista los lotes de inventario"
+      }
+    },
+    "/api/v1/inventory/lots/{id}": {
+      "get": {
+        "operationId": "InventoryController_lot",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "inventory"
+        ],
+        "summary": "Devuelve un lote de inventario"
+      }
+    },
+    "/api/v1/inventory/lots/{id}/movements": {
+      "get": {
+        "operationId": "InventoryController_movements",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "inventory"
+        ],
+        "summary": "Lista los movimientos de un lote"
+      }
+    },
+    "/api/v1/inventory/lots/{id}/adjustments": {
+      "post": {
+        "operationId": "InventoryController_adjust",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "inventory"
+        ],
+        "summary": "Registra un ajuste de un lote"
+      }
+    },
+    "/api/v1/accounts": {
+      "get": {
+        "operationId": "AccountsController_list",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "accounts"
+        ],
+        "summary": "Lista las cuentas por pagar o por cobrar"
+      }
+    },
+    "/api/v1/accounts/by-source": {
+      "get": {
+        "operationId": "AccountsController_bySource",
+        "parameters": [
+          {
+            "name": "sourceType",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "purchase-settlement",
+                "sale"
+              ]
+            }
+          },
+          {
+            "name": "sourceId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "accounts"
+        ],
+        "summary": "Devuelve la cuenta de una compra o una venta"
+      }
+    },
+    "/api/v1/accounts/cash/movements": {
+      "get": {
+        "operationId": "AccountsController_cashMovements",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "accounts"
+        ],
+        "summary": "Lista los movimientos de caja"
+      }
+    },
+    "/api/v1/accounts/{id}": {
+      "get": {
+        "operationId": "AccountsController_get",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "accounts"
+        ],
+        "summary": "Devuelve una cuenta con sus cuotas y abonos"
+      }
+    },
+    "/api/v1/accounts/{id}/payments": {
+      "post": {
+        "operationId": "AccountsController_payment",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterPaymentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountPaymentEntity"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "accounts"
+        ],
+        "summary": "Registra un pago o un cobro en una cuenta"
+      }
+    },
+    "/api/v1/accounts/{id}/payments/{paymentId}/reversal": {
+      "post": {
+        "operationId": "AccountsController_reverse",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "paymentId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReversePaymentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountPaymentEntity"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "accounts"
+        ],
+        "summary": "Revierte un pago o un cobro con su motivo"
+      }
+    },
+    "/api/v1/sales": {
+      "get": {
+        "operationId": "SalesController_list",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "paymentState",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "paid",
+                "debt",
+                "voided"
+              ]
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "pattern": "^(?!0000)\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "pattern": "^(?!0000)\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minLength": 1,
+              "maxLength": 160,
+              "type": "string"
+            }
+          },
+          {
+            "name": "buyerId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "state",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "confirmed",
+                "voided"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "sales"
+        ],
+        "summary": "Lista las ventas (Ver ventas)"
+      },
+      "post": {
+        "operationId": "SalesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSaleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleEntity"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "sales"
+        ],
+        "summary": "Registra una venta y su despacho"
+      }
+    },
+    "/api/v1/sales/summary": {
+      "get": {
+        "operationId": "SalesController_summary",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "pattern": "^(?!0000)\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "pattern": "^(?!0000)\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minLength": 1,
+              "maxLength": 160,
+              "type": "string"
+            }
+          },
+          {
+            "name": "buyerId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "state",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "confirmed",
+                "voided"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "sales"
+        ],
+        "summary": "Totales y conteos del historial de ventas"
+      }
+    },
+    "/api/v1/sales/{id}": {
+      "get": {
+        "operationId": "SalesController_get",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "sales"
+        ],
+        "summary": "Devuelve una venta"
+      }
+    },
+    "/api/v1/sales/{id}/void": {
+      "post": {
+        "operationId": "SalesController_void",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VoidSaleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleEntity"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "sales"
+        ],
+        "summary": "Anula una venta con su motivo"
+      }
+    },
+    "/api/v1/sales/{id}/commercial-returns": {
+      "post": {
+        "operationId": "SalesController_commercialReturn",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCommercialReturnDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "sales"
+        ],
+        "summary": "Registra una devolución comercial de una venta"
+      }
+    },
+    "/api/v1/receipts/purchases/{id}.pdf": {
+      "get": {
+        "operationId": "ReceiptsController_purchase",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "receipts"
+        ],
+        "summary": "Genera el comprobante PDF de una compra"
+      }
+    },
+    "/api/v1/receipts/sales/{id}.pdf": {
+      "get": {
+        "operationId": "ReceiptsController_sale",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "receipts"
+        ],
+        "summary": "Genera el comprobante PDF de una venta"
+      }
+    },
+    "/api/v1/receipts/sale-returns/{id}.pdf": {
+      "get": {
+        "operationId": "ReceiptsController_saleReturn",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "receipts"
+        ],
+        "summary": "Genera el comprobante PDF de una devolución"
+      }
+    },
+    "/api/v1/receipts/history/{kind}": {
+      "get": {
+        "operationId": "ReceiptHistoryController_list",
+        "parameters": [
+          {
+            "name": "kind",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "receipts"
+        ],
+        "summary": "Lista los comprobantes generados"
+      }
+    },
+    "/api/v1/receipts/buyer-statements/{buyerId}.pdf": {
+      "get": {
+        "operationId": "BuyerStatementController_pdf",
+        "parameters": [
+          {
+            "name": "buyerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "receipts"
+        ],
+        "summary": "Genera el estado de cuenta de un comprador en PDF"
+      }
+    },
+    "/api/v1/receipts/buyer-statements/{buyerId}.png": {
+      "get": {
+        "operationId": "BuyerStatementController_png",
+        "parameters": [
+          {
+            "name": "buyerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "receipts"
+        ],
+        "summary": "Genera el estado de cuenta de un comprador en PNG"
+      }
+    },
+    "/api/v1/receipts/buyer-statements/{buyerId}": {
+      "get": {
+        "operationId": "BuyerStatementController_summary",
+        "parameters": [
+          {
+            "name": "buyerId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "receipts"
+        ],
+        "summary": "Devuelve el estado de cuenta de un comprador"
+      }
+    },
+    "/api/v1/reports/rows": {
+      "get": {
+        "operationId": "ReportsController_rows",
+        "parameters": [
+          {
+            "name": "report",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "detail",
+                "variety",
+                "daily"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "maximum": 9007199254740991,
+              "default": 0,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "operation",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "purchase",
+                "sale"
+              ]
+            }
+          },
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "reports"
+        ],
+        "summary": "Filas del reporte por día, variedad o detalle"
+      }
+    },
+    "/api/v1/reports/export": {
+      "get": {
+        "operationId": "ReportsController_exportReport",
+        "parameters": [
+          {
+            "name": "report",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "summary",
+                "detail",
+                "counterparty",
+                "variety"
+              ]
+            }
+          },
+          {
+            "name": "operation",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "purchase",
+                "sale"
+              ]
+            }
+          },
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "reports"
+        ],
+        "summary": "Exporta el reporte del periodo a PDF o Excel"
+      }
+    },
+    "/api/v1/reports/operation-overview": {
+      "get": {
+        "operationId": "ReportsController_operationOverview",
+        "parameters": [
+          {
+            "name": "operation",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "purchase",
+                "sale"
+              ]
+            }
+          },
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "reports"
+        ],
+        "summary": "Indicadores de compras o ventas del periodo"
+      }
+    },
+    "/api/v1/reports/commercial-summary": {
+      "get": {
+        "operationId": "ReportsController_summary",
+        "parameters": [
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "reports"
+        ],
+        "summary": "Resumen comercial del periodo"
+      }
+    },
+    "/api/v1/reports/commercial-margin": {
+      "get": {
+        "operationId": "ReportsController_margin",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "reports"
+        ],
+        "summary": "Margen comercial del periodo"
+      }
+    },
+    "/api/v1/reports/overdue-accounts": {
+      "get": {
+        "operationId": "ReportsController_overdue",
+        "parameters": [
+          {
+            "name": "asOf",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "reports"
+        ],
+        "summary": "Cuentas vencidas o por vencer"
+      }
+    },
+    "/api/v1/reports/alerts": {
+      "get": {
+        "operationId": "ReportsController_alerts",
+        "parameters": [
+          {
+            "name": "asOf",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "through",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "reports"
+        ],
+        "summary": "Avisos de vencimiento"
+      }
+    },
+    "/api/v1/reports/price-history": {
+      "get": {
+        "operationId": "ReportsController_priceHistory",
+        "parameters": [
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "varietyId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "providerId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "buyerId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "qualityId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "originId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "reports"
+        ],
+        "summary": "Historial de precios con filtros"
+      }
+    },
+    "/api/v1/analytics/filters/providers": {
+      "get": {
+        "operationId": "AnalyticsController_providers",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Proveedores disponibles como filtro de analítica"
+      }
+    },
+    "/api/v1/analytics/filters/buyers": {
+      "get": {
+        "operationId": "AnalyticsController_buyers",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Compradores disponibles como filtro de analítica"
+      }
+    },
+    "/api/v1/analytics/filters/varieties": {
+      "get": {
+        "operationId": "AnalyticsController_varieties",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Variedades disponibles como filtro de analítica"
+      }
+    },
+    "/api/v1/analytics/filters/qualities": {
+      "get": {
+        "operationId": "AnalyticsController_qualities",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Calidades disponibles como filtro de analítica"
+      }
+    },
+    "/api/v1/analytics/filters/origins": {
+      "get": {
+        "operationId": "AnalyticsController_origins",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Procedencias disponibles como filtro de analítica"
+      }
+    },
+    "/api/v1/analytics/readiness": {
+      "get": {
+        "operationId": "AnalyticsController_readiness",
+        "parameters": [
+          {
+            "name": "asOf",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "varietyId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Indica si hay historial suficiente para cada análisis"
+      }
+    },
+    "/api/v1/analytics/series": {
+      "get": {
+        "operationId": "AnalyticsController_series",
+        "parameters": [
+          {
+            "name": "from",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "varietyId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "providerId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "buyerId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "qualityId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "originId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Serie de precios y volúmenes por semana"
+      }
+    },
+    "/api/v1/analytics/evaluations": {
+      "get": {
+        "operationId": "AnalyticsEvaluationController_list",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "varietyId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Lista las evaluaciones de predicción"
+      },
+      "post": {
+        "operationId": "AnalyticsEvaluationController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAnalyticsEvaluationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Crea una evaluación de predicción"
+      }
+    },
+    "/api/v1/analytics/evaluations/{id}": {
+      "get": {
+        "operationId": "AnalyticsEvaluationController_get",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Devuelve una evaluación de predicción"
+      }
+    },
+    "/api/v1/analytics/publications": {
+      "get": {
+        "operationId": "AnalyticsPublicationController_list",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "varietyId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Lista las predicciones publicadas"
+      },
+      "post": {
+        "operationId": "AnalyticsPublicationController_publish",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePredictionPublicationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Publica una predicción evaluada"
+      }
+    },
+    "/api/v1/analytics/evaluations/{id}/publication-preview": {
+      "get": {
+        "operationId": "AnalyticsPublicationController_preview",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Vista previa de una publicación"
+      }
+    },
+    "/api/v1/analytics/publications/{id}": {
+      "get": {
+        "operationId": "AnalyticsPublicationController_get",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Devuelve una predicción publicada"
+      }
+    },
+    "/api/v1/analytics/publications/{id}/outcomes": {
+      "post": {
+        "operationId": "AnalyticsPublicationController_saveOutcome",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePublicationOutcomeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Registra el resultado real de una predicción"
+      },
+      "get": {
+        "operationId": "AnalyticsPublicationController_listOutcomes",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Lista los resultados de una predicción"
+      }
+    },
+    "/api/v1/analytics/publications/{id}/outcomes/{outcomeId}": {
+      "get": {
+        "operationId": "AnalyticsPublicationController_getOutcome",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "outcomeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Devuelve un resultado de una predicción"
+      }
+    },
+    "/api/v1/analytics/publications/{id}/outcome": {
+      "get": {
+        "operationId": "AnalyticsPublicationController_outcome",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Devuelve el último resultado de una predicción"
+      }
+    },
+    "/api/v1/stowage/groups": {
+      "get": {
+        "operationId": "StowageController_groups",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "stowage"
+        ],
+        "summary": "Lista los grupos de estibadores"
+      },
+      "post": {
+        "operationId": "StowageController_createGroup",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWorkGroupDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkGroupEntity"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "stowage"
+        ],
+        "summary": "Registra un grupo de estibadores"
+      }
+    },
+    "/api/v1/stowage/groups/{id}": {
+      "delete": {
+        "operationId": "StowageController_deactivateGroup",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "stowage"
+        ],
+        "summary": "Desactiva un grupo de estibadores"
+      }
+    },
+    "/api/v1/stowage/entries": {
+      "get": {
+        "operationId": "StowageController_entries",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "stowage"
+        ],
+        "summary": "Lista los registros de estiba"
+      },
+      "post": {
+        "operationId": "StowageController_createEntry",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStowageEntryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StowageEntryEntity"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "stowage"
+        ],
+        "summary": "Registra un trabajo de estiba"
+      }
+    },
+    "/api/v1/stowage/settlements": {
+      "post": {
+        "operationId": "StowageController_settle",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SettleStowageDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StowageSettlementEntity"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "stowage"
+        ],
+        "summary": "Liquida la estiba de un grupo"
+      }
+    },
+    "/api/v1/operations/{clientOperationId}": {
+      "get": {
+        "operationId": "OperationsController_get",
+        "parameters": [
+          {
+            "name": "clientOperationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "account-payment",
+                "freight-settlement",
+                "inventory-movement",
+                "purchase-settlement",
+                "purchase-void",
+                "reception",
+                "reception-void",
+                "reception-sack",
+                "reception-sack-void",
+                "reception-weighing-close",
+                "sale",
+                "sale-void",
+                "sale-return",
+                "stowage-entry",
+                "stowage-settlement"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "operations"
+        ],
+        "summary": "Consulta el resultado de una operación por su clientOperationId"
+      }
+    },
+    "/api/v1/freight/entries": {
+      "get": {
+        "operationId": "FreightController_entries",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "freight"
+        ],
+        "summary": "Lista los fletes pendientes"
+      }
+    },
+    "/api/v1/freight/settlements": {
+      "get": {
+        "operationId": "FreightController_settlements",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "freight"
+        ],
+        "summary": "Lista las liquidaciones de flete"
+      },
+      "post": {
+        "operationId": "FreightController_settle",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SettleFreightDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FreightSettlementEntity"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "freight"
+        ],
+        "summary": "Liquida fletes a un transportista"
+      }
+    },
+    "/api/v1/messaging/recipients": {
+      "get": {
+        "operationId": "MessagingController_recipients",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "messaging"
+        ],
+        "summary": "Lista los destinatarios de mensajería"
+      }
+    },
+    "/api/v1/messaging/alerts": {
+      "get": {
+        "operationId": "MessagingController_alerts",
+        "parameters": [
+          {
+            "name": "asOf",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "through",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "messaging"
+        ],
+        "summary": "Avisos para enviar por WhatsApp o correo"
+      }
+    },
+    "/api/v1/messaging/share-attempts": {
+      "get": {
+        "operationId": "MessagingController_history",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ShareAttemptEntity"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "messaging"
+        ],
+        "summary": "Historial de envíos manuales"
+      },
+      "post": {
+        "operationId": "MessagingController_record",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShareAttemptDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShareAttemptEntity"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "messaging"
+        ],
+        "summary": "Registra un intento de envío manual"
+      }
+    }
+  },
+  "info": {
+    "title": "Mercado API",
+    "description": "Contrato central para la gestión comercial mayorista de papa.",
+    "version": "1.0.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "session": {
+        "scheme": "bearer",
+        "bearerFormat": "opaque",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "Object": {
+        "type": "object",
+        "properties": {}
+      },
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        },
+        "required": [
+          "username",
+          "password"
+        ]
+      },
+      "CreateAssistantDto": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "password": {
+            "type": "string",
+            "minLength": 12,
+            "maxLength": 256
+          }
+        },
+        "required": [
+          "username",
+          "password"
+        ]
+      },
+      "ResetAssistantPasswordDto": {
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "string",
+            "minLength": 12,
+            "maxLength": 256
+          }
+        },
+        "required": [
+          "password"
+        ]
+      },
+      "CreateDelegationDto": {
+        "type": "object",
+        "properties": {
+          "startsAt": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 240
+          }
+        },
+        "required": [
+          "startsAt",
+          "expiresAt"
+        ]
+      },
+      "DelegationEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "businessId": {
+            "type": "string"
+          },
+          "assistantUserId": {
+            "type": "string"
+          },
+          "authorizedByUserId": {
+            "type": "string"
+          },
+          "startsAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "expiresAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true
+          },
+          "revokedAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "businessId",
+          "assistantUserId",
+          "authorizedByUserId",
+          "startsAt",
+          "expiresAt",
+          "reason",
+          "revokedAt",
+          "createdAt"
+        ]
+      },
+      "CreateBuyerDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "destinationDepartment": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "creditLimitCents": {
+            "type": "number",
+            "nullable": true,
+            "minimum": 0,
+            "maximum": 9000000000000
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "BuyerEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "businessId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "destinationDepartment": {
+            "type": "string",
+            "nullable": true
+          },
+          "creditLimitCents": {
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "businessId",
+          "name",
+          "phone",
+          "destinationDepartment",
+          "creditLimitCents",
+          "isActive",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "UpdateBuyerDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "destinationDepartment": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "creditLimitCents": {
+            "type": "number",
+            "nullable": true,
+            "minimum": 0,
+            "maximum": 9000000000000
+          }
+        }
+      },
+      "CreateProviderDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 32
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "ProviderEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "businessId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "businessId",
+          "name",
+          "phone",
+          "isActive",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "UpdateProviderDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 32
+          }
+        }
+      },
+      "CreateVarietyDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "PotatoVarietyEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "businessId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "businessId",
+          "name",
+          "isActive",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "UpdateVarietyDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          }
+        }
+      },
+      "CommercialCharacteristicEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "businessId": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "quality",
+              "origin"
+            ],
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "businessId",
+          "kind",
+          "name",
+          "isActive",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateCarrierDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 32
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "CarrierEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "businessId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "businessId",
+          "name",
+          "phone",
+          "isActive",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "UpdateCarrierDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 32
+          }
+        }
+      },
+      "CreateVehicleDto": {
+        "type": "object",
+        "properties": {
+          "plate": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20
+          },
+          "carrierId": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 160
+          }
+        },
+        "required": [
+          "plate"
+        ]
+      },
+      "VehicleEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "businessId": {
+            "type": "string"
+          },
+          "plate": {
+            "type": "string"
+          },
+          "carrierId": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "carrier": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CarrierEntity"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "businessId",
+          "plate",
+          "carrierId",
+          "description",
+          "isActive",
+          "createdAt",
+          "updatedAt",
+          "carrier"
+        ]
+      },
+      "UpdateVehicleDto": {
+        "type": "object",
+        "properties": {
+          "plate": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20
+          },
+          "carrierId": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 160
+          }
+        }
+      },
+      "CreateReceptionDto": {
+        "type": "object",
+        "properties": {
+          "clientOperationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "providerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "providerPhone": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "vehicleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "driverName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "receivedOn": {
+            "type": "string"
+          },
+          "expectedVarietyIds": {
+            "uniqueItems": true,
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        },
+        "required": [
+          "clientOperationId",
+          "providerId",
+          "driverName",
+          "receivedOn",
+          "expectedVarietyIds"
+        ]
+      },
+      "ReceptionEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "businessId": {
+            "type": "string"
+          },
+          "clientOperationId": {
+            "type": "string"
+          },
+          "providerId": {
+            "type": "string"
+          },
+          "providerPhone": {
+            "type": "string",
+            "nullable": true
+          },
+          "vehicleId": {
+            "type": "string",
+            "nullable": true
+          },
+          "driverName": {
+            "type": "string"
+          },
+          "receivedOn": {
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "draft",
+              "weighing",
+              "weighed",
+              "settled",
+              "voided"
+            ],
+            "type": "string"
+          },
+          "version": {
+            "type": "number"
+          },
+          "closeOperationId": {
+            "type": "string",
+            "nullable": true
+          },
+          "closedAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "voidOperationId": {
+            "type": "string",
+            "nullable": true
+          },
+          "voidReason": {
+            "type": "string",
+            "nullable": true
+          },
+          "voidedAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "createdByUserId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "expectedVarieties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PotatoVarietyEntity"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "businessId",
+          "clientOperationId",
+          "providerId",
+          "providerPhone",
+          "vehicleId",
+          "driverName",
+          "receivedOn",
+          "state",
+          "version",
+          "closeOperationId",
+          "closedAt",
+          "voidOperationId",
+          "voidReason",
+          "voidedAt",
+          "createdByUserId",
+          "createdAt",
+          "updatedAt",
+          "expectedVarieties"
+        ]
+      },
+      "VoidReceptionDto": {
+        "type": "object",
+        "properties": {
+          "clientOperationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "expectedReceptionVersion": {
+            "type": "number",
+            "minimum": 0
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240
+          }
+        },
+        "required": [
+          "clientOperationId",
+          "expectedReceptionVersion",
+          "reason"
+        ]
+      },
+      "ReceptionSackEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "businessId": {
+            "type": "string"
+          },
+          "receptionId": {
+            "type": "string"
+          },
+          "clientOperationId": {
+            "type": "string"
+          },
+          "sequence": {
+            "type": "number"
+          },
+          "varietyId": {
+            "type": "string"
+          },
+          "qualityId": {
+            "type": "string",
+            "nullable": true
+          },
+          "qualityName": {
+            "type": "string",
+            "nullable": true
+          },
+          "originId": {
+            "type": "string",
+            "nullable": true
+          },
+          "originName": {
+            "type": "string",
+            "nullable": true
+          },
+          "grossWeightKg": {
+            "type": "string"
+          },
+          "tareKg": {
+            "type": "string"
+          },
+          "netWeightKg": {
+            "type": "string"
+          },
+          "correctedFromSackId": {
+            "type": "string",
+            "nullable": true
+          },
+          "voidedAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "voidOperationId": {
+            "type": "string",
+            "nullable": true
+          },
+          "correctionReason": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdByUserId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "businessId",
+          "receptionId",
+          "clientOperationId",
+          "sequence",
+          "varietyId",
+          "qualityId",
+          "qualityName",
+          "originId",
+          "originName",
+          "grossWeightKg",
+          "tareKg",
+          "netWeightKg",
+          "correctedFromSackId",
+          "voidedAt",
+          "voidOperationId",
+          "correctionReason",
+          "createdByUserId",
+          "createdAt"
+        ]
+      },
+      "AddSackDto": {
+        "type": "object",
+        "properties": {
+          "clientOperationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "expectedReceptionVersion": {
+            "type": "number",
+            "minimum": 0
+          },
+          "varietyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "qualityId": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid"
+          },
+          "originId": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid"
+          },
+          "grossWeightKg": {
+            "type": "string"
+          },
+          "tareKg": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "clientOperationId",
+          "expectedReceptionVersion",
+          "varietyId",
+          "grossWeightKg"
+        ]
+      },
+      "CorrectSackDto": {
+        "type": "object",
+        "properties": {
+          "clientOperationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "expectedReceptionVersion": {
+            "type": "number",
+            "minimum": 0
+          },
+          "varietyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "qualityId": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid"
+          },
+          "originId": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid"
+          },
+          "grossWeightKg": {
+            "type": "string"
+          },
+          "tareKg": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "clientOperationId",
+          "expectedReceptionVersion",
+          "varietyId",
+          "grossWeightKg"
+        ]
+      },
+      "VoidSackDto": {
+        "type": "object",
+        "properties": {
+          "clientOperationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "expectedReceptionVersion": {
+            "type": "number",
+            "minimum": 0
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240
+          }
+        },
+        "required": [
+          "clientOperationId",
+          "expectedReceptionVersion",
+          "reason"
+        ]
+      },
+      "CorrectClosedSackDto": {
+        "type": "object",
+        "properties": {
+          "clientOperationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "expectedReceptionVersion": {
+            "type": "number",
+            "minimum": 0
+          },
+          "varietyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "qualityId": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid"
+          },
+          "originId": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid"
+          },
+          "grossWeightKg": {
+            "type": "string"
+          },
+          "tareKg": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240
+          }
+        },
+        "required": [
+          "clientOperationId",
+          "expectedReceptionVersion",
+          "varietyId",
+          "grossWeightKg",
+          "reason"
+        ]
+      },
+      "CloseWeighingDto": {
+        "type": "object",
+        "properties": {
+          "clientOperationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "expectedReceptionVersion": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "clientOperationId",
+          "expectedReceptionVersion"
+        ]
+      },
+      "SettlePurchaseLotDto": {
+        "type": "object",
+        "properties": {
+          "varietyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "qualityId": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid"
+          },
+          "priceBasis": {
+            "type": "string",
+            "enum": [
+              "kilogram",
+              "sack"
+            ]
+          },
+          "unitPriceCents": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 9000000000000
+          },
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 60
+          }
+        },
+        "required": [
+          "varietyId",
+          "qualityId",
+          "priceBasis",
+          "unitPriceCents"
+        ]
+      },
+      "PurchaseInstallmentDto": {
+        "type": "object",
+        "properties": {
+          "dueOn": {
+            "type": "string"
+          },
+          "amountCents": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 9000000000000
+          }
+        },
+        "required": [
+          "dueOn",
+          "amountCents"
+        ]
+      },
+      "SettlePurchaseDto": {
+        "type": "object",
+        "properties": {
+          "clientOperationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "expectedReceptionVersion": {
+            "type": "number",
+            "minimum": 0
+          },
+          "lots": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SettlePurchaseLotDto"
+            }
+          },
+          "priceBasis": {
+            "type": "string",
+            "enum": [
+              "kilogram",
+              "sack"
+            ]
+          },
+          "unitPriceCents": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 9000000000000
+          },
+          "freightBasis": {
+            "type": "string",
+            "enum": [
+              "kilogram",
+              "sack"
+            ]
+          },
+          "freightRateCents": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 9000000000000
+          },
+          "freightChargedTo": {
+            "type": "string",
+            "enum": [
+              "provider",
+              "wholesaler"
+            ]
+          },
+          "advancesCents": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 9000000000000
+          },
+          "discountsCents": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 9000000000000
+          },
+          "paymentMode": {
+            "type": "string",
+            "enum": [
+              "cash",
+              "credit"
+            ]
+          },
+          "installments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PurchaseInstallmentDto"
+            }
+          }
+        },
+        "required": [
+          "clientOperationId",
+          "expectedReceptionVersion",
+          "advancesCents",
+          "discountsCents",
+          "paymentMode",
+          "installments"
+        ]
+      },
+      "VoidPurchaseDto": {
+        "type": "object",
+        "properties": {
+          "clientOperationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "expectedPurchaseVersion": {
+            "type": "number",
+            "minimum": 0
+          },
+          "expectedReceptionVersion": {
+            "type": "number",
+            "minimum": 0
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240
+          }
+        },
+        "required": [
+          "clientOperationId",
+          "expectedPurchaseVersion",
+          "expectedReceptionVersion",
+          "reason"
+        ]
+      },
+      "PurchaseSettlementEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "businessId": {
+            "type": "string"
+          },
+          "receptionId": {
+            "type": "string"
+          },
+          "clientOperationId": {
+            "type": "string"
+          },
+          "priceBasis": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "kilogram",
+              "sack"
+            ]
+          },
+          "unitPriceCents": {
+            "type": "string",
+            "nullable": true
+          },
+          "grossAmountCents": {
+            "type": "string"
+          },
+          "freightBasis": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "kilogram",
+              "sack"
+            ]
+          },
+          "freightRateCents": {
+            "type": "string",
+            "nullable": true
+          },
+          "freightChargedTo": {
+            "type": "string",
+            "enum": [
+              "provider",
+              "wholesaler"
+            ]
+          },
+          "freightAmountCents": {
+            "type": "string"
+          },
+          "advancesCents": {
+            "type": "string"
+          },
+          "discountsCents": {
+            "type": "string"
+          },
+          "liquidAmountCents": {
+            "type": "string"
+          },
+          "paymentMode": {
+            "type": "string",
+            "enum": [
+              "cash",
+              "credit"
+            ]
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "confirmed",
+              "voided"
+            ]
+          },
+          "version": {
+            "type": "number"
+          },
+          "voidOperationId": {
+            "type": "string",
+            "nullable": true
+          },
+          "voidReason": {
+            "type": "string",
+            "nullable": true
+          },
+          "voidedAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "createdByUserId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "businessId",
+          "receptionId",
+          "clientOperationId",
+          "priceBasis",
+          "unitPriceCents",
+          "grossAmountCents",
+          "freightBasis",
+          "freightRateCents",
+          "freightChargedTo",
+          "freightAmountCents",
+          "advancesCents",
+          "discountsCents",
+          "liquidAmountCents",
+          "paymentMode",
+          "state",
+          "version",
+          "voidOperationId",
+          "voidReason",
+          "voidedAt",
+          "createdByUserId",
+          "createdAt"
+        ]
+      },
+      "RegisterPaymentDto": {
+        "type": "object",
+        "properties": {
+          "clientOperationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "expectedAccountVersion": {
+            "type": "number",
+            "minimum": 0
+          },
+          "amountCents": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 9000000000000
+          }
+        },
+        "required": [
+          "clientOperationId",
+          "expectedAccountVersion",
+          "amountCents"
+        ]
+      },
+      "AccountPaymentEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "businessId": {
+            "type": "string"
+          },
+          "accountId": {
+            "type": "string"
+          },
+          "clientOperationId": {
+            "type": "string"
+          },
+          "amountCents": {
+            "type": "string"
+          },
+          "isReversal": {
+            "type": "boolean"
+          },
+          "reversedPaymentId": {
+            "type": "string",
+            "nullable": true
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdByUserId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "businessId",
+          "accountId",
+          "clientOperationId",
+          "amountCents",
+          "isReversal",
+          "reversedPaymentId",
+          "reason",
+          "createdByUserId",
+          "createdAt"
+        ]
+      },
+      "ReversePaymentDto": {
+        "type": "object",
+        "properties": {
+          "clientOperationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "expectedAccountVersion": {
+            "type": "number",
+            "minimum": 0
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240
+          }
+        },
+        "required": [
+          "clientOperationId",
+          "expectedAccountVersion",
+          "reason"
+        ]
+      },
+      "SaleLineDto": {
+        "type": "object",
+        "properties": {
+          "varietyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "qualityId": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid"
+          },
+          "originId": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid"
+          },
+          "sacks": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 2147483647
+          },
+          "weightKg": {
+            "type": "string"
+          },
+          "priceBasis": {
+            "type": "string",
+            "enum": [
+              "kilogram",
+              "sack"
+            ]
+          },
+          "unitPriceCents": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 9000000000000
+          }
+        },
+        "required": [
+          "varietyId",
+          "sacks",
+          "weightKg",
+          "priceBasis",
+          "unitPriceCents"
+        ]
+      },
+      "SaleInstallmentDto": {
+        "type": "object",
+        "properties": {
+          "dueOn": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "amountCents": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 9000000000000
+          }
+        },
+        "required": [
+          "dueOn",
+          "amountCents"
+        ]
+      },
+      "CreateSaleDto": {
+        "type": "object",
+        "properties": {
+          "clientOperationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "buyerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "destinationDepartment": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "vehicleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "driverName": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "lines": {
+            "uniqueItems": true,
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SaleLineDto"
+            }
+          },
+          "freightBasis": {
+            "type": "string",
+            "enum": [
+              "kilogram",
+              "sack"
+            ]
+          },
+          "freightRateCents": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 9000000000000
+          },
+          "freightIncludedInTotal": {
+            "type": "boolean"
+          },
+          "discountsCents": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 9000000000000
+          },
+          "paymentMode": {
+            "type": "string",
+            "enum": [
+              "cash",
+              "credit"
+            ]
+          },
+          "installments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SaleInstallmentDto"
+            }
+          },
+          "authorizeCreditLimitOverride": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "clientOperationId",
+          "buyerId",
+          "destinationDepartment",
+          "lines",
+          "freightIncludedInTotal",
+          "discountsCents",
+          "paymentMode",
+          "installments"
+        ]
+      },
+      "SaleEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "businessId": {
+            "type": "string"
+          },
+          "clientOperationId": {
+            "type": "string"
+          },
+          "buyerId": {
+            "type": "string"
+          },
+          "destinationDepartment": {
+            "type": "string"
+          },
+          "vehicleId": {
+            "type": "string",
+            "nullable": true
+          },
+          "driverName": {
+            "type": "string",
+            "nullable": true
+          },
+          "state": {
+            "enum": [
+              "confirmed",
+              "voided"
+            ],
+            "type": "string"
+          },
+          "grossAmountCents": {
+            "type": "string"
+          },
+          "freightBasis": {
+            "nullable": true,
+            "enum": [
+              "kilogram",
+              "sack"
+            ],
+            "type": "string"
+          },
+          "freightRateCents": {
+            "type": "string",
+            "nullable": true
+          },
+          "freightAmountCents": {
+            "type": "string"
+          },
+          "freightIncludedInTotal": {
+            "type": "boolean"
+          },
+          "discountsCents": {
+            "type": "string"
+          },
+          "totalAmountCents": {
+            "type": "string"
+          },
+          "paymentMode": {
+            "enum": [
+              "cash",
+              "credit"
+            ],
+            "type": "string"
+          },
+          "voidOperationId": {
+            "type": "string",
+            "nullable": true
+          },
+          "version": {
+            "type": "number"
+          },
+          "voidedAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "createdByUserId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "businessId",
+          "clientOperationId",
+          "buyerId",
+          "destinationDepartment",
+          "vehicleId",
+          "driverName",
+          "state",
+          "grossAmountCents",
+          "freightBasis",
+          "freightRateCents",
+          "freightAmountCents",
+          "freightIncludedInTotal",
+          "discountsCents",
+          "totalAmountCents",
+          "paymentMode",
+          "voidOperationId",
+          "version",
+          "voidedAt",
+          "createdByUserId",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "VoidSaleDto": {
+        "type": "object",
+        "properties": {
+          "clientOperationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "expectedSaleVersion": {
+            "type": "number",
+            "minimum": 0
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240
+          }
+        },
+        "required": [
+          "clientOperationId",
+          "expectedSaleVersion",
+          "reason"
+        ]
+      },
+      "CommercialReturnLineDto": {
+        "type": "object",
+        "properties": {
+          "saleLineId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sacks": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 2147483647
+          },
+          "weightKg": {
+            "type": "string"
+          },
+          "authorizedGrossCents": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 9000000000000
+          }
+        },
+        "required": [
+          "saleLineId",
+          "sacks",
+          "weightKg",
+          "authorizedGrossCents"
+        ]
+      },
+      "CreateCommercialReturnDto": {
+        "type": "object",
+        "properties": {
+          "clientOperationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "expectedSaleVersion": {
+            "type": "number",
+            "minimum": 0
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240
+          },
+          "lines": {
+            "uniqueItems": true,
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommercialReturnLineDto"
+            }
+          },
+          "freightAdjustmentCents": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 9000000000000
+          }
+        },
+        "required": [
+          "clientOperationId",
+          "expectedSaleVersion",
+          "reason",
+          "lines",
+          "freightAdjustmentCents"
+        ]
+      },
+      "CreateAnalyticsEvaluationDto": {
+        "type": "object",
+        "properties": {
+          "asOf": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          },
+          "varietyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "clientOperationId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "asOf",
+          "varietyId",
+          "clientOperationId"
+        ]
+      },
+      "CreatePredictionPublicationDto": {
+        "type": "object",
+        "properties": {
+          "evaluationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "clientOperationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reviewed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "evaluationId",
+          "clientOperationId",
+          "reviewed"
+        ]
+      },
+      "CreatePublicationOutcomeDto": {
+        "type": "object",
+        "properties": {
+          "clientOperationId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "clientOperationId"
+        ]
+      },
+      "CreateWorkGroupDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "WorkGroupEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "businessId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "businessId",
+          "name",
+          "isActive",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateStowageEntryDto": {
+        "type": "object",
+        "properties": {
+          "clientOperationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "workGroupId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "operationType": {
+            "type": "string",
+            "enum": [
+              "purchase",
+              "sale"
+            ]
+          },
+          "operationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "activity": {
+            "type": "string",
+            "enum": [
+              "load",
+              "unload"
+            ]
+          },
+          "amountCents": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 9000000000000
+          },
+          "occurredOn": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "clientOperationId",
+          "workGroupId",
+          "operationType",
+          "operationId",
+          "activity",
+          "amountCents",
+          "occurredOn"
+        ]
+      },
+      "StowageEntryEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "businessId": {
+            "type": "string"
+          },
+          "clientOperationId": {
+            "type": "string"
+          },
+          "workGroupId": {
+            "type": "string"
+          },
+          "operationType": {
+            "type": "string",
+            "enum": [
+              "purchase",
+              "sale"
+            ]
+          },
+          "operationId": {
+            "type": "string"
+          },
+          "activity": {
+            "type": "string",
+            "enum": [
+              "load",
+              "unload"
+            ]
+          },
+          "amountCents": {
+            "type": "string"
+          },
+          "occurredOn": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "settled"
+            ]
+          },
+          "settlementId": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdByUserId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "businessId",
+          "clientOperationId",
+          "workGroupId",
+          "operationType",
+          "operationId",
+          "activity",
+          "amountCents",
+          "occurredOn",
+          "state",
+          "settlementId",
+          "createdByUserId",
+          "createdAt"
+        ]
+      },
+      "SettleStowageDto": {
+        "type": "object",
+        "properties": {
+          "clientOperationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "settledOn": {
+            "type": "string"
+          },
+          "entryIds": {
+            "uniqueItems": true,
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        },
+        "required": [
+          "clientOperationId",
+          "settledOn",
+          "entryIds"
+        ]
+      },
+      "StowageSettlementEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "businessId": {
+            "type": "string"
+          },
+          "clientOperationId": {
+            "type": "string"
+          },
+          "settledOn": {
+            "type": "string"
+          },
+          "totalAmountCents": {
+            "type": "string"
+          },
+          "createdByUserId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "businessId",
+          "clientOperationId",
+          "settledOn",
+          "totalAmountCents",
+          "createdByUserId",
+          "createdAt"
+        ]
+      },
+      "SettleFreightDto": {
+        "type": "object",
+        "properties": {
+          "clientOperationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "settledOn": {
+            "type": "string"
+          },
+          "entryIds": {
+            "uniqueItems": true,
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        },
+        "required": [
+          "clientOperationId",
+          "settledOn",
+          "entryIds"
+        ]
+      },
+      "FreightSettlementEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "businessId": {
+            "type": "string"
+          },
+          "clientOperationId": {
+            "type": "string"
+          },
+          "settledOn": {
+            "type": "string"
+          },
+          "totalAmountCents": {
+            "type": "string"
+          },
+          "createdByUserId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "businessId",
+          "clientOperationId",
+          "settledOn",
+          "totalAmountCents",
+          "createdByUserId",
+          "createdAt"
+        ]
+      },
+      "ShareAttemptEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "businessId": {
+            "type": "string"
+          },
+          "actorUserId": {
+            "type": "string"
+          },
+          "clientOperationId": {
+            "type": "string"
+          },
+          "recipientId": {
+            "type": "string"
+          },
+          "recipientKind": {
+            "enum": [
+              "buyer",
+              "provider"
+            ],
+            "type": "string"
+          },
+          "recipientName": {
+            "type": "string"
+          },
+          "channel": {
+            "enum": [
+              "whatsapp",
+              "email"
+            ],
+            "type": "string"
+          },
+          "filename": {
+            "type": "string"
+          },
+          "mimeType": {
+            "type": "string"
+          },
+          "sizeBytes": {
+            "type": "number"
+          },
+          "state": {
+            "enum": [
+              "prepared",
+              "sharing_requested",
+              "failed"
+            ],
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "businessId",
+          "actorUserId",
+          "clientOperationId",
+          "recipientId",
+          "recipientKind",
+          "recipientName",
+          "channel",
+          "filename",
+          "mimeType",
+          "sizeBytes",
+          "state",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "ShareAttemptDto": {
+        "type": "object",
+        "properties": {
+          "clientOperationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "recipientId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "recipientKind": {
+            "type": "string",
+            "enum": [
+              "buyer",
+              "provider"
+            ]
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "whatsapp",
+              "email"
+            ]
+          },
+          "filename": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "mimeType": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "sizeBytes": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 20971520
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "prepared",
+              "sharing_requested",
+              "failed"
+            ]
+          }
+        },
+        "required": [
+          "clientOperationId",
+          "recipientId",
+          "recipientKind",
+          "channel",
+          "filename",
+          "mimeType",
+          "sizeBytes",
+          "state"
+        ]
+      }
+    }
+  }
+}
