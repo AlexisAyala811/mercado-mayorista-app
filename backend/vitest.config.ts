@@ -12,7 +12,15 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**/*.ts'],
-      exclude: ['src/**/*.spec.ts', 'src/main.ts', 'src/database/migrations/**'],
+      // The inventory service and its DTO are retired (CL-12, no inventory):
+      // every route answers 410 and nothing calls them (T1707 removes them).
+      exclude: [
+        'src/**/*.spec.ts',
+        'src/main.ts',
+        'src/database/migrations/**',
+        'src/inventory/inventory.service.ts',
+        'src/inventory/http/adjust-inventory.dto.ts',
+      ],
       reporter: ['text-summary', 'json-summary', 'html'],
       reportsDirectory: './coverage',
     },
