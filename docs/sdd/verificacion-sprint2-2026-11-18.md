@@ -21,6 +21,12 @@ Desde 500 usuarios el número de solicitudes por nivel deja de crecer (unas 29 0
 
 **Hallazgo.** A 2000 usuarios, 2994 solicitudes terminaron en `500`, todas tras unos 8 s de espera, en `/reports/operation-overview` y `/sales/summary`. El registro solo dice «Error», así que la causa exacta no está confirmada; lo más probable es la espera de una conexión libre en la base de datos. Una API saturada debería responder `503` para que la tablet reintente (T1704).
 
+## Respuesta ante saturación
+
+**Actualizado el 18 de noviembre de 2026.** La causa de los `500` quedó confirmada en el código: cuando todas las conexiones del pool están ocupadas, `pg-pool` espera `DATABASE_CONNECT_TIMEOUT_MS` (5 s por defecto) y falla con «timeout exceeded when trying to connect». Ahora la API responde `503` con `Retry-After: 5`, el código `service-saturated` y el mensaje «El servidor está ocupado. La operación se reintentará en unos segundos.», y el registro anota la causa `database-pool-saturated`.
+
+Comprobación contra la API real con una sola conexión y 1 s de espera: de 60 lecturas pesadas lanzadas a la vez, 5 respondieron `200` y 55 `503`, todas con `Retry-After: 5`. La cola de la tablet ya trataba cualquier `5xx` como falla de red: conserva la operación y la reintenta.
+
 ## Cobertura de las pruebas
 
 | Proyecto | Herramienta | Pruebas | Líneas | Ramas | Funciones |
