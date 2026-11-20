@@ -6,7 +6,7 @@ Pasos para poner la base de datos en Supabase y la API en Render, ambos en plan 
 
 ## Orden
 
-1. Supabase: proyecto, cadena del pooler de sesión y certificado.
+1. Supabase: proyecto, cadena del pooler de sesión y certificado (desmarca **Enable Data API**: la API se conecta directo a PostgreSQL).
 2. Fusionar en `main` el PR de la spec 018 (Render lee `render.yaml` de `main`).
 3. Render: crear el servicio desde el Blueprint.
 4. Crear el primer Mayorista desde tu computadora.
@@ -18,10 +18,10 @@ Pasos para poner la base de datos en Supabase y la API en Render, ambos en plan 
 2. **New project**:
    - Nombre: `manay`.
    - **Database Password**: pulsa *Generate a password* y guárdala en tu gestor de contraseñas. Supabase no vuelve a mostrarla.
-   - **Region**: *South America (São Paulo)*.
+   - **Region**: *East US (North Virginia)* (`us-east-1`), la misma región que Render. Si solo ves «Americas», pulsa **Need a specific region?**
    - Plan: *Free*.
 3. Cuando el proyecto termine de crearse, pulsa **Connect** (arriba) y elige **Session pooler**. Anota:
-   - **host**: algo como `aws-0-sa-east-1.pooler.supabase.com`;
+   - **host**: algo como `aws-1-us-east-1.pooler.supabase.com`;
    - **user**: `postgres.` seguido de la referencia del proyecto;
    - puerto `5432` y base `postgres` (ya están en `render.yaml`).
 4. **Project Settings → Database → SSL Configuration → Download certificate**. Se descarga `prod-ca-2021.crt` (es público; no es un secreto, pero tampoco hace falta subirlo al repositorio).
@@ -54,7 +54,7 @@ Si el despliegue falla con `self-signed certificate in certificate chain`, el ce
 Solo después de que Render haya aplicado las migraciones. En Windows PowerShell, desde la carpeta `backend` del repositorio, cambia los valores entre comillas por los tuyos:
 
 ```powershell
-$env:DATABASE_HOST = "aws-0-sa-east-1.pooler.supabase.com"
+$env:DATABASE_HOST = "aws-1-us-east-1.pooler.supabase.com"
 $env:DATABASE_USER = "postgres.tu-referencia"
 $env:DATABASE_NAME = "postgres"
 $env:DATABASE_SSL = "true"

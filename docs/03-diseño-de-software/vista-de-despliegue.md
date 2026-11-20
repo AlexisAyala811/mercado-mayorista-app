@@ -12,7 +12,7 @@ flowchart LR
     subgraph Render["Render · Virginia"]
         API["manay-api<br/>imagen del Dockerfile<br/>migraciones al arrancar"]
     end
-    subgraph Supabase["Supabase · São Paulo"]
+    subgraph Supabase["Supabase · Virginia"]
         Pool["Pooler de sesión<br/>IPv4 · puerto 5432"]
         DB[("PostgreSQL 17")]
         Pool --> DB
