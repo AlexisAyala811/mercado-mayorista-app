@@ -6,15 +6,15 @@ services:
     name: manay-api
     runtime: docker
     plan: free
-    # Render no tiene región en Sudamérica; Virginia es la más cercana a
-    # Supabase en São Paulo (sa-east-1).
+    # Render no tiene región en Sudamérica; la base de Supabase está en la
+    # misma región (us-east-1) para que cada consulta tarde ~1 ms.
     region: virginia
     branch: main
     dockerContext: ./backend
     dockerfilePath: ./backend/Dockerfile
-    # El plan gratuito no tiene preDeployCommand: las migraciones corren al
-    # arrancar, antes de la API. TypeORM solo aplica las pendientes.
-    dockerCommand: sh -c "node node_modules/typeorm/cli.js migration:run -d dist/database/data-source.js && exec node dist/main.js"
+    # El plan gratuito no tiene preDeployCommand: el arranque de la imagen
+    # (backend/docker-entrypoint.sh) aplica las migraciones pendientes antes de
+    # la API cuando RUN_MIGRATIONS_ON_START=true.
     healthCheckPath: /api/v1/health/ready
     autoDeployTrigger: commit
     buildFilter:
@@ -27,6 +27,8 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: RUN_MIGRATIONS_ON_START
+        value: true
       - key: SESSION_TTL_MINUTES
         value: 480
       - key: TRUST_PROXY
@@ -48,7 +50,7 @@ services:
         value: 5
       - key: DATABASE_CONNECT_TIMEOUT_MS
         value: 10000
-      # Host y usuario del pooler de sesión de Supabase (aws-0-…pooler.supabase.com
+      # Host y usuario del pooler de sesión de Supabase (aws-1-us-east-1.pooler.supabase.com
       # y postgres.<referencia del proyecto>).
       - key: DATABASE_HOST
         sync: false

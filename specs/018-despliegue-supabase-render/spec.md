@@ -11,13 +11,21 @@ Que la API y la base de datos funcionen en internet, con HTTPS, sin depender de 
 
 | Tema | Decisión | Motivo |
 | --- | --- | --- |
-| Base de datos | Supabase, PostgreSQL 17, región São Paulo (`sa-east-1`) | Plan gratuito, PostgreSQL administrado y la región más cercana a Perú |
+| Base de datos | Supabase, PostgreSQL 17, región East US (North Virginia, `us-east-1`) | Plan gratuito y PostgreSQL administrado, en la misma región que la API (ver «Cambio del 20 de noviembre») |
 | API | Render, servicio web Docker con el `Dockerfile` de `backend/`, plan gratuito, región Virginia | Construye la misma imagen que la CI; HTTPS incluido. Render no tiene región en Sudamérica |
 | Conexión | Pooler de sesión de Supabase (puerto 5432, IPv4) | La conexión directa de Supabase es solo IPv6 y Render no sale por IPv6; el pooler de transacciones (6543) no conserva el estado de sesión |
 | TLS | `DATABASE_SSL=true` con validación del certificado y la CA de Supabase en `DATABASE_SSL_CA` | Supabase firma con su propia CA; desactivar la validación no es aceptable |
-| Migraciones | Al arrancar el contenedor, antes de la API (`dockerCommand` en `render.yaml`) | El plan gratuito de Render no tiene `preDeployCommand`. TypeORM solo aplica las pendientes y hay una sola instancia |
+| Migraciones | Al arrancar el contenedor, antes de la API (`backend/docker-entrypoint.sh` con `RUN_MIGRATIONS_ON_START=true`) | El plan gratuito de Render no tiene `preDeployCommand`. TypeORM solo aplica las pendientes y hay una sola instancia |
 | Primer Mayorista | `npm run bootstrap:wholesaler` desde la computadora del usuario, una vez, contra el pooler de sesión | Las credenciales iniciales nunca pasan por el repositorio, el chat ni Render |
 | Secretos | `sync: false` en `render.yaml`; el usuario los pega en el panel de Render | Ningún secreto en el repositorio (regla 11) |
+
+## Cambio del 20 de noviembre de 2026: región de la base
+
+La primera versión ponía la base en São Paulo. Al crear el proyecto se eligió `us-east-1`: Render no tiene región en Sudamérica, y cada petición de la API hace varias consultas. Con la base en otra región cada consulta sumaría ~120 ms de ida y vuelta; con ambas en Virginia queda en ~1 ms. La tablet solo hace un viaje largo por petición.
+
+## Corrección del 20 de noviembre de 2026: arranque del contenedor
+
+El primer despliegue en Render terminó con el código 127: Render pasa `dockerCommand` sin interpretar las comillas, así que `sh` buscó un programa llamado como toda la línea. Las migraciones pasan a `backend/docker-entrypoint.sh`, que la imagen ejecuta por defecto; solo migra con `RUN_MIGRATIONS_ON_START=true`, de modo que Docker Compose sigue usando su servicio `migrate`.
 
 ## Alcance
 
