@@ -1,0 +1,61 @@
+# Spec 018: despliegue de la API en Render con la base de datos en Supabase.
+# Los secretos llevan "sync: false": Render los pide en su panel al crear el
+# Blueprint y nunca se escriben en este archivo.
+services:
+  - type: web
+    name: manay-api
+    runtime: docker
+    plan: free
+    # Render no tiene región en Sudamérica; Virginia es la más cercana a
+    # Supabase en São Paulo (sa-east-1).
+    region: virginia
+    branch: main
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    # El plan gratuito no tiene preDeployCommand: las migraciones corren al
+    # arrancar, antes de la API. TypeORM solo aplica las pendientes.
+    dockerCommand: sh -c "node node_modules/typeorm/cli.js migration:run -d dist/database/data-source.js && exec node dist/main.js"
+    healthCheckPath: /api/v1/health/ready
+    autoDeployTrigger: commit
+    buildFilter:
+      paths:
+        - backend/**
+        - render.yaml
+      ignoredPaths:
+        - backend/test/**
+        - backend/**/*.spec.ts
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_TTL_MINUTES
+        value: 480
+      - key: TRUST_PROXY
+        value: 1
+      - key: OPENAPI_ENABLED
+        value: false
+      - key: CORS_ORIGINS
+        value: http://localhost:8081
+      - key: DATABASE_PORT
+        value: 5432
+      - key: DATABASE_NAME
+        value: postgres
+      - key: DATABASE_SSL
+        value: true
+      - key: DATABASE_SSL_REJECT_UNAUTHORIZED
+        value: true
+      # El pooler de sesión de Supabase gratuito admite pocas conexiones.
+      - key: DATABASE_POOL_SIZE
+        value: 5
+      - key: DATABASE_CONNECT_TIMEOUT_MS
+        value: 10000
+      # Host y usuario del pooler de sesión de Supabase (aws-0-…pooler.supabase.com
+      # y postgres.<referencia del proyecto>).
+      - key: DATABASE_HOST
+        sync: false
+      - key: DATABASE_USER
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false
+      # PEM del certificado «prod-ca-2021.crt» que se descarga en Supabase.
+      - key: DATABASE_SSL_CA
+        sync: false

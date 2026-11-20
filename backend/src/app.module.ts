@@ -46,6 +46,7 @@ import { MessagingModule } from './messaging/messaging.module.js';
           poolSize: config.getOrThrow<number>('DATABASE_POOL_SIZE'),
           port: config.getOrThrow<number>('DATABASE_PORT'),
           ssl: config.getOrThrow<boolean>('DATABASE_SSL'),
+          sslCa: config.get<string>('DATABASE_SSL_CA'),
           sslRejectUnauthorized: config.getOrThrow<boolean>(
             'DATABASE_SSL_REJECT_UNAUTHORIZED',
           ),

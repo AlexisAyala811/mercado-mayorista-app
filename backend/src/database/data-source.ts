@@ -79,6 +79,7 @@ export default new DataSource({
     poolSize: Number(process.env.DATABASE_POOL_SIZE ?? 10),
     port: Number(process.env.DATABASE_PORT ?? 5432),
     ssl: parseBoolean(process.env.DATABASE_SSL, false),
+    sslCa: process.env.DATABASE_SSL_CA,
     sslRejectUnauthorized: parseBoolean(
       process.env.DATABASE_SSL_REJECT_UNAUTHORIZED,
       true,
