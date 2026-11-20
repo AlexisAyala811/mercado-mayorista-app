@@ -16,6 +16,11 @@ export const environmentSchema = Joi.object({
     .truthy('true')
     .falsy('false')
     .default(true),
+  // PEM of the CA that signs the database certificate (spec 018, Supabase).
+  DATABASE_SSL_CA: Joi.string()
+    .allow('')
+    .pattern(/-----BEGIN CERTIFICATE-----/)
+    .default(''),
   DATABASE_POOL_SIZE: Joi.number().integer().min(1).max(50).default(10),
   DATABASE_CONNECT_TIMEOUT_MS: Joi.number()
     .integer()
@@ -35,7 +40,11 @@ export const environmentSchema = Joi.object({
   // load tests on a disposable database (spec 012).
   // Seconds that a page of a catalog stays in memory; 0 turns the cache off
   // (spec 013).
-  CATALOG_CACHE_TTL_SECONDS: Joi.number().integer().min(0).max(3600).default(60),
+  CATALOG_CACHE_TTL_SECONDS: Joi.number()
+    .integer()
+    .min(0)
+    .max(3600)
+    .default(60),
   THROTTLE_LIMIT: Joi.number().integer().min(1).max(100000).default(100),
   TRUST_PROXY: Joi.string()
     .pattern(/^(false|true|\d{1,2}|[\w.:/,\s-]+)$/)

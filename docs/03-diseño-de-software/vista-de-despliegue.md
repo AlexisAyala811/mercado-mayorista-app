@@ -1,6 +1,35 @@
 # Vista de despliegue
 
-> **Proyecto:** Gestión comercial mayorista de papa · **Versión:** 2.0 · **Actualización:** 29 de octubre de 2026 · **Fuente:** `Dockerfile` y `compose.yaml` de `backend/`
+> **Proyecto:** Gestión comercial mayorista de papa · **Versión:** 3.0 · **Actualización:** 20 de noviembre de 2026 · **Fuente:** `Dockerfile` y `compose.yaml` de `backend/`, `render.yaml`
+
+## Entorno en internet (spec 018)
+
+Desde el 20 de noviembre de 2026 la API corre en Render y la base de datos en Supabase, ambos en plan gratuito. Los pasos están en la [guía de despliegue](guia-despliegue-supabase-render.md).
+
+```mermaid
+flowchart LR
+    App["Tablet Android<br/>aplicación MAÑAY"]
+    subgraph Render["Render · Virginia"]
+        API["manay-api<br/>imagen del Dockerfile<br/>migraciones al arrancar"]
+    end
+    subgraph Supabase["Supabase · São Paulo"]
+        Pool["Pooler de sesión<br/>IPv4 · puerto 5432"]
+        DB[("PostgreSQL 17")]
+        Pool --> DB
+    end
+    App -- "HTTPS /api/v1" --> API
+    API -- "TLS validado con la CA de Supabase" --> Pool
+```
+
+| Elemento | Configuración |
+| --- | --- |
+| API | `render.yaml`: servicio web Docker, chequeo de salud en `/api/v1/health/ready`, `TRUST_PROXY=1`, OpenAPI desactivado |
+| Migraciones | `dockerCommand` aplica las pendientes antes de arrancar la API (el plan gratuito no tiene `preDeployCommand`) |
+| Base de datos | Pooler de sesión; la conexión directa es solo IPv6 |
+| TLS | `DATABASE_SSL=true`, validación activa y CA en `DATABASE_SSL_CA` |
+| Secretos | `DATABASE_HOST`, `DATABASE_USER`, `DATABASE_PASSWORD` y `DATABASE_SSL_CA` solo en el panel de Render |
+
+## Entorno local y servidor propio (Docker Compose)
 
 ```mermaid
 flowchart LR
@@ -32,7 +61,7 @@ flowchart LR
 
 ## Configuración
 
-Variables principales (ver `.env.example`): conexión a PostgreSQL (`DATABASE_*`, contraseña de al menos 12 caracteres), `CORS_ORIGINS`, `SESSION_TTL_MINUTES`, `EVIDENCE_RETENTION_YEARS` (mínimo 5), `OPENAPI_ENABLED` (desactivado por defecto con `NODE_ENV=production`) y `TRUST_PROXY` (saltos o direcciones del proxy inverso, para que el límite de intentos de inicio de sesión vea la IP real de cada cliente). La configuración se valida al arrancar; si falta un valor obligatorio, la API no inicia.
+Variables principales (ver `.env.example`): conexión a PostgreSQL (`DATABASE_*`, contraseña de al menos 12 caracteres; `DATABASE_SSL_CA` para una CA propia del proveedor), `CORS_ORIGINS`, `SESSION_TTL_MINUTES`, `EVIDENCE_RETENTION_YEARS` (mínimo 5), `OPENAPI_ENABLED` (desactivado por defecto con `NODE_ENV=production`) y `TRUST_PROXY` (saltos o direcciones del proxy inverso, para que el límite de intentos de inicio de sesión vea la IP real de cada cliente). La configuración se valida al arrancar; si falta un valor obligatorio, la API no inicia.
 
 ## Operación
 
@@ -49,7 +78,6 @@ En producción la API no se construye en el servidor: se usa la imagen que publi
 
 ## Pendiente para producción
 
-- Contratar el servidor y configurar el entorno `production` en GitHub.
-- Terminación HTTPS con un proxy inverso; el compose de producción ya define `TRUST_PROXY=1` para un proxy delante de la API.
+- Plan de pago o servidor propio para evitar que el servicio duerma; el entorno gratuito de Render y Supabase es para pruebas y demostración.
 - Respaldos programados y simulacro de restauración con RPO/RTO medidos (AC08).
 - Monitoreo de disponibilidad (AC02).

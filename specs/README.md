@@ -21,6 +21,7 @@ Este índice conecta la línea base documental, el diseño de Figma y el trabajo
 | [015](015-app-e2e/spec.md) | Pruebas end to end de la app | RF01–RF27 visibles | Siete pruebas de Playwright en verde el 17 de noviembre de 2026 ([verificación](../docs/sdd/verificacion-e2e-app-2026-11-17.md)) | Falta la CI y los flujos que escriben |
 | [016](016-second-instance/spec.md) | Segunda instancia del backend | AC06 | Verificada el 17 de noviembre de 2026 ([verificación](../docs/sdd/verificacion-segunda-instancia-2026-11-17.md)) | Límite y caché por instancia; balanceador de producción pendiente |
 | [017](017-sprint2-quality/spec.md) | Validación de calidad del Sprint 2 | AC01 | Implementada el 18 de noviembre de 2026 ([verificación](../docs/sdd/verificacion-sprint2-2026-11-18.md)) | AC01 se cumple hasta 500 usuarios |
+| [018](018-despliegue-supabase-render/spec.md) | Despliegue en Supabase y Render | AC02 | En curso desde el 20 de noviembre de 2026 | API en Render y base en Supabase, plan gratuito |
 
 ## Artefactos transversales
 

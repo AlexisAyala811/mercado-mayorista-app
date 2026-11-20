@@ -54,6 +54,21 @@ describe('environment schema', () => {
     ).toBeDefined();
   });
 
+  // Spec 018: the CA of a hosted database is optional and must be a PEM.
+  it('accepts an empty or PEM database CA and rejects anything else', () => {
+    expect(environmentSchema.validate(base).value.DATABASE_SSL_CA).toBe('');
+    expect(
+      environmentSchema.validate({
+        ...base,
+        DATABASE_SSL_CA: '-----BEGIN CERTIFICATE-----\\nMIIB',
+      }).error,
+    ).toBeUndefined();
+    expect(
+      environmentSchema.validate({ ...base, DATABASE_SSL_CA: 'not-a-pem' })
+        .error,
+    ).toBeDefined();
+  });
+
   it('does not trust proxies unless configured', () => {
     expect(environmentSchema.validate(base).value.TRUST_PROXY).toBe('false');
   });
