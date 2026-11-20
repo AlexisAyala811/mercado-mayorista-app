@@ -47,7 +47,11 @@ Render necesita `render.yaml` en `main`. Fusiona el PR de la spec 018 con la CI 
 3. **Apply**. El primer despliegue construye la imagen (unos minutos), aplica las migraciones y arranca la API. En **Logs** debe aparecer el listado de migraciones y luego el inicio de NestJS.
 4. Copia la dirección del servicio: `https://manay-api-xxxx.onrender.com`.
 
-Si el despliegue falla con `self-signed certificate in certificate chain`, el certificado no se pegó completo. Si falla con `password authentication failed`, revisa el usuario (`postgres.<referencia>`, no solo `postgres`).
+Si el despliegue falla con `self-signed certificate in certificate chain`, el certificado no se pegó completo. Si falla con `password authentication failed` (`28P01`):
+
+- El campo de valor de Render es un área de texto y, al pegar, puede guardar un **salto de línea al final**. Tras pegar la contraseña pulsa Ctrl+End y Backspace si el cursor queda en una segunda línea, y comprueba con el ojo que la longitud sea la esperada.
+- Tras un «Reset password», el pooler de Supabase puede tardar unos minutos en aceptar la nueva.
+- Si el usuario fuera incorrecto, el error sería `Tenant or user not found`, no `28P01`.
 
 ## 4. Primer Mayorista
 
