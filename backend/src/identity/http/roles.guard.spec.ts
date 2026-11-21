@@ -20,11 +20,11 @@ function contextFor(role: UserRole) {
 }
 
 describe('RolesGuard', () => {
-  const recordDirect = vi.fn().mockResolvedValue(undefined);
+  const recordDirect = jest.fn().mockResolvedValue(undefined);
   const audit = { recordDirect } as unknown as AuditService;
 
   it('allows a role declared by the endpoint', async () => {
-    const getAllAndOverride = vi.fn().mockReturnValue([UserRole.Wholesaler]);
+    const getAllAndOverride = jest.fn().mockReturnValue([UserRole.Wholesaler]);
     const guard = new RolesGuard(
       { getAllAndOverride } as unknown as Reflector,
       audit,
@@ -36,7 +36,7 @@ describe('RolesGuard', () => {
   });
 
   it('denies and audits a role that is not declared by the endpoint', async () => {
-    const getAllAndOverride = vi.fn().mockReturnValue([UserRole.Wholesaler]);
+    const getAllAndOverride = jest.fn().mockReturnValue([UserRole.Wholesaler]);
     const guard = new RolesGuard(
       { getAllAndOverride } as unknown as Reflector,
       audit,

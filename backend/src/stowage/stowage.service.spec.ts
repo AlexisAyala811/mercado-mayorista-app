@@ -36,7 +36,7 @@ function build() {
   db.rows(WorkGroupEntity).push({ businessId: 'business-1', id: 'group-1', isActive: true, name: 'Cuadrilla A' });
   db.rows(PurchaseSettlementEntity).push({ businessId: 'business-1', id: 'purchase-1' });
   db.rows(SaleEntity).push({ businessId: 'business-1', id: 'sale-1' });
-  const record = vi.fn().mockResolvedValue(undefined);
+  const record = jest.fn().mockResolvedValue(undefined);
   const service = new StowageService(
     db.dataSource,
     { record } as unknown as AuditService,

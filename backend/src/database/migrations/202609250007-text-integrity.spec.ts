@@ -4,7 +4,7 @@ import { TextIntegrity1790294400007 } from './202609250007-text-integrity.js';
 
 describe('TextIntegrity1790294400007', () => {
   it('adds and removes every check constraint reversibly', async () => {
-    const query = vi.fn().mockResolvedValue(undefined);
+    const query = jest.fn().mockResolvedValue(undefined);
     const runner = { query } as unknown as QueryRunner;
     const migration = new TextIntegrity1790294400007();
 

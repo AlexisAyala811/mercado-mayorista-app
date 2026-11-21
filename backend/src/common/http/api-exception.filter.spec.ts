@@ -16,18 +16,18 @@ describe('ApiExceptionFilter', () => {
   };
   const response = {};
 
-  afterEach(() => vi.restoreAllMocks());
+  afterEach(() => jest.restoreAllMocks());
 
   function setup() {
-    const reply = vi.fn();
-    const setHeader = vi.fn();
+    const reply = jest.fn();
+    const setHeader = jest.fn();
     const adapterHost = {
       httpAdapter: { reply, setHeader } as unknown as AbstractHttpAdapter,
     } as HttpAdapterHost;
     const host = {
-      switchToHttp: vi.fn().mockReturnValue({
-        getRequest: vi.fn().mockReturnValue(request),
-        getResponse: vi.fn().mockReturnValue(response),
+      switchToHttp: jest.fn().mockReturnValue({
+        getRequest: jest.fn().mockReturnValue(request),
+        getResponse: jest.fn().mockReturnValue(response),
       }),
     } as unknown as ArgumentsHost;
     return { filter: new ApiExceptionFilter(adapterHost), host, reply, setHeader };
@@ -35,7 +35,7 @@ describe('ApiExceptionFilter', () => {
 
   // Spec 017 (T1704).
   it('answers 503 with Retry-After when the database pool is saturated', () => {
-    vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+    jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
     const { filter, host, reply, setHeader } = setup();
 
     filter.catch(new Error('timeout exceeded when trying to connect'), host);
@@ -53,7 +53,7 @@ describe('ApiExceptionFilter', () => {
   });
 
   it('keeps 500 for any other unexpected error and sets no Retry-After', () => {
-    vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+    jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
     const { filter, host, reply, setHeader } = setup();
 
     filter.catch(new Error('relation does not exist'), host);
@@ -81,7 +81,7 @@ describe('ApiExceptionFilter', () => {
   });
 
   it('does not expose unexpected exception details', () => {
-    vi.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+    jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
     const { filter, host, reply } = setup();
 
     filter.catch(new Error('database password should not leak'), host);

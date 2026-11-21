@@ -5,7 +5,7 @@ describe('MemoryCache', () => {
   it('reads once and serves the next reads from memory until it expires', async () => {
     let time = 1_000;
     const cache = new MemoryCache<string>(60_000, 10, () => time);
-    const load = vi.fn().mockResolvedValue('página');
+    const load = jest.fn().mockResolvedValue('página');
 
     expect(await cache.remember('negocio:providers', '50:0', load)).toBe('página');
     expect(await cache.remember('negocio:providers', '50:0', load)).toBe('página');
@@ -53,7 +53,7 @@ describe('MemoryCache', () => {
     expect(await small.remember('s', '1', async () => 10)).toBe(10);
 
     const off = new MemoryCache<number>(0);
-    const load = vi.fn().mockResolvedValue(1);
+    const load = jest.fn().mockResolvedValue(1);
     await off.remember('s', '1', load);
     await off.remember('s', '1', load);
     expect(load).toHaveBeenCalledTimes(2);

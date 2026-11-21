@@ -9,14 +9,14 @@ const sql = 'INSERT INTO "users"("password_hash") VALUES ($1)';
 function capture() {
   const lines: string[] = [];
   for (const level of ['debug', 'error', 'warn', 'log'] as const)
-    vi.spyOn(NestLogger.prototype, level).mockImplementation((message) => {
-      lines.push(String(message));
+    jest.spyOn(NestLogger.prototype, level).mockImplementation((...args: unknown[]) => {
+      lines.push(String(args[0]));
     });
   return lines;
 }
 
 describe('ParameterlessQueryLogger', () => {
-  afterEach(() => vi.restoreAllMocks());
+  afterEach(() => jest.restoreAllMocks());
 
   it('logs the SQL of a query, a failure and a slow query without their parameters', () => {
     const lines = capture();

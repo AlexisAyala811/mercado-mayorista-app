@@ -20,9 +20,9 @@ describe('CatalogService', () => {
   };
 
   it('always scopes catalog listings to the authenticated business', async () => {
-    const findProviders = vi.fn().mockResolvedValue([[], 0]);
-    const findVarieties = vi.fn().mockResolvedValue([[], 0]);
-    const findBuyers = vi.fn().mockResolvedValue([[], 0]);
+    const findProviders = jest.fn().mockResolvedValue([[], 0]);
+    const findVarieties = jest.fn().mockResolvedValue([[], 0]);
+    const findBuyers = jest.fn().mockResolvedValue([[], 0]);
     const service = new CatalogService(
       {} as never,
       {} as never,
@@ -69,17 +69,17 @@ describe('CatalogService', () => {
       phone: null,
     };
     const repository = {
-      create: vi.fn().mockReturnValue(provider),
-      save: vi.fn().mockResolvedValue(provider),
+      create: jest.fn().mockReturnValue(provider),
+      save: jest.fn().mockResolvedValue(provider),
     } as unknown as Repository<ProviderEntity>;
     const manager = {
-      getRepository: vi.fn().mockReturnValue(repository),
+      getRepository: jest.fn().mockReturnValue(repository),
     } as unknown as EntityManager;
-    const transaction = vi.fn(
+    const transaction = jest.fn(
       async (callback: (value: EntityManager) => Promise<unknown>) =>
         callback(manager),
     );
-    const record = vi.fn().mockResolvedValue(undefined);
+    const record = jest.fn().mockResolvedValue(undefined);
     const service = new CatalogService(
       { transaction } as unknown as DataSource,
       { record } as unknown as AuditService,
@@ -102,7 +102,7 @@ describe('CatalogService', () => {
   });
 
   it('rejects empty updates before opening a transaction', async () => {
-    const transaction = vi.fn();
+    const transaction = jest.fn();
     const service = new CatalogService(
       { transaction } as unknown as DataSource,
       {} as AuditService,

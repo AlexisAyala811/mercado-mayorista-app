@@ -5,7 +5,7 @@ import { ReportsService } from './reports.service.js';
 
 describe('ReportsService', () => {
   it('returns commercial and financial amounts without querying or reporting stock', async () => {
-    const query = vi
+    const query = jest
       .fn()
       .mockResolvedValueOnce([{ count: '1', amount: '50000' }])
       .mockResolvedValueOnce([{ count: '2', amount: '10000' }])
@@ -44,7 +44,7 @@ describe('ReportsService', () => {
     const accounts = [
       { accountId: 'account', status: 'overdue', balanceCents: '8000' },
     ];
-    const query = vi.fn().mockResolvedValue(accounts);
+    const query = jest.fn().mockResolvedValue(accounts);
     const service = new ReportsService({ query } as unknown as DataSource);
     const result = await service.alerts('business-1', {
       asOf: '2026-10-07',
@@ -61,7 +61,7 @@ describe('ReportsService', () => {
     ]);
   });
   it('uses the requested date as the overdue cutoff', async () => {
-    const query = vi.fn().mockResolvedValue([]);
+    const query = jest.fn().mockResolvedValue([]);
     const service = new ReportsService({ query } as unknown as DataSource);
 
     await service.overdueAccounts('business-1', { asOf: '2026-09-25' });
@@ -74,7 +74,7 @@ describe('ReportsService', () => {
   });
 
   it('rejects an alert window ending before its explicit cutoff', async () => {
-    const query = vi.fn();
+    const query = jest.fn();
     const service = new ReportsService({ query } as unknown as DataSource);
 
     await expect(

@@ -7,14 +7,14 @@ import { AnalyticsService } from './analytics.service.js';
 
 describe('readiness snapshots', () => {
   beforeEach(() => {
-    vi.useFakeTimers({ toFake: ['Date'] });
-    vi.setSystemTime(new Date('2026-10-07T03:00:00Z'));
+    jest.useFakeTimers({ doNotFake: ['hrtime', 'nextTick', 'performance', 'queueMicrotask', 'setImmediate', 'clearImmediate', 'setInterval', 'clearInterval', 'setTimeout', 'clearTimeout'] });
+    jest.setSystemTime(new Date('2026-10-07T03:00:00Z'));
   });
   afterEach(() => {
-    vi.useRealTimers();
+    jest.useRealTimers();
   });
   it('uses a business-scoped variety and a full-history window separate from descriptive filters', async () => {
-    const query = vi
+    const query = jest
       .fn()
       .mockResolvedValueOnce([{ id: 'v-1', name: 'Canchán' }])
       .mockResolvedValueOnce([])
@@ -38,7 +38,7 @@ describe('readiness snapshots', () => {
     expect(result.dataSufficient).toBe(false);
   });
   it('does not fetch another business history when the requested variety is unavailable', async () => {
-    const query = vi.fn().mockResolvedValue([]);
+    const query = jest.fn().mockResolvedValue([]);
     const service = new AnalyticsService({ transaction:async(_isolation:string,work:(manager:EntityManager)=>unknown)=>work({query} as unknown as EntityManager) } as unknown as DataSource);
     await expect(
       service.readiness('business-a', {
@@ -49,7 +49,7 @@ describe('readiness snapshots', () => {
     expect(query).toHaveBeenCalledTimes(1);
   });
   it('rejects a future cutoff before reading a dataset', async () => {
-    const query = vi.fn();
+    const query = jest.fn();
     const service = new AnalyticsService({ transaction:async(_isolation:string,work:(manager:EntityManager)=>unknown)=>work({query} as unknown as EntityManager) } as unknown as DataSource);
     await expect(
       service.readiness('business-a', { asOf: '2026-10-07', varietyId: 'v-1' }),

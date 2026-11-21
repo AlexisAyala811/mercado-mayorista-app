@@ -3,7 +3,7 @@ import type {EntityManager} from 'typeorm';
 import {resolveCommercialSnapshot} from './commercial-snapshot.js';
 
 const previous={qualityId:'quality-a',qualityName:'Calidad original',originId:'origin-a',originName:'Origen original'};
-function fixture(){const findOne=vi.fn().mockImplementation(async({where})=>({id:where.id,name:where.kind==='quality'?'Calidad actual':'Origen actual'}));return{findOne,manager:{getRepository:()=>({findOne})} as unknown as EntityManager};}
+function fixture(){const findOne=jest.fn().mockImplementation(async({where})=>({id:where.id,name:where.kind==='quality'?'Calidad actual':'Origen actual'}));return{findOne,manager:{getRepository:()=>({findOne})} as unknown as EntityManager};}
 it('represents old unclassified input as null pairs without reading a catalog',async()=>{
   const {findOne,manager}=fixture();expect(await resolveCommercialSnapshot(manager,'business-a',{})).toEqual({qualityId:null,qualityName:null,originId:null,originName:null});expect(findOne).not.toHaveBeenCalled();
 });

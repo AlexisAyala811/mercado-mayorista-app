@@ -11,16 +11,16 @@ import { LogisticsService } from './logistics.service.js';
 
 describe('LogisticsService', () => {
   it('deactivates a vehicle and records the event atomically within the authenticated business', async () => {
-    const update = vi.fn().mockResolvedValue({ affected: 1 });
+    const update = jest.fn().mockResolvedValue({ affected: 1 });
     const repository = { update } as unknown as Repository<VehicleEntity>;
     const manager = {
-      getRepository: vi.fn().mockReturnValue(repository),
+      getRepository: jest.fn().mockReturnValue(repository),
     } as unknown as EntityManager;
-    const transaction = vi.fn(
+    const transaction = jest.fn(
       async (callback: (value: EntityManager) => Promise<unknown>) =>
         callback(manager),
     );
-    const record = vi.fn().mockResolvedValue(undefined);
+    const record = jest.fn().mockResolvedValue(undefined);
     const service = new LogisticsService(
       { transaction } as unknown as DataSource,
       { record } as unknown as AuditService,
@@ -67,7 +67,7 @@ describe('LogisticsService rules', () => {
   };
   function build() {
     const db = memoryManager();
-    const record = vi.fn().mockResolvedValue(undefined);
+    const record = jest.fn().mockResolvedValue(undefined);
     const service = new LogisticsService(
       db.dataSource,
       { record } as unknown as AuditService,

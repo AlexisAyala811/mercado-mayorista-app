@@ -7,10 +7,10 @@ import type {CommercialCharacteristicEntity} from './entities/commercial-charact
 
 const identity={businessId:'business-a',businessName:'QA',userId:'user-a',username:'Mayorista',role:UserRole.Wholesaler,sessionId:'session-a',expiresAt:new Date('2099-01-01')};
 function fixture(){
-  const repository={findAndCount:vi.fn().mockResolvedValue([[],0]),findOne:vi.fn().mockResolvedValue(null),create:vi.fn().mockImplementation(value=>value),save:vi.fn().mockImplementation(value=>({...value,id:'new-id'})),update:vi.fn().mockResolvedValue({affected:1})};
-  const manager={getRepository:vi.fn().mockReturnValue(repository)};
-  const transaction=vi.fn().mockImplementation(async callback=>callback(manager));
-  const audit={record:vi.fn().mockResolvedValue(undefined)};
+  const repository={findAndCount:jest.fn().mockResolvedValue([[],0]),findOne:jest.fn().mockResolvedValue(null),create:jest.fn().mockImplementation(value=>value),save:jest.fn().mockImplementation(value=>({...value,id:'new-id'})),update:jest.fn().mockResolvedValue({affected:1})};
+  const manager={getRepository:jest.fn().mockReturnValue(repository)};
+  const transaction=jest.fn().mockImplementation(async callback=>callback(manager));
+  const audit={record:jest.fn().mockResolvedValue(undefined)};
   return{repository,manager,audit,service:new CharacteristicsService({transaction} as unknown as DataSource,audit as unknown as AuditService,repository as unknown as Repository<CommercialCharacteristicEntity>)};
 }
 it('scopes active paginated options to both business and dimension',async()=>{

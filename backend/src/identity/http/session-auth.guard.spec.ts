@@ -24,8 +24,8 @@ describe('SessionAuthGuard', () => {
       userId: 'user-1',
       username: 'Mayorista',
     };
-    const findActiveByTokenHash = vi.fn().mockResolvedValue(identity);
-    const hash = vi.fn().mockReturnValue('token-hash');
+    const findActiveByTokenHash = jest.fn().mockResolvedValue(identity);
+    const hash = jest.fn().mockReturnValue('token-hash');
     const guard = new SessionAuthGuard(
       { findActiveByTokenHash } as unknown as SessionIdentityReader,
       { hash } as unknown as SessionTokenService,
@@ -42,8 +42,8 @@ describe('SessionAuthGuard', () => {
     'rejects an invalid authorization value',
     async (value) => {
       const guard = new SessionAuthGuard(
-        { findActiveByTokenHash: vi.fn() } as unknown as SessionIdentityReader,
-        { hash: vi.fn() } as unknown as SessionTokenService,
+        { findActiveByTokenHash: jest.fn() } as unknown as SessionIdentityReader,
+        { hash: jest.fn() } as unknown as SessionTokenService,
       );
 
       await expect(

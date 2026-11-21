@@ -22,17 +22,17 @@ describe('CatalogService with cache', () => {
   const page = { limit: 50, offset: 0 };
 
   function build() {
-    const findProviders = vi.fn().mockResolvedValue([[{ id: 'p1', name: 'Aurelio' }], 1]);
-    const findBuyers = vi.fn().mockResolvedValue([[], 0]);
-    const update = vi.fn().mockResolvedValue({ affected: 1 });
+    const findProviders = jest.fn().mockResolvedValue([[{ id: 'p1', name: 'Aurelio' }], 1]);
+    const findBuyers = jest.fn().mockResolvedValue([[], 0]);
+    const update = jest.fn().mockResolvedValue({ affected: 1 });
     const manager = { getRepository: () => ({ update }) } as unknown as EntityManager;
     const dataSource = { transaction: (work: (m: EntityManager) => Promise<unknown>) => work(manager) } as unknown as DataSource;
-    const audit = { record: vi.fn().mockResolvedValue(undefined) } as unknown as AuditService;
+    const audit = { record: jest.fn().mockResolvedValue(undefined) } as unknown as AuditService;
     const service = new CatalogService(
       dataSource,
       audit,
       { findAndCount: findProviders } as unknown as Repository<ProviderEntity>,
-      { findAndCount: vi.fn().mockResolvedValue([[], 0]) } as unknown as Repository<PotatoVarietyEntity>,
+      { findAndCount: jest.fn().mockResolvedValue([[], 0]) } as unknown as Repository<PotatoVarietyEntity>,
       { findAndCount: findBuyers } as unknown as Repository<BuyerEntity>,
       new CatalogCache(),
     );

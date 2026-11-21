@@ -17,15 +17,15 @@ import { FreightEntryEntity } from '../freight/entities/freight-entry.entity.js'
 type Row = Record<string, unknown>;
 function repository(initial: Row[] = []) {
   const rows = [...initial];
-  const save = vi.fn(async (value: Row | Row[]) => {
+  const save = jest.fn(async (value: Row | Row[]) => {
     for (const row of Array.isArray(value) ? value : [value]) { row.id ??= `row-${rows.length + 1}`; if (!rows.includes(row)) rows.push(row); }
     return value;
   });
-  const builder = { innerJoinAndSelect: vi.fn(), where: vi.fn(), andWhere: vi.fn(), setLock: vi.fn(), getOne: vi.fn(async () => rows[0] ?? null) };
+  const builder = { innerJoinAndSelect: jest.fn(), where: jest.fn(), andWhere: jest.fn(), setLock: jest.fn(), getOne: jest.fn(async () => rows[0] ?? null) };
   for (const method of ['innerJoinAndSelect', 'where', 'andWhere', 'setLock'] as const) builder[method].mockReturnValue(builder);
   return { rows, save, create: (value: Row | Row[]) => value, createQueryBuilder: () => builder,
-    find: vi.fn(async () => rows.filter(row => !row.voidedAt)),
-    findOne: vi.fn(async (options: { where: Row }) => rows.find(row => Object.entries(options.where).every(([key, value]) => key === 'voidedAt' ? !row.voidedAt : row[key] === value)) ?? null),
+    find: jest.fn(async () => rows.filter(row => !row.voidedAt)),
+    findOne: jest.fn(async (options: { where: Row }) => rows.find(row => Object.entries(options.where).every(([key, value]) => key === 'voidedAt' ? !row.voidedAt : row[key] === value)) ?? null),
   };
 }
 function setup(state = ReceptionState.Weighed) {
@@ -33,9 +33,9 @@ function setup(state = ReceptionState.Weighed) {
   const sacks = [{ id: 'sack-1', businessId: 'business', receptionId: 'reception', sequence: 1, varietyId: 'variety', netWeightKg: '10.000', grossWeightKg: '10.000', tareKg: '0.000', voidedAt: null }, { id: 'sack-2', businessId: 'business', receptionId: 'reception', sequence: 2, varietyId: 'variety', netWeightKg: '20.000', grossWeightKg: '20.000', tareKg: '0.000', voidedAt: null }];
   const receipts = repository([reception]); const detail = repository(sacks); const purchases = repository(); const cash = repository(); const accounts = repository(); const installments = repository(); const freight = repository();
   const allowed = new Map<unknown, ReturnType<typeof repository>>([[ReceptionEntity, receipts], [ReceptionSackEntity, detail], [PurchaseSettlementEntity, purchases], [CashMovementEntity, cash], [AccountEntity, accounts], [AccountInstallmentEntity, installments], [FreightEntryEntity, freight]]);
-  const manager = { query: vi.fn(async () => undefined), getRepository: vi.fn((entity: unknown) => { const result = allowed.get(entity); if (!result) throw new Error('Unexpected repository: inventory must not be accessed'); return result; }) } as unknown as EntityManager;
+  const manager = { query: jest.fn(async () => undefined), getRepository: jest.fn((entity: unknown) => { const result = allowed.get(entity); if (!result) throw new Error('Unexpected repository: inventory must not be accessed'); return result; }) } as unknown as EntityManager;
   const dataSource = { transaction: async (action: (value: EntityManager) => Promise<unknown>) => action(manager) } as unknown as DataSource;
-  const record = vi.fn(); const audit = { record } as unknown as AuditService;
+  const record = jest.fn(); const audit = { record } as unknown as AuditService;
   return { reception, sacks, receipts, detail, purchases, cash, accounts, installments, freight, record, weighing: new WeighingService(dataSource, new WeighingUseCases(new PostgresWeighingUnitOfWork(dataSource, audit))), purchase: new PurchaseService(dataSource, audit) };
 }
 const identity: SessionIdentity = { businessId: 'business', businessName: 'Mercado', userId: 'user', username: 'Mayorista', role: UserRole.Wholesaler, sessionId: 'session', expiresAt: new Date('2030-01-01') };

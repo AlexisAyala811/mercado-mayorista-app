@@ -33,8 +33,8 @@ describe('ReceptionService', () => {
       receivedOn: '2026-09-24',
       vehicleId: null,
     };
-    const findOne = vi.fn().mockResolvedValue(existing);
-    const transaction = vi.fn();
+    const findOne = jest.fn().mockResolvedValue(existing);
+    const transaction = jest.fn();
     const service = new ReceptionService(
       { transaction } as unknown as DataSource,
       {} as AuditService,

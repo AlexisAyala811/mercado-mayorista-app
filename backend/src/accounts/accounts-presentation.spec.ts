@@ -22,10 +22,10 @@ function fixture() {
     updatedAt: new Date('2026-10-15T14:00:00Z'),
   };
   const accounts = {
-    findAndCount: vi.fn().mockResolvedValue([[account], 1]),
-    findOne: vi.fn().mockResolvedValue(account),
+    findAndCount: jest.fn().mockResolvedValue([[account], 1]),
+    findOne: jest.fn().mockResolvedValue(account),
   };
-  const query = vi
+  const query = jest
     .fn()
     .mockResolvedValue([
       { id: account.id, counterpartyName: 'Proveedor histórico', projectionVersion: 2, nextDueOn: '2026-10-20' },
@@ -35,10 +35,10 @@ function fixture() {
     {} as AuditService,
     accounts as unknown as Repository<AccountEntity>,
     {
-      find: vi.fn().mockResolvedValue([]),
+      find: jest.fn().mockResolvedValue([]),
     } as unknown as Repository<AccountInstallmentEntity>,
     {
-      find: vi.fn().mockResolvedValue([]),
+      find: jest.fn().mockResolvedValue([]),
     } as unknown as Repository<AccountPaymentEntity>,
   );
   return { service, accounts, query, account };

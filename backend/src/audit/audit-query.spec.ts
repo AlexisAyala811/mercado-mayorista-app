@@ -17,7 +17,7 @@ it('accepts leap days and legacy timestamp filters independently', async () => {
   expect(await validate(plainToInstance(AuditQueryDto, { fromDay: '2028-02-29', toDay: '2028-02-29', from: '2028-02-29T05:00:00Z' }))).toHaveLength(0);
 });
 it('applies business isolation, stable ordering, bounded pagination and an exclusive Lima day end', async () => {
-  const builder = { where: vi.fn().mockReturnThis(), orderBy: vi.fn().mockReturnThis(), addOrderBy: vi.fn().mockReturnThis(), skip: vi.fn().mockReturnThis(), take: vi.fn().mockReturnThis(), andWhere: vi.fn().mockReturnThis(), getManyAndCount: vi.fn().mockResolvedValue([[], 21]) };
+  const builder = { where: jest.fn().mockReturnThis(), orderBy: jest.fn().mockReturnThis(), addOrderBy: jest.fn().mockReturnThis(), skip: jest.fn().mockReturnThis(), take: jest.fn().mockReturnThis(), andWhere: jest.fn().mockReturnThis(), getManyAndCount: jest.fn().mockResolvedValue([[], 21]) };
   const service = new AuditService({ createQueryBuilder: () => builder } as unknown as Repository<AuditEventEntity>, {} as ConfigService);
   const result = await service.list('business-a', plainToInstance(AuditQueryDto, { fromDay: '2026-10-26', toDay: '2026-10-26', limit: 20, offset: 20 }));
   expect(builder.where).toHaveBeenCalledWith('event.businessId = :businessId', { businessId: 'business-a' });
@@ -28,7 +28,7 @@ it('applies business isolation, stable ordering, bounded pagination and an exclu
   expect(result).toEqual({ items: [], total: 21, limit: 20, offset: 20 });
 });
 it('rejects a reversed range before querying', async () => {
-  const query = vi.fn();
+  const query = jest.fn();
   const service = new AuditService({ createQueryBuilder: query } as unknown as Repository<AuditEventEntity>, {} as ConfigService);
   await expect(service.list('business', plainToInstance(AuditQueryDto, { fromDay: '2026-10-27', toDay: '2026-10-26' }))).rejects.toBeInstanceOf(BadRequestException);
   expect(query).not.toHaveBeenCalled();

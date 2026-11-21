@@ -18,12 +18,12 @@ const identity = { businessId: 'business-a', userId: 'mayorista', role: UserRole
 const input = { clientOperationId: 'operation-a', recipientId: 'buyer-a', recipientKind: 'buyer', channel: 'whatsapp', filename: 'compra.pdf', mimeType: 'application/pdf', sizeBytes: 450, state: 'prepared' } satisfies ShareAttemptDto;
 function setup() {
   const rows: ShareAttemptEntity[] = [];
-  const journal = { findOneBy: vi.fn(async (where: Partial<ShareAttemptEntity>) => rows.find(row => row.businessId === where.businessId && row.clientOperationId === where.clientOperationId) ?? null), create: (value: object) => value, save: vi.fn(async (row: ShareAttemptEntity) => { if (!row.id) { row.id = `journal-${rows.length}`; rows.push(row); } return row; }) };
-  const people = { findOneBy: vi.fn(async (where: { businessId: string; id: string }) => where.businessId === 'business-a' && where.id === 'buyer-a' ? { name: 'Cliente A' } : null) };
-  const manager = { query: vi.fn(), getRepository: (entity: unknown) => entity === ShareAttemptEntity ? journal : entity === BuyerEntity || entity === ProviderEntity ? people : undefined } as unknown as EntityManager;
+  const journal = { findOneBy: jest.fn(async (where: Partial<ShareAttemptEntity>) => rows.find(row => row.businessId === where.businessId && row.clientOperationId === where.clientOperationId) ?? null), create: (value: object) => value, save: jest.fn(async (row: ShareAttemptEntity) => { if (!row.id) { row.id = `journal-${rows.length}`; rows.push(row); } return row; }) };
+  const people = { findOneBy: jest.fn(async (where: { businessId: string; id: string }) => where.businessId === 'business-a' && where.id === 'buyer-a' ? { name: 'Cliente A' } : null) };
+  const manager = { query: jest.fn(), getRepository: (entity: unknown) => entity === ShareAttemptEntity ? journal : entity === BuyerEntity || entity === ProviderEntity ? people : undefined } as unknown as EntityManager;
   const source = { transaction: async (action: (manager: EntityManager) => Promise<unknown>) => action(manager) } as unknown as DataSource;
-  const record = vi.fn();
-  const reports = { alerts: vi.fn(async () => ({ accountAlerts: [] })) };
+  const record = jest.fn();
+  const reports = { alerts: jest.fn(async () => ({ accountAlerts: [] })) };
   return { service: new MessagingService(source, { record } as unknown as AuditService, reports as unknown as ReportsService), rows, record, people, journal, reports };
 }
 it('accepts only compatible file metadata and rejects oversized or disguised attachments', () => {
@@ -57,7 +57,7 @@ it('uses the business from identity when reading financial notifications', async
   expect(f.reports.alerts).toHaveBeenCalledWith('business-b', { asOf: '2026-10-26', through: '2026-10-30' });
 });
 it('protects every messaging endpoint with the real Mayorista role guard', async () => {
-  const guard = new RolesGuard(new Reflector(), { recordDirect: vi.fn().mockResolvedValue(undefined) } as unknown as AuditService);
+  const guard = new RolesGuard(new Reflector(), { recordDirect: jest.fn().mockResolvedValue(undefined) } as unknown as AuditService);
   for (const method of ['recipients','alerts','history','record'] as const) {
     const context = (role: UserRole) => ({ getClass: () => MessagingController, getHandler: () => MessagingController.prototype[method], switchToHttp: () => ({ getRequest: () => ({ identity: { ...identity, role }, method: 'GET', path: '/messaging' }) }) }) as unknown as ExecutionContext;
     await expect(guard.canActivate(context(UserRole.Assistant))).rejects.toMatchObject({ status: 403 });

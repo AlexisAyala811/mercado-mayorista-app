@@ -23,6 +23,7 @@ Este índice conecta la línea base documental, el diseño de Figma y el trabajo
 | [017](017-sprint2-quality/spec.md) | Validación de calidad del Sprint 2 | AC01 | Implementada el 18 de noviembre de 2026 ([verificación](../docs/sdd/verificacion-sprint2-2026-11-18.md)) | AC01 se cumple hasta 500 usuarios |
 | [018](018-despliegue-supabase-render/spec.md) | Despliegue en Supabase y Render | AC02 | En curso desde el 20 de noviembre de 2026 | API en Render y base en Supabase, plan gratuito |
 | [019](019-stitch-en-celular/spec.md) | Diseño Stitch también en el celular | RQ-ST13, RQ-ST14 | En curso desde el 20 de noviembre de 2026 | Compra y venta con la hoja Stitch en todos los anchos; CL-19-01 a CL-19-03 |
+| [020](020-jest-backend/spec.md) | Pruebas del backend con Jest | Sprint 2, actividad 7 | Implementada el 21 de noviembre de 2026 | Jest 30 en ESM con SWC; 365 unitarias y 68 e2e |
 
 ## Artefactos transversales
 
