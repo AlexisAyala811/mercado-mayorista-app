@@ -1,0 +1,69 @@
+kind: postman-cli-collection-run-summary
+schemaVersion: 1
+runId: 79cceb9d-9e3a-4642-b173-a32ab9d01c65
+state: completed
+generatedAt: '2026-11-21T16:09:28.358Z'
+files:
+  summary: ma-ay-escenarios-de-calidad-sprint-2-2026-11-21-11-09-25.collection-run-summary.yaml
+  executions: ma-ay-escenarios-de-calidad-sprint-2-2026-11-21-11-09-25.collection-run-executions.yaml
+meta:
+  collection:
+    id: 0e2dfc5e-d712-4004-9e9d-7e38c532573a
+    name: MAÑAY · Escenarios de calidad (Sprint 2)
+    description:
+      content: 'Escenarios de atributos de calidad del Sprint 1 contra la API REST /api/v1: AC01 (respuesta), AC03 (idempotencia y UUID reutilizado), AC04 (aislamiento por negocio con auditoría), roles del Encargado con reemplazo (HU12) y límite de intentos de inicio de sesión. Spec 017, T1708.'
+      type: text/plain
+  environment:
+    id: a1f2664a-4b9e-4b6e-aa2a-682a295020d3
+    name: MAÑAY · API local
+  started: '2026-11-21T16:09:26.125Z'
+  completed: '2026-11-21T16:09:28.358Z'
+  durationMs: 2233
+environment:
+  cli:
+    version: 1.90.0
+    userAgent: Postman CLI/1.90.0
+    agent: claude-code_2-1-328_agent
+  system:
+    os:
+      type: Windows_NT
+      platform: win32
+      arch: x64
+      release: 10.0.26200
+    hardware:
+      cpus: 24
+      totalMemory: 16763269120
+  isCI: false
+  ci: null
+  git:
+    branch: test/017-postman-escenarios
+    commit: 2781206a5a69a540a74fe433a517273e9ab60365
+    commitShort: '2781206'
+    remoteUrl: https://github.com/AlexisAyala811/mercado-mayorista-app.git
+    dirty: true
+stats:
+  iterations:
+    executed: 1
+    errors: 0
+  executedRequests:
+    executed: 29
+    errors: 0
+  prerequestScripts:
+    executed: 8
+    errors: 0
+  postresponseScripts:
+    executed: 29
+    errors: 0
+  tests:
+    executed: 46
+    failed: 0
+  timeStats:
+    responseAverage: 23.620689655172413
+    responseMin: 3
+    responseMax: 142
+    responseStandardDeviation: 31.266831376907437
+transfers:
+  responseTotal: 13312
+failures: []
+executionsRecorded: 29
+simulation: null
