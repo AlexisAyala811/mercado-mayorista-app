@@ -4,13 +4,13 @@ import { createSerialExecutor } from '@/domain/sync/serial-executor';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type PropsWithChildren } from 'react';
 import { AppState } from 'react-native';
 import { createOperationId } from '@/domain/reception/reception';
-import { recoverInterruptedOperations, transitionOperation, type SyncOperation } from '@/domain/sync/sync-operation';
+import { operationIdConflict, recoverInterruptedOperations, resendWithNewIdentity, transitionOperation, type SyncOperation } from '@/domain/sync/sync-operation';
 import { useSession } from '@/features/auth/session/session-provider';
 import { ApiError, ApiUnavailableError, apiRequest } from '@/services/api/api-client';
 import { readEncryptedQueue, writeEncryptedQueue } from '@/services/storage/encrypted-queue-storage';
 
 type EnqueueInput = Pick<SyncOperation, 'body' | 'method' | 'path' | 'type' | 'receptionContext'|'sackCharacteristics'> & { id?: string };
-type Value = { isLoadingQueue: boolean; reloadQueue: ()=>Promise<void>; queueError: string | null; operations: SyncOperation[]; pendingCount: number; enqueue: (input: EnqueueInput) => Promise<SyncOperation>; sendQueued: (id: string) => Promise<SyncOperation>; synchronize: () => Promise<void>; retry: (id: string) => Promise<void>; discard: (id: string, reason: string) => Promise<void> };
+type Value = { isLoadingQueue: boolean; reloadQueue: ()=>Promise<void>; queueError: string | null; operations: SyncOperation[]; pendingCount: number; enqueue: (input: EnqueueInput) => Promise<SyncOperation>; sendQueued: (id: string) => Promise<SyncOperation>; synchronize: () => Promise<void>; retry: (id: string) => Promise<void>; discard: (id: string, reason: string) => Promise<void>; resendAsNew: (id: string) => Promise<SyncOperation> };
 const Context = createContext<Value | null>(null);
 
 export function SyncQueueProvider({ children }: PropsWithChildren) {
@@ -60,6 +60,10 @@ function IdentitySyncQueueProvider({ children }: PropsWithChildren) {
   const runOne = useCallback(async (item: SyncOperation, current: SyncOperation[]) => {
     if (!session || !scope) return current;
     if (!['pending', 'rejected', 'review'].includes(item.status)) return current;
+    // Spec 005: the central record under this identifier holds other data.
+    // Sending again repeats the 409 and looking it up would confirm the wrong
+    // record; only «Reenviar como nueva» or a discard move it on.
+    if (item.conflictCode === operationIdConflict) return current;
 
     try { const recovered = await findCentralResult(item); if (recovered) { const final = transitionOperation(item, 'recover', { centralReference: recovered.resourceId }); const next = current.map((value) => value.id === item.id ? final : value); await persist(next); return next; } } catch (error) { if (error instanceof ApiUnavailableError) return current; throw error; }
     const retiredReason=retiredContractReason(item);
@@ -81,7 +85,12 @@ function IdentitySyncQueueProvider({ children }: PropsWithChildren) {
     }
     let working = current.map((value) => value.id === item.id ? transitionOperation(value, 'start') : value); await persist(working); const active = working.find((value) => value.id === item.id)!;
     try { const result = await apiRequest<Record<string, unknown>>(resolvedPath, { body: active.body, method: active.method, token: session.accessToken }); working = working.map((value) => value.id === active.id ? transitionOperation(value, 'confirm', { centralReference: centralReferenceFromResponse(active.type, result) }) : value); }
-    catch (error) { const event = error instanceof ApiUnavailableError || (error instanceof ApiError && error.status >= 500) ? 'network-failure' : error instanceof ApiError && [401, 403, 409].includes(error.status) ? 'conflict' : 'reject'; working = working.map((value) => value.id === active.id ? transitionOperation(value, event, { message: error instanceof Error ? error.message : 'No se pudo sincronizar.' }) : value); }
+    catch (error) {
+      const event = error instanceof ApiUnavailableError || (error instanceof ApiError && error.status >= 500) ? 'network-failure' : error instanceof ApiError && [401, 403, 409].includes(error.status) ? 'conflict' : 'reject';
+      const code = error instanceof ApiError && error.status === 409 && error.code === operationIdConflict ? operationIdConflict : undefined;
+      const message = code ? idConflictMessage : error instanceof Error ? error.message : 'No se pudo sincronizar.';
+      working = working.map((value) => value.id === active.id ? transitionOperation(value, event, { code, message }) : value);
+    }
     await persist(working); return working;
   }, [findCentralResult, persist, scope, session]);
   const synchronize = useCallback(async () => { let current = currentOperations.current; for (const item of current.filter((value) => value.status === 'pending')) current = await runOne(item, current); }, [runOne]);
@@ -119,11 +128,21 @@ function IdentitySyncQueueProvider({ children }: PropsWithChildren) {
     const next = await runOne(item, currentOperations.current);
     return next.find((value) => value.id === id)!;
   }, [runOne]);
-  const discard = useCallback(async (id: string, reason: string) => { const item = currentOperations.current.find((value) => value.id === id); if (!item || !reason.trim()) return; try { const result = await findCentralResult(item); const final = result ? transitionOperation(item, 'recover', { centralReference: result.resourceId }) : transitionOperation(item, 'discard', { message: `Descartada localmente: ${reason.trim()}` }); await persist(currentOperations.current.map((value) => value.id === id ? final : value)); } catch (error) { if (error instanceof ApiUnavailableError) throw new Error('Conéctate para comprobar el estado central antes de descartar.'); throw error; } }, [findCentralResult, persist]);
-  const value = useMemo(() => ({ isLoadingQueue, reloadQueue:()=>serial.current(reloadQueue), queueError, operations, pendingCount: operations.filter((item) => item.status === 'pending' || item.status === 'syncing').length, enqueue:(input:EnqueueInput)=>serial.current(()=>enqueue(input)), sendQueued:(id:string)=>serial.current(()=>sendQueued(id)), synchronize:()=>serial.current(synchronize), retry:(id:string)=>serial.current(()=>retry(id)), discard:(id:string,reason:string)=>serial.current(()=>discard(id,reason)) }), [discard, enqueue, isLoadingQueue, operations, queueError, reloadQueue, retry, sendQueued, synchronize]);
+  // Spec 005: «Reenviar como nueva», only after the user confirms it in the
+  // queue screen. The original stays discarded as evidence.
+  const resendAsNew = useCallback(async (id: string) => {
+    const newId = createOperationId();
+    const next = resendWithNewIdentity(currentOperations.current, id, newId);
+    await persist(next);
+    const sent = await runOne(next.find((value) => value.id === newId)!, next);
+    return sent.find((value) => value.id === newId)!;
+  }, [persist, runOne]);
+  const discard = useCallback(async (id: string, reason: string) => { const item = currentOperations.current.find((value) => value.id === id); if (!item || !reason.trim()) return; if (item.conflictCode === operationIdConflict) { await persist(currentOperations.current.map((value) => value.id === id ? transitionOperation(item, 'discard', { message: `Descartada localmente: ${reason.trim()}` }) : value)); return; } try { const result = await findCentralResult(item); const final = result ? transitionOperation(item, 'recover', { centralReference: result.resourceId }) : transitionOperation(item, 'discard', { message: `Descartada localmente: ${reason.trim()}` }); await persist(currentOperations.current.map((value) => value.id === id ? final : value)); } catch (error) { if (error instanceof ApiUnavailableError) throw new Error('Conéctate para comprobar el estado central antes de descartar.'); throw error; } }, [findCentralResult, persist]);
+  const value = useMemo(() => ({ isLoadingQueue, reloadQueue:()=>serial.current(reloadQueue), queueError, operations, pendingCount: operations.filter((item) => item.status === 'pending' || item.status === 'syncing').length, enqueue:(input:EnqueueInput)=>serial.current(()=>enqueue(input)), sendQueued:(id:string)=>serial.current(()=>sendQueued(id)), synchronize:()=>serial.current(synchronize), retry:(id:string)=>serial.current(()=>retry(id)), discard:(id:string,reason:string)=>serial.current(()=>discard(id,reason)), resendAsNew:(id:string)=>serial.current(()=>resendAsNew(id)) }), [discard, enqueue, isLoadingQueue, operations, queueError, reloadQueue, resendAsNew, retry, sendQueued, synchronize]);
   return <Context.Provider value={value}>{children}</Context.Provider>;
 }
 export const autoSyncIntervalMs = 60_000;
+export const idConflictMessage = 'El servidor ya tiene otra operación registrada con este identificador. No se reenviará sola: revisa el historial y, si esta operación no está registrada, reenvíala como nueva; si ya lo está, descártala.';
 export function useSyncQueue() { const value = useContext(Context); if (!value) throw new Error('useSyncQueue requiere SyncQueueProvider.'); return value; }
 function centralReferenceFromResponse(type: string, result: Record<string, unknown>) {
   const resource = type === 'sale.return' ? result?.saleReturn : result;
