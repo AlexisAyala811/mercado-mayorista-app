@@ -8,4 +8,4 @@ Cada tarea se marca `[x]` solo con evidencia enlazable.
 - [x] **T2002** Pasar las pruebas unitarias. **Hecho:** 42 archivos con `vi.*` pasaron a `jest.*`, y el mock de módulo pasó a `jest.unstable_mockModule`. 77 suites y 365 pruebas en verde; `tsc`, `lint` y `build` sin errores el 21 nov 2026.
 - [x] **T2003** Pasar las e2e. **Hecho:** las 10 suites (68 pruebas) pasan con Jest contra PostgreSQL 17 portable en una base desechable, el 21 nov 2026.
 - [x] **T2004** Cobertura en la CI con Jest. **Hecho:** `npm run test:cov` genera `coverage/` como antes. Líneas 58,1 %, ramas 83,7 % y funciones 61,2 %, medidas con Jest (CL-20-01).
-- [ ] **T2005** CI de GitHub en verde con Jest en el PR.
+- [x] **T2005** CI de GitHub en verde con Jest. **Hecho el 21 nov 2026:** la [ejecución 44950999975](https://github.com/AlexisAyala811/mercado-mayorista-app/actions/runs/44950999975) pasó sus tres trabajos: tipos, lint, pruebas y build; migraciones y e2e en PostgreSQL 17; e imagen Docker.
