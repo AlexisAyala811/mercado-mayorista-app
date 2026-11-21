@@ -20,22 +20,22 @@ describe('TypeOrmSessionIdentityReader replacement expiration', () => {
       },
     };
     const query = {
-      innerJoinAndSelect: vi.fn().mockReturnThis(),
-      where: vi.fn().mockReturnThis(),
-      andWhere: vi.fn().mockReturnThis(),
-      getOne: vi.fn().mockResolvedValue(session),
+      innerJoinAndSelect: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      getOne: jest.fn().mockResolvedValue(session),
     };
     const sessions = {
-      createQueryBuilder: vi.fn().mockReturnValue(query),
+      createQueryBuilder: jest.fn().mockReturnValue(query),
     } as unknown as Repository<SessionEntity>;
-    const findOne = vi
+    const findOne = jest
       .fn()
       .mockResolvedValue(
         replacementExpiry
           ? { id: 'replacement-1', expiresAt: replacementExpiry }
           : null,
       );
-    const recordDirect = vi.fn().mockResolvedValue(undefined);
+    const recordDirect = jest.fn().mockResolvedValue(undefined);
     const reader = new TypeOrmSessionIdentityReader(
       sessions,
       { findOne } as unknown as Repository<DelegationEntity>,

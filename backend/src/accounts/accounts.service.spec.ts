@@ -36,12 +36,12 @@ function fixture(kind = AccountKind.Receivable) {
     { id: 'latest', balanceCents: '700', state: InstallmentState.Open },
   ];
   const mockRepository = () => ({
-    exists: vi.fn().mockResolvedValue(false),
-    findOneByOrFail: vi.fn(),
-    findOne: vi.fn().mockResolvedValue(null),
-    find: vi.fn().mockResolvedValue([]),
-    create: vi.fn((value) => value),
-    save: vi.fn(async (value) => ({ id: 'payment', ...value })),
+    exists: jest.fn().mockResolvedValue(false),
+    findOneByOrFail: jest.fn(),
+    findOne: jest.fn().mockResolvedValue(null),
+    find: jest.fn().mockResolvedValue([]),
+    create: jest.fn((value) => value),
+    save: jest.fn(async (value) => ({ id: 'payment', ...value })),
   });
   const accounts = mockRepository();
   accounts.findOne.mockResolvedValue(account);
@@ -58,7 +58,7 @@ function fixture(kind = AccountKind.Receivable) {
     [CashMovementEntity, cash],
   ]);
   const manager = {
-    query: vi.fn(),
+    query: jest.fn(),
     getRepository: (entity: unknown) => {
       const repository = repositories.get(entity);
       if (!repository) throw new Error('Unexpected repository');
@@ -69,7 +69,7 @@ function fixture(kind = AccountKind.Receivable) {
     transaction: async (work: (manager: EntityManager) => Promise<unknown>) =>
       work(manager),
   } as DataSource;
-  const audit = { record: vi.fn() };
+  const audit = { record: jest.fn() };
   const service = new AccountsService(
     dataSource,
     audit as unknown as AuditService,

@@ -17,11 +17,11 @@ const identity = {
 };
 
 function fixture(existsElsewhere: boolean) {
-  const exists = vi.fn().mockResolvedValue(existsElsewhere);
+  const exists = jest.fn().mockResolvedValue(existsElsewhere);
   const events = {
-    create: vi.fn((value) => value),
-    save: vi.fn(),
-    manager: { getRepository: vi.fn(() => ({ exists })) },
+    create: jest.fn((value) => value),
+    save: jest.fn(),
+    manager: { getRepository: jest.fn(() => ({ exists })) },
   };
   const audit = new AuditService(
     events as unknown as Repository<AuditEventEntity>,

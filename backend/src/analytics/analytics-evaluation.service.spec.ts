@@ -7,7 +7,7 @@ import type { SessionIdentity } from '../identity/application/ports/session-iden
 const identity: SessionIdentity = { businessId:'b',businessName:'Negocio',role:UserRole.Wholesaler,userId:'u',sessionId:'s',username:'Mayorista',expiresAt:new Date('2030-01-01') };
 const input={varietyId:'v',asOf:'2026-10-12',clientOperationId:'operation'};
 function setup() {
-  const query=vi.fn(async (sql: string, parameters: unknown[]) => {
+  const query=jest.fn(async (sql: string, parameters: unknown[]) => {
     if (sql.startsWith('SELECT id FROM potato_varieties')) return [{id:'v'}];
     const rows=[];
     for(let time=Date.parse(String(parameters[2]));time<=Date.parse(String(parameters[3]));time+=7*86400000) {
@@ -18,14 +18,14 @@ function setup() {
     return rows;
   });
   const manager={query} as unknown as EntityManager;
-  const transaction=vi.fn(async (_isolation: string, work:(manager:EntityManager)=>Promise<StoredEvaluation>)=>work(manager));
-  const findRequest=vi.fn().mockResolvedValue(null);
-  const persist=vi.fn(async (_manager:EntityManager,_identity:SessionIdentity,_id:string,evidence:EvaluationEvidence):Promise<StoredEvaluation>=>({id:'saved',varietyId:'v',asOf:input.asOf,algorithmVersion:'weekly-mean-4-v1',inputsHash:'hash',createdAt:new Date(),retainUntil:new Date('2031-10-12'),evidence}));
+  const transaction=jest.fn(async (_isolation: string, work:(manager:EntityManager)=>Promise<StoredEvaluation>)=>work(manager));
+  const findRequest=jest.fn().mockResolvedValue(null);
+  const persist=jest.fn(async (_manager:EntityManager,_identity:SessionIdentity,_id:string,evidence:EvaluationEvidence):Promise<StoredEvaluation>=>({id:'saved',varietyId:'v',asOf:input.asOf,algorithmVersion:'weekly-mean-4-v1',inputsHash:'hash',createdAt:new Date(),retainUntil:new Date('2031-10-12'),evidence}));
   const store={findRequest,persist} as unknown as EvaluationStore;
   return {service:new AnalyticsEvaluationService({transaction} as unknown as DataSource,store),transaction,query,findRequest,persist};
 }
-beforeEach(()=>{vi.useFakeTimers({toFake:['Date']});vi.setSystemTime(new Date('2026-10-12T14:00:00Z'));});
-afterEach(()=>vi.useRealTimers());
+beforeEach(()=>{jest.useFakeTimers({ doNotFake: ['hrtime', 'nextTick', 'performance', 'queueMicrotask', 'setImmediate', 'clearImmediate', 'setInterval', 'clearInterval', 'setTimeout', 'clearTimeout'] });jest.setSystemTime(new Date('2026-10-12T14:00:00Z'));});
+afterEach(()=>jest.useRealTimers());
 
 it('reconstructs and saves using the transaction manager and returns historical evidence without future publication',async()=>{
   const s=setup();const result=await s.service.create(identity,input);

@@ -3,7 +3,7 @@ import type { AnalyticsObservation } from './analytics-calculation.js';
 import { evaluateHistoricalSnapshots } from './predictive-engine.js';
 
 it('builds eight independent training/actual cutoffs and a final 26-week snapshot', async () => {
-  const query = vi.fn(async (_sql: string, parameters: unknown[]) => {
+  const query = jest.fn(async (_sql: string, parameters: unknown[]) => {
     const from = String(parameters[2]); const to = String(parameters[3]);
     const rows: AnalyticsObservation[] = [];
     for (let stamp = Date.parse(from); stamp <= Date.parse(to); stamp += 7 * 86400000) {
@@ -24,7 +24,7 @@ it('builds eight independent training/actual cutoffs and a final 26-week snapsho
 });
 
 it('rejects incomplete or invalid windows before querying, and missing actuals without imputing', async () => {
-  const query = vi.fn().mockResolvedValue([]);
+  const query = jest.fn().mockResolvedValue([]);
   for (const [from, to, cutoff] of [['2026-04-14', '2026-04-19', '2026-04-20'], ['2026-04-13', '2026-04-20', '2026-04-20'], ['2026-02-30', '2026-04-19', '2026-04-20']]) {
     await expect(loadHistoricalPriceSnapshot(query, 'b', 'v', from!, to!, cutoff!)).rejects.toThrow('Instantánea inválida');
   }

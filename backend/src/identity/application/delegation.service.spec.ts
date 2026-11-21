@@ -18,10 +18,10 @@ describe('DelegationService', () => {
   };
 
   it('rejects a replacement longer than 24 hours before opening a transaction', async () => {
-    const transaction = vi.fn();
+    const transaction = jest.fn();
     const service = new DelegationService(
       { transaction } as unknown as DataSource,
-      { record: vi.fn() } as unknown as AuditService,
+      { record: jest.fn() } as unknown as AuditService,
       {} as Repository<DelegationEntity>,
     );
 

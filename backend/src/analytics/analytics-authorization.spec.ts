@@ -8,8 +8,8 @@ import { AnalyticsController } from './analytics.controller.js';
 import type { AnalyticsService } from './analytics.service.js';
 
 it('denies an authenticated assistant at the analytics controller and audits without returning data', async () => {
-  const series = vi.fn();
-  const recordDirect = vi.fn().mockResolvedValue(undefined);
+  const series = jest.fn();
+  const recordDirect = jest.fn().mockResolvedValue(undefined);
   const controller = new AnalyticsController({
     series,
   } as unknown as AnalyticsService);

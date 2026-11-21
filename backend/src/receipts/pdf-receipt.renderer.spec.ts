@@ -1,4 +1,3 @@
-import { describe, expect, it } from 'vitest';
 
 import { formatMoney, renderReceiptPdf } from './pdf-receipt.renderer.js';
 

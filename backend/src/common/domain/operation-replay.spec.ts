@@ -10,7 +10,7 @@ describe('operation replay', () => {
   it('rejects a reused identifier with an explicit conflict code', () => {
     try {
       requireSameOperation(false);
-      expect.unreachable();
+      throw new Error('No debía llegar aquí.');
     } catch (error) {
       expect(error).toBeInstanceOf(ConflictException);
       expect((error as ConflictException).getResponse()).toMatchObject({

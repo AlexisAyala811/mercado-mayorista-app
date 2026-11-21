@@ -34,9 +34,9 @@ function repository<T extends ObjectLiteral>(
   overrides: Partial<Repository<T>> = {},
 ) {
   return {
-    create: vi.fn((value) => value),
-    findOne: vi.fn(),
-    save: vi.fn(async (value) => value),
+    create: jest.fn((value) => value),
+    findOne: jest.fn(),
+    save: jest.fn(async (value) => value),
     ...overrides,
   } as unknown as Repository<T>;
 }
@@ -47,36 +47,36 @@ describe('FreightService', () => {
       { id: 'entry-b', amountCents: '250', state: FreightEntryState.Pending },
       { id: 'entry-a', amountCents: '100', state: FreightEntryState.Pending },
     ] as FreightEntryEntity[];
-    const findEntry = vi.fn(async ({ where }: { where: { id: string } }) =>
+    const findEntry = jest.fn(async ({ where }: { where: { id: string } }) =>
       entries.find((entry) => entry.id === where.id),
     );
     const entryRepository = repository<FreightEntryEntity>({
       findOne: findEntry as never,
     });
     const settlementRepository = repository<FreightSettlementEntity>({
-      findOne: vi.fn().mockResolvedValue(null) as never,
-      save: vi.fn().mockImplementation(async (value) => ({
+      findOne: jest.fn().mockResolvedValue(null) as never,
+      save: jest.fn().mockImplementation(async (value) => ({
         id: 'settlement-1',
         ...value,
       })) as never,
     });
-    const createCash = vi.fn((value) => value);
+    const createCash = jest.fn((value) => value);
     const cashRepository = repository<CashMovementEntity>({
       create: createCash as never,
     });
     const manager = {
-      getRepository: vi.fn((entity) => {
+      getRepository: jest.fn((entity) => {
         if (entity === FreightEntryEntity) return entryRepository;
         if (entity === FreightSettlementEntity) return settlementRepository;
         if (entity === CashMovementEntity) return cashRepository;
         throw new Error('Unexpected repository');
       }),
-      query: vi.fn(),
+      query: jest.fn(),
     } as unknown as EntityManager;
     const dataSource = {
-      transaction: vi.fn(async (work) => work(manager)),
+      transaction: jest.fn(async (work) => work(manager)),
     } as unknown as DataSource;
-    const recordAudit = vi.fn();
+    const recordAudit = jest.fn();
     const audit = { record: recordAudit } as unknown as AuditService;
     const service = new FreightService(
       dataSource,
@@ -127,28 +127,28 @@ describe('FreightService', () => {
       id: 'settlement-existing',
       settledOn: '2026-09-25',
     } as FreightSettlementEntity;
-    const findEntry = vi.fn();
+    const findEntry = jest.fn();
     const settlementRepository = repository<FreightSettlementEntity>({
-      findOne: vi.fn().mockResolvedValue(repeated) as never,
+      findOne: jest.fn().mockResolvedValue(repeated) as never,
     });
     const entryRepository = repository<FreightEntryEntity>({
-      find: vi.fn().mockResolvedValue([{ id: 'entry-a' }]) as never,
+      find: jest.fn().mockResolvedValue([{ id: 'entry-a' }]) as never,
       findOne: findEntry as never,
     });
     const manager = {
-      getRepository: vi.fn((entity) =>
+      getRepository: jest.fn((entity) =>
         entity === FreightSettlementEntity
           ? settlementRepository
           : entryRepository,
       ),
-      query: vi.fn(),
+      query: jest.fn(),
     } as unknown as EntityManager;
     const dataSource = {
-      transaction: vi.fn(async (work) => work(manager)),
+      transaction: jest.fn(async (work) => work(manager)),
     } as unknown as DataSource;
     const service = new FreightService(
       dataSource,
-      { record: vi.fn() } as unknown as AuditService,
+      { record: jest.fn() } as unknown as AuditService,
       entryRepository,
       settlementRepository,
     );

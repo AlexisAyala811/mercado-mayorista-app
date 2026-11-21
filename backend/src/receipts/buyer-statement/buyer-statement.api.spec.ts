@@ -52,12 +52,12 @@ function fixture(
   }));
   const repositories = new Map<
     unknown,
-    Record<string, ReturnType<typeof vi.fn>>
+    Record<string, ReturnType<typeof jest.fn>>
   >([
     [
       BuyerEntity,
       {
-        findOne: vi
+        findOne: jest
           .fn()
           .mockResolvedValue(
             options.buyer === false
@@ -69,16 +69,16 @@ function fixture(
     [
       BusinessEntity,
       {
-        findOneOrFail: vi
+        findOneOrFail: jest
           .fn()
           .mockResolvedValue({ displayName: 'Mercado E2E' }),
       },
     ],
-    [AccountEntity, { find: vi.fn().mockResolvedValue(accounts) }],
+    [AccountEntity, { find: jest.fn().mockResolvedValue(accounts) }],
     [
       AccountPaymentEntity,
       {
-        find: vi.fn().mockResolvedValue(
+        find: jest.fn().mockResolvedValue(
           accounts.map((a) => ({
             accountId: a.id,
             amountCents: '30000',
@@ -90,7 +90,7 @@ function fixture(
     [
       AccountInstallmentEntity,
       {
-        find: vi.fn().mockResolvedValue(
+        find: jest.fn().mockResolvedValue(
           accounts.flatMap((a) => [
             {
               accountId: a.id,
@@ -111,7 +111,7 @@ function fixture(
     [
       SaleEntity,
       {
-        find: vi
+        find: jest
           .fn()
           .mockResolvedValue(
             accounts.map((a) => ({ id: a.sourceId, createdAt: a.createdAt })),
@@ -121,7 +121,7 @@ function fixture(
     [
       SaleReturnEntity,
       {
-        find: vi.fn().mockResolvedValue(
+        find: jest.fn().mockResolvedValue(
           accounts.map((a) => ({
             saleId: a.sourceId,
             accountCreditCents: '10000',
@@ -133,11 +133,11 @@ function fixture(
   const manager = {
     getRepository: (entity: unknown) => repositories.get(entity),
   } as unknown as EntityManager;
-  const transaction = vi.fn(
+  const transaction = jest.fn(
     async (_level: string, work: (m: EntityManager) => unknown) =>
       work(manager),
   );
-  const getOrCreateDocument = vi.fn(
+  const getOrCreateDocument = jest.fn(
     async (
       _i: unknown,
       _t: string,
@@ -244,7 +244,7 @@ describe('BuyerStatementService', () => {
 
 describe('BuyerStatementController', () => {
   it('lets only the Wholesaler in and audits the denied Assistant', async () => {
-    const recordDirect = vi.fn().mockResolvedValue(undefined);
+    const recordDirect = jest.fn().mockResolvedValue(undefined);
     const controller = new BuyerStatementController(
       {} as BuyerStatementService,
       {} as AuditService,
@@ -277,7 +277,7 @@ describe('BuyerStatementController', () => {
       f.service,
       {} as AuditService,
     );
-    const set = vi.fn();
+    const set = jest.fn();
     await controller.pdf(identity, buyerId, { set } as unknown as Response);
     expect(set).toHaveBeenCalledWith({
       'Cache-Control': 'private, no-store',

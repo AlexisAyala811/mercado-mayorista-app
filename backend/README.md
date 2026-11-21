@@ -1,6 +1,6 @@
 # Mercado API
 
-Backend central del sistema de gestión comercial de papa. Usa NestJS 12, TypeScript estricto, PostgreSQL 17, TypeORM y Vitest.
+Backend central del sistema de gestión comercial de papa. Usa NestJS 12, TypeScript estricto, PostgreSQL 17, TypeORM y Jest (en modo ESM, con SWC; spec 020).
 
 ## Configuración local
 

@@ -36,16 +36,16 @@ import { AccountInstallmentEntity } from '../accounts/entities/account-installme
 
 function fixture() {
   const creditQuery = {
-    select: vi.fn().mockReturnThis(),
-    where: vi.fn().mockReturnThis(),
-    andWhere: vi.fn().mockReturnThis(),
-    getRawOne: vi.fn().mockResolvedValue({ balance: '1000' }),
+    select: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    andWhere: jest.fn().mockReturnThis(),
+    getRawOne: jest.fn().mockResolvedValue({ balance: '1000' }),
   };
   const repository = () => ({
-    createQueryBuilder: vi.fn(() => creditQuery),
-    findOne: vi.fn().mockResolvedValue(null),
-    create: vi.fn((value) => value),
-    save: vi.fn(async (value) => ({ id: 'sale', ...value })),
+    createQueryBuilder: jest.fn(() => creditQuery),
+    findOne: jest.fn().mockResolvedValue(null),
+    create: jest.fn((value) => value),
+    save: jest.fn(async (value) => ({ id: 'sale', ...value })),
   });
   const sales = repository();
   const buyers = repository();
@@ -85,7 +85,7 @@ function fixture() {
     [CommercialCharacteristicEntity,characteristics],
   ]);
   const manager = {
-    query: vi.fn(),
+    query: jest.fn(),
     getRepository: (entity: unknown) => {
       const result = repositories.get(entity);
       if (!result) throw new Error('Unexpected repository');
@@ -96,7 +96,7 @@ function fixture() {
     transaction: async (work: (manager: EntityManager) => Promise<unknown>) =>
       work(manager),
   } as DataSource;
-  const audit = { record: vi.fn() };
+  const audit = { record: jest.fn() };
   const service = new SalesService(
     dataSource,
     audit as unknown as AuditService,
@@ -336,7 +336,7 @@ describe('Sale confirmation', () => {
     };
     f.sales.findOne.mockResolvedValue(confirmed);
     Object.assign(f.lines, {
-      find: vi.fn().mockResolvedValue([
+      find: jest.fn().mockResolvedValue([
         {
           originId: null,
           priceBasis: CalculationBasis.Kilogram,

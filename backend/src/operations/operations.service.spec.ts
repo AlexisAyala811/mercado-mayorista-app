@@ -15,7 +15,7 @@ import { OperationsService } from './operations.service.js';
 import { OperationType } from './operation-query.dto.js';
 
 function repository<T extends ObjectLiteral>(
-  findOne: ReturnType<typeof vi.fn> = vi.fn().mockResolvedValue(null),
+  findOne: ReturnType<typeof jest.fn> = jest.fn().mockResolvedValue(null),
 ) {
   return { findOne } as unknown as Repository<T>;
 }
@@ -37,13 +37,13 @@ function serviceWith(sales = repository<SaleEntity>(), returns = repository<Sale
 
 describe('OperationsService', () => {
   it('recovers commercial returns only within the current business', async () => {
-    const findOne = vi.fn().mockResolvedValue({ id: 'return-1' });
+    const findOne = jest.fn().mockResolvedValue({ id: 'return-1' });
     const service = serviceWith(repository<SaleEntity>(), repository<SaleReturnEntity>(findOne));
     await expect(service.get('business-1', 'operation-1', OperationType.SaleReturn)).resolves.toMatchObject({resourceId: 'return-1', resourceType: 'sale-return'});
     expect(findOne).toHaveBeenCalledWith({where: {businessId: 'business-1', clientOperationId: 'operation-1'}});
   });
   it('recovers a confirmed operation by client id within the current business', async () => {
-    const findOne = vi.fn().mockResolvedValue({ id: 'sale-1' });
+    const findOne = jest.fn().mockResolvedValue({ id: 'sale-1' });
     const service = serviceWith(repository<SaleEntity>(findOne));
 
     await expect(
