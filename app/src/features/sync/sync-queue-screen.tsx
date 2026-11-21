@@ -5,6 +5,7 @@ import { recoverLocalReception } from '@/domain/reception/local-reception-recove
 import { useSyncQueue } from './sync-queue-provider';
 import { useSession } from '@/features/auth/session/session-provider';
 import { retiredContractReason } from '@/domain/sync/retired-contract';
+import { operationIdConflict } from '@/domain/sync/sync-operation';
 import { AppButton, AppCard, AppScreen, EmptyState, FeedbackState, FormField, LoadingState, ScreenHeader } from '@/ui/components';
 import { color, spacing, typography } from '@/ui/tokens';
 import { syncOperationLabel } from '@/ui/operation-labels';
@@ -12,8 +13,9 @@ import { syncOperationLabel } from '@/ui/operation-labels';
 export function SyncQueueScreen() {
   const router = useRouter();
   const {isOfflineSession,retryBootstrap}=useSession();
-  const { isLoadingQueue, reloadQueue, queueError, operations, pendingCount, retry, synchronize, discard } = useSyncQueue();
+  const { isLoadingQueue, reloadQueue, queueError, operations, pendingCount, retry, synchronize, discard, resendAsNew } = useSyncQueue();
   const [target, setTarget] = useState<string | null>(null);
+  const [resendTarget, setResendTarget] = useState<string | null>(null);
   const [reason, setReason] = useState('');
   const [busy,setBusy]=useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +37,10 @@ export function SyncQueueScreen() {
     }) : null}
     {operations.length ? operations.slice().reverse().map((item) => <AppCard key={item.id} title={label(item.status)} description={`${syncOperationLabel(item.type)} · ${new Date(item.createdAt).toLocaleString('es-PE')}`}>
       <Text style={styles.text}>Intentos: {item.attempts} de 5</Text>{item.message ? <Text style={styles.error}>{item.message}</Text> : null}
-      {['pending', 'review'].includes(item.status) ? <AppButton disabled={busy} label={item.attempts<5&&!retiredContractReason(item)?'Reintentar':'Comprobar resultado central'} onPress={() => void run(()=>retryAndRevalidate(item.id))} tone="secondary" /> : null}
+      {item.status === 'review' && item.conflictCode === operationIdConflict ? <AppButton disabled={busy} label="Reenviar como nueva" onPress={() => setResendTarget(item.id)} tone="secondary" />
+        : ['pending', 'review'].includes(item.status) ? <AppButton disabled={busy} label={item.attempts<5&&!retiredContractReason(item)?'Reintentar':'Comprobar resultado central'} onPress={() => void run(()=>retryAndRevalidate(item.id))} tone="secondary" /> : null}
+      {resendTarget === item.id ? <FeedbackState title="¿Reenviar como operación nueva?" message="Se enviará con un identificador nuevo y el servidor la registrará como otra operación. Hazlo solo si comprobaste en el historial que no está registrada; si ya lo está, se duplicaría." actionLabel="Sí, reenviar como nueva" onAction={() => void run(async () => { await resendAsNew(item.id); setResendTarget(null); })} /> : null}
+      {resendTarget === item.id ? <AppButton disabled={busy} label="Cancelar" onPress={() => setResendTarget(null)} tone="secondary" /> : null}
       {['pending', 'rejected', 'review'].includes(item.status) ? <View style={styles.actions}><AppButton disabled={busy} label="Descartar" onPress={() => setTarget(item.id)} tone="secondary" /></View> : null}
       {target === item.id ? <><FormField label="Motivo del descarte" onChangeText={setReason} value={reason} /><AppButton disabled={busy} label="Confirmar descarte" onPress={() => void run(confirmDiscard)} /></> : null}
     </AppCard>) : queueError||isLoadingQueue ? null : <EmptyState title="Sin operaciones locales" message="No hay registros de operaciones locales para esta identidad." />}
