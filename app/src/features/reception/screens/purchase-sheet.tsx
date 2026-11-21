@@ -37,6 +37,13 @@ export function useSheetColumns() {
   return width >= narrowSheetWidth ? sheetColumns : narrowSheetColumns;
 }
 
+// On a phone the rows that mix tabs, titles and buttons stack in a column:
+// Android squeezes a shrinking row to one letter per line instead of wrapping
+// it (spec 019, phone test of 20 nov 2026).
+export function useNarrowSheet() {
+  return useWindowDimensions().width < narrowSheetWidth;
+}
+
 export function SheetTable({ children }: { children: ReactNode }) {
   const { width } = useWindowDimensions();
   if (width >= narrowSheetWidth) return <>{children}</>;
@@ -169,6 +176,7 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
     return () => clearTimeout(timer);
   }, [activeSacks, editing]);
   const columns = useSheetColumns();
+  const narrow = useNarrowSheet();
   const rows = useMemo(() => {
     const chunks: (typeof cells)[] = [];
     for (let index = 0; index < cells.length; index += columns) chunks.push(cells.slice(index, index + columns));
@@ -251,7 +259,7 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
         {props.providerNotice ? <Text accessibilityLiveRegion="polite" style={sheetLayout.providerNotice}>{props.providerNotice}</Text> : null}
       </View>
 
-      <View style={[s.card, s.tabsCard]}>
+      <View style={[s.card, s.tabsCard, narrow && s.stack]}>
         <View accessibilityRole="tablist" style={s.tabs}>
           {props.varieties.length ? props.varieties.map((variety, index) => {
             const selected = variety.id === active?.id;
@@ -287,7 +295,7 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
 
       <View style={s.card} testID="sheet-lot">
         {active ? (
-        <View style={s.lotHeader}>
+        <View style={[s.lotHeader, narrow && s.stack]}>
           <View style={s.lotChip}>
             <SymbolView fallback={null} name={{ android: 'inventory_2', ios: 'shippingbox', web: 'inventory_2' }} size={20} tintColor="#6EE7B7" />
             <Text numberOfLines={1} style={s.lotChipText}>{active?.name ?? 'Sin variedad'}</Text>
@@ -310,8 +318,8 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
         </View>
         ) : null}
 
-        <View style={s.gridHeader}>
-          <View style={sheetLayout.gridTitle}>
+        <View style={[s.gridHeader, narrow && s.stack]}>
+          <View style={[sheetLayout.gridTitle, narrow && s.stack]}>
             <Text accessibilityRole="header" style={s.overline}>PESAJE DE SACOS INDIVIDUALES (KG)</Text>
             <Text style={sheetLayout.gridHint}>{props.weighingLocked ? '· Pesaje cerrado: el detalle queda bloqueado' : '· Escribe el peso bruto en la celda; toca un saco para corregirlo'}</Text>
           </View>
@@ -524,7 +532,7 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
               <Text style={s.freightTimes}>× S/</Text>
               <SheetInput accessibilityLabel="Tarifa de flete (S/)" editable={!locked} keyboardType="decimal-pad" onChangeText={(value) => props.onChange('freightRate', value)} placeholder="0.00" style={s.freightInput} value={values.freightRate} />
             </View>
-            <Text style={[s.help, s.grow]}>{freightOn ? 'Tarifa por unidad seleccionada' : 'Tarifa 0: la compra va sin flete'}</Text>
+            <Text style={[s.help, narrow ? s.fullLine : s.grow]}>{freightOn ? 'Tarifa por unidad seleccionada' : 'Tarifa 0: la compra va sin flete'}</Text>
             <Text style={sheetLayout.freightLabel}>SUBTOTAL FLETE:</Text>
             <Text accessibilityLabel={`Subtotal de flete: ${money('freightCents')}`} style={s.freightAmount}>{money('freightCents')}</Text>
           </View>
@@ -810,10 +818,12 @@ export const sheetStyles = StyleSheet.create({
   fieldWide: { flexBasis: 320, flexGrow: 2 },
   help: { color: color.textSecondary, fontSize: 14, lineHeight: 20 },
   grow: { flex: 1 },
+  fullLine: { width: '100%' },
   dimmed: { opacity: 0.5 },
   onBrand: { color: color.textOnBrand },
 
   tabsCard: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
+  stack: { alignItems: 'stretch', flexDirection: 'column', flexWrap: 'nowrap', justifyContent: 'flex-start' },
   tabs: { alignItems: 'center', flexDirection: 'row', flexGrow: 1, flexShrink: 1, flexWrap: 'wrap', gap: 10 },
   tab: { alignItems: 'center', backgroundColor: soft, borderColor: line, borderRadius: radius.md, borderWidth: 1, flexDirection: 'row', gap: spacing.sm, minHeight: 48, paddingHorizontal: spacing.md },
   tabSelected: { backgroundColor: color.brand, borderColor: color.brand, boxShadow: '0px 0px 0px 2px rgba(31,58,47,0.2)' },
@@ -835,7 +845,7 @@ export const sheetStyles = StyleSheet.create({
   gridHeader: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, justifyContent: 'space-between' },
   gridTitles: { flexShrink: 1, gap: 2 },
   overline: { color: color.textSecondary, fontSize: 13, fontWeight: '700', letterSpacing: 0.8 },
-  goTo: { alignItems: 'center', flexDirection: 'row', gap: spacing.sm },
+  goTo: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   goToInput: { minHeight: 44, textAlign: 'center', width: 140 },
   goToButton: { alignItems: 'center', backgroundColor: color.surfaceRaised, borderColor: color.brand, borderRadius: radius.sm, borderWidth: 1, justifyContent: 'center', minHeight: 44, minWidth: 48, paddingHorizontal: spacing.sm },
   goToButtonText: { color: color.brand, fontSize: 15, fontWeight: '700' },
@@ -874,7 +884,7 @@ export const sheetStyles = StyleSheet.create({
 
   sectionHeader: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, justifyContent: 'space-between' },
   sectionTitleRow: { alignItems: 'center', flexDirection: 'row', gap: spacing.sm },
-  sectionTitle: { color: color.textPrimary, fontSize: 18, fontWeight: '700' },
+  sectionTitle: { color: color.textPrimary, flexShrink: 1, fontSize: 18, fontWeight: '700' },
   tableHead: { borderBottomColor: line, borderBottomWidth: 1, borderTopColor: line, borderTopWidth: 1, flexDirection: 'row', gap: spacing.sm, paddingVertical: 10 },
   th: { color: color.textSecondary, fontSize: 12, fontWeight: '700', letterSpacing: 0.8 },
   tableRow: { alignItems: 'center', backgroundColor: '#F8FAFC', borderColor: line, borderRadius: radius.md, borderWidth: 1, flexDirection: 'row', gap: spacing.sm, minHeight: 60, paddingVertical: 6 },

@@ -16,4 +16,9 @@ Cada tarea se marca `[x]` solo con evidencia enlazable.
     - los casos que la hoja ya cubría en `purchase-sheet-flow.test.tsx` (identidad local sin conexión, no liquidar si falla el cierre, retomar un pesaje cerrado).
   - Suite completa: 108 archivos y 742 pruebas en verde; `tsc` y `expo lint` sin errores.
 - [ ] **T1904** APK con la hoja para celular; prueba de compra y venta en el celular del usuario contra la API de Render, con capturas.
+  - **Primera prueba (20 nov 2026, APK de `main` 2781206):** en el celular, Android encogía las filas que mezclan pestañas, títulos y botones en vez de pasarlas a otra línea. El texto «Añade la primera variedad para empezar a pesar.» quedaba con una letra por renglón. En la web eso no pasaba, porque el navegador no encoge el texto por debajo de su palabra más larga.
+  - **Corrección:** por debajo de 760 px, `useNarrowSheet()` apila en columna la tarjeta de pestañas, la cabecera del lote y la cabecera de la cuadrícula. El buscador de saco y el contador pasan a otra línea, los títulos de sección se ajustan al ancho y el texto de la tarifa de flete va en su propia línea.
+  - **Revisión:** compra y venta completas en el emulador de Android con pantalla de 1080 × 2400 (densidad 420, unos 411 dp), contra la API local. La tabla se desliza de lado y ningún elemento se sale de su tarjeta.
+  - **Verificación del código:** suite completa (108 archivos, 742 pruebas), `tsc` y `expo lint` sin errores.
+  - Falta repetir la prueba en el celular del usuario.
 - [ ] **T1905** Retirar el código del asistente anterior (`ReceptionDetailsScreen`, `WeighingScreen`, `SettlementScreen` como pasos y la rama del formulario de venta), una vez cerrada T1904.

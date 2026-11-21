@@ -5,7 +5,7 @@ import { Keyboard, Modal, Pressable, ScrollView, StyleSheet, Text, View, type Te
 import { formatMoney } from '@/domain/reception/reception';
 import type { SalePreview } from '@/domain/sales/sale-preview';
 import { saleLineGrams, validSackWeight, type SaleLineDraft } from '@/domain/sales/sale';
-import { BigTotal, gramsToKg, Line, sheetLayout as p, sheetRowHeight, SheetInput, sheetStyles as s, SheetTable, useSheetColumns } from '@/features/reception/screens/purchase-sheet';
+import { BigTotal, gramsToKg, Line, sheetLayout as p, sheetRowHeight, SheetInput, sheetStyles as s, SheetTable, useNarrowSheet, useSheetColumns } from '@/features/reception/screens/purchase-sheet';
 import type { InstallmentDraft } from '@/features/reception/screens/settlement-screen';
 import { AppScreen, ConfirmationDialog, FeedbackState, FormField, SelectionField } from '@/ui/components';
 import { DateDialog } from '@/features/sales/components/date-dialog';
@@ -111,6 +111,7 @@ export function SaleSheet(props: SaleSheetProps) {
   const planned = quickLoad;
   const cells = useMemo<Cell[]>(() => slots.map((value, index) => ({ index, value })), [slots]);
   const columns = useSheetColumns();
+  const narrow = useNarrowSheet();
   const rows = useMemo(() => {
     const chunks: Cell[][] = [];
     for (let index = 0; index < cells.length; index += columns) chunks.push(cells.slice(index, index + columns));
@@ -194,7 +195,7 @@ export function SaleSheet(props: SaleSheetProps) {
         {props.buyerNotice ? <Text accessibilityLiveRegion="polite" style={buyerStyles.notice}>{props.buyerNotice}</Text> : null}
       </View>
 
-      <View style={[s.card, s.tabsCard]}>
+      <View style={[s.card, s.tabsCard, narrow && s.stack]}>
         <View accessibilityRole="tablist" style={s.tabs}>
           {props.lines.length ? props.lines.map((line, index) => {
             const selected = index === activeIndex;
@@ -216,7 +217,7 @@ export function SaleSheet(props: SaleSheetProps) {
 
       <View style={s.card} testID="sale-lot">
         {active ? (
-          <View style={s.lotHeader}>
+          <View style={[s.lotHeader, narrow && s.stack]}>
             <View style={s.lotChip}>
               <SymbolView fallback={null} name={{ android: 'inventory_2', ios: 'shippingbox', web: 'inventory_2' }} size={20} tintColor="#6EE7B7" />
               <Text numberOfLines={1} style={s.lotChipText}>{props.lineName(active)}</Text>
@@ -238,8 +239,8 @@ export function SaleSheet(props: SaleSheetProps) {
           </View>
         ) : null}
 
-        <View style={s.gridHeader}>
-          <View style={p.gridTitle}>
+        <View style={[s.gridHeader, narrow && s.stack]}>
+          <View style={[p.gridTitle, narrow && s.stack]}>
             <Text accessibilityRole="header" style={s.overline}>PESAJE DE SACOS INDIVIDUALES (KG)</Text>
             <Text style={p.gridHint}>· Escribe el peso en cada casilla; toca × para limpiar un saco</Text>
           </View>
@@ -372,7 +373,7 @@ export function SaleSheet(props: SaleSheetProps) {
               <Text style={s.freightTimes}>× S/</Text>
               <SheetInput accessibilityLabel="Tarifa de flete (S/)" editable={!busy} keyboardType="decimal-pad" onChangeText={(value) => props.onChange('freightRate', value)} placeholder="0.00" style={s.freightInput} value={props.freightRate} />
             </View>
-            <Text style={[s.help, s.grow]}>{props.freightRate.trim() && Number(props.freightRate.replace(',', '.')) > 0 ? 'Tarifa por unidad seleccionada' : 'Tarifa 0: la venta va sin flete'}</Text>
+            <Text style={[s.help, narrow ? s.fullLine : s.grow]}>{props.freightRate.trim() && Number(props.freightRate.replace(',', '.')) > 0 ? 'Tarifa por unidad seleccionada' : 'Tarifa 0: la venta va sin flete'}</Text>
             <Text style={p.freightLabel}>SUBTOTAL FLETE:</Text>
             <Text accessibilityLabel={`Subtotal de flete: ${money('freightCents')}`} style={s.freightAmount}>{money('freightCents')}</Text>
           </View>
