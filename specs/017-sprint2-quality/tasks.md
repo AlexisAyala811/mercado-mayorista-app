@@ -15,4 +15,5 @@ Cada tarea se marca `[x]` solo con evidencia enlazable.
   - Las tablas y entidades se mantienen con sus filas históricas; ninguna migración borra datos.
   - La medición de cobertura ya no necesita excluirlos.
   - **Verificación:** `tsc`, `lint`, 365 pruebas de Vitest, `build` y las 10 suites e2e (68 pruebas) en PostgreSQL 17 portable.
+- [x] **T1708** Pruebas de los escenarios de calidad con Postman (criterio 8 del Sprint 2): AC01, AC03, AC04, roles del Encargado con reemplazo y límite de intentos. **Hecho el 21 nov 2026:** colección en `backend/test/postman/` ejecutada con Postman CLI contra la API local y PostgreSQL 17, con 29 peticiones y 46 aserciones sin fallas. Tabla de escenarios actualizada ([verificación](../../docs/sdd/verificacion-postman-escenarios-2026-11-21.md)).
 - [ ] **T1706** Repetir la prueba de 2000 usuarios en un servidor separado del generador de carga.

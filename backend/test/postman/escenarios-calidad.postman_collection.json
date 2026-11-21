@@ -1,0 +1,975 @@
+{
+  "info": {
+    "name": "MAÑAY · Escenarios de calidad (Sprint 2)",
+    "description": "Escenarios de atributos de calidad del Sprint 1 contra la API REST /api/v1: AC01 (respuesta), AC03 (idempotencia y UUID reutilizado), AC04 (aislamiento por negocio con auditoría), roles del Encargado con reemplazo (HU12) y límite de intentos de inicio de sesión. Spec 017, T1708.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "maxResponseMs",
+      "value": "3000"
+    }
+  ],
+  "item": [
+    {
+      "name": "AC01 · Disponibilidad y tiempo de respuesta",
+      "description": "p95 central < 3 s (AC01). Aquí se mide una petición; la carga se mide con k6.",
+      "item": [
+        {
+          "name": "Salud de la API y la base",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('la base de datos está disponible', () => pm.expect(JSON.stringify(pm.response.json())).to.include('up'));",
+                  "pm.test('responde en menos de 3 s (AC01)', () => pm.expect(pm.response.responseTime).to.be.below(Number(pm.collectionVariables.get('maxResponseMs'))));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [],
+            "url": "{{baseUrl}}/health/ready"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Autenticación",
+      "description": "Token de sesión opaco; sin token no hay acceso.",
+      "item": [
+        {
+          "name": "Iniciar sesión · Mayorista del negocio A",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 201 con token', () => { pm.response.to.have.status(201); pm.expect(pm.response.json().accessToken).to.be.a('string'); });",
+                  "pm.test('el rol es Mayorista', () => pm.expect(pm.response.json().user.role).to.eql('wholesaler'));",
+                  "pm.collectionVariables.set('tokenA', pm.response.json().accessToken);",
+                  "pm.collectionVariables.set('businessA', pm.response.json().user.businessId);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/sessions",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{userA}}\",\n  \"password\": \"{{passwordA}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Contraseña incorrecta",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 401', () => pm.response.to.have.status(401));",
+                  "pm.test('no entrega token', () => pm.expect(pm.response.json().accessToken).to.be.undefined);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/sessions",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{userA}}\",\n  \"password\": \"incorrecta-de-prueba\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Consulta sin token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [],
+            "url": "{{baseUrl}}/catalog/providers"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Preparación",
+      "description": "Proveedor y variedad del negocio A para las recepciones de prueba.",
+      "item": [
+        {
+          "name": "Crear proveedor",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('runId', Date.now().toString(36));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('providerId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/catalog/providers",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Proveedor QA {{runId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Crear variedad",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('varietyId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/catalog/varieties",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Papa QA {{runId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "AC03 · Idempotencia",
+      "description": "La misma operación cinco veces deja un solo registro; el mismo UUID con otros datos responde 409 operation-id-conflict sin cambiar el original.",
+      "item": [
+        {
+          "name": "Enviar la misma recepción cinco veces",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sent = Number(pm.collectionVariables.get('sends') || 0) + 1;",
+                  "pm.collectionVariables.set('sends', sent);",
+                  "if (sent === 1) pm.collectionVariables.set('operationId', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const sent = Number(pm.collectionVariables.get('sends'));",
+                  "pm.test(`envío ${sent}: responde 201`, () => pm.response.to.have.status(201));",
+                  "const id = pm.response.json().id;",
+                  "if (sent === 1) pm.collectionVariables.set('receptionId', id);",
+                  "else pm.test(`envío ${sent}: devuelve la misma recepción`, () => pm.expect(id).to.eql(pm.collectionVariables.get('receptionId')));",
+                  "if (sent < 5) pm.execution.setNextRequest(pm.info.requestName);",
+                  "else pm.collectionVariables.set('sends', 0);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/receptions",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientOperationId\": \"{{operationId}}\",\n  \"providerId\": \"{{providerId}}\",\n  \"driverName\": \"Chofer QA\",\n  \"receivedOn\": \"2026-11-21\",\n  \"expectedVarietyIds\": [\n    \"{{varietyId}}\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Solo existe una recepción",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('un solo registro tras cinco envíos', () => pm.expect(pm.response.json().total).to.eql(1));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/receptions?providerId={{providerId}}"
+          }
+        },
+        {
+          "name": "Mismo UUID con otros datos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 409', () => pm.response.to.have.status(409));",
+                  "pm.test('código operation-id-conflict', () => pm.expect(pm.response.json().code).to.eql('operation-id-conflict'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/receptions",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientOperationId\": \"{{operationId}}\",\n  \"providerId\": \"{{providerId}}\",\n  \"driverName\": \"Otro chofer\",\n  \"receivedOn\": \"2026-11-21\",\n  \"expectedVarietyIds\": [\n    \"{{varietyId}}\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "El registro original no cambió",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('conserva los datos del primer envío', () => pm.expect(pm.response.json().driverName).to.eql('Chofer QA'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/receptions/{{receptionId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "AC04 · Aislamiento por negocio",
+      "description": "Otro negocio no ve los datos; el intento queda en su auditoría y la respuesta no revela nada.",
+      "item": [
+        {
+          "name": "Iniciar sesión · Mayorista del negocio B",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 201', () => pm.response.to.have.status(201));",
+                  "pm.test('es otro negocio', () => pm.expect(pm.response.json().user.businessId).to.not.eql(pm.collectionVariables.get('businessA')));",
+                  "pm.collectionVariables.set('tokenB', pm.response.json().accessToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/sessions",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{userB}}\",\n  \"password\": \"{{passwordB}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "B pide la recepción de A",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 404', () => pm.response.to.have.status(404));",
+                  "pm.test('no expone datos de A', () => { const text = pm.response.text(); pm.expect(text).to.not.include('Chofer QA'); pm.expect(text).to.not.include(pm.collectionVariables.get('providerId')); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/receptions/{{receptionId}}"
+          }
+        },
+        {
+          "name": "B no ve recepciones ni proveedores de A",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('cero registros', () => pm.expect(pm.response.json().total).to.eql(0));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/receptions?providerId={{providerId}}"
+          }
+        },
+        {
+          "name": "El intento queda en la auditoría de B",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('registra el intento sobre la recepción de A', () => pm.expect(pm.response.json().items.map((item) => item.resourceId)).to.include(pm.collectionVariables.get('receptionId')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenB}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/audit/events?action=authorization.cross-business-denied"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Roles · Encargado con reemplazo (HU12)",
+      "description": "El Encargado solo entra con un reemplazo vigente, registra operaciones y no accede a funciones del Mayorista; las denegaciones se auditan y revocar el reemplazo corta su sesión.",
+      "item": [
+        {
+          "name": "Mayorista crea un Encargado",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('assistantUser', 'qa_enc_' + pm.collectionVariables.get('runId'));",
+                  "pm.collectionVariables.set('assistantPassword', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 201', () => pm.response.to.have.status(201));",
+                  "pm.test('el rol es Encargado', () => pm.expect(pm.response.json().role).to.eql('assistant'));",
+                  "pm.collectionVariables.set('assistantId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/identity/assistants",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{assistantUser}}\",\n  \"password\": \"{{assistantPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Encargado sin reemplazo no entra",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/sessions",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{assistantUser}}\",\n  \"password\": \"{{assistantPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Mayorista autoriza un reemplazo de 2 h",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('startsAt', new Date(Date.now() - 60000).toISOString());",
+                  "pm.collectionVariables.set('expiresAt', new Date(Date.now() + 2 * 3600000).toISOString());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('delegationId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/identity/assistants/{{assistantId}}/delegations",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startsAt\": \"{{startsAt}}\",\n  \"expiresAt\": \"{{expiresAt}}\",\n  \"reason\": \"Prueba de calidad Sprint 2\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Iniciar sesión · Encargado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 201', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('tokenAssistant', pm.response.json().accessToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/sessions",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{assistantUser}}\",\n  \"password\": \"{{assistantPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Encargado registra una recepción",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAssistant}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/receptions",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientOperationId\": \"{{$guid}}\",\n  \"providerId\": \"{{providerId}}\",\n  \"driverName\": \"Chofer del Encargado\",\n  \"receivedOn\": \"2026-11-21\",\n  \"expectedVarietyIds\": [\n    \"{{varietyId}}\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Encargado no administra usuarios",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAssistant}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/identity/assistants"
+          }
+        },
+        {
+          "name": "Encargado no consulta la auditoría",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAssistant}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/audit/events"
+          }
+        },
+        {
+          "name": "La denegación queda auditada",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 200', () => pm.response.to.have.status(200));",
+                  "pm.test('registra al Encargado', () => pm.expect(pm.response.json().items.map((item) => item.actorUserId)).to.include(pm.collectionVariables.get('assistantId')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/audit/events?action=authorization.denied"
+          }
+        },
+        {
+          "name": "Mayorista revoca el reemplazo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 2xx', () => pm.expect(pm.response.code).to.be.within(200, 204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenA}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/identity/delegations/{{delegationId}}"
+          }
+        },
+        {
+          "name": "La sesión del Encargado deja de valer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 401', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAssistant}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/catalog/providers"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Seguridad · límite de intentos",
+      "description": "Inicio de sesión limitado a 5 intentos por minuto por cliente. Este es el sexto de la corrida.",
+      "item": [
+        {
+          "name": "Sexto intento en un minuto",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('responde 429', () => pm.response.to.have.status(429));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/sessions",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{userA}}\",\n  \"password\": \"incorrecta-de-prueba\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
