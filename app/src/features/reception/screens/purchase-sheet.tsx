@@ -353,7 +353,7 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
                       <Pressable accessibilityElementsHidden importantForAccessibility="no-hide-descendants" key={`blank-${cell.offset}`} onPress={() => draftRef.current?.focus()} style={[s.cell, sheetLayout.cellBlank]} testID={`sack-blank-${cell.offset}`}>
                         <View style={[s.cellNumber, sheetLayout.cellNumberBlank]}><Text style={[s.cellNumberText, sheetLayout.cellNumberBlankText]}>{String(nextSequence + cell.offset).padStart(2, '0')}</Text></View>
                         <View style={s.cellValue}><Text style={sheetLayout.cellBlankText}>0</Text></View>
-                        <Text style={s.cellUnit}>kg</Text>
+                        {narrow ? null : <Text style={s.cellUnit}>kg</Text>}
                         <View style={[sheetLayout.clear, sheetLayout.clearIdle]}><SymbolView fallback={null} name={{ android: 'close', ios: 'xmark', web: 'close' }} size={14} tintColor="#727974" /></View>
                       </Pressable>
                     );
@@ -363,7 +363,7 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
                       <View key="draft" style={[s.cell, sheetLayout.cellDraft]} testID="sack-draft">
                         <View style={[s.cellNumber, sheetLayout.cellNumberDraft]}><Text style={s.cellNumberText}>{String(nextSequence).padStart(2, '0')}</Text></View>
                         <SheetInput accessibilityLabel="Peso bruto (kg)" autoComplete="off" autoCorrect={false} importantForAutofill="no" editable={captureEditable} keyboardType="number-pad" onChangeText={(value) => props.onGrossChange(value.replace(/[^0-9]/g, ''))} onSubmitEditing={canAdd ? () => { keepTyping.current = true; props.onSaveSack(); } : undefined} placeholder="0" ref={draftRef} returnKeyType="next" style={sheetLayout.cellInput} submitBehavior="submit" value={props.gross} />
-                        <Text style={s.cellUnit}>kg</Text>
+                        {narrow ? null : <Text style={s.cellUnit}>kg</Text>}
                         <Pressable accessibilityLabel={`Limpiar el peso del saco ${nextSequence}`} accessibilityRole="button" disabled={!props.gross} hitSlop={6} onPress={() => { props.onGrossChange(''); draftRef.current?.focus(); }} style={({ pressed }) => [sheetLayout.clear, !props.gross && sheetLayout.clearIdle, pressed && s.dimmed]}>
                           <SymbolView fallback={null} name={{ android: 'close', ios: 'xmark', web: 'close' }} size={14} tintColor="#727974" />
                         </Pressable>
@@ -377,7 +377,7 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
                       <View key={sack.id} style={[s.cell, s.cellHighlighted]} testID={`sack-${sack.sequence}`}>
                         <View style={s.cellNumber}><Text style={s.cellNumberText}>{String(sack.sequence).padStart(2, '0')}</Text></View>
                         <SheetInput accessibilityLabel="Peso bruto (kg)" autoComplete="off" autoCorrect={false} importantForAutofill="no" autoFocus editable={captureEditable} keyboardType="number-pad" onChangeText={(value) => props.onGrossChange(value.replace(/[^0-9]/g, ''))} onSubmitEditing={canAdd ? () => { keepTyping.current = true; props.onSaveSack(); } : undefined} returnKeyType="done" style={sheetLayout.cellInput} submitBehavior="submit" value={props.gross} />
-                        <Text style={s.cellUnit}>kg</Text>
+                        {narrow ? null : <Text style={s.cellUnit}>kg</Text>}
                         <Pressable accessibilityLabel={`Cancelar la corrección del saco ${sack.sequence}`} accessibilityRole="button" disabled={locked} hitSlop={6} onPress={props.onCancelEdit} style={({ pressed }) => [sheetLayout.clear, pressed && s.dimmed]}>
                           <SymbolView fallback={null} name={{ android: 'close', ios: 'xmark', web: 'close' }} size={14} tintColor="#727974" />
                         </Pressable>
@@ -396,7 +396,7 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
                       testID={`sack-${sack.sequence}`}>
                       <View style={s.cellNumber}><Text style={s.cellNumberText}>{String(sack.sequence).padStart(2, '0')}</Text></View>
                       <View style={s.cellValue}><Text style={s.cellValueText}>{sack.grossDisplay ?? sack.netDisplay}</Text></View>
-                      <Text style={s.cellUnit}>kg</Text>
+                      {narrow ? null : <Text style={s.cellUnit}>kg</Text>}
                       {!props.weighingLocked ? (
                         <Pressable accessibilityHint={props.onVoidSack ? undefined : 'Para anular un saco se necesita conexión y que esté sincronizado'} accessibilityLabel={`Anular saco ${sack.sequence}`} accessibilityRole="button" accessibilityState={{ disabled: locked || !props.onVoidSack }} disabled={locked || !props.onVoidSack} hitSlop={6} onPress={() => props.onVoidSack?.(sack.id)} style={({ pressed }) => [sheetLayout.clear, pressed && s.dimmed]}>
                           <SymbolView fallback={null} name={{ android: 'close', ios: 'xmark', web: 'close' }} size={14} tintColor="#727974" />
@@ -567,17 +567,17 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
           <View style={sheetLayout.summaryLeft}>
             <Line label="Total pago (producto):" value={money('grossCents')} />
             <Line label={wholesalerFreight ? 'Flete a cargo del Mayorista (no se descuenta)' : 'Total flete (descuento):'} value={!freightOn ? 'S/ 0.00' : wholesalerFreight || preview.kind !== 'ready' ? money('freightCents') : `- ${money('freightCents')}`} />
-            <View style={sheetLayout.line}>
-              <Text style={sheetLayout.lineLabel}>Otros cargos / ajustes:</Text>
+            <View style={[sheetLayout.line, narrow && sheetLayout.lineWrap]}>
+              <Text style={[sheetLayout.lineLabel, narrow && sheetLayout.lineLabelFull]}>Otros cargos / ajustes:</Text>
               <Text style={sheetLayout.currency}>S/</Text>
-              <SheetInput accessibilityLabel="Otros descuentos (S/)" editable={!locked} keyboardType="decimal-pad" onChangeText={(value) => props.onChange('discounts', value)} placeholder="0.00" style={sheetLayout.lineInput} value={values.discounts} />
+              <SheetInput accessibilityLabel="Otros descuentos (S/)" editable={!locked} keyboardType="decimal-pad" onChangeText={(value) => props.onChange('discounts', value)} placeholder="0.00" style={[sheetLayout.lineInput, narrow && sheetLayout.lineInputFill]} value={values.discounts} />
             </View>
           </View>
-          <View style={sheetLayout.summaryRight}>
-            <View style={sheetLayout.advance}>
-              <Text style={sheetLayout.payerLabel}>ADELANTO ENTREGADO:</Text>
+          <View style={[sheetLayout.summaryRight, narrow && sheetLayout.summaryRightNarrow]}>
+            <View style={[sheetLayout.advance, narrow && sheetLayout.lineWrap]}>
+              <Text style={[sheetLayout.payerLabel, narrow && sheetLayout.lineLabelFull]}>ADELANTO ENTREGADO:</Text>
               <Text style={sheetLayout.currency}>S/</Text>
-              <SheetInput accessibilityLabel="Adelantos (S/)" editable={!locked} keyboardType="decimal-pad" onChangeText={(value) => props.onChange('advances', value)} placeholder="0.00" style={sheetLayout.lineInput} value={values.advances} />
+              <SheetInput accessibilityLabel="Adelantos (S/)" editable={!locked} keyboardType="decimal-pad" onChangeText={(value) => props.onChange('advances', value)} placeholder="0.00" style={[sheetLayout.lineInput, narrow && sheetLayout.lineInputFill]} value={values.advances} />
             </View>
             <View style={sheetLayout.net}>
               <View>
@@ -603,7 +603,7 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
         <Text style={s.help}>Importes provisionales: el servidor los verifica al guardar y registra la compra, el flete y la caja o la cuenta por pagar.</Text>
       </View>
 
-      <View style={s.actions}>
+      <View style={[s.actions, narrow && s.stack]}>
         {props.onClear ? (
           <Pressable accessibilityLabel="Limpiar registro" accessibilityRole="button" disabled={locked} onPress={props.onClear} style={({ pressed }) => [s.clear, (pressed || locked) && s.dimmed]}>
             <SymbolView fallback={null} name={{ android: 'restart_alt', ios: 'arrow.counterclockwise', web: 'restart_alt' }} size={22} tintColor={color.brand} />
@@ -643,9 +643,10 @@ export function BigTotal({ accessibilityLabel, label, strong = false, unit, valu
 }
 
 export function Line({ label, value }: { label: string; value: string }) {
+  const narrow = useNarrowSheet();
   return (
-    <View style={sheetLayout.line}>
-      <Text style={sheetLayout.lineLabel}>{label}</Text>
+    <View style={[sheetLayout.line, narrow && sheetLayout.lineStacked]}>
+      <Text style={[sheetLayout.lineLabel, narrow && sheetLayout.lineLabelFull]}>{label}</Text>
       <View style={sheetLayout.lineValueBox}><Text accessibilityLabel={`${label.replace(/:$/, "")}: ${value}`} style={sheetLayout.lineValue}>{value}</Text></View>
     </View>
   );
@@ -684,8 +685,9 @@ export const sheetLayout = StyleSheet.create({
   cellNumberBlank: { backgroundColor: '#E2E8F0' },
   cellNumberBlankText: { color: '#64748B' },
   cellBlankText: { color: '#94A3B8', fontSize: 16, fontWeight: '600' },
-  quickLoad: { alignItems: 'center', backgroundColor: 'rgba(209,250,229,0.4)', borderColor: 'rgba(4,120,87,0.4)', borderRadius: 12, borderWidth: 1, flexBasis: 280, flexDirection: 'row', flexGrow: 1, gap: 8, justifyContent: 'center', minHeight: 48, paddingHorizontal: 14 },
+  quickLoad: { alignItems: 'center', backgroundColor: 'rgba(209,250,229,0.4)', borderColor: 'rgba(4,120,87,0.4)', borderRadius: 12, borderWidth: 1, flexBasis: 280, flexDirection: 'row', flexGrow: 1, gap: 8, justifyContent: 'center', minHeight: 48, paddingHorizontal: 14, maxWidth: '100%' },
   quickLoadText: { color: accent.emerald.pillInk, fontSize: 14, fontWeight: '700' },
+  quickLoadLabel: { flexShrink: 1, textAlign: 'center' },
   dateField: { gap: 6 },
   dateLabel: { color: '#64748B', fontSize: 12, fontWeight: '600', letterSpacing: 0.8, lineHeight: 16 },
   dateControl: { alignItems: 'center', backgroundColor: '#EFF4FF', borderRadius: 12, flexDirection: 'row', gap: 10, minHeight: 44, paddingHorizontal: 13 },
@@ -694,9 +696,9 @@ export const sheetLayout = StyleSheet.create({
   cellNumberDraft: { backgroundColor: '#047857' },
   cellInput: { flex: 1, fontSize: 16, fontWeight: '800', minHeight: 34, minWidth: 0, paddingHorizontal: 8, paddingVertical: 2, textAlign: 'right' },
   addRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  addSack: { alignItems: 'center', backgroundColor: '#EFF4FF', borderColor: 'rgba(4,120,87,0.4)', borderRadius: 12, borderStyle: 'dashed', borderWidth: 2, flexBasis: 300, flexDirection: 'row', flexGrow: 1, gap: 8, justifyContent: 'center', minHeight: 48, paddingHorizontal: 12 },
+  addSack: { alignItems: 'center', backgroundColor: '#EFF4FF', borderColor: 'rgba(4,120,87,0.4)', borderRadius: 12, borderStyle: 'dashed', borderWidth: 2, flexBasis: 300, flexDirection: 'row', flexGrow: 1, gap: 8, justifyContent: 'center', minHeight: 48, paddingHorizontal: 12, maxWidth: '100%' },
   addSackText: { color: accent.emerald.ink, fontSize: 14, fontWeight: '700' },
-  tareBox: { alignItems: 'center', backgroundColor: 'rgba(209,250,229,0.4)', borderColor: 'rgba(4,120,87,0.4)', borderRadius: 12, borderWidth: 1, flexBasis: 300, flexDirection: 'row', flexGrow: 1, gap: 8, justifyContent: 'center', minHeight: 48, paddingHorizontal: 12 },
+  tareBox: { alignItems: 'center', backgroundColor: 'rgba(209,250,229,0.4)', borderColor: 'rgba(4,120,87,0.4)', borderRadius: 12, borderWidth: 1, flexBasis: 300, flexDirection: 'row', flexGrow: 1, gap: 8, justifyContent: 'center', minHeight: 48, paddingHorizontal: 12, maxWidth: '100%' },
   tareLabel: { color: accent.emerald.pillInk, fontSize: 14, fontWeight: '700' },
   tareInput: { fontSize: 15, fontWeight: '800', minHeight: 36, paddingVertical: 2, textAlign: 'right', width: 72 },
   tareUnit: { color: accent.emerald.pillInk, fontSize: 12, fontWeight: '600' },
@@ -714,7 +716,7 @@ export const sheetLayout = StyleSheet.create({
   basisOption: { alignItems: 'center', borderRadius: 6, justifyContent: 'center', minHeight: 32, minWidth: 40, paddingHorizontal: 4 },
   basisText: { color: '#475569', fontSize: 11, fontWeight: '700' },
   totals: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  bigTotal: { alignItems: 'center', backgroundColor: '#EFF4FF', borderColor: '#E2E8F0', borderRadius: 12, borderWidth: 1, flexBasis: 240, flexDirection: 'row', flexGrow: 1, justifyContent: 'space-between', minHeight: 60, paddingHorizontal: 16 },
+  bigTotal: { alignItems: 'center', backgroundColor: '#EFF4FF', borderColor: '#E2E8F0', borderRadius: 12, borderWidth: 1, flexBasis: 240, flexDirection: 'row', flexGrow: 1, justifyContent: 'space-between', minHeight: 60, paddingHorizontal: 16, maxWidth: '100%' },
   bigTotalStrong: { backgroundColor: 'rgba(160,243,203,0.6)', borderColor: '#6EE7B7' },
   bigTotalLabel: { color: '#475569', fontSize: 11, fontWeight: '600', letterSpacing: 0.6 },
   bigTotalLabelStrong: { color: accent.emerald.pillInk },
@@ -729,19 +731,26 @@ export const sheetLayout = StyleSheet.create({
   freightUnit: { color: '#C4DBCD', fontSize: 12, fontWeight: '600' },
   freightLabel: { color: '#74777F', fontSize: 11, fontWeight: '700', letterSpacing: 0.6 },
   freightMore: { alignItems: 'flex-end', flexDirection: 'row', flexWrap: 'wrap', gap: 16 },
-  vehicle: { flexBasis: 260, flexGrow: 1 },
+  vehicle: { flexBasis: 260, flexGrow: 1, maxWidth: '100%' },
   payer: { flexGrow: 1, gap: 6 },
   payerLabel: { color: '#74777F', fontSize: 11, fontWeight: '700', letterSpacing: 0.6 },
   summaryHead: { borderBottomColor: '#EFF4FF', borderBottomWidth: 1, paddingBottom: 12 },
   summary: { flexDirection: 'row', flexWrap: 'wrap', gap: 24 },
-  summaryLeft: { flexBasis: 320, flexGrow: 1, gap: 10 },
-  summaryRight: { borderLeftColor: '#EFF4FF', borderLeftWidth: 1, flexBasis: 320, flexGrow: 1, gap: 10, paddingLeft: 24 },
+  summaryLeft: { flexBasis: 320, flexGrow: 1, gap: 10, maxWidth: '100%' },
+  summaryRight: { borderLeftColor: '#EFF4FF', borderLeftWidth: 1, flexBasis: 320, flexGrow: 1, gap: 10, maxWidth: '100%', paddingLeft: 24 },
+  // Phone: the two halves stack, so the rule between them goes (spec 019).
+  summaryRightNarrow: { borderLeftWidth: 0, paddingLeft: 0 },
   line: { alignItems: 'center', flexDirection: 'row', gap: 8, justifyContent: 'space-between', minHeight: 40 },
   lineLabel: { color: '#334155', flex: 1, fontSize: 14, fontWeight: '500' },
   lineValueBox: { backgroundColor: '#EFF4FF', borderRadius: 8, minWidth: 140, paddingHorizontal: 12, paddingVertical: 6 },
   lineValue: { color: '#0F172A', fontSize: 15, fontWeight: '700', textAlign: 'right' },
   currency: { color: '#74777F', fontSize: 12, fontWeight: '600' },
   lineInput: { fontSize: 15, fontWeight: '700', minHeight: 36, paddingVertical: 4, textAlign: 'right', width: 140 },
+  // Phone (spec 019): label on its own line, value or input below it.
+  lineStacked: { alignItems: 'stretch', flexDirection: 'column', gap: 4 },
+  lineWrap: { flexWrap: 'wrap', justifyContent: 'flex-start' },
+  lineLabelFull: { flex: 0, width: '100%' },
+  lineInputFill: { flex: 1, width: 'auto' },
   advance: { alignItems: 'center', flexDirection: 'row', gap: 8, justifyContent: 'space-between' },
   net: { alignItems: 'center', backgroundColor: '#0B2A1F', borderRadius: 12, boxShadow: '0px 4px 6px rgba(15,23,42,0.2)', flexDirection: 'row', flexWrap: 'wrap', gap: 12, justifyContent: 'space-between', padding: 16 },
   netTitle: { color: '#6EE7B7', fontSize: 12, fontWeight: '700', letterSpacing: 0.8 },
@@ -814,8 +823,8 @@ export const sheetStyles = StyleSheet.create({
   screen: { gap: spacing.md, maxWidth: 1280, paddingBottom: spacing.xl, paddingTop: spacing.sm },
   card: { backgroundColor: color.surfaceRaised, borderColor: line, borderRadius: radius.lg, borderWidth: 1, boxShadow: '0px 1px 2px rgba(15,23,42,0.06)', gap: spacing.md, padding: spacing.md },
   fields: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
-  field: { flexBasis: 180, flexGrow: 1 },
-  fieldWide: { flexBasis: 320, flexGrow: 2 },
+  field: { flexBasis: 180, flexGrow: 1, maxWidth: '100%' },
+  fieldWide: { flexBasis: 320, flexGrow: 2, maxWidth: '100%' },
   help: { color: color.textSecondary, fontSize: 14, lineHeight: 20 },
   grow: { flex: 1 },
   fullLine: { width: '100%' },
@@ -877,7 +886,7 @@ export const sheetStyles = StyleSheet.create({
   cancelEditText: { color: color.brand, fontSize: 15, fontWeight: '700' },
 
   subtotal: { alignItems: 'center', backgroundColor: '#EEF2FF', borderRadius: radius.md, flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, justifyContent: 'space-between', paddingHorizontal: spacing.md, paddingVertical: 12 },
-  subtotalCopy: { alignItems: 'center', flexDirection: 'row', gap: spacing.sm },
+  subtotalCopy: { alignItems: 'center', flexDirection: 'row', flexShrink: 1, flexWrap: 'wrap', gap: spacing.sm },
   subtotalTitle: { color: color.textPrimary, fontSize: 14, fontWeight: '800', letterSpacing: 0.6 },
   subtotalWeight: { alignItems: 'baseline', flexDirection: 'row', gap: spacing.sm },
   subtotalValue: { color: color.brand, fontSize: 26, fontVariant: ['tabular-nums'], fontWeight: '800' },
@@ -936,9 +945,9 @@ export const sheetStyles = StyleSheet.create({
   netValue: { color: color.textOnBrand, fontSize: 30, fontVariant: ['tabular-nums'], fontWeight: '800' },
 
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, justifyContent: 'flex-end' },
-  clear: { alignItems: 'center', backgroundColor: '#DBEAFE', borderRadius: radius.md, flexDirection: 'row', gap: spacing.sm, minHeight: 56, paddingHorizontal: spacing.lg },
+  clear: { alignItems: 'center', backgroundColor: '#DBEAFE', borderRadius: radius.md, flexDirection: 'row', gap: spacing.sm, justifyContent: 'center', minHeight: 56, paddingHorizontal: spacing.lg },
   clearText: { color: color.brand, fontSize: 17, fontWeight: '700' },
-  save: { alignItems: 'center', backgroundColor: color.brand, borderRadius: radius.md, flexDirection: 'row', gap: spacing.sm, minHeight: 56, paddingHorizontal: spacing.xl },
+  save: { alignItems: 'center', backgroundColor: color.brand, borderRadius: radius.md, flexDirection: 'row', gap: spacing.sm, justifyContent: 'center', minHeight: 56, paddingHorizontal: spacing.xl },
   saveText: { color: color.textOnBrand, fontSize: 18, fontWeight: '800' },
 
   input: { backgroundColor: color.surfaceRaised, borderColor: '#CBD5E1', borderRadius: radius.sm, borderWidth: 1, color: color.textPrimary, fontSize: 16, paddingHorizontal: 12, paddingVertical: 8 },
