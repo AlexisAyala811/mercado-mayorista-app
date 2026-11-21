@@ -26,7 +26,6 @@ import { UserEntity, UserRole } from '../src/identity/entities/user.entity.js';
 import { PasswordHasher } from '../src/identity/security/password-hasher.js';
 import { InventoryLotEntity } from '../src/inventory/entities/inventory-lot.entity.js';
 import { InventoryMovementEntity } from '../src/inventory/entities/inventory-movement.entity.js';
-import { InventoryService } from '../src/inventory/inventory.service.js';
 import {
   CalculationBasis,
   PaymentMode,
@@ -124,16 +123,6 @@ export function registerCommercialDatabaseScenarios(
     const sales = dataSource.getRepository(SaleEntity);
     const saleLines = dataSource.getRepository(SaleLineEntity);
     const salesService = new SalesService(dataSource, audit, sales, saleLines);
-    const inventoryLots = dataSource.getRepository(InventoryLotEntity);
-    const inventoryMovements = dataSource.getRepository(
-      InventoryMovementEntity,
-    );
-    const inventoryService = new InventoryService(
-      dataSource,
-      audit,
-      inventoryLots,
-      inventoryMovements,
-    );
     const receiptDocuments = dataSource.getRepository(ReceiptDocumentEntity);
     const receiptsService = new ReceiptsService(
       dataSource,
@@ -203,7 +192,6 @@ export function registerCommercialDatabaseScenarios(
       freightService,
       freightSettlements,
       identity,
-      inventoryService,
       provider,
       purchaseService,
       receptionService,
