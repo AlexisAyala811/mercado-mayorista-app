@@ -1,27 +1,12 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { AuditModule } from '../audit/audit.module.js';
 import { IdentityModule } from '../identity/identity.module.js';
-import { InventoryLotEntity } from './entities/inventory-lot.entity.js';
-import { InventoryMovementEntity } from './entities/inventory-movement.entity.js';
 import { InventoryController } from './inventory.controller.js';
-import { InventoryService } from './inventory.service.js';
-import { SaleEntity } from '../sales/entities/sale.entity.js';
-import { SaleLineEntity } from '../sales/entities/sale-line.entity.js';
 
+// Inventory is not part of the system (CL-12). Only the retired routes remain,
+// answering 410; the tables keep their historical rows (T1707).
 @Module({
   controllers: [InventoryController],
-  imports: [
-    AuditModule,
-    IdentityModule,
-    TypeOrmModule.forFeature([
-      InventoryLotEntity,
-      InventoryMovementEntity,
-      SaleEntity,
-      SaleLineEntity,
-    ]),
-  ],
-  providers: [InventoryService],
+  imports: [IdentityModule],
 })
 export class InventoryModule {}
