@@ -5,7 +5,7 @@ import { Keyboard, Modal, Pressable, ScrollView, StyleSheet, Text, View, type Te
 import { formatMoney } from '@/domain/reception/reception';
 import type { SalePreview } from '@/domain/sales/sale-preview';
 import { saleLineGrams, validSackWeight, type SaleLineDraft } from '@/domain/sales/sale';
-import { BigTotal, gramsToKg, Line, sheetLayout as p, sheetRowHeight, SheetInput, sheetStyles as s, SheetTable, useSheetColumns } from '@/features/reception/screens/purchase-sheet';
+import { BigTotal, gramsToKg, Line, sheetLayout as p, sheetRowHeight, SheetInput, sheetStyles as s, SheetTable, useNarrowSheet, useSheetColumns } from '@/features/reception/screens/purchase-sheet';
 import type { InstallmentDraft } from '@/features/reception/screens/settlement-screen';
 import { AppScreen, ConfirmationDialog, FeedbackState, FormField, SelectionField } from '@/ui/components';
 import { DateDialog } from '@/features/sales/components/date-dialog';
@@ -111,6 +111,7 @@ export function SaleSheet(props: SaleSheetProps) {
   const planned = quickLoad;
   const cells = useMemo<Cell[]>(() => slots.map((value, index) => ({ index, value })), [slots]);
   const columns = useSheetColumns();
+  const narrow = useNarrowSheet();
   const rows = useMemo(() => {
     const chunks: Cell[][] = [];
     for (let index = 0; index < cells.length; index += columns) chunks.push(cells.slice(index, index + columns));
@@ -194,7 +195,7 @@ export function SaleSheet(props: SaleSheetProps) {
         {props.buyerNotice ? <Text accessibilityLiveRegion="polite" style={buyerStyles.notice}>{props.buyerNotice}</Text> : null}
       </View>
 
-      <View style={[s.card, s.tabsCard]}>
+      <View style={[s.card, s.tabsCard, narrow && s.stack]}>
         <View accessibilityRole="tablist" style={s.tabs}>
           {props.lines.length ? props.lines.map((line, index) => {
             const selected = index === activeIndex;
@@ -216,7 +217,7 @@ export function SaleSheet(props: SaleSheetProps) {
 
       <View style={s.card} testID="sale-lot">
         {active ? (
-          <View style={s.lotHeader}>
+          <View style={[s.lotHeader, narrow && s.stack]}>
             <View style={s.lotChip}>
               <SymbolView fallback={null} name={{ android: 'inventory_2', ios: 'shippingbox', web: 'inventory_2' }} size={20} tintColor="#6EE7B7" />
               <Text numberOfLines={1} style={s.lotChipText}>{props.lineName(active)}</Text>
@@ -238,8 +239,8 @@ export function SaleSheet(props: SaleSheetProps) {
           </View>
         ) : null}
 
-        <View style={s.gridHeader}>
-          <View style={p.gridTitle}>
+        <View style={[s.gridHeader, narrow && s.stack]}>
+          <View style={[p.gridTitle, narrow && s.stack]}>
             <Text accessibilityRole="header" style={s.overline}>PESAJE DE SACOS INDIVIDUALES (KG)</Text>
             <Text style={p.gridHint}>· Escribe el peso en cada casilla; toca × para limpiar un saco</Text>
           </View>
@@ -261,7 +262,7 @@ export function SaleSheet(props: SaleSheetProps) {
                       <View style={[slotStyles.number, filled && slotStyles.numberFilled]}><Text style={[slotStyles.numberText, filled && slotStyles.numberTextFilled]}>{number}</Text></View>
                       <View style={slotStyles.right}>
                         <SheetInput accessibilityHint={invalid ? 'Escribe kilos enteros mayores que cero' : undefined} accessibilityLabel={`Peso del saco ${cell.index + 1} (kg)`} editable={!busy} importantForAutofill="no" keyboardType="number-pad" autoComplete="off" autoCorrect={false} onChangeText={(value) => typeSlot(cell.index, value)} onSubmitEditing={() => focusCell(cell.index + 1)} placeholder="0.0" ref={(node) => { if (node) cellRefs.current.set(cell.index, node); else cellRefs.current.delete(cell.index); }} returnKeyType={cell.index + 1 < slots.length ? 'next' : 'done'} style={slotStyles.input} submitBehavior={cell.index + 1 < slots.length ? 'submit' : 'blurAndSubmit'} value={cell.value} />
-                        <Text style={slotStyles.unit}>kg</Text>
+                        {narrow ? null : <Text style={slotStyles.unit}>kg</Text>}
                         <Pressable accessibilityLabel={`Limpiar saco ${cell.index + 1}`} accessibilityRole="button" disabled={busy} hitSlop={6} onPress={() => clearSlot(cell.index)} style={({ pressed }) => [slotStyles.clear, pressed && s.dimmed]}>
                           <SymbolView fallback={null} name={{ android: 'close', ios: 'xmark', web: 'close' }} size={14} tintColor="#727974" />
                         </Pressable>
@@ -284,7 +285,7 @@ export function SaleSheet(props: SaleSheetProps) {
             </Pressable>
             <Pressable accessibilityHint="Llena con 50 kilos las casillas vacías y agrega las que falten hasta 10 sacos; luego puedes corregir cada peso" accessibilityLabel="Carga rápida de 10 sacos a 50 kilos" accessibilityRole="button" disabled={busy} onPress={quickFill} style={({ pressed }) => [p.tareBox, (pressed || busy) && s.dimmed]} testID="sale-quick-load">
               <SymbolView fallback={null} name={{ android: 'library_add', ios: 'plus.square.on.square', web: 'library_add' }} size={18} tintColor={accent.emerald.pillInk} />
-              <Text style={p.tareLabel}>+ Carga rápida (10 sacos a 50 kg)</Text>
+              <Text style={[p.tareLabel, p.quickLoadLabel]}>+ Carga rápida (10 sacos a 50 kg)</Text>
             </Pressable>
           </View>
         ) : null}
@@ -372,7 +373,7 @@ export function SaleSheet(props: SaleSheetProps) {
               <Text style={s.freightTimes}>× S/</Text>
               <SheetInput accessibilityLabel="Tarifa de flete (S/)" editable={!busy} keyboardType="decimal-pad" onChangeText={(value) => props.onChange('freightRate', value)} placeholder="0.00" style={s.freightInput} value={props.freightRate} />
             </View>
-            <Text style={[s.help, s.grow]}>{props.freightRate.trim() && Number(props.freightRate.replace(',', '.')) > 0 ? 'Tarifa por unidad seleccionada' : 'Tarifa 0: la venta va sin flete'}</Text>
+            <Text style={[s.help, narrow ? s.fullLine : s.grow]}>{props.freightRate.trim() && Number(props.freightRate.replace(',', '.')) > 0 ? 'Tarifa por unidad seleccionada' : 'Tarifa 0: la venta va sin flete'}</Text>
             <Text style={p.freightLabel}>SUBTOTAL FLETE:</Text>
             <Text accessibilityLabel={`Subtotal de flete: ${money('freightCents')}`} style={s.freightAmount}>{money('freightCents')}</Text>
           </View>
@@ -408,13 +409,13 @@ export function SaleSheet(props: SaleSheetProps) {
           <View style={p.summaryLeft}>
             <Line label="Total cobro (producto):" value={money('grossCents')} />
             <Line label={props.freightIncluded ? 'Flete / estiba (cobro):' : 'Flete / estiba (separado, no suma):'} value={props.freightBasis === 'none' ? 'S/ 0.00' : money('freightCents')} />
-            <View style={p.line}>
-              <Text style={p.lineLabel}>Otros cargos / ajustes:</Text>
+            <View style={[p.line, narrow && p.lineWrap]}>
+              <Text style={[p.lineLabel, narrow && p.lineLabelFull]}>Otros cargos / ajustes:</Text>
               <Text style={p.currency}>S/</Text>
-              <SheetInput accessibilityLabel="Descuentos (S/)" editable={!busy} keyboardType="decimal-pad" onChangeText={(value) => props.onChange('discounts', value)} placeholder="0.00" style={p.lineInput} value={props.discounts} />
+              <SheetInput accessibilityLabel="Descuentos (S/)" editable={!busy} keyboardType="decimal-pad" onChangeText={(value) => props.onChange('discounts', value)} placeholder="0.00" style={[p.lineInput, narrow && p.lineInputFill]} value={props.discounts} />
             </View>
           </View>
-          <View style={p.summaryRight}>
+          <View style={[p.summaryRight, narrow && p.summaryRightNarrow]}>
             <View style={p.net}>
               <View>
                 <Text style={p.netTitle}>TOTAL NETO A COBRAR</Text>
@@ -441,7 +442,7 @@ export function SaleSheet(props: SaleSheetProps) {
         <Text style={s.help}>Importes provisionales: el servidor los verifica al guardar y registra la venta y su efecto en caja o en la cuenta del comprador.</Text>
       </View>
 
-      <View style={s.actions}>
+      <View style={[s.actions, narrow && s.stack]}>
         <Pressable accessibilityLabel="Limpiar registro" accessibilityRole="button" disabled={busy} onPress={props.onClear} style={({ pressed }) => [s.clear, (pressed || busy) && s.dimmed]}>
           <SymbolView fallback={null} name={{ android: 'restart_alt', ios: 'arrow.counterclockwise', web: 'restart_alt' }} size={22} tintColor={color.brand} />
           <Text style={s.clearText}>Limpiar registro</Text>
