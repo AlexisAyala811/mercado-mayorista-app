@@ -54,6 +54,14 @@ La especificación 008 incorpora HU15/RF25–26 y centraliza avisos HU14. Cuenta
 - [x] Rechazar con `409 operation-id-conflict` un UUID reutilizado con datos distintos en recepciones, sacos, compras, ventas, devoluciones, abonos, reversos, estiba y flete; conservar el resultado original y no aplicar efectos. `backend/src/common/domain/operation-replay.ts`; 10 pruebas nuevas (reutilización en cuenta, importe, reverso, venta, comprador, proveedor y registros de flete). Evidencia: [verificación del backend](../../docs/sdd/verificacion-backend-2026-10-29.md).
 - [x] Ejecutar las e2e en PostgreSQL de forma secuencial: las suites compartían la base y migraban en paralelo. 35/35 en local y en la CI de los PR #1 y #2.
 - [ ] Tratar `409 operation-id-conflict` en la cola cifrada de Android: no reintentar, mostrar la orden en revisión y reenviar con UUID nuevo solo tras confirmación. Verificar en tablet.
+  - **Implementado el 21 nov 2026** (rama `feat/005-conflicto-uuid`):
+    - **Antes:** «Reintentar» consultaba el servidor por el mismo UUID, encontraba el registro con los otros datos y marcaba la operación como confirmada. Así se perdían los datos nuevos sin avisar.
+    - **Revisión:** la operación queda en revisión con el código `operation-id-conflict` y un mensaje que explica qué hacer. Ni el envío automático ni «Reintentar» la reenvían ni la recuperan de ese registro.
+    - **«Reenviar como nueva»:** el botón pide confirmación y advierte que, si la operación ya está registrada, se duplicaría. Al confirmar se crea una copia con UUID nuevo, también en `clientOperationId`, que conserva su lugar en la cola. Las operaciones que esperaban a la original (por ejemplo, sacos de una recepción) pasan a esperar a la copia. La original queda descartada como evidencia.
+    - **Descarte:** no consulta el registro central de ese UUID.
+    - **Otros 409** (versión o saldo) siguen como antes.
+  - **Pruebas:** `app/tests/sync/operation-id-conflict.test.tsx` (7) y `app/tests/sync/sync-queue-conflict-screen.test.tsx` (2). Suite completa: 110 archivos y 751 pruebas en verde; `tsc` y `expo lint` sin errores.
+  - **Falta** verificarlo en la tablet con un conflicto real.
 
 ## Impacto del frontend MAÑAY — 4 de noviembre de 2026
 
