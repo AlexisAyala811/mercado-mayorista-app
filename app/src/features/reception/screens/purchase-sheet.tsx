@@ -1,6 +1,6 @@
 import { SymbolView } from '@/ui/components/symbol';
 import { useContext, useEffect, useMemo, useRef, useState, type ReactNode, type Ref } from 'react';
-import { Keyboard, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View, type TextInputProps } from 'react-native';
+import { Keyboard, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View, type TextInputProps } from 'react-native';
 
 import { emptyLotDraft, formatPreviewMoney, previewLotAmount, type PurchaseLot, type PurchasePreview } from '@/domain/reception/purchase-preview';
 import { formatKilograms } from '@/domain/reception/whole-kilograms';
@@ -23,6 +23,29 @@ export type SheetVariety = { id: string; name: string };
 
 export const sheetColumns = 5;
 export const sheetRowHeight = 56;
+// Spec 019: below this width (a phone) the sheet stacks in one column, the
+// grid shows 2 sacks per row (CL-19-02: with 3 the weight box was 16 px wide)
+// and the table slides sideways inside its card instead of squeezing its
+// columns.
+export const narrowSheetWidth = 760;
+const tableMinWidth = 880;
+
+export const narrowSheetColumns = 2;
+
+export function useSheetColumns() {
+  const { width } = useWindowDimensions();
+  return width >= narrowSheetWidth ? sheetColumns : narrowSheetColumns;
+}
+
+export function SheetTable({ children }: { children: ReactNode }) {
+  const { width } = useWindowDimensions();
+  if (width >= narrowSheetWidth) return <>{children}</>;
+  return (
+    <ScrollView accessibilityHint="Desliza de lado para ver todas las columnas" contentContainerStyle={sheetLayout.tableScroll} horizontal nestedScrollEnabled testID="sheet-table-scroll">
+      <View style={sheetLayout.tableInner}>{children}</View>
+    </ScrollView>
+  );
+}
 const gridMaxHeight = 380;
 // Rows drawn above and below the visible ones.
 const gridOverscan = 4;
@@ -145,11 +168,12 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
     const timer = setTimeout(() => draftRef.current?.focus(), 250);
     return () => clearTimeout(timer);
   }, [activeSacks, editing]);
+  const columns = useSheetColumns();
   const rows = useMemo(() => {
     const chunks: (typeof cells)[] = [];
-    for (let index = 0; index < cells.length; index += sheetColumns) chunks.push(cells.slice(index, index + sheetColumns));
+    for (let index = 0; index < cells.length; index += columns) chunks.push(cells.slice(index, index + columns));
     return chunks;
-  }, [cells]);
+  }, [cells, columns]);
   // Window of rows drawn in the grid; the spacers keep the scroll height.
   const windowStart = Math.max(0, Math.min(firstRow, Math.max(0, rows.length - gridVisibleRows)) - gridOverscan);
   const windowEnd = Math.min(rows.length, windowStart + gridVisibleRows + gridOverscan * 2);
@@ -185,7 +209,7 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
     setTargetMessage(null);
     setHighlightedId(sack.id);
     if (sack.varietyId !== active?.id) { props.onSelectVariety(sack.varietyId); return; }
-    const index = Math.floor(activeSacks.indexOf(sack) / sheetColumns);
+    const index = Math.floor(activeSacks.indexOf(sack) / columns);
     setFirstRow(index);
     gridRef.current?.scrollTo({ animated: true, y: Math.max(0, (index - 2) * sheetRowHeight) });
   }
@@ -373,7 +397,7 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
                     </Pressable>
                   );
                 })}
-                {Array.from({ length: sheetColumns - row.length }, (_, index) => <View key={`gap-${index}`} style={[s.cell, s.cellGap]} />)}
+                {Array.from({ length: columns - row.length }, (_, index) => <View key={`gap-${index}`} style={[s.cell, s.cellGap]} />)}
               </View>
             ))}
             <View style={{ height: Math.max(0, rows.length - windowEnd) * sheetRowHeight }} />
@@ -429,6 +453,7 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
           </View>
           <Text style={s.help}>Cálculos automáticos acumulados</Text>
         </View>
+        <SheetTable>
         <View style={s.tableHead}>
           <Text style={[s.th, s.colLot]}>LOTE</Text>
           <Text style={[s.th, s.colVariety]}>VARIEDAD PAPA</Text>
@@ -468,6 +493,7 @@ export function PurchaseSheet(props: PurchaseSheetProps) {
             <Text accessibilityLabel={`${variety.name}: sin sacos, S/ 0.00`} style={[s.amount, s.colAmount]}>S/ 0.00</Text>
           </View>
         ))}
+        </SheetTable>
         {props.lots.length || props.varieties.length ? null : <Text style={s.empty}>Los lotes aparecen al registrar el primer saco.</Text>}
         <View style={sheetLayout.totals}>
           <BigTotal label="TOTAL SACOS ACOPIADOS:" unit="uds" value={`${totalSacks}`} />
@@ -620,8 +646,11 @@ export function Line({ label, value }: { label: string; value: string }) {
 // Styles of the purchase sheet that the sale sheet does not share.
 export const sheetLayout = StyleSheet.create({
   details: { flexDirection: 'row', flexWrap: 'wrap', gap: 16 },
-  detailWide: { flexBasis: 360, flexGrow: 2, minWidth: 0 },
-  detail: { flexBasis: 170, flexGrow: 1, minWidth: 0 },
+  // maxWidth keeps a 360 px field inside a phone-wide card (spec 019).
+  detailWide: { flexBasis: 360, flexGrow: 2, maxWidth: '100%', minWidth: 0 },
+  detail: { flexBasis: 170, flexGrow: 1, maxWidth: '100%', minWidth: 0 },
+  tableScroll: { flexGrow: 1, minWidth: tableMinWidth },
+  tableInner: { flex: 1, gap: spacing.md },
   tabsLinks: { marginRight: 8 },
   emptyVariety: { color: '#475569', fontSize: 15, fontWeight: '600', paddingHorizontal: 12 },
   emptyPrice: { color: '#94A3B8', fontSize: 12, fontWeight: '600' },
@@ -655,7 +684,7 @@ export const sheetLayout = StyleSheet.create({
   dateValue: { color: '#0B1C30', fontSize: 14, fontWeight: '500' },
   dateValueLocked: { color: '#475569' },
   cellNumberDraft: { backgroundColor: '#047857' },
-  cellInput: { flex: 1, fontSize: 16, fontWeight: '800', minHeight: 34, paddingHorizontal: 8, paddingVertical: 2, textAlign: 'right' },
+  cellInput: { flex: 1, fontSize: 16, fontWeight: '800', minHeight: 34, minWidth: 0, paddingHorizontal: 8, paddingVertical: 2, textAlign: 'right' },
   addRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   addSack: { alignItems: 'center', backgroundColor: '#EFF4FF', borderColor: 'rgba(4,120,87,0.4)', borderRadius: 12, borderStyle: 'dashed', borderWidth: 2, flexBasis: 300, flexDirection: 'row', flexGrow: 1, gap: 8, justifyContent: 'center', minHeight: 48, paddingHorizontal: 12 },
   addSackText: { color: accent.emerald.ink, fontSize: 14, fontWeight: '700' },
@@ -816,7 +845,7 @@ export const sheetStyles = StyleSheet.create({
   gridBox: { backgroundColor: '#F8FAFC', borderColor: line, borderRadius: radius.md, borderWidth: 1, padding: 4 },
   grid: { maxHeight: gridMaxHeight },
   gridRow: { flexDirection: 'row', gap: spacing.sm, height: sheetRowHeight, paddingHorizontal: 4, paddingVertical: 4 },
-  cell: { alignItems: 'center', backgroundColor: soft, borderColor: line, borderRadius: radius.md, borderWidth: 1, flex: 1, flexDirection: 'row', gap: 6, paddingHorizontal: spacing.sm },
+  cell: { alignItems: 'center', backgroundColor: soft, borderColor: line, borderRadius: radius.md, borderWidth: 1, flex: 1, flexDirection: 'row', gap: 6, minWidth: 0, paddingHorizontal: spacing.sm },
   cellGap: { opacity: 0 },
   cellHighlighted: { backgroundColor: accent.emerald.tint, borderColor: color.successAccent },
   cellNumber: { alignItems: 'center', backgroundColor: color.brand, borderRadius: 6, height: 28, justifyContent: 'center', minWidth: 28, paddingHorizontal: 4 },
