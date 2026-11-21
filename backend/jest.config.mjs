@@ -36,9 +36,6 @@ export default {
     '!src/**/*.spec.ts',
     '!src/main.ts',
     '!src/database/migrations/**',
-    // Retired inventory service and DTO (CL-12); T1707 removes them.
-    '!src/inventory/inventory.service.ts',
-    '!src/inventory/http/adjust-inventory.dto.ts',
   ],
   coverageProvider: 'v8',
   coverageReporters: ['text-summary', 'json-summary', 'html'],

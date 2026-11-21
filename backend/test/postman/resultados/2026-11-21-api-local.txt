@@ -1,0 +1,174 @@
+Running your collection...
+Generating run output...
+postman
+
+MAÑAY · Escenarios de calidad (Sprint 2)
+
+Folder AC01 · Disponibilidad y tiempo de respuesta
+
+  GET http://127.0.0.1:3100/api/v1/health/ready [200 OK, 1.18 KB, 142 ms]
+  Pass  responde 200
+  Pass  la base de datos está disponible
+  Pass  responde en menos de 3 s (AC01)
+
+Folder Autenticación
+
+  POST http://127.0.0.1:3100/api/v1/auth/sessions [201 Created, 1.25 KB, 67 ms]
+  Pass  responde 201 con token
+  Pass  el rol es Mayorista
+
+
+  POST http://127.0.0.1:3100/api/v1/auth/sessions [401 Unauthorized, 1.19 KB, 54 ms]
+  Pass  responde 401
+  Pass  no entrega token
+
+
+  GET http://127.0.0.1:3100/api/v1/catalog/providers [401 Unauthorized, 1.2 KB, 3 ms]
+  Pass  responde 401
+
+Folder Preparación
+
+  POST http://127.0.0.1:3100/api/v1/catalog/providers [201 Created, 1.23 KB, 10 ms]
+  Pass  responde 201
+
+
+  POST http://127.0.0.1:3100/api/v1/catalog/varieties [201 Created, 1.21 KB, 12 ms]
+  Pass  responde 201
+
+Folder AC03 · Idempotencia
+
+  POST http://127.0.0.1:3100/api/v1/receptions [201 Created, 1.78 KB, 15 ms]
+  Pass  envío 1: responde 201
+
+Attempting to set next request to Enviar la misma recepción cinco veces
+
+
+  POST http://127.0.0.1:3100/api/v1/receptions [201 Created, 1.78 KB, 7 ms]
+  Pass  envío 2: responde 201
+  Pass  envío 2: devuelve la misma recepción
+
+Attempting to set next request to Enviar la misma recepción cinco veces
+
+
+  POST http://127.0.0.1:3100/api/v1/receptions [201 Created, 1.78 KB, 7 ms]
+  Pass  envío 3: responde 201
+  Pass  envío 3: devuelve la misma recepción
+
+Attempting to set next request to Enviar la misma recepción cinco veces
+
+
+  POST http://127.0.0.1:3100/api/v1/receptions [201 Created, 1.78 KB, 5 ms]
+  Pass  envío 4: responde 201
+  Pass  envío 4: devuelve la misma recepción
+
+Attempting to set next request to Enviar la misma recepción cinco veces
+
+
+  POST http://127.0.0.1:3100/api/v1/receptions [201 Created, 1.78 KB, 8 ms]
+  Pass  envío 5: responde 201
+  Pass  envío 5: devuelve la misma recepción
+
+
+  GET http://127.0.0.1:3100/api/v1/receptions?providerId=18b3c567-ff89-411f-b85b-19c23c97b8de [200 OK, 1.85 KB, 9 ms]
+  Pass  responde 200
+  Pass  un solo registro tras cinco envíos
+
+
+  POST http://127.0.0.1:3100/api/v1/receptions [409 Conflict, 1.25 KB, 6 ms]
+  Pass  responde 409
+  Pass  código operation-id-conflict
+
+
+  GET http://127.0.0.1:3100/api/v1/receptions/284c2f98-6841-4e50-8ea1-bfb8c890ae32 [200 OK, 1.81 KB, 7 ms]
+  Pass  responde 200
+  Pass  conserva los datos del primer envío
+
+Folder AC04 · Aislamiento por negocio
+
+  POST http://127.0.0.1:3100/api/v1/auth/sessions [201 Created, 1.25 KB, 70 ms]
+  Pass  responde 201
+  Pass  es otro negocio
+
+
+  GET http://127.0.0.1:3100/api/v1/receptions/284c2f98-6841-4e50-8ea1-bfb8c890ae32 [404 Not Found, 1.22 KB, 10 ms]
+  Pass  responde 404
+  Pass  no expone datos de A
+
+
+  GET http://127.0.0.1:3100/api/v1/receptions?providerId=18b3c567-ff89-411f-b85b-19c23c97b8de [200 OK, 1.03 KB, 5 ms]
+  Pass  responde 200
+  Pass  cero registros
+
+
+  GET http://127.0.0.1:3100/api/v1/audit/events?action=authorization.cross-business-denied [200 OK, 2.17 KB, 9 ms]
+  Pass  responde 200
+  Pass  registra el intento sobre la recepción de A
+
+Folder Roles · Encargado con reemplazo (HU12)
+
+  POST http://127.0.0.1:3100/api/v1/identity/assistants [201 Created, 1.23 KB, 54 ms]
+  Pass  responde 201
+  Pass  el rol es Encargado
+
+
+  POST http://127.0.0.1:3100/api/v1/auth/sessions [401 Unauthorized, 1.19 KB, 71 ms]
+  Pass  responde 401
+
+
+  POST http://127.0.0.1:3100/api/v1/identity/assistants/d0052dad-c0e1-4560-a82e-c598720e15fa/delegations [201 Created, 1.37 KB, 5 ms]
+  Pass  responde 201
+
+
+  POST http://127.0.0.1:3100/api/v1/auth/sessions [201 Created, 1.25 KB, 48 ms]
+  Pass  responde 201
+
+
+  POST http://127.0.0.1:3100/api/v1/receptions [201 Created, 1.79 KB, 20 ms]
+  Pass  responde 201
+
+
+  GET http://127.0.0.1:3100/api/v1/identity/assistants [403 Forbidden, 1.19 KB, 8 ms]
+  Pass  responde 403
+
+
+  GET http://127.0.0.1:3100/api/v1/audit/events [403 Forbidden, 1.19 KB, 7 ms]
+  Pass  responde 403
+
+
+  GET http://127.0.0.1:3100/api/v1/audit/events?action=authorization.denied [200 OK, 2.73 KB, 4 ms]
+  Pass  responde 200
+  Pass  registra al Encargado
+
+
+  DELETE http://127.0.0.1:3100/api/v1/identity/delegations/9872533c-6927-486c-967c-63e3f2a441e8 [204 No Content, 914 B, 13 ms]
+  Pass  responde 2xx
+
+
+  GET http://127.0.0.1:3100/api/v1/catalog/providers [401 Unauthorized, 1.2 KB, 5 ms]
+  Pass  responde 401
+
+Folder Seguridad · límite de intentos
+
+  POST http://127.0.0.1:3100/api/v1/auth/sessions [429 Too Many Requests, 1.14 KB, 4 ms]
+  Pass  responde 429
+
+----------------------------------------------------------------------
+|                         |            executed |             failed |
+--------------------------+---------------------+---------------------
+|              iterations |                   1 |                  0 |
+--------------------------+---------------------+---------------------
+|                requests |                  29 |                  0 |
+--------------------------+---------------------+---------------------
+|            test-scripts |                  29 |                  0 |
+--------------------------+---------------------+---------------------
+|      prerequest-scripts |                   8 |                  0 |
+--------------------------+---------------------+---------------------
+|              assertions |                  46 |                  0 |
+----------------------------------------------------------------------
+| total run duration: 2.2 s                                          |
+----------------------------------------------------------------------
+| total data received: 13 KB (approx)                                |
+----------------------------------------------------------------------
+| average response time: 23 ms [min: 3 ms, max: 142 ms, s.d.: 31 ms] |
+----------------------------------------------------------------------
+
