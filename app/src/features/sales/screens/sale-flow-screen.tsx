@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Platform, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import { useNavigation, useRouter, type Href } from 'expo-router';
 import { usePreventRemove } from 'expo-router/react-navigation';
 import {useBrowserTraversalGuard} from '@/navigation/use-browser-traversal-guard';
@@ -38,10 +38,9 @@ export function SaleFlowScreen() {
   const { invalidateSession, session, isOfflineSession } = useSession();
   const { enqueue, sendQueued } = useSyncQueue();
   const token = session?.accessToken ?? '';
-  // Spec 011 (RQ-ST14, CL-ST19): on the tablet the sale is one screen, as in
-  // Stitch; narrower screens and large text keep the form.
-  const { fontScale, width } = useWindowDimensions();
-  const sheet = width >= 1100 && fontScale <= 1.2;
+  // Spec 011 (RQ-ST14, CL-ST19) and spec 019 (CL-19-01): the sale is one
+  // screen, as in Stitch, on the tablet and on the phone.
+  const sheet = true;
   const [activeLineId, setActiveLineId] = useState<string | null>(null);
   const [dispatchDate, setDispatchDate] = useState(() => formatLocalDateInput());
   // CL-ST23: the buyer is typed in the sheet. A new name is registered when the

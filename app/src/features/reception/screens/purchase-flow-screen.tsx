@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useNavigation, type Href } from 'expo-router';
 import { usePreventRemove } from 'expo-router/react-navigation';
 import {useBrowserTraversalGuard} from '@/navigation/use-browser-traversal-guard';
-import { Platform, useWindowDimensions } from 'react-native';
+import { Platform } from 'react-native';
 import { backOrHome } from '@/navigation/back-or-home';
 import { readInitialPurchaseDraft, rememberInitialPurchaseDraft, clearInitialPurchaseDraft } from '@/domain/reception/initial-purchase-draft';
 
@@ -54,10 +54,10 @@ export function PurchaseFlowScreen({ initialReceptionId }: { initialReceptionId?
   const { invalidateSession, isOfflineSession, session } = useSession();
   const { enqueue, sendQueued, operations = [], isLoadingQueue = false, queueError } = useSyncQueue();
   const token = session?.accessToken ?? '';
-  // Spec 011 (RQ-ST13): on the tablet the whole purchase is one screen, as in
-  // Stitch; narrower screens and large text keep the step by step flow.
-  const { fontScale, width } = useWindowDimensions();
-  const sheet = width >= 1100 && fontScale <= 1.2;
+  // Spec 011 (RQ-ST13) and spec 019 (CL-19-01): the whole purchase is one
+  // screen, as in Stitch, on the tablet and on the phone; the sheet stacks its
+  // columns on narrow screens.
+  const sheet = true;
   const [step, setStep] = useState<Step>('details');
   const [initialDraft] = useState(() => ({ baseline: initialDetails(), recovered: initialReceptionId ? null : readInitialPurchaseDraft(token) }));
   const [details, setDetails] = useState(initialDraft.recovered?.details ?? initialDraft.baseline);

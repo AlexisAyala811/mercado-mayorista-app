@@ -3,10 +3,18 @@ import { act, create, type ReactTestRenderer } from 'react-test-renderer';
 
 import { calculatePurchasePreview, emptyLotDraft, groupPurchaseLots } from '@/domain/reception/purchase-preview';
 import type { ReceptionSack } from '@/domain/reception/reception';
-import { PurchaseSheet, sheetColumns, sheetRowHeight, type PurchaseSheetProps, type SheetSack } from '@/features/reception/screens/purchase-sheet';
+import { narrowSheetColumns, PurchaseSheet, sheetColumns, sheetRowHeight, type PurchaseSheetProps, type SheetSack } from '@/features/reception/screens/purchase-sheet';
 import type { SettlementDraft } from '@/features/reception/screens/settlement-screen';
 
 const mockBottomNav = jest.fn();
+// Spec 019: the width decides the columns of the grid (5 on the tablet, 2 on a phone).
+let mockWidth = 1280;
+jest.mock('react-native', () => {
+  const descriptors = Object.getOwnPropertyDescriptors(jest.requireActual('react-native'));
+  delete descriptors.useWindowDimensions;
+  return Object.defineProperties({ useWindowDimensions: jest.fn(() => ({ width: mockWidth, height: 800, scale: 1, fontScale: 1 })) }, descriptors);
+});
+afterEach(() => { mockWidth = 1280; });
 jest.mock('expo-symbols', () => ({ SymbolView: () => null }));
 jest.mock('@/ui/navigation/app-chrome', () => ({ useBottomNav: (options: object) => mockBottomNav(options) }));
 jest.mock('@/ui/navigation/app-header', () => ({ AppHeader: (props: object) => jest.requireActual('react').createElement('test-header', props) }));
@@ -75,21 +83,25 @@ const drawnSacks = (root: ReactTestRenderer) => root.root.findAll((node) => type
 const nextAction = () => mockBottomNav.mock.calls.at(-1)![0].next as { label: string; disabled: boolean; onPress: () => void };
 
 describe('grid of sacks', () => {
-  it('keeps 250 sacks fluid: five per row, fixed rows and only the visible ones drawn', async () => {
+  it.each([
+    ['tablet', 1280, sheetColumns],
+    ['phone', 412, narrowSheetColumns],
+  ])('keeps 250 sacks fluid on a %s: its columns per row, fixed rows and only the visible ones drawn', async (_device, width, columns) => {
+    mockWidth = width;
     const root = await render({ sacks: cells(250) });
     const drawn = drawnSacks(root);
-    expect(drawn.slice(0, sheetColumns)).toEqual([1, 2, 3, 4, 5]);
+    expect(drawn.slice(0, columns)).toEqual(Array.from({ length: columns }, (_, index) => index + 1));
     expect(drawn.length).toBeGreaterThan(0);
     expect(drawn.length).toBeLessThan(100);
-    // The spacers keep the height of the 50 rows of sacks plus the row of the next one.
+    // The spacers keep the height of the rows of sacks plus the row of the next one.
     const grid = root.root.findAll((node) => node.props.testID === 'sack-grid' && typeof node.props.onScroll === 'function')[0]!;
     const spacers = grid.findAll((node) => typeof node.type === 'string' && typeof node.props.style?.height === 'number' && node.props.children === undefined);
-    const drawnRows = drawn.length / sheetColumns;
-    expect(spacers.reduce((total, node) => total + node.props.style.height, 0)).toBe((51 - drawnRows) * sheetRowHeight);
+    const drawnRows = Math.ceil(drawn.length / columns);
+    expect(spacers.reduce((total, node) => total + node.props.style.height, 0)).toBe((Math.ceil(251 / columns) - drawnRows) * sheetRowHeight);
     expect(labelled(root, 'Lote A: Canchán, 250 sacos')).not.toHaveLength(0);
     // Scrolling moves the window.
     await act(async () => { grid.props.onScroll({ nativeEvent: { contentOffset: { y: 40 * sheetRowHeight } } }); });
-    expect(drawnSacks(root)).toContain(201);
+    expect(drawnSacks(root)).toContain(40 * columns + 1);
     expect(drawnSacks(root)).not.toContain(1);
   });
 

@@ -5,7 +5,7 @@ import { Keyboard, Modal, Pressable, ScrollView, StyleSheet, Text, View, type Te
 import { formatMoney } from '@/domain/reception/reception';
 import type { SalePreview } from '@/domain/sales/sale-preview';
 import { saleLineGrams, validSackWeight, type SaleLineDraft } from '@/domain/sales/sale';
-import { BigTotal, gramsToKg, Line, sheetColumns, sheetLayout as p, sheetRowHeight, SheetInput, sheetStyles as s } from '@/features/reception/screens/purchase-sheet';
+import { BigTotal, gramsToKg, Line, sheetLayout as p, sheetRowHeight, SheetInput, sheetStyles as s, SheetTable, useSheetColumns } from '@/features/reception/screens/purchase-sheet';
 import type { InstallmentDraft } from '@/features/reception/screens/settlement-screen';
 import { AppScreen, ConfirmationDialog, FeedbackState, FormField, SelectionField } from '@/ui/components';
 import { DateDialog } from '@/features/sales/components/date-dialog';
@@ -110,11 +110,12 @@ export function SaleSheet(props: SaleSheetProps) {
   // As in the mockup, a lot keeps at least ten cells; extra ones can go away.
   const planned = quickLoad;
   const cells = useMemo<Cell[]>(() => slots.map((value, index) => ({ index, value })), [slots]);
+  const columns = useSheetColumns();
   const rows = useMemo(() => {
     const chunks: Cell[][] = [];
-    for (let index = 0; index < cells.length; index += sheetColumns) chunks.push(cells.slice(index, index + sheetColumns));
+    for (let index = 0; index < cells.length; index += columns) chunks.push(cells.slice(index, index + columns));
     return chunks;
-  }, [cells]);
+  }, [cells, columns]);
   const windowStart = Math.max(0, Math.min(firstRow, Math.max(0, rows.length - gridVisibleRows)) - gridOverscan);
   const windowEnd = Math.min(rows.length, windowStart + gridVisibleRows + gridOverscan * 2);
   const totalSacks = props.lines.reduce((total, line) => total + (line.weights?.length ?? 0), 0);
@@ -151,7 +152,7 @@ export function SaleSheet(props: SaleSheetProps) {
     const cell = cellRefs.current.get(index);
     if (cell) { cell.focus(); return; }
     // A cell outside the drawn rows: scroll the grid there, then focus it.
-    const row = Math.floor(index / sheetColumns);
+    const row = Math.floor(index / columns);
     setFirstRow(row);
     gridRef.current?.scrollTo({ animated: false, y: row * sheetRowHeight });
     setTimeout(() => cellRefs.current.get(index)?.focus(), 50);
@@ -268,7 +269,7 @@ export function SaleSheet(props: SaleSheetProps) {
                     </View>
                   );
                 })}
-                {Array.from({ length: sheetColumns - row.length }, (_, index) => <View key={`gap-${index}`} style={[s.cell, s.cellGap]} />)}
+                {Array.from({ length: columns - row.length }, (_, index) => <View key={`gap-${index}`} style={[s.cell, s.cellGap]} />)}
               </View>
             ))}
             <View style={{ height: Math.max(0, rows.length - windowEnd) * sheetRowHeight }} />
@@ -315,6 +316,7 @@ export function SaleSheet(props: SaleSheetProps) {
           </View>
           <Text style={s.help}>Cálculos automáticos acumulados</Text>
         </View>
+        <SheetTable>
         <View style={s.tableHead}>
           <Text style={[s.th, s.colLot]}>LOTE</Text>
           <Text style={[s.th, s.colVariety]}>VARIEDAD PAPA</Text>
@@ -340,6 +342,7 @@ export function SaleSheet(props: SaleSheetProps) {
             </View>
           );
         }) : <Text style={s.empty}>Los lotes de la venta aparecen aquí.</Text>}
+        </SheetTable>
         <View style={p.totals}>
           <BigTotal label="TOTAL SACOS DESPACHADOS:" unit="uds" value={`${totalSacks}`} />
           <BigTotal label="TOTAL KILAJE GENERAL:" unit="kg" value={formatKilograms(gramsToKg(totalGrams)).replace(' kg', '')} />
@@ -475,8 +478,8 @@ const slotStyles = StyleSheet.create({
   numberFilled: { backgroundColor: '#08241A' },
   numberText: { color: '#727974', fontFamily: 'monospace', fontSize: 11, fontWeight: '700' },
   numberTextFilled: { color: '#FFFFFF' },
-  right: { alignItems: 'center', flexDirection: 'row', gap: 4 },
-  input: { backgroundColor: '#FFFFFF', borderColor: '#C2C8C3', borderRadius: 6, borderWidth: 1, fontSize: 14, fontWeight: '800', minHeight: 34, paddingHorizontal: 6, paddingVertical: 2, textAlign: 'right', width: 72 },
+  right: { alignItems: 'center', flexDirection: 'row', flexShrink: 1, gap: 4, minWidth: 0 },
+  input: { backgroundColor: '#FFFFFF', borderColor: '#C2C8C3', borderRadius: 6, borderWidth: 1, fontSize: 14, fontWeight: '800', minHeight: 34, paddingHorizontal: 6, paddingVertical: 2, textAlign: 'right', flexBasis: 72, flexShrink: 1, minWidth: 0 },
   unit: { color: '#727974', fontSize: 11, fontWeight: '500' },
   clear: { alignItems: 'center', borderRadius: 6, height: 32, justifyContent: 'center', width: 28 },
 });
