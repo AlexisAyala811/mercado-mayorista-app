@@ -2,7 +2,7 @@
 
 > **Spec:** [017](../../specs/017-sprint2-quality/spec.md) · **Fecha:** 18 de noviembre de 2026 · **Atributo:** [AC01](../01-analisis-de-sistema/04-atributos-de-calidad.md)
 
-Con dos instancias de la API en un solo equipo, AC01 se cumple hasta 500 usuarios concurrentes y deja de cumplirse desde 1000. Las 121 operaciones están documentadas en OpenAPI, y la cobertura de líneas es del 63 % en el backend y del 85 % en la app.
+Con dos instancias de la API en un solo equipo, AC01 se cumple hasta 500 usuarios concurrentes y deja de cumplirse desde 1000. Las 121 operaciones están documentadas en OpenAPI. Con Jest en los dos proyectos, la cobertura de líneas es del 58,1 % en el backend y del 85 % en la app (ver [Cobertura de las pruebas](#cobertura-de-las-pruebas)).
 
 ## Carga progresiva hasta 2000 usuarios
 
@@ -49,7 +49,19 @@ La cobertura se mide sobre todos los archivos de `src`, tengan prueba o no. En e
 
 De la subida total, cerca de 1,5 puntos se deben a excluir el servicio de inventario retirado, que nadie llama porque el sistema no maneja inventario; el resto se debe a las pruebas nuevas. Reportes sigue bajo porque son consultas SQL, que se prueban contra PostgreSQL en las pruebas de integración.
 
-La CI genera ambos informes en cada PR y los guarda 14 días como artefactos `cobertura-backend` y `cobertura-app`.
+**Actualizado el 22 de noviembre de 2026.** Las pruebas del backend pasaron de Vitest a Jest ([spec 020](../../specs/020-jest-backend/spec.md)), como pide la consigna, sin cambiar lo que comprueban: 365 pruebas unitarias y 68 e2e en PostgreSQL. Jest mide la cobertura con el mismo proveedor (V8), pero cuenta líneas y ramas de otra forma (CL-20-01), así que las cifras no se comparan con las anteriores. Esta es la línea base vigente:
+
+| Medida del backend | Vitest, 19 de noviembre | Jest, 21 de noviembre |
+| --- | --- | --- |
+| Herramienta | Vitest | Jest |
+| Pruebas unitarias | 363 | 365 |
+| Líneas | 68,2 % | 58,1 % |
+| Ramas | 57,8 % | 83,7 % |
+| Funciones | — | 61,2 % |
+
+La bajada en líneas no se debe a que haya menos pruebas: es la misma suite medida de otra forma. Datos: `backend/coverage/coverage-summary.json`, generado con `npm run test:cov`.
+
+La CI genera ambos informes con Jest en cada PR y los guarda 14 días como artefactos `cobertura-backend` y `cobertura-app`.
 
 ## Documentación OpenAPI
 
