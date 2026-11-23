@@ -23,7 +23,7 @@ Tareas T1001–T1033 (backend). La fase de la app (T1040–T1042) y la convergen
 
 | Archivo | Comprueba |
 | --- | --- |
-| `src/purchase/domain/purchase-lots.spec.ts` (9) | Ejemplo de la spec: S/ 2 337,40 + S/ 1 800,00 = S/ 4 137,40; letras estables con sacos en otro orden; grupo sin calidad al final; redondeo por lote; grupo faltante, sobrante y repetido; más de 20 lotes; líquido S/ 3 907,40 (proveedor) y S/ 4 037,40 (Mayorista) |
+| `src/modules/reception-and-purchases/purchase/domain/purchase-lots.spec.ts` (9) | Ejemplo de la spec: S/ 2 337,40 + S/ 1 800,00 = S/ 4 137,40; letras estables con sacos en otro orden; grupo sin calidad al final; redondeo por lote; grupo faltante, sobrante y repetido; más de 20 lotes; líquido S/ 3 907,40 (proveedor) y S/ 4 037,40 (Mayorista) |
 | `test/purchase-lots.e2e-spec.ts` (11, PostgreSQL por HTTP) | Grupos con letras; dos lotes con bases distintas pagados al contado (caja S/ 4 137,40) y leídos igual; flete de S/ 130,00 pendiente con el transportista en ambos casos y líquido según quién lo asume; `422 purchase-lots-mismatch` sin guardar nada; cinco reenvíos simultáneos → una compra y un evento con sus lotes, y `409 operation-id-conflict` con otro precio; cuerpo anterior → S/ 3 787,40 como antes, leído como un lote de 52 sacos; comprobante PDF; analítica de la variedad a S/ 1,8000 por kg; `down` de la migración rechazado con compras con lotes; `400` con lotes y precio único a la vez; anulación de una compra con lotes |
 | `test/migrations.e2e-spec.ts` | La 029 es la última migración registrada y `purchase_settlement_lots` existe |
 

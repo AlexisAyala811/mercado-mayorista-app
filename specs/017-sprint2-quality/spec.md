@@ -21,7 +21,7 @@ Cerrar lo que la consigna del Sprint 2 pide y el proyecto aún no tenía: la doc
 
 | Elemento | Regla |
 | --- | --- |
-| OpenAPI | Un resumen en español por operación, en `backend/src/openapi/operation-summaries.ts`, con prueba de completitud; contrato exportado en `docs/api/openapi.json` |
+| OpenAPI | Un resumen en español por operación, en `backend/src/platform/openapi/operation-summaries.ts`, con prueba de completitud; contrato exportado en `docs/api/openapi.json` |
 | Cobertura | `npm run test:cov` en el backend (Vitest) y en la app (Jest), sobre todos los archivos de `src`; la CI sube el informe HTML como artefacto |
 | Carga | `backend/test/load/escalonada.k6.js`: 100, 250, 500, 1000, 1500 y 2000 usuarios, con el p95 de cada nivel |
 

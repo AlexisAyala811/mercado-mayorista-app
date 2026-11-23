@@ -1,11 +1,11 @@
 import type { DataSource } from 'typeorm';
 import { registerCommercialDatabaseScenarios } from './commercial-database-scenarios.js';
-import { SalesWithoutInventory1791331200020 } from '../src/database/migrations/202610070020-sales-without-inventory.js';
+import { SalesWithoutInventory1791331200020 } from '../src/platform/database/migrations/202610070020-sales-without-inventory.js';
 
 describe('Commerce without inventory (PostgreSQL)', () => {
   let dataSource: DataSource;
   beforeAll(async () => {
-    const module = await import('../src/database/data-source.js');
+    const module = await import('../src/platform/database/data-source.js');
     dataSource = module.default;
     await dataSource.initialize();
     await dataSource.runMigrations({ transaction: 'all' });

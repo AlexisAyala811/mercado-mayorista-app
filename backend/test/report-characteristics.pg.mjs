@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { writeFile } from 'node:fs/promises';
 import { DataSource } from 'typeorm';
-import { ReportsService } from '../dist/reports/reports.service.js';
+import { ReportsService } from '../dist/modules/reports-and-analytics/reports/reports.service.js';
 assert.match(process.env.DATABASE_NAME ?? '', /^mercado_ui_test_[a-f0-9]{32}$/);
 const ds = new DataSource({ type: 'postgres', host: '127.0.0.1', port: 55437, username: 'mercado_test', password: process.env.DATABASE_PASSWORD, database: process.env.DATABASE_NAME, synchronize: false, logging: false });
 await ds.initialize(); const runner=ds.createQueryRunner(); await runner.connect(); await runner.startTransaction();

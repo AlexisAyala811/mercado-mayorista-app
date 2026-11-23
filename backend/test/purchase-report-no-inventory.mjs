@@ -3,8 +3,8 @@
 import 'reflect-metadata';
 import assert from 'node:assert/strict';
 import { Client } from 'pg';
-import { ReportsService } from '../dist/reports/reports.service.js';
-import { AnalyticsService } from '../dist/analytics/analytics.service.js';
+import { ReportsService } from '../dist/modules/reports-and-analytics/reports/reports.service.js';
+import { AnalyticsService } from '../dist/modules/reports-and-analytics/analytics/analytics.service.js';
 
 assert.match(process.env.DATABASE_NAME ?? '', /^mercado_ui_test_[a-f0-9]{32}$/);
 const client = new Client({ host: '127.0.0.1', port: 55437,

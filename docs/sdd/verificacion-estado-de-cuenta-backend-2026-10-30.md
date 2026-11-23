@@ -10,9 +10,9 @@ Tareas T910–T914 (cálculo), T920–T922 (PDF e imagen) y T930–T934 (servici
 
 | Nivel | Archivo | Resultado |
 | --- | --- | --- |
-| Unitarias del cálculo | `backend/src/receipts/buyer-statement/buyer-statement.spec.ts` | 10 aprobadas |
-| Vista, PDF e imagen | `backend/src/receipts/buyer-statement/buyer-statement.documents.spec.ts` | 5 aprobadas |
-| Servicio y controlador | `backend/src/receipts/buyer-statement/buyer-statement.api.spec.ts` | 8 aprobadas |
+| Unitarias del cálculo | `backend/src/modules/documents/buyer-statement/buyer-statement.spec.ts` | 10 aprobadas |
+| Vista, PDF e imagen | `backend/src/modules/documents/buyer-statement/buyer-statement.documents.spec.ts` | 5 aprobadas |
+| Servicio y controlador | `backend/src/modules/documents/buyer-statement/buyer-statement.api.spec.ts` | 8 aprobadas |
 | Suite unitaria completa | `npm test` | 287/287 en 67 archivos |
 | Tipos, lint y build | `tsc`, `oxlint`, `nest build` | Sin errores |
 | E2E en PostgreSQL 17 portable | `backend/test/buyer-statement.e2e-spec.ts` y el resto de la suite | 39/39 en 4 archivos; 40/40 con la medición de T934 |

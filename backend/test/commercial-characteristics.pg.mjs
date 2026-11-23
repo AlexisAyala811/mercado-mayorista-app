@@ -2,12 +2,12 @@ import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {writeFile} from 'node:fs/promises';
 import {DataSource} from 'typeorm';
-import {CommercialCharacteristicEntity} from '../dist/catalog/entities/commercial-characteristic.entity.js';
-import {CharacteristicsService} from '../dist/catalog/characteristics.service.js';
-import {AuditService} from '../dist/audit/audit.service.js';
-import {AuditEventEntity} from '../dist/audit/audit-event.entity.js';
-import {CommercialCharacteristics1791936000024} from '../dist/database/migrations/202610140024-commercial-characteristics.js';
-import {AuditEvents1790208000004} from '../dist/database/migrations/202609240004-audit-events.js';
+import {CommercialCharacteristicEntity} from '../dist/shared/catalog/entities/commercial-characteristic.entity.js';
+import {CharacteristicsService} from '../dist/shared/catalog/characteristics.service.js';
+import {AuditService} from '../dist/shared/audit/audit.service.js';
+import {AuditEventEntity} from '../dist/shared/audit/audit-event.entity.js';
+import {CommercialCharacteristics1791936000024} from '../dist/platform/database/migrations/202610140024-commercial-characteristics.js';
+import {AuditEvents1790208000004} from '../dist/platform/database/migrations/202609240004-audit-events.js';
 
 const database=process.env.DATABASE_NAME;
 if(!/^mercado_ui_test_[a-f0-9]{32}$/.test(database??''))throw new Error('Expected named isolated QA database.');

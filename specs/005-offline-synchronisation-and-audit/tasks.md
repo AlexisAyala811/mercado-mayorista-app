@@ -51,7 +51,7 @@ La especificación 008 incorpora HU15/RF25–26 y centraliza avisos HU14. Cuenta
 
 ## Integridad de reintentos — 29 de octubre de 2026
 
-- [x] Rechazar con `409 operation-id-conflict` un UUID reutilizado con datos distintos en recepciones, sacos, compras, ventas, devoluciones, abonos, reversos, estiba y flete; conservar el resultado original y no aplicar efectos. `backend/src/common/domain/operation-replay.ts`; 10 pruebas nuevas (reutilización en cuenta, importe, reverso, venta, comprador, proveedor y registros de flete). Evidencia: [verificación del backend](../../docs/sdd/verificacion-backend-2026-10-29.md).
+- [x] Rechazar con `409 operation-id-conflict` un UUID reutilizado con datos distintos en recepciones, sacos, compras, ventas, devoluciones, abonos, reversos, estiba y flete; conservar el resultado original y no aplicar efectos. `backend/src/platform/common/domain/operation-replay.ts`; 10 pruebas nuevas (reutilización en cuenta, importe, reverso, venta, comprador, proveedor y registros de flete). Evidencia: [verificación del backend](../../docs/sdd/verificacion-backend-2026-10-29.md).
 - [x] Ejecutar las e2e en PostgreSQL de forma secuencial: las suites compartían la base y migraban en paralelo. 35/35 en local y en la CI de los PR #1 y #2.
 - [ ] Tratar `409 operation-id-conflict` en la cola cifrada de Android: no reintentar, mostrar la orden en revisión y reenviar con UUID nuevo solo tras confirmación. Verificar en tablet.
   - **Implementado el 21 nov 2026** (rama `feat/005-conflicto-uuid`):

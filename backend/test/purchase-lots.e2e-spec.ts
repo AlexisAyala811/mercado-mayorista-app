@@ -5,18 +5,18 @@ import type { Server } from 'node:http';
 import request from 'supertest';
 import type { DataSource } from 'typeorm';
 
-import { CashMovementEntity } from '../src/accounts/entities/cash-movement.entity.js';
-import { AuditEventEntity } from '../src/audit/audit-event.entity.js';
+import { CashMovementEntity } from '../src/modules/accounts/entities/cash-movement.entity.js';
+import { AuditEventEntity } from '../src/shared/audit/audit-event.entity.js';
 import { configureHttpApplication } from '../src/configure-http-application.js';
-import { PurchaseSettlementLots1793750400029 } from '../src/database/migrations/202611040029-purchase-settlement-lots.js';
-import { FreightEntryEntity } from '../src/freight/entities/freight-entry.entity.js';
-import { BusinessEntity } from '../src/identity/entities/business.entity.js';
-import { UserEntity, UserRole } from '../src/identity/entities/user.entity.js';
-import { PasswordHasher } from '../src/identity/security/password-hasher.js';
-import { PurchaseSettlementEntity } from '../src/purchase/entities/purchase-settlement.entity.js';
-import type { SessionIdentity } from '../src/identity/application/ports/session-identity-reader.js';
-import { ReceptionEntity } from '../src/reception/entities/reception.entity.js';
-import { WeighingService } from '../src/reception/weighing.service.js';
+import { PurchaseSettlementLots1793750400029 } from '../src/platform/database/migrations/202611040029-purchase-settlement-lots.js';
+import { FreightEntryEntity } from '../src/modules/logistics-costs/freight/entities/freight-entry.entity.js';
+import { BusinessEntity } from '../src/modules/identity/entities/business.entity.js';
+import { UserEntity, UserRole } from '../src/modules/identity/entities/user.entity.js';
+import { PasswordHasher } from '../src/modules/identity/security/password-hasher.js';
+import { PurchaseSettlementEntity } from '../src/modules/reception-and-purchases/purchase/entities/purchase-settlement.entity.js';
+import type { SessionIdentity } from '../src/modules/identity/application/ports/session-identity-reader.js';
+import { ReceptionEntity } from '../src/modules/reception-and-purchases/reception/entities/reception.entity.js';
+import { WeighingService } from '../src/modules/reception-and-purchases/reception/weighing.service.js';
 
 // Spec 010 on PostgreSQL: lots priced by variety and quality, freight borne by
 // the provider or the wholesaler, and the earlier single-price body.
@@ -115,7 +115,7 @@ describe('Purchase lots and freight choice (PostgreSQL)', () => {
     post(`/api/v1/purchases/receptions/${receptionId}/settlement`, body);
 
   beforeAll(async () => {
-    dataSource = (await import('../src/database/data-source.js')).default;
+    dataSource = (await import('../src/platform/database/data-source.js')).default;
     await dataSource.initialize();
     await dataSource.runMigrations({ transaction: 'all' });
 

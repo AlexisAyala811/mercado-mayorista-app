@@ -7,54 +7,54 @@ import {
 import { ConfigService } from '@nestjs/config';
 import type { DataSource } from 'typeorm';
 
-import { CashMovementEntity } from '../src/accounts/entities/cash-movement.entity.js';
-import { AccountPaymentEntity } from '../src/accounts/entities/account-payment.entity.js';
-import { AccountsService } from '../src/accounts/accounts.service.js';
-import { AccountInstallmentEntity } from '../src/accounts/entities/account-installment.entity.js';
-import { AccountEntity } from '../src/accounts/entities/account.entity.js';
-import { AuditEventEntity } from '../src/audit/audit-event.entity.js';
-import { AuditService } from '../src/audit/audit.service.js';
-import { BuyerEntity } from '../src/catalog/entities/buyer.entity.js';
-import { PotatoVarietyEntity } from '../src/catalog/entities/potato-variety.entity.js';
-import { ProviderEntity } from '../src/catalog/entities/provider.entity.js';
-import { FreightEntryEntity } from '../src/freight/entities/freight-entry.entity.js';
-import { FreightSettlementEntity } from '../src/freight/entities/freight-settlement.entity.js';
-import { FreightService } from '../src/freight/freight.service.js';
-import type { SessionIdentity } from '../src/identity/application/ports/session-identity-reader.js';
-import { BusinessEntity } from '../src/identity/entities/business.entity.js';
-import { UserEntity, UserRole } from '../src/identity/entities/user.entity.js';
-import { PasswordHasher } from '../src/identity/security/password-hasher.js';
-import { InventoryLotEntity } from '../src/inventory/entities/inventory-lot.entity.js';
-import { InventoryMovementEntity } from '../src/inventory/entities/inventory-movement.entity.js';
+import { CashMovementEntity } from '../src/modules/accounts/entities/cash-movement.entity.js';
+import { AccountPaymentEntity } from '../src/modules/accounts/entities/account-payment.entity.js';
+import { AccountsService } from '../src/modules/accounts/accounts.service.js';
+import { AccountInstallmentEntity } from '../src/modules/accounts/entities/account-installment.entity.js';
+import { AccountEntity } from '../src/modules/accounts/entities/account.entity.js';
+import { AuditEventEntity } from '../src/shared/audit/audit-event.entity.js';
+import { AuditService } from '../src/shared/audit/audit.service.js';
+import { BuyerEntity } from '../src/shared/catalog/entities/buyer.entity.js';
+import { PotatoVarietyEntity } from '../src/shared/catalog/entities/potato-variety.entity.js';
+import { ProviderEntity } from '../src/shared/catalog/entities/provider.entity.js';
+import { FreightEntryEntity } from '../src/modules/logistics-costs/freight/entities/freight-entry.entity.js';
+import { FreightSettlementEntity } from '../src/modules/logistics-costs/freight/entities/freight-settlement.entity.js';
+import { FreightService } from '../src/modules/logistics-costs/freight/freight.service.js';
+import type { SessionIdentity } from '../src/modules/identity/application/ports/session-identity-reader.js';
+import { BusinessEntity } from '../src/modules/identity/entities/business.entity.js';
+import { UserEntity, UserRole } from '../src/modules/identity/entities/user.entity.js';
+import { PasswordHasher } from '../src/modules/identity/security/password-hasher.js';
+import { InventoryLotEntity } from '../src/retired/inventory/entities/inventory-lot.entity.js';
+import { InventoryMovementEntity } from '../src/retired/inventory/entities/inventory-movement.entity.js';
 import {
   CalculationBasis,
   PaymentMode,
   PurchaseSettlementEntity,
-} from '../src/purchase/entities/purchase-settlement.entity.js';
-import { PurchaseService } from '../src/purchase/purchase.service.js';
+} from '../src/modules/reception-and-purchases/purchase/entities/purchase-settlement.entity.js';
+import { PurchaseService } from '../src/modules/reception-and-purchases/purchase/purchase.service.js';
 import {
   ReceptionEntity,
   ReceptionState,
-} from '../src/reception/entities/reception.entity.js';
-import { ReceptionSackEntity } from '../src/reception/entities/reception-sack.entity.js';
-import { ReceptionService } from '../src/reception/reception.service.js';
-import { WeighingUseCases } from '../src/reception/application/weighing-use-cases.js';
-import { PostgresWeighingUnitOfWork } from '../src/reception/infrastructure/postgres-weighing.js';
-import { WeighingService } from '../src/reception/weighing.service.js';
-import { ReceiptDocumentEntity } from '../src/receipts/receipt-document.entity.js';
-import { ReceiptsService } from '../src/receipts/receipts.service.js';
-import { ReportsService } from '../src/reports/reports.service.js';
-import { SaleEntity, SaleState } from '../src/sales/entities/sale.entity.js';
-import { AnalyticsService } from '../src/analytics/analytics.service.js';
-import type { CreateSaleDto } from '../src/sales/http/sale.dto.js';
-import { SaleLineEntity } from '../src/sales/entities/sale-line.entity.js';
-import { SaleReturnEntity } from '../src/sales/entities/sale-return.entity.js';
-import { SaleReturnLineEntity } from '../src/sales/entities/sale-return-line.entity.js';
-import { SalesService } from '../src/sales/sales.service.js';
-import { SaleReturnsService } from '../src/sales/sale-returns.service.js';
-import { StowageEntryEntity } from '../src/stowage/entities/stowage-entry.entity.js';
-import { WorkGroupEntity } from '../src/stowage/entities/work-group.entity.js';
-import { StowageService } from '../src/stowage/stowage.service.js';
+} from '../src/modules/reception-and-purchases/reception/entities/reception.entity.js';
+import { ReceptionSackEntity } from '../src/modules/reception-and-purchases/reception/entities/reception-sack.entity.js';
+import { ReceptionService } from '../src/modules/reception-and-purchases/reception/reception.service.js';
+import { WeighingUseCases } from '../src/modules/reception-and-purchases/reception/application/weighing-use-cases.js';
+import { PostgresWeighingUnitOfWork } from '../src/modules/reception-and-purchases/reception/infrastructure/postgres-weighing.js';
+import { WeighingService } from '../src/modules/reception-and-purchases/reception/weighing.service.js';
+import { ReceiptDocumentEntity } from '../src/modules/documents/receipt-document.entity.js';
+import { ReceiptsService } from '../src/modules/documents/receipts.service.js';
+import { ReportsService } from '../src/modules/reports-and-analytics/reports/reports.service.js';
+import { SaleEntity, SaleState } from '../src/modules/sales/entities/sale.entity.js';
+import { AnalyticsService } from '../src/modules/reports-and-analytics/analytics/analytics.service.js';
+import type { CreateSaleDto } from '../src/modules/sales/http/sale.dto.js';
+import { SaleLineEntity } from '../src/modules/sales/entities/sale-line.entity.js';
+import { SaleReturnEntity } from '../src/modules/sales/entities/sale-return.entity.js';
+import { SaleReturnLineEntity } from '../src/modules/sales/entities/sale-return-line.entity.js';
+import { SalesService } from '../src/modules/sales/sales.service.js';
+import { SaleReturnsService } from '../src/modules/sales/sale-returns.service.js';
+import { StowageEntryEntity } from '../src/modules/logistics-costs/stowage/entities/stowage-entry.entity.js';
+import { WorkGroupEntity } from '../src/modules/logistics-costs/stowage/entities/work-group.entity.js';
+import { StowageService } from '../src/modules/logistics-costs/stowage/stowage.service.js';
 
 export function registerCommercialDatabaseScenarios(
   getDataSource: () => DataSource,

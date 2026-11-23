@@ -1,0 +1,52 @@
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
+import { AccountEntity } from '../accounts/entities/account.entity.js';
+import { AccountInstallmentEntity } from '../accounts/entities/account-installment.entity.js';
+import { AccountPaymentEntity } from '../accounts/entities/account-payment.entity.js';
+import { CashMovementEntity } from '../accounts/entities/cash-movement.entity.js';
+import { AuditModule } from '../../shared/audit/audit.module.js';
+import { BuyerEntity } from '../../shared/catalog/entities/buyer.entity.js';
+import { IdentityModule } from '../identity/identity.module.js';
+import { InventoryLotEntity } from '../../retired/inventory/entities/inventory-lot.entity.js';
+import { InventoryMovementEntity } from '../../retired/inventory/entities/inventory-movement.entity.js';
+import { InventoryLotValuationEntity } from '../../retired/inventory/entities/inventory-lot-valuation.entity.js';
+import { VehicleEntity } from '../logistics-costs/logistics/entities/vehicle.entity.js';
+import { SaleEntity } from './entities/sale.entity.js';
+import { SaleLineEntity } from './entities/sale-line.entity.js';
+import { SaleLineCostEntity } from './entities/sale-line-cost.entity.js';
+import { SaleReturnEntity } from './entities/sale-return.entity.js';
+import { SaleReturnLineEntity } from './entities/sale-return-line.entity.js';
+import { ReceiptDocumentEntity } from '../documents/receipt-document.entity.js';
+import { ReceiptsModule } from '../documents/receipts.module.js';
+import { SaleReturnsService } from './sale-returns.service.js';
+import { SalesController } from './sales.controller.js';
+import { SalesService } from './sales.service.js';
+
+@Module({
+  controllers: [SalesController],
+  imports: [
+    AuditModule,
+    IdentityModule,
+    ReceiptsModule,
+    TypeOrmModule.forFeature([
+      SaleEntity,
+      SaleLineEntity,
+      BuyerEntity,
+      VehicleEntity,
+      InventoryLotEntity,
+      InventoryMovementEntity,
+      InventoryLotValuationEntity,
+      AccountEntity,
+      AccountInstallmentEntity,
+      AccountPaymentEntity,
+      CashMovementEntity,
+      SaleLineCostEntity,
+      SaleReturnEntity,
+      SaleReturnLineEntity,
+      ReceiptDocumentEntity,
+    ]),
+  ],
+  providers: [SalesService, SaleReturnsService],
+})
+export class SalesModule {}

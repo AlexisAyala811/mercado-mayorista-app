@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {Client} from 'pg';
 import {writeFile} from 'node:fs/promises';
-import {ReceiptHistoryService,ReceiptHistoryKind} from '../dist/receipts/receipt-history.service.js';
+import {ReceiptHistoryService,ReceiptHistoryKind} from '../dist/modules/documents/receipt-history.service.js';
 assert.match(process.env.DATABASE_NAME??'',/^mercado_ui_test_[a-f0-9]{32}$/);
 const client=new Client({host:'127.0.0.1',port:55437,user:'mercado_test',database:process.env.DATABASE_NAME,password:process.env.DATABASE_PASSWORD});await client.connect();
 try{

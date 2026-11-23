@@ -4,6 +4,6 @@
 # previo al despliegue). Docker Compose usa su servicio migrate y no lo activa.
 set -e
 if [ "$RUN_MIGRATIONS_ON_START" = "true" ]; then
-  node node_modules/typeorm/cli.js migration:run -d dist/database/data-source.js
+  node node_modules/typeorm/cli.js migration:run -d dist/platform/database/data-source.js
 fi
 exec node dist/main.js

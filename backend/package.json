@@ -21,11 +21,11 @@
     "test:debug": "node --experimental-vm-modules --inspect-brk node_modules/jest/bin/jest.js --runInBand",
     "test:e2e": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.config.e2e.mjs --runInBand",
     "check": "npm run typecheck && npm run lint && npm run test && npm run build",
-    "migration:run": "npm run build && typeorm migration:run -d dist/database/data-source.js",
-    "migration:run:prod": "typeorm migration:run -d dist/database/data-source.js",
-    "migration:show": "npm run build && typeorm migration:show -d dist/database/data-source.js",
-    "migration:revert": "npm run build && typeorm migration:revert -d dist/database/data-source.js",
-    "bootstrap:wholesaler": "npm run build && node dist/database/bootstrap-wholesaler.js"
+    "migration:run": "npm run build && typeorm migration:run -d dist/platform/database/data-source.js",
+    "migration:run:prod": "typeorm migration:run -d dist/platform/database/data-source.js",
+    "migration:show": "npm run build && typeorm migration:show -d dist/platform/database/data-source.js",
+    "migration:revert": "npm run build && typeorm migration:revert -d dist/platform/database/data-source.js",
+    "bootstrap:wholesaler": "npm run build && node dist/platform/database/bootstrap-wholesaler.js"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",

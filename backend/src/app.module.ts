@@ -4,25 +4,25 @@ import { APP_GUARD } from '@nestjs/core';
 import { seconds, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { environmentSchema } from './config/environment.schema.js';
-import { AuditModule } from './audit/audit.module.js';
-import { CatalogModule } from './catalog/catalog.module.js';
-import { createPostgresOptions } from './database/postgres-options.js';
-import { HealthModule } from './health/health.module.js';
-import { IdentityModule } from './identity/identity.module.js';
-import { LogisticsModule } from './logistics/logistics.module.js';
-import { ReceptionModule } from './reception/reception.module.js';
-import { InventoryModule } from './inventory/inventory.module.js';
-import { PurchaseModule } from './purchase/purchase.module.js';
-import { AccountsModule } from './accounts/accounts.module.js';
-import { SalesModule } from './sales/sales.module.js';
-import { ReportsModule } from './reports/reports.module.js';
-import { AnalyticsModule } from './analytics/analytics.module.js';
-import { StowageModule } from './stowage/stowage.module.js';
-import { ReceiptsModule } from './receipts/receipts.module.js';
-import { OperationsModule } from './operations/operations.module.js';
-import { FreightModule } from './freight/freight.module.js';
-import { MessagingModule } from './messaging/messaging.module.js';
+import { environmentSchema } from './platform/config/environment.schema.js';
+import { AuditModule } from './shared/audit/audit.module.js';
+import { CatalogModule } from './shared/catalog/catalog.module.js';
+import { createPostgresOptions } from './platform/database/postgres-options.js';
+import { HealthModule } from './platform/health/health.module.js';
+import { IdentityModule } from './modules/identity/identity.module.js';
+import { LogisticsModule } from './modules/logistics-costs/logistics/logistics.module.js';
+import { ReceptionModule } from './modules/reception-and-purchases/reception/reception.module.js';
+import { InventoryModule } from './retired/inventory/inventory.module.js';
+import { PurchaseModule } from './modules/reception-and-purchases/purchase/purchase.module.js';
+import { AccountsModule } from './modules/accounts/accounts.module.js';
+import { SalesModule } from './modules/sales/sales.module.js';
+import { ReportsModule } from './modules/reports-and-analytics/reports/reports.module.js';
+import { AnalyticsModule } from './modules/reports-and-analytics/analytics/analytics.module.js';
+import { StowageModule } from './modules/logistics-costs/stowage/stowage.module.js';
+import { ReceiptsModule } from './modules/documents/receipts.module.js';
+import { OperationsModule } from './shared/operations/operations.module.js';
+import { FreightModule } from './modules/logistics-costs/freight/freight.module.js';
+import { MessagingModule } from './modules/messaging/messaging.module.js';
 
 @Module({
   imports: [

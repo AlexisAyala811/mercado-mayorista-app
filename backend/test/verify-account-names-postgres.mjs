@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { writeFile } from 'node:fs/promises';
 import { Client } from 'pg';
-import { AccountsService } from '../dist/accounts/accounts.service.js';
+import { AccountsService } from '../dist/modules/accounts/accounts.service.js';
 
 assert.match(process.env.DATABASE_NAME ?? '', /^mercado_test_no_inventory_[a-f0-9]{32}$/);
 const client = new Client({ host: '127.0.0.1', port: 55437, user: 'mercado_test', database: process.env.DATABASE_NAME, password: process.env.DATABASE_PASSWORD });

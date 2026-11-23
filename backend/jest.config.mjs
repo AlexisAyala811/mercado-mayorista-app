@@ -35,7 +35,7 @@ export default {
     'src/**/*.ts',
     '!src/**/*.spec.ts',
     '!src/main.ts',
-    '!src/database/migrations/**',
+    '!src/platform/database/migrations/**',
   ],
   coverageProvider: 'v8',
   coverageReporters: ['text-summary', 'json-summary', 'html'],

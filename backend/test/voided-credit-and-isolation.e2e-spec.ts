@@ -5,12 +5,12 @@ import type { Server } from 'node:http';
 import request from 'supertest';
 import { In, type DataSource } from 'typeorm';
 
-import { CashMovementEntity } from '../src/accounts/entities/cash-movement.entity.js';
-import { AuditEventEntity } from '../src/audit/audit-event.entity.js';
+import { CashMovementEntity } from '../src/modules/accounts/entities/cash-movement.entity.js';
+import { AuditEventEntity } from '../src/shared/audit/audit-event.entity.js';
 import { configureHttpApplication } from '../src/configure-http-application.js';
-import { BusinessEntity } from '../src/identity/entities/business.entity.js';
-import { UserEntity, UserRole } from '../src/identity/entities/user.entity.js';
-import { PasswordHasher } from '../src/identity/security/password-hasher.js';
+import { BusinessEntity } from '../src/modules/identity/entities/business.entity.js';
+import { UserEntity, UserRole } from '../src/modules/identity/entities/user.entity.js';
+import { PasswordHasher } from '../src/modules/identity/security/password-hasher.js';
 
 // Decisions D2 and D3 of 29 Oct 2026 on PostgreSQL:
 // spec 004 — a voided credit sale leaves its installments voided, not paid;
@@ -67,7 +67,7 @@ describe('Voided credit sales and cross-business isolation (PostgreSQL)', () => 
   }
 
   beforeAll(async () => {
-    dataSource = (await import('../src/database/data-source.js')).default;
+    dataSource = (await import('../src/platform/database/data-source.js')).default;
     await dataSource.initialize();
     await dataSource.runMigrations({ transaction: 'all' });
 

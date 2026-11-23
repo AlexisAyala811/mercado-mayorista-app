@@ -6,10 +6,10 @@ import request from 'supertest';
 import type { DataSource } from 'typeorm';
 
 import { configureHttpApplication } from '../src/configure-http-application.js';
-import { BusinessEntity } from '../src/identity/entities/business.entity.js';
-import { DelegationEntity } from '../src/identity/entities/delegation.entity.js';
-import { UserEntity, UserRole } from '../src/identity/entities/user.entity.js';
-import { PasswordHasher } from '../src/identity/security/password-hasher.js';
+import { BusinessEntity } from '../src/modules/identity/entities/business.entity.js';
+import { DelegationEntity } from '../src/modules/identity/entities/delegation.entity.js';
+import { UserEntity, UserRole } from '../src/modules/identity/entities/user.entity.js';
+import { PasswordHasher } from '../src/modules/identity/security/password-hasher.js';
 
 // Spec 007 on PostgreSQL: T711 (descriptive series from confirmed operations
 // only, filters, traceable references, isolation by business) and T712
@@ -87,7 +87,7 @@ describe('Analytics (PostgreSQL)', () => {
   }
 
   beforeAll(async () => {
-    dataSource = (await import('../src/database/data-source.js')).default;
+    dataSource = (await import('../src/platform/database/data-source.js')).default;
     await dataSource.initialize();
     await dataSource.runMigrations({ transaction: 'all' });
 

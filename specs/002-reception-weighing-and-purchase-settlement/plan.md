@@ -113,11 +113,11 @@ Origen: [principios de diseño](../../docs/03-diseño-de-software/diseño-intern
 
 | Pieza | Ubicación | Responsabilidad |
 | --- | --- | --- |
-| Reglas de peso (S) | `backend/src/common/domain/sack-weights.ts` | Bruto > 0, 0 ≤ tara < bruto, neto con tres decimales; función pura con error de dominio propio |
-| Modelo del saco (`SackWeight`, «PesoSaco») | `backend/src/reception/application/sack-weight.ts` | Valor inmutable bruto/tara/neto y comparación con un saco guardado para reintentos |
-| Caso de uso (`RegisterSackWeight`, «RegistrarPesoCasoUso») | `backend/src/reception/application/register-sack-weight.ts` | Idempotencia, estado, variedad, versión, secuencia y auditoría; depende solo de contratos (D) |
+| Reglas de peso (S) | `backend/src/platform/common/domain/sack-weights.ts` | Bruto > 0, 0 ≤ tara < bruto, neto con tres decimales; función pura con error de dominio propio |
+| Modelo del saco (`SackWeight`, «PesoSaco») | `backend/src/modules/reception-and-purchases/reception/application/sack-weight.ts` | Valor inmutable bruto/tara/neto y comparación con un saco guardado para reintentos |
+| Caso de uso (`RegisterSackWeight`, «RegistrarPesoCasoUso») | `backend/src/modules/reception-and-purchases/reception/application/register-sack-weight.ts` | Idempotencia, estado, variedad, versión, secuencia y auditoría; depende solo de contratos (D) |
 | Contratos (I) | mismo archivo: `WeighingRepository`, `WeighingAudit`, `WeighingUnitOfWork` | Capacidades mínimas del registro; sin caja, reportes ni inventario |
-| Adaptador PostgreSQL (O, L) | `backend/src/reception/infrastructure/postgres-weighing.ts` | Transacción, bloqueo consultivo por negocio/UUID, bloqueo de la recepción y auditoría en la misma unidad de trabajo |
+| Adaptador PostgreSQL (O, L) | `backend/src/modules/reception-and-purchases/reception/infrastructure/postgres-weighing.ts` | Transacción, bloqueo consultivo por negocio/UUID, bloqueo de la recepción y auditoría en la misma unidad de trabajo |
 | Adaptador en memoria | solo en las pruebas | Pruebas de contrato; no acredita concurrencia ni durabilidad |
 | Composición | `reception.module.ts` (`useFactory`) | Conecta el caso de uso con el adaptador PostgreSQL |
 
