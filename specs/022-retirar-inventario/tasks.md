@@ -1,6 +1,6 @@
 # Tareas 022: Retirar el inventario del código
 
-**Especificación:** [spec 022](spec.md) · **Plan:** [plan 022](plan.md) · **Estado:** implementada el 23 de noviembre de 2026; falta la CI de GitHub
+**Especificación:** [spec 022](spec.md) · **Plan:** [plan 022](plan.md) · **Estado:** implementada y verificada el 23 de noviembre de 2026
 
 Cada tarea se marca `[x]` solo con evidencia enlazable.
 
@@ -9,7 +9,7 @@ Cada tarea se marca `[x]` solo con evidencia enlazable.
 - [x] **T2203** Quitar los restos de inventario en la app. *Verificación:* typecheck, lint y Jest de la app. **Hecho el 23 nov 2026:** `retired-contract.ts`, `operation-order.ts`, `permissions.ts`, `sync-queue-provider.tsx`, `operation-labels.ts` y el tipo sin uso `InventoryLot` de `domain/sales/sale.ts`. Typecheck y lint sin errores; Jest 110 suites y 750 pruebas.
 - [x] **T2204** Regenerar `docs/api/openapi.json` y actualizar la documentación. *Verificación:* contrato sin rutas ni etiqueta `inventory`; `check-links.mjs`. **Hecho el 23 nov 2026:** [`openapi.json`](../../docs/api/openapi.json) con 117 operaciones en 90 rutas, 114 protegidas y ninguna de inventario; [`docs/api/README.md`](../../docs/api/README.md), [`componentes-arquitectonicos.md`](../../docs/02-arquitectura-software/componentes-arquitectonicos.md) y nota fechada en la [spec 021](../021-modulos-backend/spec.md). `check-links.mjs`: 304 documentos sin enlaces rotos.
 - [x] **T2205** Verificación local completa: backend (typecheck, lint, Jest, build, e2e en PostgreSQL 17) y app. *Verificación:* resultados anotados aquí. **Hecho el 23 nov 2026:** backend con `tsc`, lint y build sin errores, Jest 76 suites y 361 pruebas, e2e 10 suites y 68 pruebas en PostgreSQL 17 portable; app según T2203.
-- [ ] **T2206** CI de GitHub en verde. *Verificación:* id de la ejecución.
+- [x] **T2206** CI de GitHub en verde. *Verificación:* id de la ejecución. **Hecho el 23 nov 2026:** sobre `4f6975a` del PR #51, [Backend · CI 45121658087](https://github.com/AlexisAyala811/mercado-mayorista-app/actions/runs/45121658087) (tipos, lint, pruebas, build, e2e en PostgreSQL 17 e imagen Docker), [App · CI 45121658037](https://github.com/AlexisAyala811/mercado-mayorista-app/actions/runs/45121658037) y [Documentación · CI 45121658029](https://github.com/AlexisAyala811/mercado-mayorista-app/actions/runs/45121658029), todas en verde.
 
 ```
 T2201 ─┬─> T2204 ─> T2205 ─> T2206

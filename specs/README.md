@@ -25,7 +25,7 @@ Este índice conecta la línea base documental, el diseño de Figma y el trabajo
 | [019](019-stitch-en-celular/spec.md) | Diseño Stitch también en el celular | RQ-ST13, RQ-ST14 | En curso desde el 20 de noviembre de 2026 | Compra y venta con la hoja Stitch en todos los anchos; CL-19-01 a CL-19-03 |
 | [020](020-jest-backend/spec.md) | Pruebas del backend con Jest | Sprint 2, actividad 7 | Implementada el 21 de noviembre de 2026 | Jest 30 en ESM con SWC; 365 unitarias y 68 e2e |
 | [021](021-modulos-backend/spec.md) | Carpetas del backend agrupadas por módulo | Componentes arquitectónicos | Implementada el 22 de noviembre de 2026 | modules/, shared/, platform/ y retired/; sin cambios de comportamiento |
-| [022](022-retirar-inventario/spec.md) | Retirar el inventario del código | ADR-01, Sprint 2 | Implementada el 23 de noviembre de 2026; falta la CI | Sin rutas, módulo ni entidades de inventario en API y app; tablas históricas conservadas |
+| [022](022-retirar-inventario/spec.md) | Retirar el inventario del código | ADR-01, Sprint 2 | Implementada y verificada el 23 de noviembre de 2026 | Sin rutas, módulo ni entidades de inventario en API y app; tablas históricas conservadas |
 
 ## Artefactos transversales
 
