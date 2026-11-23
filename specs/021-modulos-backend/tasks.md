@@ -1,6 +1,6 @@
 # Tareas 021: Carpetas del backend agrupadas por módulo
 
-**Especificación:** [spec 021](spec.md) · **Estado:** implementada el 22 de noviembre de 2026
+**Especificación:** [spec 021](spec.md) · **Estado:** cerrada el 22 de noviembre de 2026
 
 Cada tarea se marca `[x]` solo con evidencia enlazable.
 
@@ -10,4 +10,7 @@ Cada tarea se marca `[x]` solo con evidencia enlazable.
 - [x] **T2104** Verificar el comportamiento, el 22 nov 2026:
   - Lint sin errores, 77 suites y 365 pruebas unitarias, `build`, y 10 suites e2e (68 pruebas) en PostgreSQL 17.
   - Arranque simulado como en el contenedor, sobre una base vacía: las 30 migraciones se aplicaron con `dist/platform/database/data-source.js` y `/api/v1/health/ready` respondió `200`.
-- [ ] **T2105** CI de GitHub en verde, incluida la imagen Docker, y despliegue en Render con `/api/v1/health/ready` en `200`.
+- [x] **T2105** CI de GitHub en verde, incluida la imagen Docker, y despliegue en Render con `/api/v1/health/ready` en `200`. **Hecho el 22 nov 2026:**
+  - La [CI de la rama](https://github.com/AlexisAyala811/mercado-mayorista-app/actions/runs/45112362444) pasó, incluida la imagen Docker. En `main`, la CI de documentación y la publicación de la imagen también pasaron.
+  - Los eventos de Render muestran «Deploy live for a63845f» a las 11:36 p. m., al primer intento.
+  - `/api/v1/health/ready` respondió `200` con la base `up`.
