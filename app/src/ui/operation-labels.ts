@@ -10,7 +10,6 @@ const syncLabels: Record<string, string> = {
   'sale.create': 'Registrar venta',
   'sale.return': 'Registrar devolución comercial',
   'sale.void': 'Anular venta',
-  'inventory.adjustment': 'Ajustar inventario',
   'account.payment': 'Registrar pago o cobro',
   'account.payment-reversal': 'Revertir pago o cobro',
   'freight.settle': 'Liquidar flete',
@@ -18,19 +17,6 @@ const syncLabels: Record<string, string> = {
   'stowage.settle': 'Liquidar estiba',
 };
 
-const movementLabels: Record<string, string> = {
-  purchase_in: 'Entrada por compra',
-  sale_out: 'Salida por venta',
-  return_in: 'Devolución física',
-  loss_out: 'Merma',
-  adjustment: 'Corrección de inventario',
-  reversal: 'Reversión de movimiento',
-};
-
 export function syncOperationLabel(type: string) {
   return syncLabels[type] ?? 'Operación registrada';
-}
-
-export function inventoryMovementLabel(type: string) {
-  return movementLabels[type] ?? 'Movimiento registrado';
 }

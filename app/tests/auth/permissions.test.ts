@@ -4,7 +4,6 @@ describe('authorization rules', () => {
   it('limits the assistant to purchases and sales', () => {
     expect(canAccessModule('assistant', 'purchases')).toBe(true);
     expect(canAccessModule('assistant', 'sales')).toBe(true);
-    expect(canAccessModule('assistant', 'inventory')).toBe(false);
     expect(canAccessModule('assistant', 'administration')).toBe(false);
     expect(canAccessModule('assistant', 'analytics')).toBe(false);
   });
@@ -16,7 +15,6 @@ describe('authorization rules', () => {
     expect(canAccessModule('assistant', 'collections')).toBe(false);
     expect(canAccessModule('wholesaler', 'audit')).toBe(true);
     expect(canAccessModule('wholesaler', 'analytics')).toBe(true);
-    expect(canAccessModule('wholesaler', 'inventory')).toBe(false);
     expect(canAccessModule('wholesaler', 'catalog')).toBe(false);
     expect(canAccessModule('assistant', 'catalog')).toBe(false);
     expect(isWholesaler('wholesaler')).toBe(true);

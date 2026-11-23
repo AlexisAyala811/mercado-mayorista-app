@@ -13,7 +13,7 @@ function contextFor(role: UserRole) {
       getRequest: () => ({
         identity: { businessId: 'business-1', role, userId: 'user-1' },
         method: 'POST',
-        path: '/inventory/lots/id/adjustments',
+        path: '/identity/assistants',
       }),
     }),
   } as unknown as ExecutionContext;

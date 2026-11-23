@@ -9,25 +9,6 @@ export type Buyer = {
   creditLimitCents: string | null;
 };
 
-export type InventoryLot = {
-  id: string;
-  varietyId: string;
-  state: 'pending' | 'available' | 'depleted' | 'blocked' | 'voided';
-  availableSacks: number;
-  availableWeightKg: string;
-  initialSacks: number;
-  initialWeightKg: string;
-  version: number;
-  createdAt: string;
-  // Spec 011 (RQ-ST05): history data from GET /sales (backend T1162).
-  varieties?: string[];
-  sacks?: number;
-  weightKg?: string;
-  paidCents?: string;
-  balanceCents?: string;
-  paymentState?: 'paid' | 'debt' | 'voided';
-};
-
 export type Sale = {
   id: string;
   buyerId: string;

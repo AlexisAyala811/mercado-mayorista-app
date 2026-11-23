@@ -15,8 +15,6 @@ function origin(item:SyncOperation,operations:SyncOperation[]) {
   if(account)return `account:${centralOrLocal(account[1],operations)}`;
   const sale=item.path.match(/^\/sales\/([^/]+)/);
   if(sale)return `sale:${centralOrLocal(sale[1],operations)}`;
-  const lot=item.path.match(/^\/inventory\/lots\/([^/]+)/);
-  if(lot)return `lot:${centralOrLocal(lot[1],operations)}`;
   return `operation:${item.id}`;
 }
 

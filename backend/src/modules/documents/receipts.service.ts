@@ -10,8 +10,6 @@ import { PotatoVarietyEntity } from '../../shared/catalog/entities/potato-variet
 import { ProviderEntity } from '../../shared/catalog/entities/provider.entity.js';
 import { BusinessEntity } from '../identity/entities/business.entity.js';
 import type { SessionIdentity } from '../identity/application/ports/session-identity-reader.js';
-import { InventoryLotEntity } from '../../retired/inventory/entities/inventory-lot.entity.js';
-import { InventoryMovementEntity } from '../../retired/inventory/entities/inventory-movement.entity.js';
 import { PurchaseSettlementLotEntity } from '../reception-and-purchases/purchase/entities/purchase-settlement-lot.entity.js';
 import { PurchaseSettlementEntity } from '../reception-and-purchases/purchase/entities/purchase-settlement.entity.js';
 import { ReceptionSackEntity } from '../reception-and-purchases/reception/entities/reception-sack.entity.js';
@@ -59,10 +57,6 @@ export class ReceiptsService {
     private readonly saleReturns: Repository<SaleReturnEntity>,
     @InjectRepository(SaleReturnLineEntity)
     private readonly saleReturnLines: Repository<SaleReturnLineEntity>,
-    @InjectRepository(InventoryLotEntity)
-    private readonly lots: Repository<InventoryLotEntity>,
-    @InjectRepository(InventoryMovementEntity)
-    private readonly movements: Repository<InventoryMovementEntity>,
     @InjectRepository(BuyerEntity)
     private readonly buyers: Repository<BuyerEntity>,
     @InjectRepository(ReceiptDocumentEntity)

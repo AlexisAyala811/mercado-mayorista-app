@@ -39,7 +39,7 @@ function fixture() {
   const saleLines = { find: jest.fn(async () => [original]), findBy: jest.fn(async () => [original]) };
   const returns = { findOne: jest.fn(async () => ({ id: 'return', saleId: 'sale', saleVersionAfter: 1, createdAt: new Date('2026-10-14T06:00:00Z'), merchandiseGrossCents: '500', allocatedSaleDiscountCents: '0', freightAdjustmentCents: '0', accountCreditCents: '0', cashRefundCents: '500', totalRefundCents: '500' })) };
   const returnLines = { find: jest.fn(async () => [{ saleLineId: 'line', returnedSacks: 0, returnedWeightKg: '5.000', netRefundCents: '500', authorizedGrossCents: '500', allocatedSaleDiscountCents: '0' }]) };
-  const args = [dataSource, audit, { getOrThrow: () => 5 }, business, purchase, receptions, sacks, party, varieties, sales, saleLines, returns, returnLines, {}, {}, party, documents];
+  const args = [dataSource, audit, { getOrThrow: () => 5 }, business, purchase, receptions, sacks, party, varieties, sales, saleLines, returns, returnLines, party, documents];
   const service = new ReceiptsService(...args as unknown as ConstructorParameters<typeof ReceiptsService>);
   return { service, documents, old, stored, original, audit, saleLines };
 }

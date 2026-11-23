@@ -12,12 +12,6 @@ import {CommercialCharacteristicEntity} from '../../shared/catalog/entities/comm
 import type { SessionIdentity } from '../identity/application/ports/session-identity-reader.js';
 import { UserRole } from '../identity/entities/user.entity.js';
 import {
-  InventoryLotEntity,
-  InventoryLotState,
-} from '../../retired/inventory/entities/inventory-lot.entity.js';
-import { InventoryMovementEntity } from '../../retired/inventory/entities/inventory-movement.entity.js';
-import { InventoryLotValuationEntity } from '../../retired/inventory/entities/inventory-lot-valuation.entity.js';
-import {
   CashMovementEntity,
   CashDirection,
 } from '../accounts/entities/cash-movement.entity.js';
@@ -50,23 +44,12 @@ function fixture() {
   const sales = repository();
   const buyers = repository();
   buyers.findOne.mockResolvedValue({ id: 'buyer', creditLimitCents: null });
-  const lot = {
-    id: 'lot',
-    version: 4,
-    state: InventoryLotState.Available,
-    availableSacks: 10,
-    availableWeightKg: '100.000',
-  };
-  const lots = repository();
-  lots.findOne.mockResolvedValue(lot);
   const varieties = repository();
   varieties.findOne.mockResolvedValue({ id: 'variety' });
   const lines = repository();
-  const movements = repository();
   const cash = repository();
   const accounts = repository();
   const installments = repository();
-  const valuations = repository();
   const lineCosts = repository();
   const characteristics=repository();
   characteristics.findOne.mockImplementation(async({where})=>({id:where.id,name:where.kind==='quality'?'Calidad capturada':'Origen capturado'}));
@@ -74,13 +57,10 @@ function fixture() {
     [SaleEntity, sales],
     [PotatoVarietyEntity, varieties],
     [BuyerEntity, buyers],
-    [InventoryLotEntity, lots],
     [SaleLineEntity, lines],
-    [InventoryMovementEntity, movements],
     [CashMovementEntity, cash],
     [AccountEntity, accounts],
     [AccountInstallmentEntity, installments],
-    [InventoryLotValuationEntity, valuations],
     [SaleLineCostEntity, lineCosts],
     [CommercialCharacteristicEntity,characteristics],
   ]);
@@ -138,13 +118,10 @@ function fixture() {
     creditQuery,
     identity,
     input,
-    lot,
     sales,
     buyers,
     varieties,
-    lots,
     lines,
-    movements,
     cash,
   };
 }
@@ -238,7 +215,6 @@ describe('Sale confirmation', () => {
     expect(f.lines.save).toHaveBeenCalledTimes(2);
     expect(f.lines.save).toHaveBeenNthCalledWith(1,expect.objectContaining({varietyId:'variety',qualityId:null,originId:null}));
     expect(f.lines.save).toHaveBeenNthCalledWith(2,expect.objectContaining({varietyId:'variety',qualityId:'quality-a',qualityName:'Calidad capturada',originId:'origin-a',originName:'Origen capturado'}));
-    expect(f.lots.save).not.toHaveBeenCalled();expect(f.movements.save).not.toHaveBeenCalled();
   });
   it('records the operation and rounded cash collection without stock access', async () => {
     const f = fixture();
@@ -259,9 +235,6 @@ describe('Sale confirmation', () => {
         sacks: 2,
       }),
     );
-    expect(f.lots.findOne).not.toHaveBeenCalled();
-    expect(f.lots.save).not.toHaveBeenCalled();
-    expect(f.movements.save).not.toHaveBeenCalled();
     expect(f.varieties.findOne).toHaveBeenCalledWith({
       lock: { mode: 'pessimistic_read' },
       where: { businessId: 'business', id: 'variety', isActive: true },
@@ -292,8 +265,6 @@ describe('Sale confirmation', () => {
           weightKg: quantities.weightKg,
         }),
       );
-      expect(f.lots.findOne).not.toHaveBeenCalled();
-      expect(f.movements.save).not.toHaveBeenCalled();
     },
   );
   it.each([
@@ -356,7 +327,6 @@ describe('Sale confirmation', () => {
     await expect(f.service.create(f.identity, f.input)).resolves.toBe(
       f.confirmed,
     );
-    expect(f.lots.findOne).not.toHaveBeenCalled();
     expect(f.cash.save).not.toHaveBeenCalled();
   });
 

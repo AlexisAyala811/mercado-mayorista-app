@@ -340,11 +340,11 @@ it.each([500,409])('blocks closure and purchase after a sack response HTTP %s wh
   await act(async()=>{root.unmount()});
 });
 
-it.each(['sale.create','inventory.adjustment'])('keeps the retired %s contract for review after confirming central absence, without sending it',async type=>{
+it.each(['sale.create'])('keeps the retired %s contract for review after confirming central absence, without sending it',async type=>{
   let root!:ReactTestRenderer;jest.mocked(apiRequest).mockReset().mockRejectedValueOnce(new ApiError('Missing',404));
   await act(async()=>{root=create(<Tree/>)});
   const body={clientOperationId:'historic',lines:[{lotId:'lot',expectedLotVersion:1,sacks:30,weightKg:'1500',unitPriceCents:150}]};
-  await act(async()=>{await latest.enqueue({id:'historic',type,method:'POST',path:type==='sale.create'?'/sales':'/inventory/lots/lot/adjustments',body})});
+  await act(async()=>{await latest.enqueue({id:'historic',type,method:'POST',path:'/sales',body})});
   await act(async()=>{await latest.sendQueued('historic')});
   expect(apiRequest).toHaveBeenCalledTimes(1);expect(apiRequest).toHaveBeenCalledWith(expect.stringContaining('/operations/historic?type='),{token:mockSession.accessToken});
   expect(latest.operations[0]).toMatchObject({id:'historic',body,status:'review',attempts:0});expect(latest.operations[0].message).toMatch(/retirado|contrato anterior/);

@@ -24,8 +24,6 @@ import type { SessionIdentity } from '../src/modules/identity/application/ports/
 import { BusinessEntity } from '../src/modules/identity/entities/business.entity.js';
 import { UserEntity, UserRole } from '../src/modules/identity/entities/user.entity.js';
 import { PasswordHasher } from '../src/modules/identity/security/password-hasher.js';
-import { InventoryLotEntity } from '../src/retired/inventory/entities/inventory-lot.entity.js';
-import { InventoryMovementEntity } from '../src/retired/inventory/entities/inventory-movement.entity.js';
 import {
   CalculationBasis,
   PaymentMode,
@@ -138,8 +136,6 @@ export function registerCommercialDatabaseScenarios(
       saleLines,
       dataSource.getRepository(SaleReturnEntity),
       dataSource.getRepository(SaleReturnLineEntity),
-      dataSource.getRepository(InventoryLotEntity),
-      dataSource.getRepository(InventoryMovementEntity),
       buyers,
       receiptDocuments,
     );

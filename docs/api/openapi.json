@@ -2780,86 +2780,6 @@
         "summary": "Anula una liquidación de compra con su compensación"
       }
     },
-    "/api/v1/inventory/lots": {
-      "get": {
-        "operationId": "InventoryController_lots",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "session": []
-          }
-        ],
-        "tags": [
-          "inventory"
-        ],
-        "summary": "Lista los lotes de inventario"
-      }
-    },
-    "/api/v1/inventory/lots/{id}": {
-      "get": {
-        "operationId": "InventoryController_lot",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "session": []
-          }
-        ],
-        "tags": [
-          "inventory"
-        ],
-        "summary": "Devuelve un lote de inventario"
-      }
-    },
-    "/api/v1/inventory/lots/{id}/movements": {
-      "get": {
-        "operationId": "InventoryController_movements",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "session": []
-          }
-        ],
-        "tags": [
-          "inventory"
-        ],
-        "summary": "Lista los movimientos de un lote"
-      }
-    },
-    "/api/v1/inventory/lots/{id}/adjustments": {
-      "post": {
-        "operationId": "InventoryController_adjust",
-        "parameters": [],
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "session": []
-          }
-        ],
-        "tags": [
-          "inventory"
-        ],
-        "summary": "Registra un ajuste de un lote"
-      }
-    },
     "/api/v1/accounts": {
       "get": {
         "operationId": "AccountsController_list",
@@ -5337,7 +5257,6 @@
               "enum": [
                 "account-payment",
                 "freight-settlement",
-                "inventory-movement",
                 "purchase-settlement",
                 "purchase-void",
                 "reception",
