@@ -33,5 +33,5 @@ En producción viene apagado salvo que se declare `OPENAPI_ENABLED=true`. Para p
 ## Cómo se mantiene
 
 - Los esquemas de entrada y salida salen de los DTO mediante el plugin de `@nestjs/swagger` en `backend/nest-cli.json`.
-- Los resúmenes están en `backend/src/openapi/operation-summaries.ts`. Su prueba falla si una operación del contrato no tiene resumen o si queda un resumen de una operación que ya no existe.
+- Los resúmenes están en `backend/src/platform/openapi/operation-summaries.ts`. Su prueba falla si una operación del contrato no tiene resumen o si queda un resumen de una operación que ya no existe.
 - Para regenerar `openapi.json`: levantar la API con `OPENAPI_ENABLED=true`, descargar `/api/v1/openapi.json` en este archivo y correr `npm test -- src/openapi` en `backend/`.

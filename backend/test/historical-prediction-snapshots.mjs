@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { Client } from 'pg';
 import { writeFile } from 'node:fs/promises';
-import { loadHistoricalEvaluationInputs, loadHistoricalPriceSnapshot } from '../dist/analytics/historical-price-snapshots.js';
-import { evaluateHistoricalSnapshots } from '../dist/analytics/predictive-engine.js';
+import { loadHistoricalEvaluationInputs, loadHistoricalPriceSnapshot } from '../dist/modules/reports-and-analytics/analytics/historical-price-snapshots.js';
+import { evaluateHistoricalSnapshots } from '../dist/modules/reports-and-analytics/analytics/predictive-engine.js';
 assert.match(process.env.DATABASE_NAME ?? '', /^mercado_ui_test_[a-f0-9]{32}$/);
 const client = new Client({host:'127.0.0.1',port:55437,user:'mercado_test',database:process.env.DATABASE_NAME,password:process.env.DATABASE_PASSWORD});
 await client.connect();

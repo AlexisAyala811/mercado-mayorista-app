@@ -5,17 +5,17 @@ import type { Server } from 'node:http';
 import request from 'supertest';
 import { IsNull, type DataSource } from 'typeorm';
 
-import { AuditEventEntity } from '../src/audit/audit-event.entity.js';
-import type { AuditService } from '../src/audit/audit.service.js';
+import { AuditEventEntity } from '../src/shared/audit/audit-event.entity.js';
+import type { AuditService } from '../src/shared/audit/audit.service.js';
 import { configureHttpApplication } from '../src/configure-http-application.js';
-import type { SessionIdentity } from '../src/identity/application/ports/session-identity-reader.js';
-import { BusinessEntity } from '../src/identity/entities/business.entity.js';
-import { UserEntity, UserRole } from '../src/identity/entities/user.entity.js';
-import { PasswordHasher } from '../src/identity/security/password-hasher.js';
-import { RegisterSackWeight } from '../src/reception/application/register-sack-weight.js';
-import { ReceptionEntity } from '../src/reception/entities/reception.entity.js';
-import { ReceptionSackEntity } from '../src/reception/entities/reception-sack.entity.js';
-import { PostgresWeighingUnitOfWork } from '../src/reception/infrastructure/postgres-weighing.js';
+import type { SessionIdentity } from '../src/modules/identity/application/ports/session-identity-reader.js';
+import { BusinessEntity } from '../src/modules/identity/entities/business.entity.js';
+import { UserEntity, UserRole } from '../src/modules/identity/entities/user.entity.js';
+import { PasswordHasher } from '../src/modules/identity/security/password-hasher.js';
+import { RegisterSackWeight } from '../src/modules/reception-and-purchases/reception/application/register-sack-weight.js';
+import { ReceptionEntity } from '../src/modules/reception-and-purchases/reception/entities/reception.entity.js';
+import { ReceptionSackEntity } from '../src/modules/reception-and-purchases/reception/entities/reception-sack.entity.js';
+import { PostgresWeighingUnitOfWork } from '../src/modules/reception-and-purchases/reception/infrastructure/postgres-weighing.js';
 
 // Spec 002, T226: the weighing use case guarantees on PostgreSQL — concurrent
 // resends of one order, operation-id conflicts and rollback when auditing fails.
@@ -60,7 +60,7 @@ describe('Sack weighing (PostgreSQL)', () => {
   });
 
   beforeAll(async () => {
-    dataSource = (await import('../src/database/data-source.js')).default;
+    dataSource = (await import('../src/platform/database/data-source.js')).default;
     await dataSource.initialize();
     await dataSource.runMigrations({ transaction: 'all' });
 

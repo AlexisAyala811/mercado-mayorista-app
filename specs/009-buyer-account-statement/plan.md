@@ -11,11 +11,11 @@ El backend calcula el estado de cuenta a partir de las cuentas por cobrar abiert
 
 | Pieza | Módulo | Ubicación |
 | --- | --- | --- |
-| Cálculo del estado de cuenta (función pura) | Documentos | `backend/src/receipts/buyer-statement/buyer-statement.ts` |
-| Lectura de datos y conservación | Documentos | `backend/src/receipts/buyer-statement/buyer-statement.service.ts` |
-| Render PDF | Documentos | `backend/src/receipts/buyer-statement/buyer-statement.pdf.ts` (PDFKit, como los comprobantes) |
-| Render imagen | Documentos | `backend/src/receipts/buyer-statement/buyer-statement.image.ts` (SVG → PNG) |
-| Endpoints | Documentos | `backend/src/receipts/buyer-statement/buyer-statement.controller.ts` |
+| Cálculo del estado de cuenta (función pura) | Documentos | `backend/src/modules/documents/buyer-statement/buyer-statement.ts` |
+| Lectura de datos y conservación | Documentos | `backend/src/modules/documents/buyer-statement/buyer-statement.service.ts` |
+| Render PDF | Documentos | `backend/src/modules/documents/buyer-statement/buyer-statement.pdf.ts` (PDFKit, como los comprobantes) |
+| Render imagen | Documentos | `backend/src/modules/documents/buyer-statement/buyer-statement.image.ts` (SVG → PNG) |
+| Endpoints | Documentos | `backend/src/modules/documents/buyer-statement/buyer-statement.controller.ts` |
 | Vista previa y envío | Android | `app/src/features/receipts/` y `app/src/services/receipts/receipt-sharing.ts` |
 
 Documentos lee Cuentas y caja, Ventas y Referencias; no escribe en ninguno. No se crea un módulo nuevo ni se modifica el modelo de cuentas.

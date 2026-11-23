@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {readFile,writeFile} from 'node:fs/promises';
-import dataSource from '../dist/database/data-source.js';
+import dataSource from '../dist/platform/database/data-source.js';
 
 assert.match(process.env.DATABASE_NAME??'',/^mercado_ui_test_[a-f0-9]{32}$/);
 assert.equal(process.env.DATABASE_HOST,'127.0.0.1');

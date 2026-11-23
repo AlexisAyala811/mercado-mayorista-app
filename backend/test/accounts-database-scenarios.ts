@@ -2,26 +2,26 @@ import { randomUUID } from 'node:crypto';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { DataSource } from 'typeorm';
-import { AccountsService } from '../src/accounts/accounts.service.js';
+import { AccountsService } from '../src/modules/accounts/accounts.service.js';
 import {
   AccountEntity,
   AccountKind,
   AccountState,
-} from '../src/accounts/entities/account.entity.js';
+} from '../src/modules/accounts/entities/account.entity.js';
 import {
   AccountInstallmentEntity,
   InstallmentState,
-} from '../src/accounts/entities/account-installment.entity.js';
-import { AccountPaymentEntity } from '../src/accounts/entities/account-payment.entity.js';
+} from '../src/modules/accounts/entities/account-installment.entity.js';
+import { AccountPaymentEntity } from '../src/modules/accounts/entities/account-payment.entity.js';
 import {
   CashMovementEntity,
   CashDirection,
-} from '../src/accounts/entities/cash-movement.entity.js';
-import { AuditEventEntity } from '../src/audit/audit-event.entity.js';
-import { AuditService } from '../src/audit/audit.service.js';
-import type { SessionIdentity } from '../src/identity/application/ports/session-identity-reader.js';
-import { UserRole } from '../src/identity/entities/user.entity.js';
-import { PasswordHasher } from '../src/identity/security/password-hasher.js';
+} from '../src/modules/accounts/entities/cash-movement.entity.js';
+import { AuditEventEntity } from '../src/shared/audit/audit-event.entity.js';
+import { AuditService } from '../src/shared/audit/audit.service.js';
+import type { SessionIdentity } from '../src/modules/identity/application/ports/session-identity-reader.js';
+import { UserRole } from '../src/modules/identity/entities/user.entity.js';
+import { PasswordHasher } from '../src/modules/identity/security/password-hasher.js';
 
 // Registered inside the migration suite so every scenario starts after migration
 // completion, without racing another runner to create the schema.

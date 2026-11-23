@@ -16,22 +16,22 @@ El diagrama tiene cuatro columnas: presentación (azul), servicios (verde), regl
 
 | Elemento | Responsabilidad | Referencia técnica |
 | --- | --- | --- |
-| ReceptionController / AddSackDto | Recibir y validar la orden de ingreso de peso | `src/reception/reception.controller.ts`, `src/reception/http/weighing.dto.ts` |
-| WeighingService | Listar sacos y delegar cada escritura del pesaje | `src/reception/weighing.service.ts` |
-| RegisterSackWeight / CorrectSackWeight / CorrectClosedSackWeight / VoidSack / CloseWeighing | Casos de uso del pesaje: idempotencia, estado, variedad, versión y auditoría sobre contratos | `src/reception/application/` |
-| PostgresWeighingUnitOfWork | Adaptador de los contratos: transacción, bloqueo consultivo y de la recepción, auditoría | `src/reception/infrastructure/postgres-weighing.ts` |
-| SackWeight | Modelo inmutable del peso del saco | `src/reception/application/sack-weight.ts` |
-| ReceptionSackEntity | Conservar variedad, secuencia, pesos, UUID y responsable | `src/reception/entities/reception-sack.entity.ts` |
-| calculateSackWeights | Validar bruto/tara y calcular peso neto a tres decimales | `src/common/domain/sack-weights.ts` |
-| PurchaseController / SettlePurchaseDto | Recibir condiciones y versión de la recepción | `src/purchase/purchase.controller.ts`, `src/purchase/http/settle-purchase.dto.ts` |
-| PurchaseService | Recuperar una liquidación previa o confirmar una nueva | `src/purchase/purchase.service.ts` |
-| PurchaseSettlementEntity | Conservar precio, flete, adelantos, líquido y estado | `src/purchase/entities/purchase-settlement.entity.ts` |
-| calculateAmountByBasis | Calcular importes por kilogramo o saco | `src/common/domain/commercial-calculation.ts` |
-| parseFixedDecimal / formatFixedDecimal | Convertir cantidades decimales con precisión definida | `src/common/domain/fixed-decimal.ts` |
-| requireSameOperation | Rechazar con `409` un UUID reutilizado con datos distintos | `src/common/domain/operation-replay.ts` |
-| resolveCommercialSnapshot | Validar y copiar calidad y procedencia del saco | `src/catalog/commercial-snapshot.ts` |
+| ReceptionController / AddSackDto | Recibir y validar la orden de ingreso de peso | `src/modules/reception-and-purchases/reception/reception.controller.ts`, `src/modules/reception-and-purchases/reception/http/weighing.dto.ts` |
+| WeighingService | Listar sacos y delegar cada escritura del pesaje | `src/modules/reception-and-purchases/reception/weighing.service.ts` |
+| RegisterSackWeight / CorrectSackWeight / CorrectClosedSackWeight / VoidSack / CloseWeighing | Casos de uso del pesaje: idempotencia, estado, variedad, versión y auditoría sobre contratos | `src/modules/reception-and-purchases/reception/application/` |
+| PostgresWeighingUnitOfWork | Adaptador de los contratos: transacción, bloqueo consultivo y de la recepción, auditoría | `src/modules/reception-and-purchases/reception/infrastructure/postgres-weighing.ts` |
+| SackWeight | Modelo inmutable del peso del saco | `src/modules/reception-and-purchases/reception/application/sack-weight.ts` |
+| ReceptionSackEntity | Conservar variedad, secuencia, pesos, UUID y responsable | `src/modules/reception-and-purchases/reception/entities/reception-sack.entity.ts` |
+| calculateSackWeights | Validar bruto/tara y calcular peso neto a tres decimales | `src/platform/common/domain/sack-weights.ts` |
+| PurchaseController / SettlePurchaseDto | Recibir condiciones y versión de la recepción | `src/modules/reception-and-purchases/purchase/purchase.controller.ts`, `src/modules/reception-and-purchases/purchase/http/settle-purchase.dto.ts` |
+| PurchaseService | Recuperar una liquidación previa o confirmar una nueva | `src/modules/reception-and-purchases/purchase/purchase.service.ts` |
+| PurchaseSettlementEntity | Conservar precio, flete, adelantos, líquido y estado | `src/modules/reception-and-purchases/purchase/entities/purchase-settlement.entity.ts` |
+| calculateAmountByBasis | Calcular importes por kilogramo o saco | `src/platform/common/domain/commercial-calculation.ts` |
+| parseFixedDecimal / formatFixedDecimal | Convertir cantidades decimales con precisión definida | `src/platform/common/domain/fixed-decimal.ts` |
+| requireSameOperation | Rechazar con `409` un UUID reutilizado con datos distintos | `src/platform/common/domain/operation-replay.ts` |
+| resolveCommercialSnapshot | Validar y copiar calidad y procedencia del saco | `src/shared/catalog/commercial-snapshot.ts` |
 | DataSource / EntityManager | Ejecutar transacciones y acceder a repositorios | Dependencias TypeORM de ambos servicios |
-| AuditService | Registrar hechos en la transacción correspondiente | `src/audit/audit.service.ts` |
+| AuditService | Registrar hechos en la transacción correspondiente | `src/shared/audit/audit.service.ts` |
 
 Las rutas son relativas a `backend/`. La vista es selectiva y omite campos y métodos secundarios. Recepción y saco se asocian mediante `receptionId`.
 

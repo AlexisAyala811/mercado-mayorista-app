@@ -6,11 +6,11 @@ import request from 'supertest';
 import type { DataSource } from 'typeorm';
 
 import { configureHttpApplication } from '../src/configure-http-application.js';
-import { BusinessEntity } from '../src/identity/entities/business.entity.js';
-import { UserEntity, UserRole } from '../src/identity/entities/user.entity.js';
-import type { SessionIdentity } from '../src/identity/application/ports/session-identity-reader.js';
-import { PasswordHasher } from '../src/identity/security/password-hasher.js';
-import { WeighingService } from '../src/reception/weighing.service.js';
+import { BusinessEntity } from '../src/modules/identity/entities/business.entity.js';
+import { UserEntity, UserRole } from '../src/modules/identity/entities/user.entity.js';
+import type { SessionIdentity } from '../src/modules/identity/application/ports/session-identity-reader.js';
+import { PasswordHasher } from '../src/modules/identity/security/password-hasher.js';
+import { WeighingService } from '../src/modules/reception-and-purchases/reception/weighing.service.js';
 
 // Spec 011 (CL-MD05) on PostgreSQL: «Ver compras» reads paid, debt or voided
 // from the settlement and its payable account, only for the session business.
@@ -77,7 +77,7 @@ describe('Purchase payment status (PostgreSQL)', () => {
   }
 
   beforeAll(async () => {
-    dataSource = (await import('../src/database/data-source.js')).default;
+    dataSource = (await import('../src/platform/database/data-source.js')).default;
     await dataSource.initialize();
     await dataSource.runMigrations({ transaction: 'all' });
     const { AppModule } = await import('../src/app.module.js');

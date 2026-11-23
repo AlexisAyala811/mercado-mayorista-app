@@ -4,8 +4,8 @@
 
 ## Diseño
 
-- `backend/src/common/cache/memory-cache.ts`: caché genérico con vigencia, tamaño máximo, invalidación por ámbito y versión por ámbito. No depende de NestJS.
-- `backend/src/catalog/catalog-cache.ts`: proveedor inyectable que arma el ámbito `negocio:catálogo` y lee la vigencia de la configuración.
+- `backend/src/platform/common/cache/memory-cache.ts`: caché genérico con vigencia, tamaño máximo, invalidación por ámbito y versión por ámbito. No depende de NestJS.
+- `backend/src/shared/catalog/catalog-cache.ts`: proveedor inyectable que arma el ámbito `negocio:catálogo` y lee la vigencia de la configuración.
 - `CatalogService`: las tres lecturas pasan por el caché; las nueve escrituras quedan como métodos privados y sus métodos públicos invalidan al terminar.
 
 ## Por qué sin dependencia nueva

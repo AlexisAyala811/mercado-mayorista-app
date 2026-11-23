@@ -6,12 +6,12 @@ import request from 'supertest';
 import type { DataSource } from 'typeorm';
 
 import { configureHttpApplication } from '../src/configure-http-application.js';
-import { BusinessEntity } from '../src/identity/entities/business.entity.js';
-import { UserEntity, UserRole } from '../src/identity/entities/user.entity.js';
-import type { SessionIdentity } from '../src/identity/application/ports/session-identity-reader.js';
-import { PasswordHasher } from '../src/identity/security/password-hasher.js';
-import { ReceptionService } from '../src/reception/reception.service.js';
-import { WeighingService } from '../src/reception/weighing.service.js';
+import { BusinessEntity } from '../src/modules/identity/entities/business.entity.js';
+import { UserEntity, UserRole } from '../src/modules/identity/entities/user.entity.js';
+import type { SessionIdentity } from '../src/modules/identity/application/ports/session-identity-reader.js';
+import { PasswordHasher } from '../src/modules/identity/security/password-hasher.js';
+import { ReceptionService } from '../src/modules/reception-and-purchases/reception/reception.service.js';
+import { WeighingService } from '../src/modules/reception-and-purchases/reception/weighing.service.js';
 
 // Spec 011 (RQ-ST05, RQ-ST07, CL-ST04, CL-ST10) on PostgreSQL: «Ver compras»
 // and «Ver ventas» with sacks, kilos, totals and payment state, their counts,
@@ -192,7 +192,7 @@ describe('Stitch convergence history (PostgreSQL)', () => {
   }
 
   beforeAll(async () => {
-    dataSource = (await import('../src/database/data-source.js')).default;
+    dataSource = (await import('../src/platform/database/data-source.js')).default;
     await dataSource.initialize();
     await dataSource.runMigrations({ transaction: 'all' });
     const { AppModule } = await import('../src/app.module.js');

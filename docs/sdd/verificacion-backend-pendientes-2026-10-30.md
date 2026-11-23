@@ -8,7 +8,7 @@
 | --- | --- | --- |
 | E2E HTTP con dos negocios: `404` y evento `authorization.cross-business-denied` solo en el negocio que intenta | 001 | `backend/test/voided-credit-and-isolation.e2e-spec.ts` |
 | E2E de anulación de venta a crédito: cuenta y cuotas `voided` con saldo cero, sin caja | 004 | `backend/test/voided-credit-and-isolation.e2e-spec.ts` |
-| Registro de consultas sin parámetros enlazados | 001 | `backend/src/database/query-logger.ts`, `postgres-options.ts` |
+| Registro de consultas sin parámetros enlazados | 001 | `backend/src/platform/database/query-logger.ts`, `postgres-options.ts` |
 
 ## Registro de consultas
 

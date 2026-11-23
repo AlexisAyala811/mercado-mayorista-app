@@ -15,7 +15,7 @@ describe('PostgreSQL migrations (e2e)', () => {
         'Database E2E requires NODE_ENV=test and a DATABASE_NAME containing "test".',
       );
     }
-    const module = await import('../src/database/data-source.js');
+    const module = await import('../src/platform/database/data-source.js');
     dataSource = module.default;
     await dataSource.initialize();
     await dataSource.runMigrations({ transaction: 'all' });

@@ -2,8 +2,8 @@ import 'reflect-metadata';
 import assert from 'node:assert/strict';
 import { access, writeFile } from 'node:fs/promises';
 import pg from 'pg';
-import { loadReportExport } from '../dist/reports/report-export-data.js';
-import { renderReportExport } from '../dist/reports/report-export.js';
+import { loadReportExport } from '../dist/modules/reports-and-analytics/reports/report-export-data.js';
+import { renderReportExport } from '../dist/modules/reports-and-analytics/reports/report-export.js';
 
 assert.match(process.env.DATABASE_NAME ?? '', /^mercado_ui_test_[a-f0-9]{32}$/);
 assert.equal(process.env.DATABASE_HOST, '127.0.0.1');

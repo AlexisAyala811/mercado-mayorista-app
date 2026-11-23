@@ -1,7 +1,7 @@
 // Synthetic read-only projection: no API, database, return submission or financial writes.
 import { mkdir, writeFile } from 'node:fs/promises';
-import { renderReceiptPdf } from '../dist/receipts/pdf-receipt.renderer.js';
-import { receiptCharacteristics, receiptSackGroups } from '../dist/receipts/receipt-characteristics.js';
+import { renderReceiptPdf } from '../dist/modules/documents/pdf-receipt.renderer.js';
+import { receiptCharacteristics, receiptSackGroups } from '../dist/modules/documents/receipt-characteristics.js';
 
 const destination = new URL('../../tmp/pdfs/characteristics-20261014/', import.meta.url);
 await mkdir(destination, { recursive: true });

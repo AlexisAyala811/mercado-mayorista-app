@@ -1,6 +1,6 @@
-import { AnalyticsService } from '../dist/analytics/analytics.service.js';
-import { publicationAvailability } from '../dist/analytics/publication-availability.js';
-import { AnalyticsOutcomes1791763200023 } from '../dist/database/migrations/202610120023-analytics-outcomes.js';
+import { AnalyticsService } from '../dist/modules/reports-and-analytics/analytics/analytics.service.js';
+import { publicationAvailability } from '../dist/modules/reports-and-analytics/analytics/publication-availability.js';
+import { AnalyticsOutcomes1791763200023 } from '../dist/platform/database/migrations/202610120023-analytics-outcomes.js';
 
 // Disposable schema in the named UI test DB. No public commercial/identity writes.
 
@@ -12,17 +12,17 @@ import { Client } from 'pg';
 
 import { writeFile } from 'node:fs/promises';
 
-import { AnalyticsEvaluations1791763200021 } from '../dist/database/migrations/202610120021-analytics-evaluations.js';
+import { AnalyticsEvaluations1791763200021 } from '../dist/platform/database/migrations/202610120021-analytics-evaluations.js';
 
-import { EvaluationStore } from '../dist/analytics/evaluation-store.js';
+import { EvaluationStore } from '../dist/modules/reports-and-analytics/analytics/evaluation-store.js';
 
-import { AnalyticsEvaluationService } from '../dist/analytics/analytics-evaluation.service.js';
+import { AnalyticsEvaluationService } from '../dist/modules/reports-and-analytics/analytics/analytics-evaluation.service.js';
 
-import { predictionWindow } from '../dist/analytics/prediction-readiness.js';
+import { predictionWindow } from '../dist/modules/reports-and-analytics/analytics/prediction-readiness.js';
 
-import { loadCurrentPredictionSnapshot } from '../dist/analytics/historical-price-snapshots.js';
+import { loadCurrentPredictionSnapshot } from '../dist/modules/reports-and-analytics/analytics/historical-price-snapshots.js';
 
-import { preparePublicationCandidate } from '../dist/analytics/publication-candidate.js';
+import { preparePublicationCandidate } from '../dist/modules/reports-and-analytics/analytics/publication-candidate.js';
 
 import { Test } from '@nestjs/testing';
 
@@ -32,17 +32,17 @@ import { Reflector } from '@nestjs/core';
 
 import request from 'supertest';
 
-import { AnalyticsEvaluationController } from '../dist/analytics/analytics-evaluation.controller.js';
+import { AnalyticsEvaluationController } from '../dist/modules/reports-and-analytics/analytics/analytics-evaluation.controller.js';
 
-import { SessionAuthGuard } from '../dist/identity/http/session-auth.guard.js';
+import { SessionAuthGuard } from '../dist/modules/identity/http/session-auth.guard.js';
 
-import { RolesGuard } from '../dist/identity/http/roles.guard.js';
+import { RolesGuard } from '../dist/modules/identity/http/roles.guard.js';
 
-import { AnalyticsPublications1791763200022 } from '../dist/database/migrations/202610120022-analytics-publications.js';
+import { AnalyticsPublications1791763200022 } from '../dist/platform/database/migrations/202610120022-analytics-publications.js';
 
-import { AnalyticsPublicationService } from '../dist/analytics/analytics-publication.service.js';
+import { AnalyticsPublicationService } from '../dist/modules/reports-and-analytics/analytics/analytics-publication.service.js';
 
-import { AnalyticsPublicationController } from '../dist/analytics/analytics-publication.controller.js';
+import { AnalyticsPublicationController } from '../dist/modules/reports-and-analytics/analytics/analytics-publication.controller.js';
 
 assert.match(process.env.DATABASE_NAME ?? '',/^mercado_ui_test_[a-f0-9]{32}$/);
 

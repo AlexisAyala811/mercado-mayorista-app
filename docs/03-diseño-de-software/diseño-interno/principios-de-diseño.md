@@ -50,15 +50,15 @@ Ejemplo: bruto **52,500 kg** y tara **0,500 kg** producen **52,000 kg netos**. U
 
 | Archivo del proyecto técnico | Responsabilidad constatada |
 | --- | --- |
-| `backend/src/reception/reception.controller.ts` | Entrada `addSack` y delegación de la operación |
-| `backend/src/reception/http/weighing.dto.ts` | UUID, versión, variedad, peso bruto y tara; validación de formato |
-| `backend/src/reception/weighing.service.ts` | Lista sacos y delega cada escritura en su caso de uso |
-| `backend/src/common/domain/sack-weights.ts` | Reglas de bruto, tara y neto (`calculateSackWeights`), función pura |
-| `backend/src/reception/application/sack-weight.ts` | Modelo del saco `SackWeight` |
-| `backend/src/reception/application/weighing-ports.ts` | Contratos y validaciones compartidas |
-| `backend/src/reception/application/*.ts` | `RegisterSackWeight`, `CorrectSackWeight`, `CorrectClosedSackWeight`, `VoidSack`, `CloseWeighing` y `WeighingUseCases` |
-| `backend/src/reception/infrastructure/postgres-weighing.ts` | Adaptador PostgreSQL: transacción, bloqueos y auditoría |
-| `backend/src/common/domain/fixed-decimal.ts` | Conversión decimal determinista usada por las reglas |
+| `backend/src/modules/reception-and-purchases/reception/reception.controller.ts` | Entrada `addSack` y delegación de la operación |
+| `backend/src/modules/reception-and-purchases/reception/http/weighing.dto.ts` | UUID, versión, variedad, peso bruto y tara; validación de formato |
+| `backend/src/modules/reception-and-purchases/reception/weighing.service.ts` | Lista sacos y delega cada escritura en su caso de uso |
+| `backend/src/platform/common/domain/sack-weights.ts` | Reglas de bruto, tara y neto (`calculateSackWeights`), función pura |
+| `backend/src/modules/reception-and-purchases/reception/application/sack-weight.ts` | Modelo del saco `SackWeight` |
+| `backend/src/modules/reception-and-purchases/reception/application/weighing-ports.ts` | Contratos y validaciones compartidas |
+| `backend/src/modules/reception-and-purchases/reception/application/*.ts` | `RegisterSackWeight`, `CorrectSackWeight`, `CorrectClosedSackWeight`, `VoidSack`, `CloseWeighing` y `WeighingUseCases` |
+| `backend/src/modules/reception-and-purchases/reception/infrastructure/postgres-weighing.ts` | Adaptador PostgreSQL: transacción, bloqueos y auditoría |
+| `backend/src/platform/common/domain/fixed-decimal.ts` | Conversión decimal determinista usada por las reglas |
 | `mercado-app/src/domain/reception/reception.ts` | Modelo del saco y representación de resultados para la interfaz |
 | `mercado-app/src/services/api/reception-api.ts` | Envío de `addSack` al contrato central |
 

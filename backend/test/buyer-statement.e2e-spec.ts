@@ -5,13 +5,13 @@ import type { Server } from 'node:http';
 import request from 'supertest';
 import type { DataSource } from 'typeorm';
 
-import { AuditEventEntity } from '../src/audit/audit-event.entity.js';
+import { AuditEventEntity } from '../src/shared/audit/audit-event.entity.js';
 import { configureHttpApplication } from '../src/configure-http-application.js';
-import { BusinessEntity } from '../src/identity/entities/business.entity.js';
-import { DelegationEntity } from '../src/identity/entities/delegation.entity.js';
-import { UserEntity, UserRole } from '../src/identity/entities/user.entity.js';
-import { PasswordHasher } from '../src/identity/security/password-hasher.js';
-import { ReceiptDocumentEntity } from '../src/receipts/receipt-document.entity.js';
+import { BusinessEntity } from '../src/modules/identity/entities/business.entity.js';
+import { DelegationEntity } from '../src/modules/identity/entities/delegation.entity.js';
+import { UserEntity, UserRole } from '../src/modules/identity/entities/user.entity.js';
+import { PasswordHasher } from '../src/modules/identity/security/password-hasher.js';
+import { ReceiptDocumentEntity } from '../src/modules/documents/receipt-document.entity.js';
 
 // Spec 009 (HU16/RF27): the spec example end to end on PostgreSQL —
 // S/ 800.00 sale on credit, S/ 300.00 payment, S/ 100.00 return.
@@ -39,7 +39,7 @@ describe('Buyer account statement (PostgreSQL)', () => {
     http().get(path).set('Authorization', `Bearer ${token}`);
 
   beforeAll(async () => {
-    dataSource = (await import('../src/database/data-source.js')).default;
+    dataSource = (await import('../src/platform/database/data-source.js')).default;
     await dataSource.initialize();
     await dataSource.runMigrations({ transaction: 'all' });
 

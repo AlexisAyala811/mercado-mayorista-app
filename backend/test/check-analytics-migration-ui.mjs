@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import dataSource from '../dist/database/data-source.js';
+import dataSource from '../dist/platform/database/data-source.js';
 assert.match(process.env.DATABASE_NAME ?? '',/^mercado_ui_test_[a-f0-9]{32}$/);
 assert.ok(process.argv[2]===undefined||process.argv[2]==='publications'||process.argv[2]==='outcomes');
 const expected=process.argv[2]==='outcomes'?'AnalyticsOutcomes1791763200023':process.argv[2]==='publications'?'AnalyticsPublications1791763200022':'AnalyticsEvaluations1791763200021';
