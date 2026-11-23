@@ -2782,11 +2782,15 @@
     },
     "/api/v1/inventory/lots": {
       "get": {
+        "deprecated": true,
         "operationId": "InventoryController_lots",
         "parameters": [],
         "responses": {
           "200": {
             "description": ""
+          },
+          "410": {
+            "description": "El control de existencias fue retirado. Consulta el historial de compras y ventas."
           }
         },
         "security": [
@@ -2794,19 +2798,23 @@
             "session": []
           }
         ],
+        "summary": "Retirada (410): lotes de inventario",
         "tags": [
           "inventory"
-        ],
-        "summary": "Lista los lotes de inventario"
+        ]
       }
     },
     "/api/v1/inventory/lots/{id}": {
       "get": {
+        "deprecated": true,
         "operationId": "InventoryController_lot",
         "parameters": [],
         "responses": {
           "200": {
             "description": ""
+          },
+          "410": {
+            "description": "El control de existencias fue retirado. Consulta el historial de compras y ventas."
           }
         },
         "security": [
@@ -2814,19 +2822,23 @@
             "session": []
           }
         ],
+        "summary": "Retirada (410): detalle de un lote de inventario",
         "tags": [
           "inventory"
-        ],
-        "summary": "Devuelve un lote de inventario"
+        ]
       }
     },
     "/api/v1/inventory/lots/{id}/movements": {
       "get": {
+        "deprecated": true,
         "operationId": "InventoryController_movements",
         "parameters": [],
         "responses": {
           "200": {
             "description": ""
+          },
+          "410": {
+            "description": "El control de existencias fue retirado. Consulta el historial de compras y ventas."
           }
         },
         "security": [
@@ -2834,19 +2846,23 @@
             "session": []
           }
         ],
+        "summary": "Retirada (410): movimientos de un lote",
         "tags": [
           "inventory"
-        ],
-        "summary": "Lista los movimientos de un lote"
+        ]
       }
     },
     "/api/v1/inventory/lots/{id}/adjustments": {
       "post": {
+        "deprecated": true,
         "operationId": "InventoryController_adjust",
         "parameters": [],
         "responses": {
           "201": {
             "description": ""
+          },
+          "410": {
+            "description": "El control de existencias fue retirado. Consulta el historial de compras y ventas."
           }
         },
         "security": [
@@ -2854,10 +2870,10 @@
             "session": []
           }
         ],
+        "summary": "Retirada (410): ajuste de un lote",
         "tags": [
           "inventory"
-        ],
-        "summary": "Registra un ajuste de un lote"
+        ]
       }
     },
     "/api/v1/accounts": {

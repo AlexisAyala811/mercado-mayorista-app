@@ -138,8 +138,6 @@ export function registerCommercialDatabaseScenarios(
       saleLines,
       dataSource.getRepository(SaleReturnEntity),
       dataSource.getRepository(SaleReturnLineEntity),
-      dataSource.getRepository(InventoryLotEntity),
-      dataSource.getRepository(InventoryMovementEntity),
       buyers,
       receiptDocuments,
     );

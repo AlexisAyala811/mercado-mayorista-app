@@ -24,6 +24,19 @@ describe('OpenAPI summaries', () => {
     expect(Object.keys(operationSummaries).filter((id) => !ids.has(id))).toEqual([]);
   });
 
+  it('marks every retired inventory route as deprecated with its 410 answer (spec 021)', () => {
+    const retired = Object.entries(document.paths)
+      .filter(([path]) => path.startsWith('/api/v1/inventory'))
+      .flatMap(([, operations]) =>
+        Object.values(operations as Record<string, { deprecated?: boolean; responses?: Record<string, unknown> }>),
+      );
+    expect(retired).toHaveLength(4);
+    for (const operation of retired) {
+      expect(operation.deprecated).toBe(true);
+      expect(operation.responses).toHaveProperty('410');
+    }
+  });
+
   it('reports an operation without a summary', () => {
     const extra = { paths: { '/x': { get: { operationId: 'NewController_x', responses: {} } } } } as unknown as OpenAPIObject;
     expect(applyOperationSummaries(extra)).toEqual(['NewController_x']);

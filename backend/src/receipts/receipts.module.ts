@@ -8,8 +8,6 @@ import { PotatoVarietyEntity } from '../catalog/entities/potato-variety.entity.j
 import { ProviderEntity } from '../catalog/entities/provider.entity.js';
 import { BusinessEntity } from '../identity/entities/business.entity.js';
 import { IdentityModule } from '../identity/identity.module.js';
-import { InventoryLotEntity } from '../inventory/entities/inventory-lot.entity.js';
-import { InventoryMovementEntity } from '../inventory/entities/inventory-movement.entity.js';
 import { PurchaseSettlementEntity } from '../purchase/entities/purchase-settlement.entity.js';
 import { ReceptionSackEntity } from '../reception/entities/reception-sack.entity.js';
 import { ReceptionEntity } from '../reception/entities/reception.entity.js';
@@ -38,8 +36,6 @@ import { ReceiptDocumentEntity } from './receipt-document.entity.js';
       SaleLineEntity,
       SaleReturnEntity,
       SaleReturnLineEntity,
-      InventoryLotEntity,
-      InventoryMovementEntity,
       BuyerEntity,
       ReceiptDocumentEntity,
     ]),
