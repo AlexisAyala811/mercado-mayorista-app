@@ -38,3 +38,7 @@ Hacer visibles en el código los ocho módulos de la arquitectura ([componentes 
 2. La imagen Docker arranca y aplica las migraciones con la ruta nueva (`dist/platform/database/data-source.js`).
 3. El verificador de enlaces de la documentación no encuentra enlaces rotos.
 4. Tras fusionar, Render despliega y `/api/v1/health/ready` responde `200`.
+
+## Retiro de `retired/inventory` — 23 de noviembre de 2026
+
+La [spec 022](../022-retirar-inventario/spec.md) borra la carpeta `retired/inventory`: la API ya no tiene rutas ni entidades de inventario. La fila «Retirado (CL-12)» de la tabla queda como registro de la estructura del 22 de noviembre.
