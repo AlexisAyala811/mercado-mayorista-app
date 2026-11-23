@@ -5,7 +5,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AccountPaymentEntity } from '../../modules/accounts/entities/account-payment.entity.js';
 import { FreightSettlementEntity } from '../../modules/logistics-costs/freight/entities/freight-settlement.entity.js';
 import { IdentityModule } from '../../modules/identity/identity.module.js';
-import { InventoryMovementEntity } from '../../retired/inventory/entities/inventory-movement.entity.js';
 import { PurchaseSettlementEntity } from '../../modules/reception-and-purchases/purchase/entities/purchase-settlement.entity.js';
 import { ReceptionSackEntity } from '../../modules/reception-and-purchases/reception/entities/reception-sack.entity.js';
 import { ReceptionEntity } from '../../modules/reception-and-purchases/reception/entities/reception.entity.js';
@@ -26,7 +25,6 @@ import { OperationsService } from './operations.service.js';
       SaleEntity,
       SaleReturnEntity,
       AccountPaymentEntity,
-      InventoryMovementEntity,
       StowageEntryEntity,
       StowageSettlementEntity,
       FreightSettlementEntity,

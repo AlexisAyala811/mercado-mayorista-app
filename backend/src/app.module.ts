@@ -12,7 +12,6 @@ import { HealthModule } from './platform/health/health.module.js';
 import { IdentityModule } from './modules/identity/identity.module.js';
 import { LogisticsModule } from './modules/logistics-costs/logistics/logistics.module.js';
 import { ReceptionModule } from './modules/reception-and-purchases/reception/reception.module.js';
-import { InventoryModule } from './retired/inventory/inventory.module.js';
 import { PurchaseModule } from './modules/reception-and-purchases/purchase/purchase.module.js';
 import { AccountsModule } from './modules/accounts/accounts.module.js';
 import { SalesModule } from './modules/sales/sales.module.js';
@@ -70,7 +69,6 @@ import { MessagingModule } from './modules/messaging/messaging.module.js';
     LogisticsModule,
     ReceptionModule,
     PurchaseModule,
-    InventoryModule,
     AccountsModule,
     SalesModule,
     ReportsModule,

@@ -105,7 +105,7 @@ describe('ApiExceptionFilter', () => {
 
     filter.catch(
       new ConflictException({
-        code: 'inventory-version-conflict',
+        code: 'sale-version-conflict',
         currentVersion: 7,
         message: 'Revise.',
       }),
@@ -115,7 +115,7 @@ describe('ApiExceptionFilter', () => {
     expect(reply).toHaveBeenCalledWith(
       response,
       expect.objectContaining({
-        code: 'inventory-version-conflict',
+        code: 'sale-version-conflict',
         currentVersion: 7,
         statusCode: 409,
       }),

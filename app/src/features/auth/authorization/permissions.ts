@@ -8,7 +8,6 @@ export type ModuleId =
   | 'administration'
   | 'audit'
   | 'catalog'
-  | 'inventory'
   | 'logistics'
   | 'logistics-costs'
   | 'purchase-history'
@@ -24,8 +23,7 @@ export type ModuleId =
 const assistantModules = new Set<ModuleId>(['purchases', 'sales', 'sync-queue']);
 
 export function canAccessModule(role: UserRole, module: ModuleId) {
-  // Reserved legacy module; retired by the approved no-inventory scope.
-  if (module === 'inventory' || module === 'catalog') return false;
+  if (module === 'catalog') return false;
   return role === 'wholesaler' || (role === 'assistant' && assistantModules.has(module));
 }
 

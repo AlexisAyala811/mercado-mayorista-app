@@ -1,8 +1,8 @@
 # API REST · OpenAPI
 
-> **Fecha:** 18 de noviembre de 2026 · **Contrato:** [`openapi.json`](openapi.json) (OpenAPI 3, generado por `@nestjs/swagger`)
+> **Fecha:** 18 de noviembre de 2026, actualizado el 23 de noviembre de 2026 ([spec 022](../../specs/022-retirar-inventario/spec.md)) · **Contrato:** [`openapi.json`](openapi.json) (OpenAPI 3, generado por `@nestjs/swagger`)
 
-La API central expone 121 operaciones en 94 rutas bajo `/api/v1`. Todas tienen un resumen en español, y 118 exigen el token de sesión; las otras tres son el inicio de sesión y las dos comprobaciones de salud.
+La API central expone 117 operaciones en 90 rutas bajo `/api/v1`. Todas tienen un resumen en español, y 114 exigen el token de sesión; las otras tres son el inicio de sesión y las dos comprobaciones de salud.
 
 ## Dónde verla
 
@@ -23,7 +23,7 @@ En producción viene apagado salvo que se declare `OPENAPI_ENABLED=true`. Para p
 | `catalog` | 20 | Referencias: proveedores, compradores, variedades, calidades y procedencias |
 | `logistics`, `freight`, `stowage` | 17 | Costos logísticos: transportistas, vehículos, flete y estiba |
 | `receptions`, `purchases` | 17 | Recepción, pesaje y liquidación de compras |
-| `sales`, `inventory` | 10 | Ventas, despachos y devoluciones |
+| `sales` | 6 | Ventas, despachos y devoluciones |
 | `accounts` | 6 | Cuentas, pagos, cobros y caja |
 | `receipts` | 7 | Comprobantes PDF y estado de cuenta |
 | `reports`, `analytics` | 26 | Reportes y analítica |

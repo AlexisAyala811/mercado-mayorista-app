@@ -5,7 +5,6 @@ import type { Repository } from 'typeorm';
 
 import { AccountPaymentEntity } from '../../modules/accounts/entities/account-payment.entity.js';
 import { FreightSettlementEntity } from '../../modules/logistics-costs/freight/entities/freight-settlement.entity.js';
-import { InventoryMovementEntity } from '../../retired/inventory/entities/inventory-movement.entity.js';
 import { PurchaseSettlementEntity } from '../../modules/reception-and-purchases/purchase/entities/purchase-settlement.entity.js';
 import { ReceptionSackEntity } from '../../modules/reception-and-purchases/reception/entities/reception-sack.entity.js';
 import { ReceptionEntity } from '../../modules/reception-and-purchases/reception/entities/reception.entity.js';
@@ -40,8 +39,6 @@ export class OperationsService {
     private readonly sales: Repository<SaleEntity>,
     @InjectRepository(AccountPaymentEntity)
     private readonly payments: Repository<AccountPaymentEntity>,
-    @InjectRepository(InventoryMovementEntity)
-    private readonly movements: Repository<InventoryMovementEntity>,
     @InjectRepository(StowageEntryEntity)
     private readonly stowageEntries: Repository<StowageEntryEntity>,
     @InjectRepository(StowageSettlementEntity)
@@ -94,8 +91,6 @@ export class OperationsService {
     > = {
       [OperationType.AccountPayment]: this
         .payments as unknown as Repository<DirectOperation>,
-      [OperationType.InventoryMovement]: this
-        .movements as unknown as Repository<DirectOperation>,
       [OperationType.PurchaseSettlement]: this
         .purchases as unknown as Repository<DirectOperation>,
       [OperationType.Reception]: this

@@ -8,9 +8,6 @@ import { CashMovementEntity } from '../accounts/entities/cash-movement.entity.js
 import { AuditModule } from '../../shared/audit/audit.module.js';
 import { BuyerEntity } from '../../shared/catalog/entities/buyer.entity.js';
 import { IdentityModule } from '../identity/identity.module.js';
-import { InventoryLotEntity } from '../../retired/inventory/entities/inventory-lot.entity.js';
-import { InventoryMovementEntity } from '../../retired/inventory/entities/inventory-movement.entity.js';
-import { InventoryLotValuationEntity } from '../../retired/inventory/entities/inventory-lot-valuation.entity.js';
 import { VehicleEntity } from '../logistics-costs/logistics/entities/vehicle.entity.js';
 import { SaleEntity } from './entities/sale.entity.js';
 import { SaleLineEntity } from './entities/sale-line.entity.js';
@@ -34,9 +31,6 @@ import { SalesService } from './sales.service.js';
       SaleLineEntity,
       BuyerEntity,
       VehicleEntity,
-      InventoryLotEntity,
-      InventoryMovementEntity,
-      InventoryLotValuationEntity,
       AccountEntity,
       AccountInstallmentEntity,
       AccountPaymentEntity,

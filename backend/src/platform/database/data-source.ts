@@ -44,9 +44,6 @@ import { ReceptionEntity } from '../../modules/reception-and-purchases/reception
 import { ReceptionSackEntity } from '../../modules/reception-and-purchases/reception/entities/reception-sack.entity.js';
 import { PurchaseSettlementLotEntity } from '../../modules/reception-and-purchases/purchase/entities/purchase-settlement-lot.entity.js';
 import { PurchaseSettlementEntity } from '../../modules/reception-and-purchases/purchase/entities/purchase-settlement.entity.js';
-import { InventoryLotEntity } from '../../retired/inventory/entities/inventory-lot.entity.js';
-import { InventoryMovementEntity } from '../../retired/inventory/entities/inventory-movement.entity.js';
-import { InventoryLotValuationEntity } from '../../retired/inventory/entities/inventory-lot-valuation.entity.js';
 import { AccountEntity } from '../../modules/accounts/entities/account.entity.js';
 import { AccountInstallmentEntity } from '../../modules/accounts/entities/account-installment.entity.js';
 import { AccountPaymentEntity } from '../../modules/accounts/entities/account-payment.entity.js';
@@ -103,9 +100,6 @@ export default new DataSource({
     ReceptionSackEntity,
     PurchaseSettlementEntity,
     PurchaseSettlementLotEntity,
-    InventoryLotEntity,
-    InventoryMovementEntity,
-    InventoryLotValuationEntity,
     AccountEntity,
     AccountInstallmentEntity,
     AccountPaymentEntity,

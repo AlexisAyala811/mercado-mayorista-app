@@ -6,9 +6,6 @@ import { AccountInstallmentEntity } from '../../accounts/entities/account-instal
 import { CashMovementEntity } from '../../accounts/entities/cash-movement.entity.js';
 import { AuditModule } from '../../../shared/audit/audit.module.js';
 import { IdentityModule } from '../../identity/identity.module.js';
-import { InventoryLotEntity } from '../../../retired/inventory/entities/inventory-lot.entity.js';
-import { InventoryMovementEntity } from '../../../retired/inventory/entities/inventory-movement.entity.js';
-import { InventoryLotValuationEntity } from '../../../retired/inventory/entities/inventory-lot-valuation.entity.js';
 import { ReceptionEntity } from '../reception/entities/reception.entity.js';
 import { ReceptionSackEntity } from '../reception/entities/reception-sack.entity.js';
 import { PurchaseSettlementLotEntity } from './entities/purchase-settlement-lot.entity.js';
@@ -26,9 +23,6 @@ import { PurchaseService } from './purchase.service.js';
       PurchaseSettlementLotEntity,
       ReceptionEntity,
       ReceptionSackEntity,
-      InventoryLotEntity,
-      InventoryMovementEntity,
-      InventoryLotValuationEntity,
       AccountEntity,
       AccountInstallmentEntity,
       CashMovementEntity,

@@ -25,7 +25,7 @@ Este documento es la referencia única de los módulos del sistema (ADR-04). Las
 | Referencias comerciales | Proveedores, compradores, variedades, calidades, procedencias, transportistas y vehículos, administrados desde los formularios de cada operación | RF03, RF04 | `catalog`, `logistics` |
 | Sincronización | Cola cifrada en la tablet y consulta del resultado de una operación por su UUID | HU05; RF21 | Cliente Android; `operations` en la API |
 
-`health` (estado del servicio) es infraestructura y no un módulo de negocio. `inventory` solo conserva rutas antiguas que responden `410 Gone` tras el retiro del control de existencias (ADR-01).
+`health` (estado del servicio) es infraestructura y no un módulo de negocio. El control de existencias se retiró (ADR-01): desde el 23 de noviembre de 2026 la API no tiene módulo ni rutas de inventario, y solo se conservan sus tablas con las filas históricas ([spec 022](../../specs/022-retirar-inventario/spec.md)).
 
 ## Relaciones entre módulos
 

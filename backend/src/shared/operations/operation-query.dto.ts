@@ -3,7 +3,6 @@ import { IsEnum } from 'class-validator';
 export enum OperationType {
   AccountPayment = 'account-payment',
   FreightSettlement = 'freight-settlement',
-  InventoryMovement = 'inventory-movement',
   PurchaseSettlement = 'purchase-settlement',
   PurchaseVoid = 'purchase-void',
   Reception = 'reception',

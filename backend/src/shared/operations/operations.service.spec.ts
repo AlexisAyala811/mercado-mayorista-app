@@ -4,7 +4,6 @@ import type { ObjectLiteral, Repository } from 'typeorm';
 
 import type { AccountPaymentEntity } from '../../modules/accounts/entities/account-payment.entity.js';
 import type { FreightSettlementEntity } from '../../modules/logistics-costs/freight/entities/freight-settlement.entity.js';
-import type { InventoryMovementEntity } from '../../retired/inventory/entities/inventory-movement.entity.js';
 import type { PurchaseSettlementEntity } from '../../modules/reception-and-purchases/purchase/entities/purchase-settlement.entity.js';
 import type { ReceptionSackEntity } from '../../modules/reception-and-purchases/reception/entities/reception-sack.entity.js';
 import type { ReceptionEntity } from '../../modules/reception-and-purchases/reception/entities/reception.entity.js';
@@ -27,7 +26,6 @@ function serviceWith(sales = repository<SaleEntity>(), returns = repository<Sale
     repository<PurchaseSettlementEntity>(),
     sales,
     repository<AccountPaymentEntity>(),
-    repository<InventoryMovementEntity>(),
     repository<StowageEntryEntity>(),
     repository<StowageSettlementEntity>(),
     repository<FreightSettlementEntity>(),
