@@ -1,5 +1,11 @@
 # Historial de cambios
 
+## 2.3 · 25 de noviembre de 2026
+
+### Documentación
+
+- **Despliegue en Render y Supabase en la documentación principal:** README, decisiones arquitectónicas (ADR-06), C4 nivel 2 (tabla y diagrama) y entrega y despliegue continuos. La arquitectura sigue nombrando PostgreSQL 17; Supabase y Render aparecen donde se describe dónde corre el sistema.
+
 ## 2.2 · 29 de octubre de 2026
 
 ### Backend
