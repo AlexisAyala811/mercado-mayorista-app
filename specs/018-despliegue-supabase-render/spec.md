@@ -50,3 +50,12 @@ Fuera de alcance: dominio propio, plan de pago, respaldos programados (Supabase 
 3. Las migraciones aplicadas en Supabase coinciden con las de `data-source.ts`.
 4. Ningún secreto aparece en el repositorio, el chat ni los registros de la CI.
 5. Las pruebas del backend cubren `DATABASE_SSL_CA` (con y sin CA, PEM en una línea, valor inválido).
+
+## El despliegue en la documentación principal — 25 de noviembre de 2026
+
+Hasta esta fecha, Render y Supabase solo aparecían en la vista y la guía de despliegue. Se incorporan donde un lector espera ver dónde corre el sistema, sin tocar los documentos de arquitectura que deciden *qué* usar (PostgreSQL 17) y no *dónde*:
+
+- [`README.md`](../../README.md): despliegue actual y enlaces a la vista y la guía.
+- [Decisiones arquitectónicas](../../docs/01-analisis-de-sistema/07-decisiones-arquitectonicas.md): nueva fila y **ADR-06 · Despliegue en Render y Supabase**, con sus consecuencias.
+- [C4 nivel 2](../../docs/04-modelo-c4/Nivel2-DiagramadeContenedores.md): la API como contenedor en Render y PostgreSQL 17 gestionado en Supabase, en la tabla y en el diagrama (SVG editado y PNG renderizado de nuevo con Chrome sin interfaz).
+- [Entrega y despliegue continuos](../../docs/03-diseño-de-software/entrega-y-despliegue-continuos.md): sección «Despliegue actual en Render»; el despliegue por SSH queda como opción para un servidor propio.

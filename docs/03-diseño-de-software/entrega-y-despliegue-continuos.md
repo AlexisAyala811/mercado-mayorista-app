@@ -1,6 +1,6 @@
 # Entrega y despliegue continuos
 
-> **Proyecto:** Gestión comercial mayorista de papa · **Versión:** 2.1 · **Actualización:** 29 de octubre de 2026 · **Fuente:** `.github/workflows/` y `backend/deploy/`
+> **Proyecto:** Gestión comercial mayorista de papa · **Versión:** 2.2 · **Actualización:** 25 de noviembre de 2026 · **Fuente:** `.github/workflows/`, `render.yaml` y `backend/deploy/`
 
 ## Principio
 
@@ -33,7 +33,17 @@ flowchart LR
 | `app-ci.yml` | En cada push a una rama de trabajo y en cada PR que toca `app/` | **Verificar:** `npm ci`, tipos, lint y pruebas Jest. **Exportar:** exportación web con una URL de API de marcador. La compilación Android se hace con EAS, fuera de la CI. |
 | `docs-ci.yml` | En cada PR o push que toca Markdown o imágenes | Verifica que no haya enlaces ni anclas rotos. |
 
-## Despliegue en el servidor
+## Despliegue actual en Render
+
+Desde el 20 de noviembre de 2026 el despliegue continuo lo hace Render (ADR-06, [spec 018](../../specs/018-despliegue-supabase-render/spec.md)):
+
+1. Render detecta cada commit en `main` (`autoDeployTrigger: commit` en `render.yaml`) y construye la imagen con `backend/Dockerfile`.
+2. Al arrancar, `backend/docker-entrypoint.sh` aplica las migraciones pendientes contra PostgreSQL en Supabase (`RUN_MIGRATIONS_ON_START=true`).
+3. Render comprueba `/api/v1/health/ready` y solo entonces pasa el tráfico a la versión nueva. Si falla, la anterior sigue atendiendo, y el panel permite volver a un despliegue previo con *Rollback*.
+
+En paralelo, `backend-cd.yml` sigue publicando la imagen en GitHub Container Registry. Los pasos para crear el servicio están en la [guía de despliegue](guia-despliegue-supabase-render.md).
+
+## Despliegue en un servidor propio
 
 `backend/deploy/deploy.sh` se ejecuta en el servidor por SSH con la etiqueta de la imagen recién publicada:
 

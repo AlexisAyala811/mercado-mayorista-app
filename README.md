@@ -16,6 +16,8 @@ Mercado reemplaza los registros manuales de un negocio mayorista de papa. Desde 
 
 La solución es un **monolito modular en capas** (NestJS + PostgreSQL) con un cliente **Expo / React Native**, comunicados por REST `/api/v1`.
 
+**Despliegue actual** (desde el 20 de noviembre de 2026): la API corre en **Render** y la base PostgreSQL 17 en **Supabase**, ambos en plan gratuito, y cada commit en `main` se despliega solo. Detalle en la [vista de despliegue](docs/03-diseño-de-software/vista-de-despliegue.md) y la [guía de despliegue](docs/03-diseño-de-software/guia-despliegue-supabase-render.md).
+
 ## Módulos
 
 | # | Módulo | Incluye |
@@ -90,7 +92,7 @@ El proyecto se desarrolla con Spec-Driven Development: `specify` → `clarify` �
 mercado-mayorista-app/
 ├── .github/workflows/   # CI/CD: backend-ci, backend-cd, docs-ci
 ├── .specify/memory/     # Constitución SDD
-├── specs/               # Especificaciones SDD 001–008: spec, plan y tareas
+├── specs/               # Especificaciones SDD: spec, plan y tareas
 ├── backend/             # API NestJS (mercado-api)
 │   ├── src/
 │   ├── test/

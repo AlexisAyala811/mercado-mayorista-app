@@ -1,6 +1,6 @@
 # Decisiones arquitectónicas
 
-> **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 2.0 · **Actualización:** 29 de octubre de 2026
+> **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 2.1 · **Actualización:** 25 de noviembre de 2026
 
 ## Registro de decisiones
 
@@ -24,6 +24,7 @@ Los códigos CL (clarificación) identifican las decisiones aprobadas durante la
 | CL-MN | Envío manual de documentos por WhatsApp o correo (ver ADR) | 26 oct. 2026 | RF23, RF25, RF26 |
 | — | Organización en ocho módulos de negocio y estado de cuenta del comprador (ver ADR) | 29 oct. 2026 | RF27 |
 | — | Monorepo con entrega y despliegue continuos (ver ADR) | 29 oct. 2026 | AC03, AC07, AC08, DA06, DA07 |
+| — | Despliegue en Render (API) y Supabase (PostgreSQL), plan gratuito (ver ADR) | 20 nov. 2026 | AC01, AC02, AC08, R03 |
 
 CL-11 (margen por valoración de lotes) quedó sin efecto con el retiro del control de existencias.
 
@@ -74,6 +75,19 @@ La documentación y el código conviven en un único repositorio: `docs/` e `img
 `main` es la única rama de entrega y todo cambio llega por pull request. Cada PR pasa la integración continua (tipos, lint, pruebas unitarias y e2e en PostgreSQL, build, auditoría de dependencias e imagen Docker). Cada commit en `main` publica una imagen versionada (entrega continua) y, con el entorno de producción configurado, la despliega, migra, comprueba la salud y revierte si falla (despliegue continuo).
 
 Consecuencias: las migraciones deben ser compatibles con la versión anterior (expandir y luego contraer); las credenciales viven solo en GitHub y en el servidor. Detalle en [entrega y despliegue continuos](../03-diseño-de-software/entrega-y-despliegue-continuos.md).
+
+## ADR-06 · Despliegue en Render y Supabase
+
+**Estado:** aprobado el 20 de noviembre de 2026 ([spec 018](../../specs/018-despliegue-supabase-render/spec.md)).
+
+La API corre como contenedor Docker en Render y la base de datos es un PostgreSQL 17 gestionado en Supabase, los dos en Virginia y en plan gratuito. La API se conecta por el *pooler* de sesión con TLS validado contra el certificado de Supabase. Render despliega cada commit en `main`, y el contenedor aplica las migraciones pendientes antes de arrancar. La arquitectura no cambia: PostgreSQL sigue siendo la única fuente oficial de saldos, y la app solo habla con la API.
+
+Consecuencias:
+- Render se duerme tras 15 minutos sin tráfico, y la primera petición tarda cerca de un minuto. La cola de la app reintenta.
+- Supabase pausa el proyecto tras 7 días sin uso; se reactiva desde su panel.
+- Es un entorno de prueba y demostración. Para producción con uso real conviene un plan de pago o un servidor propio con el despliegue por SSH de ADR-05.
+
+Detalle en la [vista de despliegue](../03-diseño-de-software/vista-de-despliegue.md) y la [guía de despliegue](../03-diseño-de-software/guia-despliegue-supabase-render.md).
 
 ## Condiciones de habilitación de la predicción (CL-08)
 
