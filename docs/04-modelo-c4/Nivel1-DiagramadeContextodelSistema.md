@@ -18,6 +18,7 @@ Fuente editable: [nivel1-contexto.svg](../../img/fuentes-svg/nivel1-contexto.svg
 | --- | --- | --- |
 | Mayorista | Gestionar y supervisar el negocio | Registra operaciones, consulta cuentas, reportes y auditoría, registra pagos, cobros, flete y estiba, genera documentos y los envía, y controla los reemplazos |
 | Encargado | Mantener la operación durante la ausencia del Mayorista | Con credenciales propias y un reemplazo vigente, registra pesajes, compras y ventas |
+| Administrador | Dar de alta y atender las cuentas de cada comerciante | Crea comerciantes, suspende o reactiva, asigna contraseñas temporales y cierra sesiones; no ve operaciones (spec 023) |
 
 ## Sistemas
 
@@ -34,6 +35,7 @@ El envío es manual: Mercado abre WhatsApp o el correo en el dispositivo con el 
 | --- | --- | --- |
 | Mayorista | Mercado | Registra, consulta y supervisa las operaciones y saldos de su negocio |
 | Encargado | Mercado | Registra pesajes, compras y ventas durante un reemplazo vigente |
+| Administrador | Mercado | Gestiona las cuentas de los comerciantes, sin acceso a sus operaciones |
 | Mercado | WhatsApp / correo | Entrega comprobantes, estados de cuenta, imágenes o documentos cuando el Mayorista los envía |
 | WhatsApp / correo | Proveedor o comprador | Recibe el documento |
 

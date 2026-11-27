@@ -1,6 +1,6 @@
 # Especificación 023: Administrador de comerciantes y soporte
 
-**Estado:** aprobada por el usuario el 26 de noviembre de 2026 · **Implementación:** después de la exposición del Sprint 2
+**Estado:** aprobada por el usuario el 26 de noviembre de 2026 · **Implementación:** rama `feat/023-administrador`, 26 de noviembre de 2026 ([verificación](../../docs/sdd/verificacion-administrador-comerciantes-2026-11-26.md))
 **Origen:** el usuario quiere ofrecer MAÑAY a varios comerciantes: «yo voy a ser el administrador donde administraré a cada comerciante. Cada comerciante tendrá su acceso hacia la app, según sus datos y sus credenciales, y podrá permitir a sus propios colaboradores». Además quiere atender como soporte, por ejemplo cuando un comerciante olvida su contraseña o la app le falla.
 
 ## Objetivo

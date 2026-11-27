@@ -1,11 +1,12 @@
 # Requisitos funcionales
 
-> **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 2.0 · **Actualización:** 29 de octubre de 2026
+> **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 2.1 · **Actualización:** 26 de noviembre de 2026
 
 | Módulo | Código | Requisito |
 | --- | --- | --- |
 | Identidad y acceso | RF01 | Permitir iniciar y cerrar sesión con credenciales individuales, proteger las rutas y revocar el acceso de la sesión cerrada. |
 | Identidad y acceso | RF02 | Permitir al Mayorista autorizar y revocar reemplazos de máximo 24 horas; restringir al Encargado al pesaje, compras y ventas durante su vigencia. |
+| Identidad y acceso | RF28 | Permitir al Administrador de la plataforma dar de alta comerciantes (negocio y Mayorista con contraseña temporal), suspenderlos, reactivarlos, restablecer la contraseña del Mayorista, cerrar sus sesiones y consultar el estado de la cuenta, con motivo auditado y sin acceso a las operaciones (spec 023). |
 | Transversal: referencias | RF03 | Registrar y consultar proveedores y compradores desde los formularios de recepción, compras y ventas, conservando contacto, ubicación, límite de crédito y estado. |
 | Transversal: referencias | RF04 | Registrar y consultar los datos de la papa desde recepción y ventas: variedad, calidad, procedencia, presentación, unidad de medida y precio referencial. Calidad y procedencia se eligen por saco y por línea de venta, con la opción «No informada». |
 | Recepción y compras | RF05 | Registrar fecha, proveedor, teléfono, vehículo, conductor y variedades esperadas antes de la descarga. |
@@ -67,6 +68,7 @@ RF08 y RF09 (control de existencias) se retiraron del alcance el 7 de octubre de
 | 006 Reportes y comprobantes | Documentos; Reportes y analítica | RF12, RF16–RF18, RF24, RF27 |
 | 007 Analítica progresiva | Reportes y analítica | RF19, RF20 |
 | 008 Mensajería y notificaciones | Mensajería | RF16, RF23, RF25, RF26 |
+| 023 Administrador de comerciantes | Identidad y acceso | RF01, RF28 |
 
 ## Alcance: registro comercial sin control de existencias
 

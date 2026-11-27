@@ -1,6 +1,6 @@
 # Decisiones arquitectónicas
 
-> **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 2.1 · **Actualización:** 25 de noviembre de 2026
+> **Proyecto:** Gestión comercial mayorista de papa · **Entregable:** 1 · **Versión:** 2.2 · **Actualización:** 26 de noviembre de 2026
 
 ## Registro de decisiones
 
@@ -25,6 +25,7 @@ Los códigos CL (clarificación) identifican las decisiones aprobadas durante la
 | — | Organización en ocho módulos de negocio y estado de cuenta del comprador (ver ADR) | 29 oct. 2026 | RF27 |
 | — | Monorepo con entrega y despliegue continuos (ver ADR) | 29 oct. 2026 | AC03, AC07, AC08, DA06, DA07 |
 | — | Despliegue en Render (API) y Supabase (PostgreSQL), plan gratuito (ver ADR) | 20 nov. 2026 | AC01, AC02, AC08, R03 |
+| CL-23-01…05 | Administrador de comerciantes que gestiona cuentas sin ver operaciones (ver ADR) | 26 nov. 2026 | RF01, RF28, AC04 |
 
 CL-11 (margen por valoración de lotes) quedó sin efecto con el retiro del control de existencias.
 
@@ -88,6 +89,17 @@ Consecuencias:
 - Es un entorno de prueba y demostración. Para producción con uso real conviene un plan de pago o un servidor propio con el despliegue por SSH de ADR-05.
 
 Detalle en la [vista de despliegue](../03-diseño-de-software/vista-de-despliegue.md) y la [guía de despliegue](../03-diseño-de-software/guia-despliegue-supabase-render.md).
+
+## ADR-07 · Administrador de comerciantes sin acceso a operaciones
+
+**Estado:** aprobado el 26 de noviembre de 2026 ([spec 023](../../specs/023-administrador-comerciantes/spec.md)).
+
+Un rol `admin` en un negocio de plataforma único (`businesses.kind = platform`) da de alta comerciantes y les da soporte desde la misma app, en el menú «Comerciantes». No es un «superusuario»: el `RolesGuard` le niega toda ruta que no lo nombre, de modo que un controlador nuevo queda cerrado para él por omisión. Cada acción lleva motivo y `clientOperationId` (tabla `admin_operations`), corre en una transacción y se audita en el comerciante y en la plataforma. Una contraseña temporal obliga al usuario a crear la suya antes de cualquier otra cosa.
+
+Consecuencias:
+- El aislamiento por negocio se mantiene: el Administrador nunca lee compras, ventas, cuentas ni reportes de un comerciante.
+- Suspender un negocio corta al instante las sesiones de todos sus usuarios; los datos no se borran.
+- El primer Administrador lo crea el dueño de la plataforma con `npm run bootstrap:admin` desde su propia terminal; el script se niega si ya existe uno.
 
 ## Condiciones de habilitación de la predicción (CL-08)
 
