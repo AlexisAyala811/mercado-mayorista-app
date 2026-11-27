@@ -20,8 +20,8 @@ jest.mock('@/ui/components', () => {
   return { AppButton: control('test-button'), AppScreen: control('test-screen'), BrandMark: control('test-brand'), FormField: control('test-field'), LoadingState: control('test-loading') };
 });
 
-const owner: RecentOperator = { role: 'wholesaler', username: 'mayorista' };
-const helper: RecentOperator = { role: 'assistant', username: 'encargado.uno' };
+const owner: RecentOperator = { businessId: 'business-a', role: 'wholesaler', username: 'mayorista' };
+const helper: RecentOperator = { businessId: 'business-a', role: 'assistant', username: 'encargado.uno' };
 
 beforeEach(() => {
   mockStore.clear();
@@ -30,10 +30,19 @@ beforeEach(() => {
 
 // Spec 011 (RQ-ST12, CL-ST16).
 describe('recent operators of this tablet', () => {
+  // Spec 023 (CL-23-06): a tablet that changes hands shows only the new business.
+  it('starts the list again when someone of another business signs in', () => {
+    const other: RecentOperator = { businessId: 'business-b', role: 'wholesaler', username: 'huanta' };
+    expect(rememberOperator([helper, owner], other)).toEqual([other]);
+    // Entries saved before CL-23-06 have no business and give way to the first sign-in.
+    expect(rememberOperator([{ role: 'wholesaler', username: 'antiguo' }], owner)).toEqual([owner]);
+    expect(parseRecentOperators(JSON.stringify([{ role: 'wholesaler', username: 'antiguo' }]))).toEqual([{ role: 'wholesaler', username: 'antiguo' }]);
+  });
+
   it('puts the latest first, keeps each username once and at most four', () => {
     expect(rememberOperator([owner], helper)).toEqual([helper, owner]);
-    expect(rememberOperator([helper, owner], { role: 'wholesaler', username: 'MAYORISTA' })).toEqual([{ role: 'wholesaler', username: 'MAYORISTA' }, helper]);
-    const many = ['a', 'b', 'c', 'd', 'e'].reduce<RecentOperator[]>((list, username) => rememberOperator(list, { role: 'assistant', username }), []);
+    expect(rememberOperator([helper, owner], { businessId: 'business-a', role: 'wholesaler', username: 'MAYORISTA' })).toEqual([{ businessId: 'business-a', role: 'wholesaler', username: 'MAYORISTA' }, helper]);
+    const many = ['a', 'b', 'c', 'd', 'e'].reduce<RecentOperator[]>((list, username) => rememberOperator(list, { businessId: 'business-a', role: 'assistant', username }), []);
     expect(many.map((item) => item.username)).toEqual(['e', 'd', 'c', 'b']);
     expect(many).toHaveLength(maxRecentOperators);
     expect(forgetOperator([helper, owner], 'Encargado.Uno')).toEqual([owner]);
@@ -52,7 +61,7 @@ describe('recent operators of this tablet', () => {
     await recordOperatorSignIn(helper, true);
     expect(await readRecentOperators()).toEqual([helper, owner]);
     expect([...mockStore.values()].join('')).not.toMatch(/password|token/i);
-    expect(Object.keys(JSON.parse([...mockStore.values()][0]!)[0]).sort()).toEqual(['role', 'username']);
+    expect(Object.keys(JSON.parse([...mockStore.values()][0]!)[0]).sort()).toEqual(['businessId', 'role', 'username']);
     await recordOperatorSignIn(helper, false);
     expect(await readRecentOperators()).toEqual([owner]);
   });

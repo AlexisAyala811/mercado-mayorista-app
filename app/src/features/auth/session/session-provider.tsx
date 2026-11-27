@@ -242,7 +242,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
           setIsOfflineSession(false);
           commitSession(created);
           if (options.keepStation !== undefined)
-            void recordOperatorSignIn({ role: created.user.role, username: created.user.username }, options.keepStation);
+            void recordOperatorSignIn({ businessId: created.user.businessId, role: created.user.role, username: created.user.username }, options.keepStation);
         }
       } catch (error) {
         if (request === generation.current)

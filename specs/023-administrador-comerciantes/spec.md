@@ -66,6 +66,7 @@ Agregar un tercer nivel de acceso, el **Administrador**, que da de alta a cada c
 - **CL-23-03 · Contraseña inicial.** Aprobado el 26 nov 2026: temporal, con cambio obligatorio en el primer ingreso.
 - **CL-23-04 · Cuándo se implementa.** Aprobado el 26 nov 2026: después de la exposición del Sprint 2, porque toca el inicio de sesión y los permisos que se muestran ese día.
 - **CL-23-05 · Un Mayorista por comerciante.** Aprobado el 26 nov 2026: uno por negocio, como hoy.
+- **CL-23-06 · Selección rápida por negocio.** Aprobado el 26 nov 2026: la tablet recuerda solo a los operadores del último negocio que ingresó. Una tablet nueva no muestra la selección rápida. Si ingresa alguien de otro negocio, la lista empieza de cero con la gente de ese negocio, para que un comerciante nunca vea los usuarios de otro.
 
 ## Criterios de aceptación
 

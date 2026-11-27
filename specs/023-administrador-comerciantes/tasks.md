@@ -20,6 +20,8 @@ Cada tarea se marca `[x]` solo con evidencia enlazable.
 - [x] **T2309** Pantalla obligatoria «Crea tu contraseña». Evidencia: [`change-password-screen.tsx`](../../app/src/features/auth/screens/change-password-screen.tsx); prueba de navegación ([verificación](../../docs/sdd/verificacion-administrador-comerciantes-2026-11-26.md)).
 - [x] **T2310** «¿Olvidó su clave?» según el rol. Evidencia: [`login-screen.tsx`](../../app/src/features/auth/screens/login-screen.tsx): el Encargado acude al Mayorista y el Mayorista al soporte de MAÑAY ([verificación](../../docs/sdd/verificacion-administrador-comerciantes-2026-11-26.md)).
 
+- [x] **T2317** Selección rápida limitada al último negocio que ingresó en la tablet (CL-23-06). Evidencia: [recent-operators.ts](../../app/src/domain/auth/recent-operators.ts) y su prueba [recent-operators.test.tsx](../../app/tests/auth/recent-operators.test.tsx); app con 760 pruebas en verde el 26 nov 2026. No probado aún en el emulador.
+
 ## Pruebas y verificación
 
 - [x] **T2311** Unitarias del backend y de la app. Evidencia: backend 369 y app 759 pruebas en verde ([verificación](../../docs/sdd/verificacion-administrador-comerciantes-2026-11-26.md)).
