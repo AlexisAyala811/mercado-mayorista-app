@@ -2,7 +2,7 @@
 
 > **Spec:** [023](../../specs/023-administrador-comerciantes/spec.md) · **Fecha:** 26 de noviembre de 2026 · **Rama:** `feat/023-administrador` · **Decisión:** [ADR-07](../01-analisis-de-sistema/07-decisiones-arquitectonicas.md)
 
-Verificación local del backend y la app antes de fusionar. No incluye el emulador, el celular ni Render y Supabase (ver «Pendiente»).
+Verificación local del backend, la app y el emulador antes de fusionar. No incluye el celular ni Render y Supabase (ver «Pendiente»).
 
 ## Backend
 
@@ -46,8 +46,25 @@ Las pruebas nuevas ([`merchant-administration.test.tsx`](../../app/tests/merchan
 - el Administrador solo tiene la pantalla «Comerciantes» y no ve la barra inferior;
 - con una contraseña temporal, la capa bloqueante muestra «Crea tu contraseña».
 
+## Emulador
+
+APK de release (x86_64) contra la API local y una base nueva, en el emulador «Mercado_Tablet_API36» a 1280 × 800. El Administrador de prueba se creó con `bootstrap:admin`; las credenciales de prueba quedaron fuera del repositorio.
+
+| Paso | Resultado | Captura |
+| --- | --- | --- |
+| «¿Olvidó su clave?» | Indica a quién acudir según el rol | [01](../../img/verificacion-emulador-2026-11-26-administrador/01-olvido-su-clave.png) |
+| Ingreso del Administrador | Solo ve «Comerciantes», con el rol «Administrador» y sin la barra de módulos | [02](../../img/verificacion-emulador-2026-11-26-administrador/02-administrador-comerciantes.png) |
+| Alta de «Comercial Huanta» con contraseña generada | Tarjeta para entregar usuario y contraseña temporal una sola vez (en la captura se ocultó la contraseña de prueba) | [03](../../img/verificacion-emulador-2026-11-26-administrador/03-entrega-clave-temporal.png) |
+| Lista | «huanta · Activo · Aún no crea su contraseña» | [04](../../img/verificacion-emulador-2026-11-26-administrador/04-lista-comerciantes.png) |
+| Panel de soporte | Último acceso, intentos fallidos, sesiones y Encargados; motivo obligatorio; suspender, cerrar sesiones y restablecer contraseña | [05](../../img/verificacion-emulador-2026-11-26-administrador/05-panel-soporte.png) |
+| Primer ingreso del Mayorista con la temporal | Pantalla obligatoria «Crea tu contraseña» | [06](../../img/verificacion-emulador-2026-11-26-administrador/06-crea-tu-contrasena.png) |
+| Contraseña propia guardada | Entra a su menú normal de Mayorista | [07](../../img/verificacion-emulador-2026-11-26-administrador/07-menu-del-mayorista.png) |
+| El Administrador suspende el comerciante | En la siguiente acción, la app vuelve al inicio de sesión | [08](../../img/verificacion-emulador-2026-11-26-administrador/08-sesion-cortada-al-suspender.png) |
+
+Observación: al suspender, la app muestra «Tu sesión venció» y el inicio de sesión responde «Usuario o contraseña no válidos». Es a propósito: no revela si una cuenta existe o está suspendida. El Mayorista se entera por el soporte.
+
 ## Pendiente
 
-- **T2314:** recorrido en el emulador y en el celular, con capturas.
+- **T2314:** recorrido en el celular (el del emulador está hecho).
 - **T2316:** despliegue en Render y primer Administrador en Supabase. El usuario lo crea con `npm run bootstrap:admin` desde su propia terminal.
 - Lector de pantalla: no verificado.

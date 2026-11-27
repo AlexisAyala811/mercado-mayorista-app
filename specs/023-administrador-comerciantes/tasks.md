@@ -1,6 +1,6 @@
 # Tareas 023: Administrador de comerciantes y soporte
 
-**Especificación:** [spec 023](spec.md) · **Plan:** [plan 023](plan.md) · **Estado:** implementada en la rama `feat/023-administrador` el 26 de noviembre de 2026; quedan T2314 (emulador y celular) y T2316 (despliegue)
+**Especificación:** [spec 023](spec.md) · **Plan:** [plan 023](plan.md) · **Estado:** implementada en la rama `feat/023-administrador` el 26 de noviembre de 2026; quedan T2314 (celular) y T2316 (despliegue)
 
 Cada tarea se marca `[x]` solo con evidencia enlazable.
 
@@ -25,7 +25,7 @@ Cada tarea se marca `[x]` solo con evidencia enlazable.
 - [x] **T2311** Unitarias del backend y de la app. Evidencia: backend 369 y app 759 pruebas en verde ([verificación](../../docs/sdd/verificacion-administrador-comerciantes-2026-11-26.md)).
 - [x] **T2312** E2e en PostgreSQL, incluida la prueba que exige `403` al Administrador en todas las rutas de negocio. Evidencia: [`merchant-administration.e2e-spec.ts`](../../backend/test/merchant-administration.e2e-spec.ts); 76 e2e en verde ([verificación](../../docs/sdd/verificacion-administrador-comerciantes-2026-11-26.md)).
 - [x] **T2313** Carpeta «Administrador» en la colección de Postman. Evidencia: [colección aparte](../../backend/test/postman/administrador.postman_collection.json), porque la otra ya usa el límite de 5 inicios de sesión por minuto: 14 peticiones y 23 aserciones sin fallos ([verificación](../../docs/sdd/verificacion-administrador-comerciantes-2026-11-26.md)).
-- [ ] **T2314** Recorrido en el emulador y en el celular con capturas.
+- [ ] **T2314** Recorrido en el emulador y en el celular con capturas. Avance: emulador hecho el 26 de noviembre de 2026 con ocho capturas ([verificación](../../docs/sdd/verificacion-administrador-comerciantes-2026-11-26.md#emulador)); falta el celular.
 
 ## Documentación y despliegue
 
