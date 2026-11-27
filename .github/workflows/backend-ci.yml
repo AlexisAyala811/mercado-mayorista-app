@@ -41,8 +41,17 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm run lint
-      # Unit tests with the coverage report (Sprint 2); the HTML report stays as an artifact.
-      - run: npm run test:cov
+      # Unit tests with coverage (Sprint 2) and the results report (spec 024):
+      # summary, JSON and JUnit, also shown on the run page.
+      - run: npm run test:report
+      - name: Resultados de pruebas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultados-backend-unitarias
+          path: backend/test-results/
+          if-no-files-found: warn
+          retention-days: 14
       - name: Reporte de cobertura
         if: always()
         uses: actions/upload-artifact@v4
@@ -91,7 +100,15 @@ jobs:
           cache: npm
           cache-dependency-path: backend/package-lock.json
       - run: npm ci
-      - run: npm run test:e2e
+      - run: npm run test:report:e2e
+      - name: Resultados de pruebas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultados-backend-e2e
+          path: backend/test-results/
+          if-no-files-found: warn
+          retention-days: 14
 
   imagen:
     name: Imagen Docker

@@ -1,0 +1,526 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="Backend · pruebas unitarias" tests="369" failures="0" errors="0">
+  <testsuite name="src/modules/identity/infrastructure/typeorm-session-identity.reader.spec.ts" tests="4" failures="0" errors="0" skipped="0" time="5.721">
+    <testcase classname="src/modules/identity/infrastructure/typeorm-session-identity.reader.spec.ts" name="TypeOrmSessionIdentityReader replacement expiration › returns the effective expiration for existing sessions when replacement ends at 2026-10-08T15:15:00Z" time="0.018"/>
+    <testcase classname="src/modules/identity/infrastructure/typeorm-session-identity.reader.spec.ts" name="TypeOrmSessionIdentityReader replacement expiration › returns the effective expiration for existing sessions when replacement ends at 2026-10-08T17:00:00Z" time="0.005"/>
+    <testcase classname="src/modules/identity/infrastructure/typeorm-session-identity.reader.spec.ts" name="TypeOrmSessionIdentityReader replacement expiration › rejects and audits an assistant without an active replacement" time="0.001"/>
+    <testcase classname="src/modules/identity/infrastructure/typeorm-session-identity.reader.spec.ts" name="TypeOrmSessionIdentityReader replacement expiration › preserves wholesaler expiration without querying replacements" time="0.004"/>
+  </testsuite>
+  <testsuite name="src/shared/audit/foreign-access.spec.ts" tests="3" failures="0" errors="0" skipped="0" time="5.838">
+    <testcase classname="src/shared/audit/foreign-access.spec.ts" name="auditForeignAccess › records an attempt on a resource that belongs to another business" time="0.070"/>
+    <testcase classname="src/shared/audit/foreign-access.spec.ts" name="auditForeignAccess › does not audit an id that does not exist anywhere" time="0.005"/>
+    <testcase classname="src/shared/audit/foreign-access.spec.ts" name="auditForeignAccess › leaves successful lookups and other errors untouched" time="0.002"/>
+  </testsuite>
+  <testsuite name="src/modules/reception-and-purchases/purchase/purchase-without-inventory.spec.ts" tests="4" failures="0" errors="0" skipped="0" time="5.931">
+    <testcase classname="src/modules/reception-and-purchases/purchase/purchase-without-inventory.spec.ts" name="closes weighing once and preserves totals without creating stock" time="0.025"/>
+    <testcase classname="src/modules/reception-and-purchases/purchase/purchase-without-inventory.spec.ts" name="corrects a closed sack while preserving its original without looking for a pending lot" time="0.006"/>
+    <testcase classname="src/modules/reception-and-purchases/purchase/purchase-without-inventory.spec.ts" name="settles cash and reverses it once without an inventory repository" time="0.007"/>
+    <testcase classname="src/modules/reception-and-purchases/purchase/purchase-without-inventory.spec.ts" name="creates credit terms from the conserved weighing without valuing lots" time="0.004"/>
+  </testsuite>
+  <testsuite name="src/shared/catalog/catalog.service.spec.ts" tests="3" failures="0" errors="0" skipped="0" time="6.001">
+    <testcase classname="src/shared/catalog/catalog.service.spec.ts" name="CatalogService › always scopes catalog listings to the authenticated business" time="0.022"/>
+    <testcase classname="src/shared/catalog/catalog.service.spec.ts" name="CatalogService › creates a provider and its audit event in the same transaction" time="0.005"/>
+    <testcase classname="src/shared/catalog/catalog.service.spec.ts" name="CatalogService › rejects empty updates before opening a transaction" time="0.004"/>
+  </testsuite>
+  <testsuite name="src/modules/identity/application/create-session.use-case.spec.ts" tests="5" failures="0" errors="0" skipped="0" time="6.198">
+    <testcase classname="src/modules/identity/application/create-session.use-case.spec.ts" name="CreateSessionUseCase › bounds the persisted and returned assistant session by a 15 minute replacement" time="0.029"/>
+    <testcase classname="src/modules/identity/application/create-session.use-case.spec.ts" name="CreateSessionUseCase › bounds the persisted and returned assistant session by a 120 minute replacement" time="0.005"/>
+    <testcase classname="src/modules/identity/application/create-session.use-case.spec.ts" name="CreateSessionUseCase › persists only the token hash with the configured expiration" time="0.004"/>
+    <testcase classname="src/modules/identity/application/create-session.use-case.spec.ts" name="CreateSessionUseCase › does not issue or persist a token for invalid credentials" time="0.005"/>
+    <testcase classname="src/modules/identity/application/create-session.use-case.spec.ts" name="CreateSessionUseCase › does not issue a usable session to an assistant without an active delegation" time="0.001"/>
+  </testsuite>
+  <testsuite name="src/modules/accounts/accounts-presentation.spec.ts" tests="5" failures="0" errors="0" skipped="0" time="6.233">
+    <testcase classname="src/modules/accounts/accounts-presentation.spec.ts" name="preserves page and account data while projecting a historical name" time="0.026"/>
+    <testcase classname="src/modules/accounts/accounts-presentation.spec.ts" name="uses the same projection for detail without contacts or invented names" time="0.006"/>
+    <testcase classname="src/modules/accounts/accounts-presentation.spec.ts" name="does not query counterparties for empty pages or nonexistent accounts" time="0.081"/>
+    <testcase classname="src/modules/accounts/accounts-presentation.spec.ts" name="rejects a changed projection rather than mixing an old balance with new installments" time="0.001"/>
+    <testcase classname="src/modules/accounts/accounts-presentation.spec.ts" name="does not report the creation timestamp as a later financial movement" time="0.003"/>
+  </testsuite>
+  <testsuite name="src/modules/reports-and-analytics/reports/report-export.spec.ts" tests="6" failures="0" errors="0" skipped="0" time="6.421">
+    <testcase classname="src/modules/reports-and-analytics/reports/report-export.spec.ts" name="groups by identity, preserves references and adds monetary amounts exactly" time="0.018"/>
+    <testcase classname="src/modules/reports-and-analytics/reports/report-export.spec.ts" name="accepts approved report summary" time="0.011"/>
+    <testcase classname="src/modules/reports-and-analytics/reports/report-export.spec.ts" name="accepts approved report detail" time="0.004"/>
+    <testcase classname="src/modules/reports-and-analytics/reports/report-export.spec.ts" name="accepts approved report counterparty" time="0.001"/>
+    <testcase classname="src/modules/reports-and-analytics/reports/report-export.spec.ts" name="accepts approved report variety" time="0.005"/>
+    <testcase classname="src/modules/reports-and-analytics/reports/report-export.spec.ts" name="rejects unknown report types and impossible dates before querying" time="0.007"/>
+  </testsuite>
+  <testsuite name="src/modules/reports-and-analytics/analytics/analytics-evaluation.service.spec.ts" tests="5" failures="0" errors="0" skipped="0" time="6.690">
+    <testcase classname="src/modules/reports-and-analytics/analytics/analytics-evaluation.service.spec.ts" name="reconstructs and saves using the transaction manager and returns historical evidence without future publication" time="0.079"/>
+    <testcase classname="src/modules/reports-and-analytics/analytics/analytics-evaluation.service.spec.ts" name="recovers the original request before reading source data and rejects changed filters" time="0.100"/>
+    <testcase classname="src/modules/reports-and-analytics/analytics/analytics-evaluation.service.spec.ts" name="retries transient serialization with the same request and bounds exhausted retries" time="0.067"/>
+    <testcase classname="src/modules/reports-and-analytics/analytics/analytics-evaluation.service.spec.ts" name="rejects an assistant, a future cutoff and insufficient history without storing" time="0.038"/>
+    <testcase classname="src/modules/reports-and-analytics/analytics/analytics-evaluation.service.spec.ts" name="does not hide unrelated database constraint failures behind retry" time="0.002"/>
+  </testsuite>
+  <testsuite name="src/modules/reports-and-analytics/reports/reports.service.spec.ts" tests="4" failures="0" errors="0" skipped="0" time="6.706">
+    <testcase classname="src/modules/reports-and-analytics/reports/reports.service.spec.ts" name="ReportsService › returns commercial and financial amounts without querying or reporting stock" time="0.016"/>
+    <testcase classname="src/modules/reports-and-analytics/reports/reports.service.spec.ts" name="ReportsService › keeps overdue financial alerts and never reads low-stock data" time="0.005"/>
+    <testcase classname="src/modules/reports-and-analytics/reports/reports.service.spec.ts" name="ReportsService › uses the requested date as the overdue cutoff" time="0.004"/>
+    <testcase classname="src/modules/reports-and-analytics/reports/reports.service.spec.ts" name="ReportsService › rejects an alert window ending before its explicit cutoff" time="0.107"/>
+  </testsuite>
+  <testsuite name="src/modules/logistics-costs/freight/freight.service.spec.ts" tests="3" failures="0" errors="0" skipped="0" time="6.829">
+    <testcase classname="src/modules/logistics-costs/freight/freight.service.spec.ts" name="FreightService › settles pending freight entries once and creates one cash outflow" time="0.030"/>
+    <testcase classname="src/modules/logistics-costs/freight/freight.service.spec.ts" name="FreightService › returns the first result when the client operation is retried" time="0.002"/>
+    <testcase classname="src/modules/logistics-costs/freight/freight.service.spec.ts" name="FreightService › rejects a retried identifier that settles different entries" time="0.083"/>
+  </testsuite>
+  <testsuite name="src/modules/sales/sales.service.spec.ts" tests="17" failures="0" errors="0" skipped="0" time="6.836">
+    <testcase classname="src/modules/sales/sales.service.spec.ts" name="Sale credit limits › includes outstanding debt when rejecting an exceeded limit" time="0.098"/>
+    <testcase classname="src/modules/sales/sales.service.spec.ts" name="Sale credit limits › does not allow an assistant to authorize the exception" time="0.003"/>
+    <testcase classname="src/modules/sales/sales.service.spec.ts" name="Sale credit limits › records the wholesaler credit exception with limit and resulting debt" time="0.008"/>
+    <testcase classname="src/modules/sales/sales.service.spec.ts" name="Sale credit limits › does not report an exception when the debt exactly matches the limit" time="0.009"/>
+    <testcase classname="src/modules/sales/sales.service.spec.ts" name="Sale credit limits › rejects installments that do not sum to the sale total" time="0.006"/>
+    <testcase classname="src/modules/sales/sales.service.spec.ts" name="Sale confirmation › keeps separate characteristics for two lines of the same variety without inventory effects" time="0.008"/>
+    <testcase classname="src/modules/sales/sales.service.spec.ts" name="Sale confirmation › records the operation and rounded cash collection without stock access" time="0.005"/>
+    <testcase classname="src/modules/sales/sales.service.spec.ts" name="Sale confirmation › rejects varieties outside the active business catalogue before financial effects" time="0.002"/>
+    <testcase classname="src/modules/sales/sales.service.spec.ts" name="Sale confirmation › accepts independent operation quantities {&quot;sacks&quot;:11,&quot;weightKg&quot;:&quot;20.000&quot;} without checking old availability" time="0.008"/>
+    <testcase classname="src/modules/sales/sales.service.spec.ts" name="Sale confirmation › accepts independent operation quantities {&quot;sacks&quot;:2,&quot;weightKg&quot;:&quot;101.000&quot;} without checking old availability" time="0.005"/>
+    <testcase classname="src/modules/sales/sales.service.spec.ts" name="Sale confirmation › accepts independent operation quantities {&quot;sacks&quot;:10,&quot;weightKg&quot;:&quot;20.000&quot;} without checking old availability" time="0.002"/>
+    <testcase classname="src/modules/sales/sales.service.spec.ts" name="Sale confirmation › rejects nonpositive operation quantities {&quot;sacks&quot;:0,&quot;weightKg&quot;:&quot;1&quot;}" time="0.003"/>
+    <testcase classname="src/modules/sales/sales.service.spec.ts" name="Sale confirmation › rejects nonpositive operation quantities {&quot;sacks&quot;:1,&quot;weightKg&quot;:&quot;0&quot;}" time="0.001"/>
+    <testcase classname="src/modules/sales/sales.service.spec.ts" name="Sale confirmation › rejects repeated varieties before persisting effects" time="0.002"/>
+    <testcase classname="src/modules/sales/sales.service.spec.ts" name="Sale confirmation › returns a confirmed retry without repeating financial effects" time="0.002"/>
+    <testcase classname="src/modules/sales/sales.service.spec.ts" name="Sale confirmation › rejects an operation identifier reused for a different sale" time="0.043"/>
+    <testcase classname="src/modules/sales/sales.service.spec.ts" name="Sale confirmation › requires the buyer to belong to the authenticated business" time="0.003"/>
+  </testsuite>
+  <testsuite name="src/modules/reception-and-purchases/purchase/purchase.service.spec.ts" tests="2" failures="0" errors="0" skipped="0" time="6.902">
+    <testcase classname="src/modules/reception-and-purchases/purchase/purchase.service.spec.ts" name="PurchaseService › rejects a stale purchase version before applying compensating effects" time="0.023"/>
+    <testcase classname="src/modules/reception-and-purchases/purchase/purchase.service.spec.ts" name="PurchaseService › marks the installments of a voided credit purchase as voided, not paid" time="0.007"/>
+  </testsuite>
+  <testsuite name="src/modules/reception-and-purchases/reception/reception.service.spec.ts" tests="2" failures="0" errors="0" skipped="0" time="6.917">
+    <testcase classname="src/modules/reception-and-purchases/reception/reception.service.spec.ts" name="ReceptionService › rejects an operation identifier reused for another provider" time="0.146"/>
+    <testcase classname="src/modules/reception-and-purchases/reception/reception.service.spec.ts" name="ReceptionService › returns the existing business operation without creating a duplicate" time="0.008"/>
+  </testsuite>
+  <testsuite name="src/modules/logistics-costs/stowage/stowage.service.spec.ts" tests="7" failures="0" errors="0" skipped="0" time="6.946">
+    <testcase classname="src/modules/logistics-costs/stowage/stowage.service.spec.ts" name="StowageService › records a pending entry for a purchase of the business, with its audit event" time="0.027"/>
+    <testcase classname="src/modules/logistics-costs/stowage/stowage.service.spec.ts" name="StowageService › returns the first entry on a retry and answers 409 when the same id carries other data" time="0.005"/>
+    <testcase classname="src/modules/logistics-costs/stowage/stowage.service.spec.ts" name="StowageService › rejects an inactive group or an operation of another business" time="0.080"/>
+    <testcase classname="src/modules/logistics-costs/stowage/stowage.service.spec.ts" name="StowageService › settles pending entries in one go: exact total in cents, entries settled and cash out" time="0.005"/>
+    <testcase classname="src/modules/logistics-costs/stowage/stowage.service.spec.ts" name="StowageService › replays a settlement and refuses to settle an entry twice" time="0.006"/>
+    <testcase classname="src/modules/logistics-costs/stowage/stowage.service.spec.ts" name="StowageService › answers 404 for an entry that does not exist" time="0.001"/>
+    <testcase classname="src/modules/logistics-costs/stowage/stowage.service.spec.ts" name="StowageService › creates, lists and deactivates groups within the business, and maps a duplicate name to 409" time="0.007"/>
+  </testsuite>
+  <testsuite name="src/modules/documents/receipts-characteristics.spec.ts" tests="3" failures="0" errors="0" skipped="0" time="7.048">
+    <testcase classname="src/modules/documents/receipts-characteristics.spec.ts" name="RF04 receipt service projection › keeps purchase sacks with different characteristics separate" time="0.019"/>
+    <testcase classname="src/modules/documents/receipts-characteristics.spec.ts" name="RF04 receipt service projection › retains prior bytes and retention, then reuses the new sale version" time="0.006"/>
+    <testcase classname="src/modules/documents/receipts-characteristics.spec.ts" name="RF04 receipt service projection › inherits return labels from its original sale line without another classification" time="0.004"/>
+  </testsuite>
+  <testsuite name="src/modules/accounts/accounts.service.spec.ts" tests="13" failures="0" errors="0" skipped="0" time="7.201">
+    <testcase classname="src/modules/accounts/accounts.service.spec.ts" name="Account payments › allocates oldest dues first and records the correct cash direction for receivable" time="0.025"/>
+    <testcase classname="src/modules/accounts/accounts.service.spec.ts" name="Account payments › allocates oldest dues first and records the correct cash direction for payable" time="0.004"/>
+    <testcase classname="src/modules/accounts/accounts.service.spec.ts" name="Account payments › rejects overpayment before writing payment or cash" time="0.087"/>
+    <testcase classname="src/modules/accounts/accounts.service.spec.ts" name="Account payments › rejects a stale account version before any financial effect" time="0.004"/>
+    <testcase classname="src/modules/accounts/accounts.service.spec.ts" name="Account payments › returns an already confirmed payment without applying it again" time="0.001"/>
+    <testcase classname="src/modules/accounts/accounts.service.spec.ts" name="Account payments › rejects an operation identifier already used for another account" time="0.041"/>
+    <testcase classname="src/modules/accounts/accounts.service.spec.ts" name="Account payments › rejects an operation identifier already used for another amount" time="0.002"/>
+    <testcase classname="src/modules/accounts/accounts.service.spec.ts" name="Account payments › rejects an operation identifier already used for a reversal" time="0.003"/>
+    <testcase classname="src/modules/accounts/accounts.service.spec.ts" name="Account payments › rejects a reversal whose identifier belongs to a regular payment" time="0.012"/>
+    <testcase classname="src/modules/accounts/accounts.service.spec.ts" name="Account payment reversals › restores the original allocations and compensates cash for receivable" time="0.002"/>
+    <testcase classname="src/modules/accounts/accounts.service.spec.ts" name="Account payment reversals › restores the original allocations and compensates cash for payable" time="0.004"/>
+    <testcase classname="src/modules/accounts/accounts.service.spec.ts" name="Account payment reversals › rejects a second reversal without financial writes" time="0.009"/>
+    <testcase classname="src/modules/accounts/accounts.service.spec.ts" name="Account payment reversals › rejects incomplete allocations instead of restoring inconsistent balances" time="0.001"/>
+  </testsuite>
+  <testsuite name="src/modules/documents/buyer-statement/buyer-statement.documents.spec.ts" tests="5" failures="0" errors="0" skipped="0" time="7.551">
+    <testcase classname="src/modules/documents/buyer-statement/buyer-statement.documents.spec.ts" name="buyer statement view › states the figures of the spec example in soles" time="0.074"/>
+    <testcase classname="src/modules/documents/buyer-statement/buyer-statement.documents.spec.ts" name="buyer statement view › shows the empty message and never the credit limit" time="0.003"/>
+    <testcase classname="src/modules/documents/buyer-statement/buyer-statement.documents.spec.ts" name="buyer statement PDF › creates a valid PDF titled as a statement" time="0.035"/>
+    <testcase classname="src/modules/documents/buyer-statement/buyer-statement.documents.spec.ts" name="buyer statement image › escapes text and marks overdue installments in the SVG" time="0.001"/>
+    <testcase classname="src/modules/documents/buyer-statement/buyer-statement.documents.spec.ts" name="buyer statement image › renders a 1080 px wide PNG that grows with the sales" time="6.426"/>
+  </testsuite>
+  <testsuite name="src/retired/inventory/inventory-scope.spec.ts" tests="4" failures="0" errors="0" skipped="0" time="8.931">
+    <testcase classname="src/retired/inventory/inventory-scope.spec.ts" name="retires inventory route lots without invoking an inventory service" time="0.073"/>
+    <testcase classname="src/retired/inventory/inventory-scope.spec.ts" name="retires inventory route lot without invoking an inventory service" time="0.002"/>
+    <testcase classname="src/retired/inventory/inventory-scope.spec.ts" name="retires inventory route movements without invoking an inventory service" time="0.001"/>
+    <testcase classname="src/retired/inventory/inventory-scope.spec.ts" name="retires inventory route adjust without invoking an inventory service" time="0.001"/>
+  </testsuite>
+  <testsuite name="src/modules/reports-and-analytics/analytics/analytics-authorization.spec.ts" tests="1" failures="0" errors="0" skipped="0" time="8.944">
+    <testcase classname="src/modules/reports-and-analytics/analytics/analytics-authorization.spec.ts" name="denies an authenticated assistant at the analytics controller and audits without returning data" time="0.053"/>
+  </testsuite>
+  <testsuite name="src/modules/documents/receipt-history.spec.ts" tests="4" failures="0" errors="0" skipped="0" time="9.026">
+    <testcase classname="src/modules/documents/receipt-history.spec.ts" name="paginates purchases within one business and coherent read" time="0.017"/>
+    <testcase classname="src/modules/documents/receipt-history.spec.ts" name="paginates sales within one business and coherent read" time="0.002"/>
+    <testcase classname="src/modules/documents/receipt-history.spec.ts" name="refuses operational users before querying the complete document history" time="0.038"/>
+    <testcase classname="src/modules/documents/receipt-history.spec.ts" name="enforces the controller role metadata and audits a denied operational identity" time="0.016"/>
+  </testsuite>
+  <testsuite name="src/modules/documents/buyer-statement/buyer-statement.api.spec.ts" tests="8" failures="0" errors="0" skipped="0" time="10.504">
+    <testcase classname="src/modules/documents/buyer-statement/buyer-statement.api.spec.ts" name="BuyerStatementService › reads one REPEATABLE READ snapshot scoped to the business and open receivables" time="0.020"/>
+    <testcase classname="src/modules/documents/buyer-statement/buyer-statement.api.spec.ts" name="BuyerStatementService › answers 404 for a buyer outside the business" time="0.037"/>
+    <testcase classname="src/modules/documents/buyer-statement/buyer-statement.api.spec.ts" name="BuyerStatementService › turns figures that do not add up into 409 statement-inconsistent" time="0.009"/>
+    <testcase classname="src/modules/documents/buyer-statement/buyer-statement.api.spec.ts" name="BuyerStatementService › keeps the PDF and PNG as documents of their own type and version" time="1.429"/>
+    <testcase classname="src/modules/documents/buyer-statement/buyer-statement.api.spec.ts" name="BuyerStatementService › refuses the image with more than 10 sales without storing anything" time="0.005"/>
+    <testcase classname="src/modules/documents/buyer-statement/buyer-statement.api.spec.ts" name="BuyerStatementController › lets only the Wholesaler in and audits the denied Assistant" time="0.016"/>
+    <testcase classname="src/modules/documents/buyer-statement/buyer-statement.api.spec.ts" name="BuyerStatementController › sends the PDF without caching and named after the statement number" time="0.012"/>
+    <testcase classname="src/modules/documents/buyer-statement/buyer-statement.api.spec.ts" name="BuyerStatementController › does not expose the internal source version in the summary" time="0.004"/>
+  </testsuite>
+  <testsuite name="src/modules/reception-and-purchases/reception/application/weighing-use-cases.spec.ts" tests="17" failures="0" errors="0" skipped="0" time="3.664">
+    <testcase classname="src/modules/reception-and-purchases/reception/application/weighing-use-cases.spec.ts" name="RegisterSackWeight › registers the net weight, moves the reception to weighing and audits it" time="0.011"/>
+    <testcase classname="src/modules/reception-and-purchases/reception/application/weighing-use-cases.spec.ts" name="RegisterSackWeight › answers five resends of the same order with one sack and one audit event" time="0.003"/>
+    <testcase classname="src/modules/reception-and-purchases/reception/application/weighing-use-cases.spec.ts" name="RegisterSackWeight › rejects the same order id with another weight as operation-id-conflict" time="0.001"/>
+    <testcase classname="src/modules/reception-and-purchases/reception/application/weighing-use-cases.spec.ts" name="RegisterSackWeight › rejects a variety outside the reception without writing anything" time="0.003"/>
+    <testcase classname="src/modules/reception-and-purchases/reception/application/weighing-use-cases.spec.ts" name="RegisterSackWeight › rejects a tare equal to the gross weight without writing anything" time="0.001"/>
+    <testcase classname="src/modules/reception-and-purchases/reception/application/weighing-use-cases.spec.ts" name="RegisterSackWeight › rejects more than three decimals without writing anything" time="0.002"/>
+    <testcase classname="src/modules/reception-and-purchases/reception/application/weighing-use-cases.spec.ts" name="RegisterSackWeight › rejects an old reception version without writing anything" time="0.001"/>
+    <testcase classname="src/modules/reception-and-purchases/reception/application/weighing-use-cases.spec.ts" name="RegisterSackWeight › rejects new sacks once the weighing is closed" time="0.003"/>
+    <testcase classname="src/modules/reception-and-purchases/reception/application/weighing-use-cases.spec.ts" name="RegisterSackWeight › answers 404 for a reception that does not exist" time="0.001"/>
+    <testcase classname="src/modules/reception-and-purchases/reception/application/weighing-use-cases.spec.ts" name="RegisterSackWeight › keeps nothing when the audit event cannot be recorded" time="0.014"/>
+    <testcase classname="src/modules/reception-and-purchases/reception/application/weighing-use-cases.spec.ts" name="corrections, withdrawal and closing › corrects an open sack keeping its sequence and retiring the original" time="0.002"/>
+    <testcase classname="src/modules/reception-and-purchases/reception/application/weighing-use-cases.spec.ts" name="corrections, withdrawal and closing › withdraws a sack with its reason and answers its resend with the same sack" time="0.004"/>
+    <testcase classname="src/modules/reception-and-purchases/reception/application/weighing-use-cases.spec.ts" name="corrections, withdrawal and closing › closes the weighing with the totals of the active sacks only once" time="0.003"/>
+    <testcase classname="src/modules/reception-and-purchases/reception/application/weighing-use-cases.spec.ts" name="corrections, withdrawal and closing › refuses to close a weighing without active sacks" time="0.001"/>
+    <testcase classname="src/modules/reception-and-purchases/reception/application/weighing-use-cases.spec.ts" name="corrections, withdrawal and closing › corrects a closed sack with its reason before settlement, and only then" time="0.003"/>
+    <testcase classname="src/modules/reception-and-purchases/reception/application/weighing-use-cases.spec.ts" name="corrections, withdrawal and closing › answers an outdated closed correction with the closed-weighing version message" time="0.000"/>
+    <testcase classname="src/modules/reception-and-purchases/reception/application/weighing-use-cases.spec.ts" name="corrections, withdrawal and closing › answers 404 for a sack that was already withdrawn" time="0.001"/>
+  </testsuite>
+  <testsuite name="src/platform/health/health.controller.spec.ts" tests="1" failures="0" errors="0" skipped="0" time="5.245">
+    <testcase classname="src/platform/health/health.controller.spec.ts" name="HealthController › reports the process as alive without requiring the database" time="0.005"/>
+  </testsuite>
+  <testsuite name="src/modules/reception-and-purchases/purchase/domain/payment-status.spec.ts" tests="12" failures="0" errors="0" skipped="0" time="3.477">
+    <testcase classname="src/modules/reception-and-purchases/purchase/domain/payment-status.spec.ts" name="purchase payment state (spec 011, CL-MD05) › derives {&quot;settlementState&quot;:&quot;confirmed&quot;,&quot;paymentMode&quot;:&quot;cash&quot;,&quot;accountBalanceCents&quot;:null}" time="0.005"/>
+    <testcase classname="src/modules/reception-and-purchases/purchase/domain/payment-status.spec.ts" name="purchase payment state (spec 011, CL-MD05) › derives {&quot;settlementState&quot;:&quot;confirmed&quot;,&quot;paymentMode&quot;:&quot;credit&quot;,&quot;accountBalanceCents&quot;:&quot;1250050&quot;}" time="0.001"/>
+    <testcase classname="src/modules/reception-and-purchases/purchase/domain/payment-status.spec.ts" name="purchase payment state (spec 011, CL-MD05) › derives {&quot;settlementState&quot;:&quot;confirmed&quot;,&quot;paymentMode&quot;:&quot;credit&quot;,&quot;accountBalanceCents&quot;:&quot;0&quot;}" time="0.000"/>
+    <testcase classname="src/modules/reception-and-purchases/purchase/domain/payment-status.spec.ts" name="purchase payment state (spec 011, CL-MD05) › derives {&quot;settlementState&quot;:&quot;voided&quot;,&quot;paymentMode&quot;:&quot;credit&quot;,&quot;accountBalanceCents&quot;:&quot;0&quot;}" time="0.000"/>
+    <testcase classname="src/modules/reception-and-purchases/purchase/domain/payment-status.spec.ts" name="purchase payment state (spec 011, CL-MD05) › derives {&quot;settlementState&quot;:&quot;voided&quot;,&quot;paymentMode&quot;:&quot;cash&quot;,&quot;accountBalanceCents&quot;:null}" time="0.002"/>
+    <testcase classname="src/modules/reception-and-purchases/purchase/domain/payment-status.spec.ts" name="purchase payment state (spec 011, CL-MD05) › keeps balances beyond the safe integer range exact" time="0.001"/>
+    <testcase classname="src/modules/reception-and-purchases/purchase/domain/payment-status.spec.ts" name="payment status query › accepts a comma list or the repeated parameter" time="0.014"/>
+    <testcase classname="src/modules/reception-and-purchases/purchase/domain/payment-status.spec.ts" name="payment status query › rejects nothing" time="0.004"/>
+    <testcase classname="src/modules/reception-and-purchases/purchase/domain/payment-status.spec.ts" name="payment status query › rejects an empty list" time="0.001"/>
+    <testcase classname="src/modules/reception-and-purchases/purchase/domain/payment-status.spec.ts" name="payment status query › rejects a value that is not a UUID" time="0.001"/>
+    <testcase classname="src/modules/reception-and-purchases/purchase/domain/payment-status.spec.ts" name="payment status query › rejects more than 100 receptions" time="0.003"/>
+    <testcase classname="src/modules/reception-and-purchases/purchase/domain/payment-status.spec.ts" name="payment status query › rejects unknown parameters" time="0.001"/>
+  </testsuite>
+  <testsuite name="src/modules/identity/application/verify-credentials.use-case.spec.ts" tests="2" failures="0" errors="0" skipped="0" time="4.354">
+    <testcase classname="src/modules/identity/application/verify-credentials.use-case.spec.ts" name="VerifyCredentialsUseCase › returns only the public identity for valid credentials" time="0.379"/>
+    <testcase classname="src/modules/identity/application/verify-credentials.use-case.spec.ts" name="VerifyCredentialsUseCase › returns the same empty result for unknown users and incorrect passwords" time="0.515"/>
+  </testsuite>
+  <testsuite name="src/modules/identity/http/session-auth.guard.spec.ts" tests="7" failures="0" errors="0" skipped="0" time="4.546">
+    <testcase classname="src/modules/identity/http/session-auth.guard.spec.ts" name="SessionAuthGuard › attaches the active identity for a valid bearer token" time="0.012"/>
+    <testcase classname="src/modules/identity/http/session-auth.guard.spec.ts" name="SessionAuthGuard › rejects an invalid authorization value" time="0.001"/>
+    <testcase classname="src/modules/identity/http/session-auth.guard.spec.ts" name="SessionAuthGuard › rejects an invalid authorization value" time="0.001"/>
+    <testcase classname="src/modules/identity/http/session-auth.guard.spec.ts" name="SessionAuthGuard › rejects an invalid authorization value" time="0.000"/>
+    <testcase classname="src/modules/identity/http/session-auth.guard.spec.ts" name="SessionAuthGuard › rejects an invalid authorization value" time="0.000"/>
+    <testcase classname="src/modules/identity/http/session-auth.guard.spec.ts" name="SessionAuthGuard › rejects an invalid authorization value" time="0.000"/>
+    <testcase classname="src/modules/identity/http/session-auth.guard.spec.ts" name="SessionAuthGuard › requires the password change before any other route" time="0.002"/>
+  </testsuite>
+  <testsuite name="src/modules/reports-and-analytics/reports/reports-scope.spec.ts" tests="1" failures="0" errors="0" skipped="0" time="11.692">
+    <testcase classname="src/modules/reports-and-analytics/reports/reports-scope.spec.ts" name="retires the old margin endpoint without calculating a substitute or reading lot costs" time="0.080"/>
+  </testsuite>
+  <testsuite name="src/modules/messaging/messaging.spec.ts" tests="6" failures="0" errors="0" skipped="0" time="11.943">
+    <testcase classname="src/modules/messaging/messaging.spec.ts" name="accepts only compatible file metadata and rejects oversized or disguised attachments" time="0.015"/>
+    <testcase classname="src/modules/messaging/messaging.spec.ts" name="preserves one journal and one audit on identical retries without touching financial repositories" time="0.006"/>
+    <testcase classname="src/modules/messaging/messaging.spec.ts" name="rejects a foreign counterparty and does not preserve a journal" time="0.004"/>
+    <testcase classname="src/modules/messaging/messaging.spec.ts" name="rejects reusing an operation with another file or declaring delivery" time="0.001"/>
+    <testcase classname="src/modules/messaging/messaging.spec.ts" name="uses the business from identity when reading financial notifications" time="0.003"/>
+    <testcase classname="src/modules/messaging/messaging.spec.ts" name="protects every messaging endpoint with the real Mayorista role guard" time="0.007"/>
+  </testsuite>
+  <testsuite name="src/modules/reports-and-analytics/reports/report-workbook.spec.ts" tests="4" failures="0" errors="0" skipped="0" time="5.246">
+    <testcase classname="src/modules/reports-and-analytics/reports/report-workbook.spec.ts" name="aggregate report workbook › round trips exact amounts and formula-like names as text in a real XLSX" time="0.251"/>
+    <testcase classname="src/modules/reports-and-analytics/reports/report-workbook.spec.ts" name="aggregate report workbook › exports a valid empty report with headers and metadata" time="0.050"/>
+    <testcase classname="src/modules/reports-and-analytics/reports/report-workbook.spec.ts" name="aggregate report workbook › rejects inconsistent rows rather than silently losing values" time="0.037"/>
+    <testcase classname="src/modules/reports-and-analytics/reports/report-workbook.spec.ts" name="aggregate report workbook › rejects oversized cells rather than truncating the export" time="0.001"/>
+  </testsuite>
+  <testsuite name="src/modules/identity/security/password-hasher.spec.ts" tests="2" failures="0" errors="0" skipped="0" time="3.134">
+    <testcase classname="src/modules/identity/security/password-hasher.spec.ts" name="PasswordHasher › generates different salted hashes for the same password" time="0.721"/>
+    <testcase classname="src/modules/identity/security/password-hasher.spec.ts" name="PasswordHasher › rejects an incorrect password and malformed stored values" time="0.333"/>
+  </testsuite>
+  <testsuite name="src/modules/sales/http/sale.dto.spec.ts" tests="6" failures="0" errors="0" skipped="0" time="5.428">
+    <testcase classname="src/modules/sales/http/sale.dto.spec.ts" name="accepts sale operation quantities with a variety and without inventory fields" time="0.020"/>
+    <testcase classname="src/modules/sales/http/sale.dto.spec.ts" name="allows the same variety with different quality or origin but rejects duplicate unknown combinations" time="0.048"/>
+    <testcase classname="src/modules/sales/http/sale.dto.spec.ts" name="rejects caller-supplied historical names and invalid characteristic references" time="0.003"/>
+    <testcase classname="src/modules/sales/http/sale.dto.spec.ts" name="rejects obsolete pending lot contracts instead of converting financial payloads silently" time="0.003"/>
+    <testcase classname="src/modules/sales/http/sale.dto.spec.ts" name="rejects duplicate varieties and out-of-range counts at the HTTP boundary" time="0.004"/>
+    <testcase classname="src/modules/sales/http/sale.dto.spec.ts" name="requires a civil date rather than a timestamp for a credit installment" time="0.002"/>
+  </testsuite>
+  <testsuite name="src/modules/identity/application/delegation.service.spec.ts" tests="1" failures="0" errors="0" skipped="0" time="6.477">
+    <testcase classname="src/modules/identity/application/delegation.service.spec.ts" name="DelegationService › rejects a replacement longer than 24 hours before opening a transaction" time="0.139"/>
+  </testsuite>
+  <testsuite name="src/modules/reports-and-analytics/analytics/analytics-readiness.spec.ts" tests="3" failures="0" errors="0" skipped="0" time="5.647">
+    <testcase classname="src/modules/reports-and-analytics/analytics/analytics-readiness.spec.ts" name="readiness snapshots › uses a business-scoped variety and a full-history window separate from descriptive filters" time="0.018"/>
+    <testcase classname="src/modules/reports-and-analytics/analytics/analytics-readiness.spec.ts" name="readiness snapshots › does not fetch another business history when the requested variety is unavailable" time="0.021"/>
+    <testcase classname="src/modules/reports-and-analytics/analytics/analytics-readiness.spec.ts" name="readiness snapshots › rejects a future cutoff before reading a dataset" time="0.037"/>
+  </testsuite>
+  <testsuite name="src/modules/sales/http/sales-history-query.dto.spec.ts" tests="9" failures="0" errors="0" skipped="0" time="5.571">
+    <testcase classname="src/modules/sales/http/sales-history-query.dto.spec.ts" name="parses page numbers and accepts civil dates and trimmed participant text" time="0.019"/>
+    <testcase classname="src/modules/sales/http/sales-history-query.dto.spec.ts" name="rejects invalid history filter {&quot;from&quot;:&quot;2026-02-30&quot;}" time="0.072"/>
+    <testcase classname="src/modules/sales/http/sales-history-query.dto.spec.ts" name="rejects invalid history filter {&quot;to&quot;:&quot;2026-10-07T12:00:00Z&quot;}" time="0.001"/>
+    <testcase classname="src/modules/sales/http/sales-history-query.dto.spec.ts" name="rejects invalid history filter {&quot;from&quot;:&quot;0000-01-01&quot;}" time="0.004"/>
+    <testcase classname="src/modules/sales/http/sales-history-query.dto.spec.ts" name="rejects invalid history filter {&quot;search&quot;:&quot; &quot;}" time="0.003"/>
+    <testcase classname="src/modules/sales/http/sales-history-query.dto.spec.ts" name="rejects invalid history filter {&quot;limit&quot;:&quot;101&quot;}" time="0.001"/>
+    <testcase classname="src/modules/sales/http/sales-history-query.dto.spec.ts" name="rejects invalid history filter {&quot;buyerId&quot;:&quot;invalid&quot;}" time="0.004"/>
+    <testcase classname="src/modules/sales/http/sales-history-query.dto.spec.ts" name="rejects invalid history filter {&quot;state&quot;:&quot;available&quot;}" time="0.001"/>
+    <testcase classname="src/modules/sales/http/sales-history-query.dto.spec.ts" name="rejects invalid history filter {&quot;stock&quot;:&quot;true&quot;}" time="0.001"/>
+  </testsuite>
+  <testsuite name="src/modules/reception-and-purchases/reception/http/receptions-history-query.dto.spec.ts" tests="9" failures="0" errors="0" skipped="0" time="5.851">
+    <testcase classname="src/modules/reception-and-purchases/reception/http/receptions-history-query.dto.spec.ts" name="parses page numbers and accepts civil dates and trimmed participant text" time="0.027"/>
+    <testcase classname="src/modules/reception-and-purchases/reception/http/receptions-history-query.dto.spec.ts" name="rejects invalid history filter {&quot;from&quot;:&quot;2026-02-30&quot;}" time="0.010"/>
+    <testcase classname="src/modules/reception-and-purchases/reception/http/receptions-history-query.dto.spec.ts" name="rejects invalid history filter {&quot;to&quot;:&quot;2026-10-07T12:00:00Z&quot;}" time="0.001"/>
+    <testcase classname="src/modules/reception-and-purchases/reception/http/receptions-history-query.dto.spec.ts" name="rejects invalid history filter {&quot;from&quot;:&quot;0000-01-01&quot;}" time="0.005"/>
+    <testcase classname="src/modules/reception-and-purchases/reception/http/receptions-history-query.dto.spec.ts" name="rejects invalid history filter {&quot;search&quot;:&quot; &quot;}" time="0.001"/>
+    <testcase classname="src/modules/reception-and-purchases/reception/http/receptions-history-query.dto.spec.ts" name="rejects invalid history filter {&quot;limit&quot;:&quot;101&quot;}" time="0.001"/>
+    <testcase classname="src/modules/reception-and-purchases/reception/http/receptions-history-query.dto.spec.ts" name="rejects invalid history filter {&quot;providerId&quot;:&quot;invalid&quot;}" time="0.003"/>
+    <testcase classname="src/modules/reception-and-purchases/reception/http/receptions-history-query.dto.spec.ts" name="rejects invalid history filter {&quot;state&quot;:&quot;available&quot;}" time="0.001"/>
+    <testcase classname="src/modules/reception-and-purchases/reception/http/receptions-history-query.dto.spec.ts" name="rejects invalid history filter {&quot;stock&quot;:&quot;true&quot;}" time="0.001"/>
+  </testsuite>
+  <testsuite name="src/shared/catalog/characteristics.service.spec.ts" tests="10" failures="0" errors="0" skipped="0" time="6.556">
+    <testcase classname="src/shared/catalog/characteristics.service.spec.ts" name="scopes active paginated options to both business and dimension" time="0.009"/>
+    <testcase classname="src/shared/catalog/characteristics.service.spec.ts" name="creates quality with trimmed label and audit in the same transaction" time="0.004"/>
+    <testcase classname="src/shared/catalog/characteristics.service.spec.ts" name="creates origin with trimmed label and audit in the same transaction" time="0.000"/>
+    <testcase classname="src/shared/catalog/characteristics.service.spec.ts" name="rejects another dimension or business before updating a name" time="0.003"/>
+    <testcase classname="src/shared/catalog/characteristics.service.spec.ts" name="deactivates only a scoped active option and preserves its row" time="0.001"/>
+    <testcase classname="src/shared/catalog/characteristics.service.spec.ts" name="does not persist an invalid or reserved label" time="0.003"/>
+    <testcase classname="src/shared/catalog/characteristics.service.spec.ts" name="does not persist an invalid or reserved label" time="0.000"/>
+    <testcase classname="src/shared/catalog/characteristics.service.spec.ts" name="does not persist an invalid or reserved label" time="0.001"/>
+    <testcase classname="src/shared/catalog/characteristics.service.spec.ts" name="does not persist an invalid or reserved label" time="0.000"/>
+    <testcase classname="src/shared/catalog/characteristics.service.spec.ts" name="does not persist an invalid or reserved label" time="0.003"/>
+  </testsuite>
+  <testsuite name="src/modules/logistics-costs/logistics/logistics.service.spec.ts" tests="6" failures="0" errors="0" skipped="0" time="6.863">
+    <testcase classname="src/modules/logistics-costs/logistics/logistics.service.spec.ts" name="LogisticsService › deactivates a vehicle and records the event atomically within the authenticated business" time="0.010"/>
+    <testcase classname="src/modules/logistics-costs/logistics/logistics.service.spec.ts" name="LogisticsService rules › creates a carrier with trimmed name and an empty phone stored as null" time="0.003"/>
+    <testcase classname="src/modules/logistics-costs/logistics/logistics.service.spec.ts" name="LogisticsService rules › normalizes a plate and links the vehicle only to an active carrier of the business" time="0.003"/>
+    <testcase classname="src/modules/logistics-costs/logistics/logistics.service.spec.ts" name="LogisticsService rules › updates only the fields sent, and refuses an empty change or a missing record" time="0.029"/>
+    <testcase classname="src/modules/logistics-costs/logistics/logistics.service.spec.ts" name="LogisticsService rules › lists only active records of the business and deactivates once" time="0.001"/>
+    <testcase classname="src/modules/logistics-costs/logistics/logistics.service.spec.ts" name="LogisticsService rules › maps a duplicate active name or plate to 409 and leaves other errors as they are" time="0.012"/>
+  </testsuite>
+  <testsuite name="src/modules/identity/http/roles.guard.spec.ts" tests="3" failures="0" errors="0" skipped="0" time="7.100">
+    <testcase classname="src/modules/identity/http/roles.guard.spec.ts" name="RolesGuard › allows a role declared by the endpoint" time="0.006"/>
+    <testcase classname="src/modules/identity/http/roles.guard.spec.ts" name="RolesGuard › denies and audits a role that is not declared by the endpoint" time="0.080"/>
+    <testcase classname="src/modules/identity/http/roles.guard.spec.ts" name="RolesGuard › denies the Administrator a route without declared roles" time="0.001"/>
+  </testsuite>
+  <testsuite name="src/shared/audit/audit-query.spec.ts" tests="8" failures="0" errors="0" skipped="0" time="6.655">
+    <testcase classname="src/shared/audit/audit-query.spec.ts" name="rejects non-civil audit day 2026-02-30" time="0.014"/>
+    <testcase classname="src/shared/audit/audit-query.spec.ts" name="rejects non-civil audit day 2026-1-02" time="0.001"/>
+    <testcase classname="src/shared/audit/audit-query.spec.ts" name="rejects non-civil audit day 2026-10-26T00:00:00Z" time="0.003"/>
+    <testcase classname="src/shared/audit/audit-query.spec.ts" name="rejects non-civil audit day 0000-01-01" time="0.000"/>
+    <testcase classname="src/shared/audit/audit-query.spec.ts" name="rejects year zero at the upper date boundary too" time="0.001"/>
+    <testcase classname="src/shared/audit/audit-query.spec.ts" name="accepts leap days and legacy timestamp filters independently" time="0.001"/>
+    <testcase classname="src/shared/audit/audit-query.spec.ts" name="applies business isolation, stable ordering, bounded pagination and an exclusive Lima day end" time="0.006"/>
+    <testcase classname="src/shared/audit/audit-query.spec.ts" name="rejects a reversed range before querying" time="0.003"/>
+  </testsuite>
+  <testsuite name="src/shared/catalog/commercial-snapshot.spec.ts" tests="7" failures="0" errors="0" skipped="0" time="4.056">
+    <testcase classname="src/shared/catalog/commercial-snapshot.spec.ts" name="represents old unclassified input as null pairs without reading a catalog" time="0.009"/>
+    <testcase classname="src/shared/catalog/commercial-snapshot.spec.ts" name="reads the selected active option under the authenticated business and dimension" time="0.003"/>
+    <testcase classname="src/shared/catalog/commercial-snapshot.spec.ts" name="preserves historical labels when a correction keeps original selections" time="0.001"/>
+    <testcase classname="src/shared/catalog/commercial-snapshot.spec.ts" name="preserves historical labels when a correction keeps original selections" time="0.000"/>
+    <testcase classname="src/shared/catalog/commercial-snapshot.spec.ts" name="allows explicit unknown only in the corrected version" time="0.001"/>
+    <testcase classname="src/shared/catalog/commercial-snapshot.spec.ts" name="does not carry the original label when a different option is selected" time="0.000"/>
+    <testcase classname="src/shared/catalog/commercial-snapshot.spec.ts" name="rejects inactive, foreign or wrong-dimension selections instead of trusting client labels" time="0.005"/>
+  </testsuite>
+  <testsuite name="src/shared/catalog/catalog-cache.spec.ts" tests="4" failures="0" errors="0" skipped="0" time="6.942">
+    <testcase classname="src/shared/catalog/catalog-cache.spec.ts" name="CatalogService with cache › queries the database once for the same page of the same business" time="0.010"/>
+    <testcase classname="src/shared/catalog/catalog-cache.spec.ts" name="CatalogService with cache › never serves one business the page of another" time="0.000"/>
+    <testcase classname="src/shared/catalog/catalog-cache.spec.ts" name="CatalogService with cache › reads again after a change of that catalog, and leaves the others cached" time="0.002"/>
+    <testcase classname="src/shared/catalog/catalog-cache.spec.ts" name="CatalogService with cache › drops the pages even when the change is rejected" time="0.062"/>
+  </testsuite>
+  <testsuite name="src/modules/reports-and-analytics/reports/report-page.spec.ts" tests="7" failures="0" errors="0" skipped="0" time="4.201">
+    <testcase classname="src/modules/reports-and-analytics/reports/report-page.spec.ts" name="rejects invalid report pagination {&quot;limit&quot;:0,&quot;offset&quot;:0}" time="0.124"/>
+    <testcase classname="src/modules/reports-and-analytics/reports/report-page.spec.ts" name="rejects invalid report pagination {&quot;limit&quot;:101,&quot;offset&quot;:0}" time="0.003"/>
+    <testcase classname="src/modules/reports-and-analytics/reports/report-page.spec.ts" name="rejects invalid report pagination {&quot;limit&quot;:20,&quot;offset&quot;:-1}" time="0.001"/>
+    <testcase classname="src/modules/reports-and-analytics/reports/report-page.spec.ts" name="rejects invalid report pagination {&quot;limit&quot;:20,&quot;offset&quot;:1.5}" time="0.003"/>
+    <testcase classname="src/modules/reports-and-analytics/reports/report-page.spec.ts" name="preserves total when an offset has no rows and limits rows in SQL" time="0.002"/>
+    <testcase classname="src/modules/reports-and-analytics/reports/report-page.spec.ts" name="leaves exports unpaginated" time="0.003"/>
+    <testcase classname="src/modules/reports-and-analytics/reports/report-page.spec.ts" name="uses safe defaults and rejects unsupported reports" time="0.005"/>
+  </testsuite>
+  <testsuite name="src/shared/operations/operations.service.spec.ts" tests="3" failures="0" errors="0" skipped="0" time="6.632">
+    <testcase classname="src/shared/operations/operations.service.spec.ts" name="OperationsService › recovers commercial returns only within the current business" time="0.011"/>
+    <testcase classname="src/shared/operations/operations.service.spec.ts" name="OperationsService › recovers a confirmed operation by client id within the current business" time="0.002"/>
+    <testcase classname="src/shared/operations/operations.service.spec.ts" name="OperationsService › does not fabricate a result when the operation is unknown" time="0.045"/>
+  </testsuite>
+  <testsuite name="src/modules/reports-and-analytics/reports/http/report-query.dto.spec.ts" tests="9" failures="0" errors="0" skipped="0" time="2.651">
+    <testcase classname="src/modules/reports-and-analytics/reports/http/report-query.dto.spec.ts" name="Report date contracts › limits operation summaries to one supported operation and real calendar dates" time="0.021"/>
+    <testcase classname="src/modules/reports-and-analytics/reports/http/report-query.dto.spec.ts" name="Report date contracts › accepts known and unreported dimensions without allowing arbitrary or repeated selectors" time="0.004"/>
+    <testcase classname="src/modules/reports-and-analytics/reports/http/report-query.dto.spec.ts" name="Report date contracts › accepts a financial alert window without requiring stock parameters" time="0.003"/>
+    <testcase classname="src/modules/reports-and-analytics/reports/http/report-query.dto.spec.ts" name="Report date contracts › rejects the retired stock threshold with the HTTP whitelist policy" time="0.000"/>
+    <testcase classname="src/modules/reports-and-analytics/reports/http/report-query.dto.spec.ts" name="Report date contracts › accepts a real leap day as a calendar date" time="0.003"/>
+    <testcase classname="src/modules/reports-and-analytics/reports/http/report-query.dto.spec.ts" name="Report date contracts › rejects invalid or non-calendar date 2026-02-29 in all report date fields" time="0.001"/>
+    <testcase classname="src/modules/reports-and-analytics/reports/http/report-query.dto.spec.ts" name="Report date contracts › rejects invalid or non-calendar date 2026-09-25T00:00:00Z in all report date fields" time="0.004"/>
+    <testcase classname="src/modules/reports-and-analytics/reports/http/report-query.dto.spec.ts" name="Report date contracts › rejects invalid or non-calendar date 2026-9-5 in all report date fields" time="0.001"/>
+    <testcase classname="src/modules/reports-and-analytics/reports/http/report-query.dto.spec.ts" name="Report date contracts › rejects invalid or non-calendar date  in all report date fields" time="0.002"/>
+  </testsuite>
+  <testsuite name="src/platform/config/environment.schema.spec.ts" tests="10" failures="0" errors="0" skipped="0" time="1.204">
+    <testcase classname="src/platform/config/environment.schema.spec.ts" name="environment schema › disables OpenAPI by default in production only" time="0.016"/>
+    <testcase classname="src/platform/config/environment.schema.spec.ts" name="environment schema › keeps an explicit OpenAPI choice in production" time="0.002"/>
+    <testcase classname="src/platform/config/environment.schema.spec.ts" name="environment schema › keeps 100 requests per minute unless THROTTLE_LIMIT says otherwise" time="0.004"/>
+    <testcase classname="src/platform/config/environment.schema.spec.ts" name="environment schema › keeps the catalogs 60 seconds in memory unless configured" time="0.005"/>
+    <testcase classname="src/platform/config/environment.schema.spec.ts" name="environment schema › accepts an empty or PEM database CA and rejects anything else" time="0.001"/>
+    <testcase classname="src/platform/config/environment.schema.spec.ts" name="environment schema › does not trust proxies unless configured" time="0.001"/>
+    <testcase classname="src/platform/config/environment.schema.spec.ts" name="environment schema › parses TRUST_PROXY=false" time="0.001"/>
+    <testcase classname="src/platform/config/environment.schema.spec.ts" name="environment schema › parses TRUST_PROXY=true" time="0.002"/>
+    <testcase classname="src/platform/config/environment.schema.spec.ts" name="environment schema › parses TRUST_PROXY=1" time="0.000"/>
+    <testcase classname="src/platform/config/environment.schema.spec.ts" name="environment schema › parses TRUST_PROXY=loopback, 10.0.0.0/8" time="0.000"/>
+  </testsuite>
+  <testsuite name="src/modules/documents/pdf-receipt.renderer.spec.ts" tests="2" failures="0" errors="0" skipped="0" time="1.303">
+    <testcase classname="src/modules/documents/pdf-receipt.renderer.spec.ts" name="PDF receipt renderer › creates a valid PDF and labels it as an internal non-tax document" time="0.064"/>
+    <testcase classname="src/modules/documents/pdf-receipt.renderer.spec.ts" name="PDF receipt renderer › formats cents without floating-point arithmetic" time="0.001"/>
+  </testsuite>
+  <testsuite name="src/platform/common/http/page-query.dto.spec.ts" tests="1" failures="0" errors="0" skipped="0" time="2.770">
+    <testcase classname="src/platform/common/http/page-query.dto.spec.ts" name="toPage › preserves the requested window and total count" time="0.009"/>
+  </testsuite>
+  <testsuite name="src/modules/reports-and-analytics/analytics/predictive-engine.spec.ts" tests="8" failures="0" errors="0" skipped="0" time="1.180">
+    <testcase classname="src/modules/reports-and-analytics/analytics/predictive-engine.spec.ts" name="evaluates eight temporal folds with exact MAE, baseline and inclusive coverage" time="0.028"/>
+    <testcase classname="src/modules/reports-and-analytics/analytics/predictive-engine.spec.ts" name="does not claim relative improvement over a perfect zero-error baseline" time="0.010"/>
+    <testcase classname="src/modules/reports-and-analytics/analytics/predictive-engine.spec.ts" name="does not use the target or later prices in a forecast or its calibration" time="0.017"/>
+    <testcase classname="src/modules/reports-and-analytics/analytics/predictive-engine.spec.ts" name="rejects missing weeks, invalid dates, insufficient counts and zero weight without filling gaps" time="0.084"/>
+    <testcase classname="src/modules/reports-and-analytics/analytics/predictive-engine.spec.ts" name="rejects a training prefix containing the target or a nonconsecutive evaluation" time="0.010"/>
+    <testcase classname="src/modules/reports-and-analytics/analytics/predictive-engine.spec.ts" name="uses exact large prices and half-up rounding without mutating inputs" time="0.000"/>
+    <testcase classname="src/modules/reports-and-analytics/analytics/predictive-engine.spec.ts" name="clips the empirical lower bound at zero and fails insufficient observed coverage" time="0.014"/>
+    <testcase classname="src/modules/reports-and-analytics/analytics/predictive-engine.spec.ts" name="accepts exactly seven covered weeks but rejects a model worse than the reference" time="0.023"/>
+  </testsuite>
+  <testsuite name="src/modules/reports-and-analytics/analytics/publication-candidate.spec.ts" tests="4" failures="0" errors="0" skipped="0" time="1.417">
+    <testcase classname="src/modules/reports-and-analytics/analytics/publication-candidate.spec.ts" name="prepares only the current commercial week with evidence and review still required" time="0.105"/>
+    <testcase classname="src/modules/reports-and-analytics/analytics/publication-candidate.spec.ts" name="rejects obsolete week, another business or variety, and a stale current read" time="0.138"/>
+    <testcase classname="src/modules/reports-and-analytics/analytics/publication-candidate.spec.ts" name="blocks changed commercial facts but does not treat a catalog rename as a price revision" time="0.139"/>
+    <testcase classname="src/modules/reports-and-analytics/analytics/publication-candidate.spec.ts" name="rejects unverifiable input hash, nonreproducible evaluation and inadequate improvement" time="0.210"/>
+  </testsuite>
+  <testsuite name="src/modules/documents/buyer-statement/buyer-statement.spec.ts" tests="10" failures="0" errors="0" skipped="0" time="0.995">
+    <testcase classname="src/modules/documents/buyer-statement/buyer-statement.spec.ts" name="buildBuyerStatement › reproduces the spec example: 800.00 - 300.00 - 100.00 = 400.00" time="0.013"/>
+    <testcase classname="src/modules/documents/buyer-statement/buyer-statement.spec.ts" name="buildBuyerStatement › returns a valid zero statement for a buyer without debt" time="0.003"/>
+    <testcase classname="src/modules/documents/buyer-statement/buyer-statement.spec.ts" name="buildBuyerStatement › nets reversed payments out of the paid amount" time="0.004"/>
+    <testcase classname="src/modules/documents/buyer-statement/buyer-statement.spec.ts" name="buildBuyerStatement › leaves out paid and voided accounts (CL-EC01)" time="0.004"/>
+    <testcase classname="src/modules/documents/buyer-statement/buyer-statement.spec.ts" name="buildBuyerStatement › orders sales by date and installments by due date, skipping settled ones" time="0.004"/>
+    <testcase classname="src/modules/documents/buyer-statement/buyer-statement.spec.ts" name="buildBuyerStatement › uses the Lima date at cutoff 2026-10-30T04:59:00Z" time="0.001"/>
+    <testcase classname="src/modules/documents/buyer-statement/buyer-statement.spec.ts" name="buildBuyerStatement › uses the Lima date at cutoff 2026-10-30T05:01:00Z" time="0.003"/>
+    <testcase classname="src/modules/documents/buyer-statement/buyer-statement.spec.ts" name="buildBuyerStatement › refuses figures that do not add up to the balance" time="0.082"/>
+    <testcase classname="src/modules/documents/buyer-statement/buyer-statement.spec.ts" name="buildBuyerStatement › keeps the same number for the same balances and changes it after a payment" time="0.009"/>
+    <testcase classname="src/modules/documents/buyer-statement/buyer-statement.spec.ts" name="buildBuyerStatement › offers the image for up to 10 sales only (CL-EC06)" time="0.006"/>
+  </testsuite>
+  <testsuite name="src/modules/reception-and-purchases/purchase/domain/purchase-lots.spec.ts" tests="9" failures="0" errors="0" skipped="0" time="0.947">
+    <testcase classname="src/modules/reception-and-purchases/purchase/domain/purchase-lots.spec.ts" name="purchase lots › groups active sacks by variety and quality with stable letters" time="0.011"/>
+    <testcase classname="src/modules/reception-and-purchases/purchase/domain/purchase-lots.spec.ts" name="purchase lots › puts the group without quality after the qualities of the same variety" time="0.001"/>
+    <testcase classname="src/modules/reception-and-purchases/purchase/domain/purchase-lots.spec.ts" name="purchase lots › prices each lot with its own basis and adds the gross of the spec example" time="0.003"/>
+    <testcase classname="src/modules/reception-and-purchases/purchase/domain/purchase-lots.spec.ts" name="purchase lots › rounds each lot half up before adding them" time="0.001"/>
+    <testcase classname="src/modules/reception-and-purchases/purchase/domain/purchase-lots.spec.ts" name="purchase lots › rejects a missing group" time="0.004"/>
+    <testcase classname="src/modules/reception-and-purchases/purchase/domain/purchase-lots.spec.ts" name="purchase lots › rejects an unexpected group" time="0.001"/>
+    <testcase classname="src/modules/reception-and-purchases/purchase/domain/purchase-lots.spec.ts" name="purchase lots › rejects a repeated group" time="0.000"/>
+    <testcase classname="src/modules/reception-and-purchases/purchase/domain/purchase-lots.spec.ts" name="purchase lots › refuses more than twenty lots" time="0.051"/>
+    <testcase classname="src/modules/reception-and-purchases/purchase/domain/purchase-lots.spec.ts" name="purchase lots › deducts the freight only when the provider bears it" time="0.001"/>
+  </testsuite>
+  <testsuite name="src/platform/common/cache/memory-cache.spec.ts" tests="5" failures="0" errors="0" skipped="0" time="0.839">
+    <testcase classname="src/platform/common/cache/memory-cache.spec.ts" name="MemoryCache › reads once and serves the next reads from memory until it expires" time="0.011"/>
+    <testcase classname="src/platform/common/cache/memory-cache.spec.ts" name="MemoryCache › keeps each scope and each page apart" time="0.001"/>
+    <testcase classname="src/platform/common/cache/memory-cache.spec.ts" name="MemoryCache › drops only the invalidated scope" time="0.001"/>
+    <testcase classname="src/platform/common/cache/memory-cache.spec.ts" name="MemoryCache › does not store what was read while the scope changed" time="0.001"/>
+    <testcase classname="src/platform/common/cache/memory-cache.spec.ts" name="MemoryCache › removes the oldest entries when it is full, and does nothing when turned off" time="0.004"/>
+  </testsuite>
+  <testsuite name="src/modules/reports-and-analytics/analytics/prediction-readiness.spec.ts" tests="4" failures="0" errors="0" skipped="0" time="0.997">
+    <testcase classname="src/modules/reports-and-analytics/analytics/prediction-readiness.spec.ts" name="prediction history availability › uses the 26 complete preceding weeks, including calendar-year transitions" time="0.009"/>
+    <testcase classname="src/modules/reports-and-analytics/analytics/prediction-readiness.spec.ts" name="prediction history availability › requires five distinct sales in every week and leaves evaluation/review pending even with enough data" time="0.012"/>
+    <testcase classname="src/modules/reports-and-analytics/analytics/prediction-readiness.spec.ts" name="prediction history availability › does not turn duplicate lines, purchases, other varieties or the current week into qualifying sales" time="0.002"/>
+    <testcase classname="src/modules/reports-and-analytics/analytics/prediction-readiness.spec.ts" name="prediction history availability › keeps a missing week empty and excludes malformed or fully compensated quantities" time="0.006"/>
+  </testsuite>
+  <testsuite name="src/modules/documents/receipt-date.spec.ts" tests="4" failures="0" errors="0" skipped="0" time="0.965">
+    <testcase classname="src/modules/documents/receipt-date.spec.ts" name="uses the Lima civil date for receipt instant 2026-10-08T04:59:59Z" time="0.005"/>
+    <testcase classname="src/modules/documents/receipt-date.spec.ts" name="uses the Lima civil date for receipt instant 2026-10-08T05:00:00Z" time="0.001"/>
+    <testcase classname="src/modules/documents/receipt-date.spec.ts" name="uses the Lima civil date for receipt instant 2027-01-01T02:00:00Z" time="0.000"/>
+    <testcase classname="src/modules/documents/receipt-date.spec.ts" name="separates the corrected projection from the preserved UTC document version" time="0.000"/>
+  </testsuite>
+  <testsuite name="src/platform/common/domain/operation-replay.spec.ts" tests="3" failures="0" errors="0" skipped="0" time="2.721">
+    <testcase classname="src/platform/common/domain/operation-replay.spec.ts" name="operation replay › accepts a retry that matches the recorded operation" time="0.007"/>
+    <testcase classname="src/platform/common/domain/operation-replay.spec.ts" name="operation replay › rejects a reused identifier with an explicit conflict code" time="0.005"/>
+    <testcase classname="src/platform/common/domain/operation-replay.spec.ts" name="operation replay › compares members independently of order" time="0.005"/>
+  </testsuite>
+  <testsuite name="src/modules/reception-and-purchases/reception/application/sack-weight.spec.ts" tests="2" failures="0" errors="0" skipped="0" time="1.020">
+    <testcase classname="src/modules/reception-and-purchases/reception/application/sack-weight.spec.ts" name="SackWeight › normalises the weight so equal amounts compare as the same sack" time="0.007"/>
+    <testcase classname="src/modules/reception-and-purchases/reception/application/sack-weight.spec.ts" name="SackWeight › cannot be built from an invalid weight" time="0.130"/>
+  </testsuite>
+  <testsuite name="src/modules/identity/security/session-token.service.spec.ts" tests="1" failures="0" errors="0" skipped="0" time="2.749">
+    <testcase classname="src/modules/identity/security/session-token.service.spec.ts" name="SessionTokenService › issues unique tokens and stores a deterministic hash representation" time="0.006"/>
+  </testsuite>
+  <testsuite name="src/modules/reports-and-analytics/analytics/historical-price-snapshots.spec.ts" tests="2" failures="0" errors="0" skipped="0" time="1.357">
+    <testcase classname="src/modules/reports-and-analytics/analytics/historical-price-snapshots.spec.ts" name="builds eight independent training/actual cutoffs and a final 26-week snapshot" time="0.048"/>
+    <testcase classname="src/modules/reports-and-analytics/analytics/historical-price-snapshots.spec.ts" name="rejects incomplete or invalid windows before querying, and missing actuals without imputing" time="0.066"/>
+  </testsuite>
+  <testsuite name="src/platform/common/domain/fixed-decimal.spec.ts" tests="3" failures="0" errors="0" skipped="0" time="0.850">
+    <testcase classname="src/platform/common/domain/fixed-decimal.spec.ts" name="fixed decimal domain › parses and formats kilograms without binary floating point" time="0.004"/>
+    <testcase classname="src/platform/common/domain/fixed-decimal.spec.ts" name="fixed decimal domain › rejects excess precision and rounds monetary products half up" time="0.103"/>
+    <testcase classname="src/platform/common/domain/fixed-decimal.spec.ts" name="fixed decimal domain › parses signed deltas without allowing signs in unsigned quantities" time="0.006"/>
+  </testsuite>
+  <testsuite name="test/database-environment.spec.ts" tests="5" failures="0" errors="0" skipped="0" time="1.023">
+    <testcase classname="test/database-environment.spec.ts" name="Database test prerequisites › allows an explicitly enabled test database" time="0.007"/>
+    <testcase classname="test/database-environment.spec.ts" name="Database test prerequisites › fails before connecting when prerequisites are missing: {}" time="0.087"/>
+    <testcase classname="test/database-environment.spec.ts" name="Database test prerequisites › fails before connecting when prerequisites are missing: {&quot;RUN_DATABASE_E2E&quot;:&quot;false&quot;,&quot;NODE_ENV&quot;:&quot;test&quot;,&quot;DATABASE_NAME&quot;:&quot;mercado_test&quot;}" time="0.001"/>
+    <testcase classname="test/database-environment.spec.ts" name="Database test prerequisites › fails before connecting when prerequisites are missing: {&quot;RUN_DATABASE_E2E&quot;:&quot;true&quot;,&quot;NODE_ENV&quot;:&quot;production&quot;,&quot;DATABASE_NAME&quot;:&quot;mercado_test&quot;}" time="0.001"/>
+    <testcase classname="test/database-environment.spec.ts" name="Database test prerequisites › fails before connecting when prerequisites are missing: {&quot;RUN_DATABASE_E2E&quot;:&quot;true&quot;,&quot;NODE_ENV&quot;:&quot;test&quot;,&quot;DATABASE_NAME&quot;:&quot;mercado&quot;}" time="0.001"/>
+  </testsuite>
+  <testsuite name="src/platform/common/http/api-exception.filter.spec.ts" tests="5" failures="0" errors="0" skipped="0" time="3.768">
+    <testcase classname="src/platform/common/http/api-exception.filter.spec.ts" name="ApiExceptionFilter › answers 503 with Retry-After when the database pool is saturated" time="0.011"/>
+    <testcase classname="src/platform/common/http/api-exception.filter.spec.ts" name="ApiExceptionFilter › keeps 500 for any other unexpected error and sets no Retry-After" time="0.003"/>
+    <testcase classname="src/platform/common/http/api-exception.filter.spec.ts" name="ApiExceptionFilter › preserves safe client error messages and includes the request ID" time="0.003"/>
+    <testcase classname="src/platform/common/http/api-exception.filter.spec.ts" name="ApiExceptionFilter › does not expose unexpected exception details" time="0.001"/>
+    <testcase classname="src/platform/common/http/api-exception.filter.spec.ts" name="ApiExceptionFilter › preserves the stable code and current version of an optimistic conflict" time="0.001"/>
+  </testsuite>
+  <testsuite name="src/platform/database/query-logger.spec.ts" tests="3" failures="0" errors="0" skipped="0" time="2.771">
+    <testcase classname="src/platform/database/query-logger.spec.ts" name="ParameterlessQueryLogger › logs the SQL of a query, a failure and a slow query without their parameters" time="0.009"/>
+    <testcase classname="src/platform/database/query-logger.spec.ts" name="ParameterlessQueryLogger › stays quiet when logging is off, except slow queries and migrations" time="0.002"/>
+    <testcase classname="src/platform/database/query-logger.spec.ts" name="ParameterlessQueryLogger › is the logger of every PostgreSQL connection" time="0.002"/>
+  </testsuite>
+  <testsuite name="src/platform/common/domain/sack-weights.spec.ts" tests="5" failures="0" errors="0" skipped="0" time="0.998">
+    <testcase classname="src/platform/common/domain/sack-weights.spec.ts" name="sack weights › subtracts the tare from the gross weight with three decimals" time="0.007"/>
+    <testcase classname="src/platform/common/domain/sack-weights.spec.ts" name="sack weights › treats an omitted or zero tare as no tare" time="0.001"/>
+    <testcase classname="src/platform/common/domain/sack-weights.spec.ts" name="sack weights › rejects a tare equal to or greater than the gross weight" time="0.017"/>
+    <testcase classname="src/platform/common/domain/sack-weights.spec.ts" name="sack weights › rejects a zero gross weight" time="0.003"/>
+    <testcase classname="src/platform/common/domain/sack-weights.spec.ts" name="sack weights › rejects more than three decimals, signs and text" time="0.004"/>
+  </testsuite>
+  <testsuite name="src/modules/documents/receipt-characteristics.spec.ts" tests="3" failures="0" errors="0" skipped="0" time="0.999">
+    <testcase classname="src/modules/documents/receipt-characteristics.spec.ts" name="historical receipt characteristics › labels legacy absence explicitly and never invents an origin" time="0.004"/>
+    <testcase classname="src/modules/documents/receipt-characteristics.spec.ts" name="historical receipt characteristics › separates dimensions and historical names while summing exact weight" time="0.004"/>
+    <testcase classname="src/modules/documents/receipt-characteristics.spec.ts" name="historical receipt characteristics › versions the new projection independently of state and civil date" time="0.001"/>
+  </testsuite>
+  <testsuite name="src/platform/openapi/operation-summaries.spec.ts" tests="3" failures="0" errors="0" skipped="0" time="0.948">
+    <testcase classname="src/platform/openapi/operation-summaries.spec.ts" name="OpenAPI summaries › has a summary for every operation of the exported contract" time="0.009"/>
+    <testcase classname="src/platform/openapi/operation-summaries.spec.ts" name="OpenAPI summaries › keeps no summary for an operation that no longer exists" time="0.003"/>
+    <testcase classname="src/platform/openapi/operation-summaries.spec.ts" name="OpenAPI summaries › reports an operation without a summary" time="0.000"/>
+  </testsuite>
+  <testsuite name="src/platform/common/domain/proportional-allocation.spec.ts" tests="2" failures="0" errors="0" skipped="0" time="0.934">
+    <testcase classname="src/platform/common/domain/proportional-allocation.spec.ts" name="proportional allocation › rounds halves upward" time="0.005"/>
+    <testcase classname="src/platform/common/domain/proportional-allocation.spec.ts" name="proportional allocation › preserves the exact total by assigning the residue to the last item" time="0.005"/>
+  </testsuite>
+  <testsuite name="src/platform/database/migrations/202609250007-text-integrity.spec.ts" tests="1" failures="0" errors="0" skipped="0" time="0.964">
+    <testcase classname="src/platform/database/migrations/202609250007-text-integrity.spec.ts" name="TextIntegrity1790294400007 › adds and removes every check constraint reversibly" time="0.010"/>
+  </testsuite>
+  <testsuite name="src/modules/reports-and-analytics/analytics/analytics-participant-filters.spec.ts" tests="4" failures="0" errors="0" skipped="0" time="3.076">
+    <testcase classname="src/modules/reports-and-analytics/analytics/analytics-participant-filters.spec.ts" name="rejects malformed participant identifiers at the query boundary" time="0.014"/>
+    <testcase classname="src/modules/reports-and-analytics/analytics/analytics-participant-filters.spec.ts" name="accepts omitted participant filters and valid UUIDs without changing period validation" time="0.003"/>
+    <testcase classname="src/modules/reports-and-analytics/analytics/analytics-participant-filters.spec.ts" name="distinguishes unreported from any known characteristic and rejects other sentinels" time="0.002"/>
+    <testcase classname="src/modules/reports-and-analytics/analytics/analytics-participant-filters.spec.ts" name="rejects repeated or non-string characteristic values" time="0.002"/>
+  </testsuite>
+  <testsuite name="src/modules/reports-and-analytics/analytics/publication-outcome.spec.ts" tests="5" failures="0" errors="0" skipped="0" time="1.008">
+    <testcase classname="src/modules/reports-and-analytics/analytics/publication-outcome.spec.ts" name="does not report a real price or error during the target week" time="0.005"/>
+    <testcase classname="src/modules/reports-and-analytics/analytics/publication-outcome.spec.ts" name="distinguishes no observed price from an actual zero price" time="0.003"/>
+    <testcase classname="src/modules/reports-and-analytics/analytics/publication-outcome.spec.ts" name="uses inclusive coverage and permits a small observed sample without inventing five sales" time="0.001"/>
+    <testcase classname="src/modules/reports-and-analytics/analytics/publication-outcome.spec.ts" name="calculates exact large errors without modifying the original forecast" time="0.001"/>
+    <testcase classname="src/modules/reports-and-analytics/analytics/publication-outcome.spec.ts" name="rejects invalid dates, range, price and weight instead of imputing" time="0.023"/>
+  </testsuite>
+  <testsuite name="src/platform/common/domain/commercial-calculation.spec.ts" tests="2" failures="0" errors="0" skipped="0" time="0.774">
+    <testcase classname="src/platform/common/domain/commercial-calculation.spec.ts" name="commercial calculations › calculates a sack-based amount exactly in cents" time="0.003"/>
+    <testcase classname="src/platform/common/domain/commercial-calculation.spec.ts" name="commercial calculations › calculates a kilogram-based amount and rounds half upward" time="0.000"/>
+  </testsuite>
+  <testsuite name="src/modules/reports-and-analytics/analytics/analytics-calculation.spec.ts" tests="4" failures="0" errors="0" skipped="0" time="0.949">
+    <testcase classname="src/modules/reports-and-analytics/analytics/analytics-calculation.spec.ts" name="weighted commercial analytics › weights by retained kilograms, counts distinct sales and keeps compensation references" time="0.006"/>
+    <testcase classname="src/modules/reports-and-analytics/analytics/analytics-calculation.spec.ts" name="weighted commercial analytics › does not mix varieties or purchases with sales and marks clipped/current weeks incomplete" time="0.001"/>
+    <testcase classname="src/modules/reports-and-analytics/analytics/analytics-calculation.spec.ts" name="weighted commercial analytics › lists invalid dates and quantities rather than inventing prices or normalizing invalid calendar dates" time="0.001"/>
+    <testcase classname="src/modules/reports-and-analytics/analytics/analytics-calculation.spec.ts" name="weighted commercial analytics › preserves integer accuracy beyond Number precision and rounds only the displayed ratio" time="0.001"/>
+  </testsuite>
+  <testsuite name="src/platform/common/validation/trim.decorator.spec.ts" tests="2" failures="0" errors="0" skipped="0" time="2.827">
+    <testcase classname="src/platform/common/validation/trim.decorator.spec.ts" name="Trim › normalizes text before length validation and rejects whitespace-only names" time="0.008"/>
+    <testcase classname="src/platform/common/validation/trim.decorator.spec.ts" name="Trim › trims the username without changing the password" time="0.002"/>
+  </testsuite>
+  <testsuite name="src/modules/reports-and-analytics/analytics/publication-availability.spec.ts" tests="2" failures="0" errors="0" skipped="0" time="0.806">
+    <testcase classname="src/modules/reports-and-analytics/analytics/publication-availability.spec.ts" name="limits the lookup to business and variety and reports no publication without inventing eligibility" time="0.005"/>
+    <testcase classname="src/modules/reports-and-analytics/analytics/publication-availability.spec.ts" name="propagates infrastructure errors instead of claiming a publication is invalid" time="0.001"/>
+  </testsuite>
+  <testsuite name="src/platform/database/postgres-options.spec.ts" tests="3" failures="0" errors="0" skipped="0" time="2.758">
+    <testcase classname="src/platform/database/postgres-options.spec.ts" name="createPostgresOptions › disables TLS explicitly for a trusted local network" time="0.003"/>
+    <testcase classname="src/platform/database/postgres-options.spec.ts" name="createPostgresOptions › requires certificate validation when production TLS is enabled" time="0.001"/>
+    <testcase classname="src/platform/database/postgres-options.spec.ts" name="createPostgresOptions › trusts the configured CA and accepts a PEM stored on one line" time="0.002"/>
+  </testsuite>
+  <testsuite name="src/platform/database/bootstrap/bootstrap-input.spec.ts" tests="4" failures="0" errors="0" skipped="0" time="0.759">
+    <testcase classname="src/platform/database/bootstrap/bootstrap-input.spec.ts" name="readBootstrapWholesalerInput › requires a strong explicit initial credential" time="0.011"/>
+    <testcase classname="src/platform/database/bootstrap/bootstrap-input.spec.ts" name="readBootstrapWholesalerInput › normalizes names without changing the password" time="0.002"/>
+    <testcase classname="src/platform/database/bootstrap/bootstrap-input.spec.ts" name="readBootstrapAdminInput › requires a username and a strong password" time="0.002"/>
+    <testcase classname="src/platform/database/bootstrap/bootstrap-input.spec.ts" name="readBootstrapAdminInput › trims the username and keeps the password as typed" time="0.001"/>
+  </testsuite>
+  <testsuite name="src/platform/common/http/request-context.middleware.spec.ts" tests="2" failures="0" errors="0" skipped="0" time="2.658">
+    <testcase classname="src/platform/common/http/request-context.middleware.spec.ts" name="requestContextMiddleware › keeps a safe incoming request ID and returns it in the response" time="0.007"/>
+    <testcase classname="src/platform/common/http/request-context.middleware.spec.ts" name="requestContextMiddleware › replaces unsafe incoming identifiers" time="0.002"/>
+  </testsuite>
+  <testsuite name="src/platform/database/data-source.spec.ts" tests="1" failures="0" errors="0" skipped="0" time="5.053">
+    <testcase classname="src/platform/database/data-source.spec.ts" name="database data source › keeps schema synchronization disabled and registers every ordered migration" time="0.004"/>
+  </testsuite>
+</testsuites>
