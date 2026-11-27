@@ -1,6 +1,6 @@
 # Especificación 023: Administrador de comerciantes y soporte
 
-**Estado:** borrador para aprobación del usuario · **Fecha:** 26 de noviembre de 2026
+**Estado:** aprobada por el usuario el 26 de noviembre de 2026 · **Implementación:** después de la exposición del Sprint 2
 **Origen:** el usuario quiere ofrecer MAÑAY a varios comerciantes: «yo voy a ser el administrador donde administraré a cada comerciante. Cada comerciante tendrá su acceso hacia la app, según sus datos y sus credenciales, y podrá permitir a sus propios colaboradores». Además quiere atender como soporte, por ejemplo cuando un comerciante olvida su contraseña o la app le falla.
 
 ## Objetivo
@@ -62,10 +62,10 @@ Agregar un tercer nivel de acceso, el **Administrador**, que da de alta a cada c
 ## Aclaraciones
 
 - **CL-23-01 · Alcance del Administrador.** Respondido el 26 nov 2026: administra cuentas y da soporte; **no ve las operaciones** de los comerciantes.
-- **CL-23-02 · Dónde administra.** *Por confirmar.* Propuesta: en la misma app, con un menú propio.
-- **CL-23-03 · Contraseña inicial.** *Por confirmar.* Propuesta: temporal, con cambio obligatorio en el primer ingreso.
-- **CL-23-04 · Cuándo se implementa.** *Por confirmar.* Propuesta: después de la exposición del Sprint 2, porque toca el inicio de sesión y los permisos que se muestran ese día.
-- **CL-23-05 · Un Mayorista por comerciante.** *Por confirmar.* Propuesta: uno por negocio, como hoy.
+- **CL-23-02 · Dónde administra.** Aprobado el 26 nov 2026: en la misma app, con un menú propio.
+- **CL-23-03 · Contraseña inicial.** Aprobado el 26 nov 2026: temporal, con cambio obligatorio en el primer ingreso.
+- **CL-23-04 · Cuándo se implementa.** Aprobado el 26 nov 2026: después de la exposición del Sprint 2, porque toca el inicio de sesión y los permisos que se muestran ese día.
+- **CL-23-05 · Un Mayorista por comerciante.** Aprobado el 26 nov 2026: uno por negocio, como hoy.
 
 ## Criterios de aceptación
 
