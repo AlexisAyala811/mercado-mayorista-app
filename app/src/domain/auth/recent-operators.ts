@@ -39,4 +39,4 @@ export function operatorInitials(username: string) {
   return letters.toUpperCase();
 }
 
-export const operatorRoleLabel = (role: UserRole) => (role === 'wholesaler' ? 'Mayorista' : 'Encargado');
+export const operatorRoleLabel = (role: UserRole) => (role === 'wholesaler' ? 'Mayorista' : role === 'admin' ? 'Administrador' : 'Encargado');

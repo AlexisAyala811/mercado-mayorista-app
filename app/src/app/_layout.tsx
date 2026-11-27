@@ -13,6 +13,7 @@ import { Modal, View } from "react-native";
 import { AppScreen, FeedbackState, LoadingState } from "@/ui/components";
 import { AppChromeProvider } from "@/ui/navigation/app-chrome";
 import { BottomNav } from "@/ui/navigation/bottom-nav";
+import { ChangePasswordScreen } from "@/features/auth/screens/change-password-screen";
 
 export default function RootLayout() {
   return (
@@ -47,8 +48,10 @@ export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
 export function RootNavigator() {
   const {
     bootstrapError,
+    changePassword,
     isBootstrapping,
     isRevalidating,
+    logout,
     retryBootstrap,
     session,
   } = useSession();
@@ -90,18 +93,21 @@ export function RootNavigator() {
     );
   }
   // Spec 011 (RQ-ST02, CL-ST18): the Stitch dock on every screen after sign-in, the menu included.
-  const showBottomNav = Boolean(session) && pathname !== "/";
+  // Spec 023: the Administrator only has «Comerciantes»; no business dock.
+  const isAdmin = session?.user.role === "admin";
+  const mustChangePassword = Boolean(session?.user.mustChangePassword);
+  const showBottomNav = Boolean(session) && !isAdmin && pathname !== "/";
   return (
     <AppChromeProvider
       connection={connection}
-      role={session ? (session.user.role === "wholesaler" ? "Mayorista" : "Encargado con reemplazo vigente") : null}
+      role={session ? roleLabel(session.user.role) : null}
       username={session?.user?.username ?? null}
     >
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Protected guard={!session}>
           <Stack.Screen name="index" />
         </Stack.Protected>
-        <Stack.Protected guard={Boolean(session)}>
+        <Stack.Protected guard={Boolean(session) && !isAdmin}>
           <Stack.Screen name="home" />
           <Stack.Screen name="messaging" />
           <Stack.Screen name="purchase-flow" />
@@ -121,32 +127,54 @@ export function RootNavigator() {
           <Stack.Screen name="administration" />
           <Stack.Screen name="audit" />
         </Stack.Protected>
+        <Stack.Protected guard={isAdmin}>
+          <Stack.Screen name="merchants" />
+        </Stack.Protected>
       </Stack>
-      {showBottomNav ? <BottomNav onMenu={pathname === "/home"} /> : null}
+      {showBottomNav && !mustChangePassword ? (
+        <BottomNav onMenu={pathname === "/home"} />
+      ) : null}
+      {/* One blocking layer over the navigator: revalidation, its failure or,
+          spec 023 (CL-23-03), the forced password change after a temporary one. */}
       <Modal
         visible={
-          Boolean(session) && (isRevalidating || Boolean(bootstrapError))
+          Boolean(session) &&
+          (isRevalidating || Boolean(bootstrapError) || mustChangePassword)
         }
         animationType="none"
         onRequestClose={() => {}}
       >
-        <AppScreen
-          contentContainerStyle={{ justifyContent: "center" }}
-          scrollable={false}
-        >
-          {bootstrapError ? (
-            <FeedbackState
-              actionLabel="Reintentar"
-              message={bootstrapError}
-              onAction={retryBootstrap}
-              title="No se pudo revalidar la sesión"
-              tone="error"
-            />
-          ) : (
-            <LoadingState label="Revalidando la sesión" />
-          )}
-        </AppScreen>
+        {session && mustChangePassword && !isRevalidating && !bootstrapError ? (
+          <ChangePasswordScreen
+            onChangePassword={changePassword}
+            onLogout={() => void logout()}
+            username={session.user.username}
+          />
+        ) : (
+          <AppScreen
+            contentContainerStyle={{ justifyContent: "center" }}
+            scrollable={false}
+          >
+            {bootstrapError ? (
+              <FeedbackState
+                actionLabel="Reintentar"
+                message={bootstrapError}
+                onAction={retryBootstrap}
+                title="No se pudo revalidar la sesión"
+                tone="error"
+              />
+            ) : (
+              <LoadingState label="Revalidando la sesión" />
+            )}
+          </AppScreen>
+        )}
       </Modal>
     </AppChromeProvider>
   );
+}
+
+function roleLabel(role: string) {
+  if (role === "wholesaler") return "Mayorista";
+  if (role === "admin") return "Administrador";
+  return "Encargado con reemplazo vigente";
 }

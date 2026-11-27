@@ -1,9 +1,13 @@
-export type UserRole = 'assistant' | 'wholesaler';
+// Spec 023: 'admin' is the Administrator of merchants (support), who never
+// reaches a business operation.
+export type UserRole = 'admin' | 'assistant' | 'wholesaler';
 
 export type SessionIdentity = {
   businessId: string;
   businessName: string;
   expiresAt: string;
+  /** Spec 023: after a temporary password, the user must create their own. */
+  mustChangePassword?: boolean;
   role: UserRole;
   sessionId: string;
   userId: string;
@@ -34,7 +38,8 @@ export function parseStoredSession(value: string | null): AuthenticatedSession |
       typeof parsed.user.sessionId !== 'string' ||
       typeof parsed.user.userId !== 'string' ||
       typeof parsed.user.username !== 'string' ||
-      (parsed.user.role !== 'assistant' && parsed.user.role !== 'wholesaler')
+      (parsed.user.role !== 'admin' && parsed.user.role !== 'assistant' && parsed.user.role !== 'wholesaler') ||
+      (parsed.user.mustChangePassword !== undefined && typeof parsed.user.mustChangePassword !== 'boolean')
     ) {
       return null;
     }

@@ -8,7 +8,8 @@ let mockContext={session:{accessToken:'fixture',user:{role:'wholesaler'}} as { a
 jest.mock('@/features/auth/session/session-provider',()=>({SessionProvider:()=>null,useSession:()=>mockContext}));
 jest.mock('@/features/sync/sync-queue-provider',()=>({SyncQueueProvider:()=>null}));
 jest.mock('@/features/sync/use-sync-status',()=>({useSyncStatus:()=>null}));
-jest.mock('@/ui/navigation/bottom-nav',()=>({BottomNav:()=>null}));
+jest.mock('@/ui/navigation/bottom-nav',()=>({BottomNav:()=>require('react').createElement('bottom-nav')}));
+jest.mock('@/features/auth/screens/change-password-screen',()=>({ChangePasswordScreen:(props:object)=>require('react').createElement('change-password',props)}));
 jest.mock('expo-status-bar',()=>({StatusBar:()=>null}));
 jest.mock('react-native',()=>{const react=jest.requireActual('react');const actual=jest.requireActual('react-native');const descriptors=Object.getOwnPropertyDescriptors(actual);delete descriptors.Modal;delete descriptors.View;const control=(props:object)=>react.createElement('test-native',props);return Object.defineProperties({Modal:control,View:control},descriptors);});
 jest.mock('@/ui/components',()=>{const react=jest.requireActual('react');const control=(props:object)=>react.createElement('test-control',props);return {AppScreen:control,FeedbackState:control,LoadingState:control};});
@@ -19,7 +20,7 @@ jest.mock('expo-router',()=>{
     react.useEffect(()=>{mockMounts++;return()=>{mockUnmounts++;};},[]);
     return react.createElement('navigation-state',{route,onMove:()=>setRoute('sync-queue')},props.children);
   };
-  Stack.Screen = function Screen() { return null; };
+  Stack.Screen = function Screen({ name }: { name: string }) { return react.createElement('screen', { name }); };
   Stack.Protected = function Protected({ guard, children }: React.PropsWithChildren<{ guard: boolean }>) {
     return guard ? children : null;
   };
@@ -69,5 +70,27 @@ it('retains the editing copy during revalidation of the same session', async () 
   mockContext = { ...mockContext, isRevalidating: true };
   await act(async () => { root.update(<RootNavigator />); });
   expect(readInitialPurchaseDraft('fixture')?.details.driverName).toBe('QA edición');
+  await act(async () => { root.unmount(); });
+});
+
+// Spec 023: the Administrator only reaches «Comerciantes», with no business dock.
+it('gives the Administrator only the merchants screen', async () => {
+  mockContext = { ...mockContext, session: { accessToken: 'admin', user: { role: 'admin' } } };
+  let root!: ReactTestRenderer;
+  await act(async () => { root = create(<RootNavigator />); });
+  const screens = root.root.findAll((node) => node.type === ('screen' as never)).map((node) => node.props.name);
+  expect(screens).toEqual(['merchants']);
+  expect(root.root.findAll((node) => node.type === ('bottom-nav' as never))).toHaveLength(0);
+  await act(async () => { root.unmount(); });
+});
+
+it('blocks everything behind the forced password change', async () => {
+  mockContext = { ...mockContext, session: { accessToken: 'temp', user: { mustChangePassword: true, role: 'wholesaler' } as { role: string } } };
+  let root!: ReactTestRenderer;
+  await act(async () => { root = create(<RootNavigator />); });
+  expect(root.root.findAll((node) => node.type === ('change-password' as never))).toHaveLength(1);
+  expect(root.root.findAll((node) => node.type === ('bottom-nav' as never))).toHaveLength(0);
+  const modals = root.root.findAllByType(Modal).filter((modal) => modal.props.visible);
+  expect(modals).toHaveLength(1);
   await act(async () => { root.unmount(); });
 });
