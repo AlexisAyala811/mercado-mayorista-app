@@ -40,8 +40,17 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm run lint
-      # Jest with the coverage report (Sprint 2); the HTML report stays as an artifact.
-      - run: npm run test:cov
+      # Jest with coverage (Sprint 2) and the results report (spec 024):
+      # summary, JSON and JUnit, also shown on the run page.
+      - run: npm run test:report
+      - name: Resultados de pruebas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultados-app
+          path: app/test-results/
+          if-no-files-found: warn
+          retention-days: 14
       - name: Reporte de cobertura
         if: always()
         uses: actions/upload-artifact@v4

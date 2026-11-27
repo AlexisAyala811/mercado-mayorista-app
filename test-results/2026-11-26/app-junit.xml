@@ -1,0 +1,985 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="App · pruebas unitarias y de pantallas" tests="760" failures="0" errors="0">
+  <testsuite name="tests/sales/sale-sheet.test.tsx" tests="9" failures="0" errors="0" skipped="0" time="3.550">
+    <testcase classname="tests/sales/sale-sheet.test.tsx" name="sums the weighed sacks into each line and sends the same sale as the form" time="0.790"/>
+    <testcase classname="tests/sales/sale-sheet.test.tsx" name="blocks saving while a lot has no sacks and lets the empty lot be removed" time="0.037"/>
+    <testcase classname="tests/sales/sale-sheet.test.tsx" name="starts the lot with its price and empty cells, types, clears with × and loads 10 sacks of 50 kg" time="0.071"/>
+    <testcase classname="tests/sales/sale-sheet.test.tsx" name="registers a new buyer typed in the sheet before sending the sale, and keeps RUC and date on the tablet" time="0.048"/>
+    <testcase classname="tests/sales/sale-sheet.test.tsx" name="asks before removing a lot with weighed sacks and sends no freight while the rate is 0 (CL-ST23)" time="0.078"/>
+    <testcase classname="tests/sales/sale-sheet.test.tsx" name="moves through the cells with ✓, closes the keyboard on the last one and picks the date (CL-ST25)" time="0.071"/>
+    <testcase classname="tests/sales/sale-sheet.test.tsx" name="writes a variety that is not in the list and reuses one that is (CL-ST26)" time="0.070"/>
+    <testcase classname="tests/sales/sale-sheet.test.tsx" name="edits variety and price of the active lot from ✎ (CL-ST23)" time="0.080"/>
+    <testcase classname="tests/sales/sale-sheet.test.tsx" name="keeps sacks and weight equal to the weighed sacks and sums the card facts" time="0.001"/>
+  </testsuite>
+  <testsuite name="tests/reports/reports-without-inventory.test.tsx" tests="16" failures="0" errors="0" skipped="0" time="1.324">
+    <testcase classname="tests/reports/reports-without-inventory.test.tsx" name="keeps unavailable filters distinct from report generation and allows a complete catalog retry" time="0.057"/>
+    <testcase classname="tests/reports/reports-without-inventory.test.tsx" name="downloads the consulted period and invalidates sharing after changing operation" time="0.039"/>
+    <testcase classname="tests/reports/reports-without-inventory.test.tsx" name="switches report operation without keeping the previous summary or mixing global balances" time="0.022"/>
+    <testcase classname="tests/reports/reports-without-inventory.test.tsx" name="ignores a delayed overview after switching operation" time="0.011"/>
+    <testcase classname="tests/reports/reports-without-inventory.test.tsx" name="shows separate installments of one account with due dates and installment balances" time="0.015"/>
+    <testcase classname="tests/reports/reports-without-inventory.test.tsx" name="distinguishes an empty financial alert result from an unqueried report" time="0.015"/>
+    <testcase classname="tests/reports/reports-without-inventory.test.tsx" name="rejects impossible periods before requesting any report and accepts a leap day" time="0.020"/>
+    <testcase classname="tests/reports/reports-without-inventory.test.tsx" name="shows the central summary timestamp in Lima and removes it with stale results" time="0.014"/>
+    <testcase classname="tests/reports/reports-without-inventory.test.tsx" name="shows financial balances and costs without requesting a lot margin or displaying stock" time="0.015"/>
+    <testcase classname="tests/reports/reports-without-inventory.test.tsx" name="ignores a late report after its period has changed" time="0.012"/>
+    <testcase classname="tests/reports/reports-without-inventory.test.tsx" name="clears results, edited dates and the open filter dialog when the session changes" time="0.026"/>
+    <testcase classname="tests/reports/reports-without-inventory.test.tsx" name="filters known and unreported characteristics, preserves original price labels and clears independently" time="0.032"/>
+    <testcase classname="tests/reports/reports-without-inventory.test.tsx" name="does not expose a pending report from the previous session" time="0.016"/>
+    <testcase classname="tests/reports/reports-without-inventory.test.tsx" name="does not mention returns in the sales summary even when the server reports them (CL-FM14)" time="0.012"/>
+    <testcase classname="tests/reports/reports-without-inventory.test.tsx" name="queries the current period on opening and again after switching operation" time="0.005"/>
+    <testcase classname="tests/reports/reports-without-inventory.test.tsx" name="shows facturación, cobrado, saldo por cobrar and volumen despachado for sales with the collection effectiveness" time="0.007"/>
+  </testsuite>
+  <testsuite name="tests/reception/purchase-sheet.test.tsx" tests="17" failures="0" errors="0" skipped="0" time="0.817">
+    <testcase classname="tests/reception/purchase-sheet.test.tsx" name="grid of sacks › keeps 250 sacks fluid on a tablet: its columns per row, fixed rows and only the visible ones drawn" time="0.209"/>
+    <testcase classname="tests/reception/purchase-sheet.test.tsx" name="grid of sacks › keeps 250 sacks fluid on a phone: its columns per row, fixed rows and only the visible ones drawn" time="0.051"/>
+    <testcase classname="tests/reception/purchase-sheet.test.tsx" name="grid of sacks › jumps to the typed sack, marks it and changes the lot when the sack is in another one" time="0.183"/>
+    <testcase classname="tests/reception/purchase-sheet.test.tsx" name="grid of sacks › shows the gross weight in the cell and corrects it in place with the tare of the capture bar" time="0.012"/>
+    <testcase classname="tests/reception/purchase-sheet.test.tsx" name="grid of sacks › does not add a sack without a weight or a variety, and locks the detail once the weighing is closed" time="0.016"/>
+    <testcase classname="tests/reception/purchase-sheet.test.tsx" name="lots, freight and settlement on the same screen › recalculates provisional money per kilogram and saves only when it is ready" time="0.016"/>
+    <testcase classname="tests/reception/purchase-sheet.test.tsx" name="lots, freight and settlement on the same screen › removes a stale total and blocks saving when deductions exceed the gross amount" time="0.015"/>
+    <testcase classname="tests/reception/purchase-sheet.test.tsx" name="lots, freight and settlement on the same screen › edits credit installments in the summary through the same draft" time="0.029"/>
+    <testcase classname="tests/reception/purchase-sheet.test.tsx" name="lots, freight and settlement on the same screen › shows freight paid by the wholesaler as information without deducting it" time="0.024"/>
+    <testcase classname="tests/reception/purchase-sheet.test.tsx" name="lots, freight and settlement on the same screen › locks the provider data once the reception exists and offers Limpiar registro only before" time="0.020"/>
+    <testcase classname="tests/reception/purchase-sheet.test.tsx" name="lots, freight and settlement on the same screen › keeps «Añadir lote» visible but disabled after the first sack and lists varieties without sacks (CL-ST21)" time="0.005"/>
+    <testcase classname="tests/reception/purchase-sheet.test.tsx" name="lots, freight and settlement on the same screen › never draws a scale, an automatic load or the removal of a sack" time="0.007"/>
+    <testcase classname="tests/reception/purchase-sheet.test.tsx" name="improvements brought from the sale (CL-ST27) › shows ten cells per lot: the weighed ones, the next one and the empty ones" time="0.011"/>
+    <testcase classname="tests/reception/purchase-sheet.test.tsx" name="improvements brought from the sale (CL-ST27) › saves the sack with the keyboard key and asks it not to suggest" time="0.005"/>
+    <testcase classname="tests/reception/purchase-sheet.test.tsx" name="improvements brought from the sale (CL-ST27) › picks the date in a calendar before the reception exists and offers the quick load" time="0.023"/>
+    <testcase classname="tests/reception/purchase-sheet.test.tsx" name="× in every cell, as in the sale (CL-ST28) › clears the weight being typed, voids a weighed sack and keeps only digits" time="0.006"/>
+    <testcase classname="tests/reception/purchase-sheet.test.tsx" name="× in every cell, as in the sale (CL-ST28) › keeps the × of a weighed sack visible but disabled without connection" time="0.011"/>
+  </testsuite>
+  <testsuite name="tests/auth/login-removal-recovery.test.tsx" tests="1" failures="0" errors="0" skipped="0" time="0.556">
+    <testcase classname="tests/auth/login-removal-recovery.test.tsx" name="connects the visible recovery action to session removal and blocks button and keyboard login" time="0.063"/>
+  </testsuite>
+  <testsuite name="tests/reception/purchase-history.test.tsx" tests="13" failures="0" errors="0" skipped="0" time="1.363">
+    <testcase classname="tests/reception/purchase-history.test.tsx" name="offers continuation for draft using the existing reception identity" time="0.065"/>
+    <testcase classname="tests/reception/purchase-history.test.tsx" name="offers continuation for weighing using the existing reception identity" time="0.024"/>
+    <testcase classname="tests/reception/purchase-history.test.tsx" name="offers continuation for weighed using the existing reception identity" time="0.026"/>
+    <testcase classname="tests/reception/purchase-history.test.tsx" name="does not offer continuation for settled receptions" time="0.027"/>
+    <testcase classname="tests/reception/purchase-history.test.tsx" name="does not offer continuation for voided receptions" time="0.032"/>
+    <testcase classname="tests/reception/purchase-history.test.tsx" name="saves void-reception before sending and retains its success after refreshing" time="0.042"/>
+    <testcase classname="tests/reception/purchase-history.test.tsx" name="saves void-purchase before sending and retains its success after refreshing" time="0.047"/>
+    <testcase classname="tests/reception/purchase-history.test.tsx" name="saves void-sack before sending and retains its success after refreshing" time="0.051"/>
+    <testcase classname="tests/reception/purchase-history.test.tsx" name="saves correct-open before sending and retains its success after refreshing" time="0.051"/>
+    <testcase classname="tests/reception/purchase-history.test.tsx" name="saves correct-closed before sending and retains its success after refreshing" time="0.052"/>
+    <testcase classname="tests/reception/purchase-history.test.tsx" name="keeps the correction data without sending when storage fails" time="0.043"/>
+    <testcase classname="tests/reception/purchase-history.test.tsx" name="opens recovery for an uncertain void without refreshing or reporting success" time="0.038"/>
+    <testcase classname="tests/reception/purchase-history.test.tsx" name="locks new actions and retries only the detail after a confirmed operation" time="0.046"/>
+  </testsuite>
+  <testsuite name="tests/accounts/accounts-screen.test.tsx" tests="29" failures="0" errors="0" skipped="0" time="1.411">
+    <testcase classname="tests/accounts/accounts-screen.test.tsx" name="lists every account of its kind and narrows them by search without writing" time="0.099"/>
+    <testcase classname="tests/accounts/accounts-screen.test.tsx" name="shows payable accounts only in Deudas and starts their commercial source without a movement" time="0.025"/>
+    <testcase classname="tests/accounts/accounts-screen.test.tsx" name="shows receivable accounts only in Cobranzas and starts their commercial source without a movement" time="0.018"/>
+    <testcase classname="tests/accounts/accounts-screen.test.tsx" name="does not present zero balances or empty results when accounts fails and retries both reads" time="0.018"/>
+    <testcase classname="tests/accounts/accounts-screen.test.tsx" name="does not present zero balances or empty results when cash fails and retries both reads" time="0.016"/>
+    <testcase classname="tests/accounts/accounts-screen.test.tsx" name="invalidates an unauthorized initial read without treating it as an empty account list" time="0.007"/>
+    <testcase classname="tests/accounts/accounts-screen.test.tsx" name="keeps a confirmed movement and refreshed detail when the following collection read fails" time="0.033"/>
+    <testcase classname="tests/accounts/accounts-screen.test.tsx" name="does not present an old account detail after the authenticated token changes" time="0.035"/>
+    <testcase classname="tests/accounts/accounts-screen.test.tsx" name="does not navigate or send a saved movement after its screen is unmounted" time="0.024"/>
+    <testcase classname="tests/accounts/accounts-screen.test.tsx" name="renders exact cash totals beyond the safe integer limit while every movement remains bounded" time="0.015"/>
+    <testcase classname="tests/accounts/accounts-screen.test.tsx" name="keeps account search accessible before expanding cash and preserves totals when folding it" time="0.037"/>
+    <testcase classname="tests/accounts/accounts-screen.test.tsx" name="stores payment before sending and refreshing the central account" time="0.033"/>
+    <testcase classname="tests/accounts/accounts-screen.test.tsx" name="stores reversal before sending and refreshing the central account" time="0.031"/>
+    <testcase classname="tests/accounts/accounts-screen.test.tsx" name="reviews original reversal references, reason and provisional restored balance before sending" time="0.032"/>
+    <testcase classname="tests/accounts/accounts-screen.test.tsx" name="rejects an invalid reversal reason before opening the dialog and again before enqueue" time="0.033"/>
+    <testcase classname="tests/accounts/accounts-screen.test.tsx" name="preserves the payment and compensation history without offering a second reversal" time="0.017"/>
+    <testcase classname="tests/accounts/accounts-screen.test.tsx" name="keeps the payment form without sending when durable storage fails" time="0.025"/>
+    <testcase classname="tests/accounts/accounts-screen.test.tsx" name="searches counterparties and preserves filters after opening and leaving detail without changing cash" time="0.076"/>
+    <testcase classname="tests/accounts/accounts-screen.test.tsx" name="shows the exact provisional balances and locks editing during confirmation" time="0.025"/>
+    <testcase classname="tests/accounts/accounts-screen.test.tsx" name="blocks an excessive amount before opening confirmation and also before durable submission" time="0.043"/>
+    <testcase classname="tests/accounts/accounts-screen.test.tsx" name="identifies collections and their provisional remaining balance separately from payments" time="0.020"/>
+    <testcase classname="tests/accounts/accounts-screen.test.tsx" name="opens recovery for a saved pending payment without refreshing or showing success" time="0.015"/>
+    <testcase classname="tests/accounts/accounts-screen.test.tsx" name="locks new movements and retries only the account lookup after confirmed payment" time="0.028"/>
+    <testcase classname="tests/accounts/accounts-screen.test.tsx" name="offers the buyer statement only in Cobranzas (receivable account of a buyer)" time="0.014"/>
+    <testcase classname="tests/accounts/accounts-screen.test.tsx" name="offers the buyer statement only in Cobranzas (payable account of a provider)" time="0.010"/>
+    <testcase classname="tests/accounts/accounts-screen.test.tsx" name="shows the installments of a voided credit sale as «Anulada» in Cobranzas" time="0.007"/>
+    <testcase classname="tests/accounts/accounts-screen.test.tsx" name="Stitch convergence of Deudas › shows the open balance, the payments of the month and the overdue balance on top" time="0.008"/>
+    <testcase classname="tests/accounts/accounts-screen.test.tsx" name="Stitch convergence of Deudas › opens the payment form of the account from «Abonar» with the amount focused" time="0.008"/>
+    <testcase classname="tests/accounts/accounts-screen.test.tsx" name="Stitch convergence of Deudas › opens the account of the settlement requested by Ver compras, or says it is not there" time="0.015"/>
+  </testsuite>
+  <testsuite name="tests/sales/sales-history.test.tsx" tests="22" failures="0" errors="0" skipped="0" time="2.534">
+    <testcase classname="tests/sales/sales-history.test.tsx" name="distinguishes frozen characteristics when reading two lines of the same variety before a return" time="0.147"/>
+    <testcase classname="tests/sales/sales-history.test.tsx" name="saves the sale void before sending and refreshes only after central confirmation" time="0.039"/>
+    <testcase classname="tests/sales/sales-history.test.tsx" name="keeps the screen and does not send when saving the operation fails" time="0.024"/>
+    <testcase classname="tests/sales/sales-history.test.tsx" name="opens recovery instead of announcing success for an uncertain saved operation" time="0.026"/>
+    <testcase classname="tests/sales/sales-history.test.tsx" name="keeps the confirmed return reference available for its receipt" time="0.081"/>
+    <testcase classname="tests/sales/sales-history.test.tsx" name="paginates the central filtered result and does not reset criteria when advancing" time="0.248"/>
+    <testcase classname="tests/sales/sales-history.test.tsx" name="filters the list by the day picked in the calendar and clears it" time="0.209"/>
+    <testcase classname="tests/sales/sales-history.test.tsx" name="does not send from a closed workspace after the queue finishes conserving the operation" time="0.034"/>
+    <testcase classname="tests/sales/sales-history.test.tsx" name="does not navigate or publish an old pending central outcome in a new session" time="0.076"/>
+    <testcase classname="tests/sales/sales-history.test.tsx" name="does not navigate or publish an old confirmed central outcome in a new session" time="0.058"/>
+    <testcase classname="tests/sales/sales-history.test.tsx" name="clears edited filters and ignores detail responses from the previous session" time="0.083"/>
+    <testcase classname="tests/sales/sales-history.test.tsx" name="keeps a dirty detail on cancel and discards it before opening a different sale" time="0.108"/>
+    <testcase classname="tests/sales/sales-history.test.tsx" name="replays the original route removal only after confirming draft discard" time="0.096"/>
+    <testcase classname="tests/sales/sales-history.test.tsx" name="removes the unsaved draft after successful conservation while keeping the original queue payload" time="0.070"/>
+    <testcase classname="tests/sales/sales-history.test.tsx" name="protects a line-only edit and stops warning when its original zero value is restored" time="0.072"/>
+    <testcase classname="tests/sales/sales-history.test.tsx" name="keeps central confirmation and retries only the detail read after refresh failure" time="0.046"/>
+    <testcase classname="tests/sales/sales-history.test.tsx" name="ignores a late confirmed-detail retry after returning to the history" time="0.078"/>
+    <testcase classname="tests/sales/sales-history.test.tsx" name="ignores a late success detail refresh after changing the session" time="0.110"/>
+    <testcase classname="tests/sales/sales-history.test.tsx" name="ignores a late failure detail refresh after changing the session" time="0.070"/>
+    <testcase classname="tests/sales/sales-history.test.tsx" name="hides commercial returns by default and keeps the sale void for the Mayorista (CL-FM14)" time="0.050"/>
+    <testcase classname="tests/sales/sales-history.test.tsx" name="buttons of the sale card (CL-ST32) › shares the sale ticket and opens «Cobrar / Liquidar» on this screen" time="0.047"/>
+    <testcase classname="tests/sales/sales-history.test.tsx" name="buttons of the sale card (CL-ST32) › opens the detail from the trash can already at the reason of the void" time="0.037"/>
+  </testsuite>
+  <testsuite name="tests/logistics/logistics-screen.test.tsx" tests="11" failures="0" errors="0" skipped="0" time="1.543">
+    <testcase classname="tests/logistics/logistics-screen.test.tsx" name="distinguishes no matches from empty catalogs and preserves edits while searching" time="0.148"/>
+    <testcase classname="tests/logistics/logistics-screen.test.tsx" name="distinguishes a failed initial load from empty collections and retries without changing records" time="0.026"/>
+    <testcase classname="tests/logistics/logistics-screen.test.tsx" name="drops a previous session response after remounting the workspace" time="0.013"/>
+    <testcase classname="tests/logistics/logistics-screen.test.tsx" name="invalidates an expired session without presenting failed catalogs as empty" time="0.010"/>
+    <testcase classname="tests/logistics/logistics-screen.test.tsx" name="protects modified fields on return, preserves cancellation, and discards only after confirmation" time="0.075"/>
+    <testcase classname="tests/logistics/logistics-screen.test.tsx" name="returns without warning when the forms remain unchanged" time="0.028"/>
+    <testcase classname="tests/logistics/logistics-screen.test.tsx" name="confirms replacing a modified carrier and keeps the separate vehicle draft" time="0.126"/>
+    <testcase classname="tests/logistics/logistics-screen.test.tsx" name="keeps both drafts through pagination and search, and discards them only after confirming a new record" time="0.313"/>
+    <testcase classname="tests/logistics/logistics-screen.test.tsx" name="reports a confirmed save separately from failed refresh and retries only the read" time="0.035"/>
+    <testcase classname="tests/logistics/logistics-screen.test.tsx" name="keeps failed deactivation open and preserves the other draft after a successful retry" time="0.057"/>
+    <testcase classname="tests/logistics/logistics-screen.test.tsx" name="filters the cards by vehicle or carrier only and opens the record with «Ver Registro»" time="0.017"/>
+  </testsuite>
+  <testsuite name="tests/catalogs/catalog-screen.test.tsx" tests="21" failures="0" errors="0" skipped="0" time="1.245">
+    <testcase classname="tests/catalogs/catalog-screen.test.tsx" name="saves Calidades to its own collection with only a trimmed name" time="0.094"/>
+    <testcase classname="tests/catalogs/catalog-screen.test.tsx" name="saves Procedencias to its own collection with only a trimmed name" time="0.028"/>
+    <testcase classname="tests/catalogs/catalog-screen.test.tsx" name="preserves a confirmed save when refreshing fails, and retries reads without another write" time="0.050"/>
+    <testcase classname="tests/catalogs/catalog-screen.test.tsx" name="confirms the named option, blocks double submission, and leaves history intact through deactivation" time="0.028"/>
+    <testcase classname="tests/catalogs/catalog-screen.test.tsx" name="does not expose a false empty collection when the initial request fails" time="0.013"/>
+    <testcase classname="tests/catalogs/catalog-screen.test.tsx" name="does not close a new session or restore an old form after a previous write rejects late" time="0.024"/>
+    <testcase classname="tests/catalogs/catalog-screen.test.tsx" name="cancels a tab replacement without losing fields and discards only after confirmation" time="0.034"/>
+    <testcase classname="tests/catalogs/catalog-screen.test.tsx" name="preserves same-record edits and confirms replacement or cancellation of an edited record" time="0.049"/>
+    <testcase classname="tests/catalogs/catalog-screen.test.tsx" name="does not treat unchanged or restored fields as a new draft" time="0.024"/>
+    <testcase classname="tests/catalogs/catalog-screen.test.tsx" name="retains local draft on cancelled back navigation and resumes the original native action after discard" time="0.028"/>
+    <testcase classname="tests/catalogs/catalog-screen.test.tsx" name="preserves the browser destination through cancellation and discard" time="0.037"/>
+    <testcase classname="tests/catalogs/catalog-screen.test.tsx" name="does not start deactivation while a draft discard is cancelled" time="0.033"/>
+    <testcase classname="tests/catalogs/catalog-screen.test.tsx" name="blocks native/browser departure while a write is in flight and preserves failed input" time="0.030"/>
+    <testcase classname="tests/catalogs/catalog-screen.test.tsx" name="keeps the first destination and resumes it only once despite rapid repeated callbacks" time="0.025"/>
+    <testcase classname="tests/catalogs/catalog-screen.test.tsx" name="restores draft protection when the browser fails to resume the confirmed destination" time="0.025"/>
+    <testcase classname="tests/catalogs/catalog-screen.test.tsx" name="compares every buyer field against its original and clears protection after a confirmed save" time="0.052"/>
+    <testcase classname="tests/catalogs/catalog-screen.test.tsx" name="opens only the contextual list and reports confirmed changes when returning to the operation" time="0.142"/>
+    <testcase classname="tests/catalogs/catalog-screen.test.tsx" name="clears optional providers fields explicitly without altering an existing credit limit" time="0.033"/>
+    <testcase classname="tests/catalogs/catalog-screen.test.tsx" name="clears optional buyers fields explicitly without altering an existing credit limit" time="0.038"/>
+    <testcase classname="tests/catalogs/catalog-screen.test.tsx" name="keeps contextual changes when dismiss is cancelled and never writes on discard" time="0.014"/>
+    <testcase classname="tests/catalogs/catalog-screen.test.tsx" name="does not expose contextual administration to the assistant" time="0.001"/>
+  </testsuite>
+  <testsuite name="tests/logistics/cost-settlements.test.tsx" tests="22" failures="0" errors="0" skipped="0" time="1.172">
+    <testcase classname="tests/logistics/cost-settlements.test.tsx" name="does not load private costs without a wholesaler session null" time="0.002"/>
+    <testcase classname="tests/logistics/cost-settlements.test.tsx" name="does not load private costs without a wholesaler session {&quot;accessToken&quot;:&quot;assistant-token&quot;,&quot;user&quot;:{&quot;role&quot;:&quot;assistant&quot;}}" time="0.000"/>
+    <testcase classname="tests/logistics/cost-settlements.test.tsx" name="rejects invalid entry day 0000-01-01 before saving to the queue" time="0.036"/>
+    <testcase classname="tests/logistics/cost-settlements.test.tsx" name="rejects invalid entry day 2026-02-30 before saving to the queue" time="0.023"/>
+    <testcase classname="tests/logistics/cost-settlements.test.tsx" name="clears the old-session draft and ignores its late manual-query response" time="0.032"/>
+    <testcase classname="tests/logistics/cost-settlements.test.tsx" name="retains a saved operation without sending or navigating after the workspace closes" time="0.019"/>
+    <testcase classname="tests/logistics/cost-settlements.test.tsx" name="uses the Lima date for sale choices regardless of device timezone" time="0.018"/>
+    <testcase classname="tests/logistics/cost-settlements.test.tsx" name="keeps the newest refresh when an older refresh finishes last" time="0.021"/>
+    <testcase classname="tests/logistics/cost-settlements.test.tsx" name="does not redirect a new session after an old send resolves pending" time="0.024"/>
+    <testcase classname="tests/logistics/cost-settlements.test.tsx" name="prevents double group creation while its first request is pending" time="0.028"/>
+    <testcase classname="tests/logistics/cost-settlements.test.tsx" name="returns to home when a directly opened cost route has no previous screen" time="0.012"/>
+    <testcase classname="tests/logistics/cost-settlements.test.tsx" name="reviews the freight amount/date and locks selection until cancellation" time="0.015"/>
+    <testcase classname="tests/logistics/cost-settlements.test.tsx" name="reviews the stowage amount/date and locks selection until cancellation" time="0.016"/>
+    <testcase classname="tests/logistics/cost-settlements.test.tsx" name="rejects an impossible settlement date before confirmation" time="0.019"/>
+    <testcase classname="tests/logistics/cost-settlements.test.tsx" name="shows a failed purchase-settlement read instead of silently omitting the operation" time="0.004"/>
+    <testcase classname="tests/logistics/cost-settlements.test.tsx" name="stores freight before sending and preserves its confirmation" time="0.016"/>
+    <testcase classname="tests/logistics/cost-settlements.test.tsx" name="stores stowage before sending and preserves its confirmation" time="0.016"/>
+    <testcase classname="tests/logistics/cost-settlements.test.tsx" name="stores entry before sending and preserves its confirmation" time="0.023"/>
+    <testcase classname="tests/logistics/cost-settlements.test.tsx" name="does not send a settlement when the queue cannot save it" time="0.012"/>
+    <testcase classname="tests/logistics/cost-settlements.test.tsx" name="retains central success and blocks new costs until its lookup recovers" time="0.023"/>
+    <testcase classname="tests/logistics/cost-settlements.test.tsx" name="opens recovery for an uncertain settlement without presenting success" time="0.013"/>
+    <testcase classname="tests/logistics/cost-settlements.test.tsx" name="opens costs with the current local date and retains an edited date across midnight" time="0.014"/>
+  </testsuite>
+  <testsuite name="tests/reports/report-figures.test.tsx" tests="5" failures="0" errors="0" skipped="0" time="1.507">
+    <testcase classname="tests/reports/report-figures.test.tsx" name="computes the average price per kilogram with integers and rounds half up to the cent" time="0.001"/>
+    <testcase classname="tests/reports/report-figures.test.tsx" name="turns the daily and variety rows into bars with the exact value as text" time="0.000"/>
+    <testcase classname="tests/reports/report-figures.test.tsx" name="draws each bar with its label and value for the screen reader, and says when there is nothing" time="0.012"/>
+    <testcase classname="tests/reports/report-figures.test.tsx" name="reads the daily and the variety reports of the consulted period and shows both charts" time="0.040"/>
+    <testcase classname="tests/reports/report-figures.test.tsx" name="isolates a variety, writes the badge of a touched day and opens the figures of a variety" time="0.316"/>
+  </testsuite>
+  <testsuite name="tests/navigation/error-boundary.test.tsx" tests="1" failures="0" errors="0" skipped="0" time="0.950">
+    <testcase classname="tests/navigation/error-boundary.test.tsx" name="shows what happened and retries the route" time="0.052"/>
+  </testsuite>
+  <testsuite name="tests/reports/report-period.test.tsx" tests="2" failures="0" errors="0" skipped="0" time="1.114">
+    <testcase classname="tests/reports/report-period.test.tsx" name="applies a preset only on selection and preserves manual dates as custom" time="0.086"/>
+    <testcase classname="tests/reports/report-period.test.tsx" name="starts a new report in the current month after midnight without changing an edited period" time="0.042"/>
+  </testsuite>
+  <testsuite name="tests/history/commercial-history-list.test.tsx" tests="9" failures="0" errors="0" skipped="0" time="1.274">
+    <testcase classname="tests/history/commercial-history-list.test.tsx" name="opens with the list, the chips with server counts and the three totals of the filter" time="0.072"/>
+    <testcase classname="tests/history/commercial-history-list.test.tsx" name="offers «Cobrar» only on a sale with debt and the same buttons as a purchase" time="0.053"/>
+    <testcase classname="tests/history/commercial-history-list.test.tsx" name="filters by chip in the server without asking for the totals again" time="0.058"/>
+    <testcase classname="tests/history/commercial-history-list.test.tsx" name="has no free date field: the day comes from the calendar" time="0.023"/>
+    <testcase classname="tests/history/commercial-history-list.test.tsx" name="tells an error from an empty result, retries the same criteria and says when the totals are unavailable" time="0.022"/>
+    <testcase classname="tests/history/commercial-history-list.test.tsx" name="ignores a late page of a replaced search" time="0.031"/>
+    <testcase classname="tests/history/commercial-history-list.test.tsx" name="pages through the result and restores search, chip and page when shown again" time="0.292"/>
+    <testcase classname="tests/history/commercial-history-list.test.tsx" name="purchase toolbar and cards (CL-ST30) › searches while typing, picks one day in the calendar and clears it" time="0.316"/>
+    <testcase classname="tests/history/commercial-history-list.test.tsx" name="purchase toolbar and cards (CL-ST30) › offers ticket, edit and void on a settled purchase and the detail on one without settlement" time="0.047"/>
+  </testsuite>
+  <testsuite name="tests/analytics/analytics-screen.test.tsx" tests="23" failures="0" errors="0" skipped="0" time="1.213">
+    <testcase classname="tests/analytics/analytics-screen.test.tsx" name="does not request prices for an invalid period 2026-02-30 – 2026-03-01" time="0.015"/>
+    <testcase classname="tests/analytics/analytics-screen.test.tsx" name="does not request prices for an invalid period 2026-10-28 – 2026-10-01" time="0.009"/>
+    <testcase classname="tests/analytics/analytics-screen.test.tsx" name="does not request prices for an invalid period 2024-01-01 – 2025-01-01" time="0.010"/>
+    <testcase classname="tests/analytics/analytics-screen.test.tsx" name="rejects an impossible predictive cutoff without using the descriptive start date" time="0.038"/>
+    <testcase classname="tests/analytics/analytics-screen.test.tsx" name="offers inactive historical participants without reactivating them" time="0.016"/>
+    <testcase classname="tests/analytics/analytics-screen.test.tsx" name="disables selectors during historical catalog loading and offers retry on failure" time="0.018"/>
+    <testcase classname="tests/analytics/analytics-screen.test.tsx" name="sends independent purchase and sale participants, and clearing one retains the other" time="0.036"/>
+    <testcase classname="tests/analytics/analytics-screen.test.tsx" name="rejects a late response after changing participant instead of relabeling its prices" time="0.016"/>
+    <testcase classname="tests/analytics/analytics-screen.test.tsx" name="does not narrow prediction history using the descriptive participants" time="0.048"/>
+    <testcase classname="tests/analytics/analytics-screen.test.tsx" name="combines historical quality with unreported origin and clears dimensions independently" time="0.043"/>
+    <testcase classname="tests/analytics/analytics-screen.test.tsx" name="discards a late descriptive result after changing characteristics" time="0.015"/>
+    <testcase classname="tests/analytics/analytics-screen.test.tsx" name="keeps predictive requests by variety after descriptive characteristic selection" time="0.048"/>
+    <testcase classname="tests/analytics/analytics-screen.test.tsx" name="queries selected filters and invalidates results when the period changes" time="0.024"/>
+    <testcase classname="tests/analytics/analytics-screen.test.tsx" name="discards an old response when its period has changed" time="0.018"/>
+    <testcase classname="tests/analytics/analytics-screen.test.tsx" name="retries a failed read and shows a true empty result without invented prices" time="0.040"/>
+    <testcase classname="tests/analytics/analytics-screen.test.tsx" name="uses a specific variety and cutoff for readiness, independently of the descriptive start date" time="0.053"/>
+    <testcase classname="tests/analytics/analytics-screen.test.tsx" name="discards readiness for an old cutoff instead of presenting it under a new one" time="0.031"/>
+    <testcase classname="tests/analytics/analytics-screen.test.tsx" name="retries readiness and does not treat sufficient history as a published prediction" time="0.028"/>
+    <testcase classname="tests/analytics/analytics-screen.test.tsx" name="shows excluded history references and reasons without a predicted price" time="0.024"/>
+    <testcase classname="tests/analytics/analytics-screen.test.tsx" name="renders a missing-week explanation while retaining the observed price" time="0.010"/>
+    <testcase classname="tests/analytics/analytics-screen.test.tsx" name="presents current explicitly without changing the conserved publication" time="0.033"/>
+    <testcase classname="tests/analytics/analytics-screen.test.tsx" name="presents requires_reevaluation explicitly without changing the conserved publication" time="0.042"/>
+    <testcase classname="tests/analytics/analytics-screen.test.tsx" name="presents not_checked_historical explicitly without changing the conserved publication" time="0.034"/>
+  </testsuite>
+  <testsuite name="tests/ui/brand-mark.test.tsx" tests="1" failures="0" errors="0" skipped="0" time="0.606">
+    <testcase classname="tests/ui/brand-mark.test.tsx" name="BrandMark › draws the MAÑAY logo with an accessible name and the requested size" time="0.021"/>
+  </testsuite>
+  <testsuite name="tests/receipts/native-preview.test.tsx" tests="1" failures="0" errors="0" skipped="0" time="0.731">
+    <testcase classname="tests/receipts/native-preview.test.tsx" name="shows a recoverable PDF read failure without exposing internal errors" time="0.016"/>
+  </testsuite>
+  <testsuite name="tests/auth/manay-menu.test.tsx" tests="6" failures="0" errors="0" skipped="0" time="0.737">
+    <testcase classname="tests/auth/manay-menu.test.tsx" name="opens on Compra with its six cards and switches to the six of Venta" time="0.035"/>
+    <testcase classname="tests/auth/manay-menu.test.tsx" name="keeps the options Stitch does not draw under Más opciones on both sides" time="0.028"/>
+    <testcase classname="tests/auth/manay-menu.test.tsx" name="opens each card with its own route and the sales report from the Venta side" time="0.031"/>
+    <testcase classname="tests/auth/manay-menu.test.tsx" name="gives the Encargado only Anote, Anote de venta and Pendientes de envío" time="0.010"/>
+    <testcase classname="tests/auth/manay-menu.test.tsx" name="keeps logout available and presents an empty state without modules" time="0.008"/>
+    <testcase classname="tests/auth/manay-menu.test.tsx" name="never offers inventory, the standalone catalog, returns, a scale or SUNAT" time="0.000"/>
+  </testsuite>
+  <testsuite name="tests/reception/purchase-confirmation.test.tsx" tests="2" failures="0" errors="0" skipped="0" time="0.910">
+    <testcase classname="tests/reception/purchase-confirmation.test.tsx" name="sums up the purchase in the Stitch card, shares its PDF receipt and starts a new purchase" time="0.068"/>
+    <testcase classname="tests/reception/purchase-confirmation.test.tsx" name="tells freight assumed by the wholesaler apart from deducted freight, and the payment" time="0.024"/>
+  </testsuite>
+  <testsuite name="tests/reception/settlement-compact.test.tsx" tests="2" failures="0" errors="0" skipped="0" time="1.023">
+    <testcase classname="tests/reception/settlement-compact.test.tsx" name="keeps compact settlement money guarded and removes an invalidated preview at enlarged text size" time="0.030"/>
+    <testcase classname="tests/reception/settlement-compact.test.tsx" name="opens immutable sack detail and returns to the same compact settlement draft without submitting" time="0.030"/>
+  </testsuite>
+  <testsuite name="tests/ui/app-chrome.test.tsx" tests="5" failures="0" errors="0" skipped="0" time="0.899">
+    <testcase classname="tests/ui/app-chrome.test.tsx" name="bottom bar › goes back, or to the menu when there is no previous screen, and always offers the menu" time="0.024"/>
+    <testcase classname="tests/ui/app-chrome.test.tsx" name="bottom bar › uses the step back and the step action a screen declares, with their disabled state" time="0.013"/>
+    <testcase classname="tests/ui/app-chrome.test.tsx" name="bottom bar › keeps the bar of the surrounding screen when a nested part declares nothing, and restores the default on unmount" time="0.010"/>
+    <testcase classname="tests/ui/app-chrome.test.tsx" name="header › shows the user with the role, the title with its module pill and, on the menu, the brand" time="0.012"/>
+    <testcase classname="tests/ui/app-chrome.test.tsx" name="header › shows the state of the queue next to the user and opens it from the chip" time="0.007"/>
+  </testsuite>
+  <testsuite name="tests/reception/purchase-sheet-guards.test.tsx" tests="30" failures="0" errors="0" skipped="0" time="1.003">
+    <testcase classname="tests/reception/purchase-sheet-guards.test.tsx" name="route removal from a recovered reception weighing › does not block a clean recovered sheet" time="0.016"/>
+    <testcase classname="tests/reception/purchase-sheet-guards.test.tsx" name="route removal from a recovered reception weighing › preserves edits on cancel and dispatches the original native removal only on discard" time="0.030"/>
+    <testcase classname="tests/reception/purchase-sheet-guards.test.tsx" name="route removal from a recovered reception weighing › resumes the intercepted web history traversal only after discard" time="0.010"/>
+    <testcase classname="tests/reception/purchase-sheet-guards.test.tsx" name="route removal from a recovered reception weighed › does not block a clean recovered sheet" time="0.003"/>
+    <testcase classname="tests/reception/purchase-sheet-guards.test.tsx" name="route removal from a recovered reception weighed › preserves edits on cancel and dispatches the original native removal only on discard" time="0.009"/>
+    <testcase classname="tests/reception/purchase-sheet-guards.test.tsx" name="route removal from a recovered reception weighed › resumes the intercepted web history traversal only after discard" time="0.009"/>
+    <testcase classname="tests/reception/purchase-sheet-guards.test.tsx" name="leaving the purchase before the first sack › restores edited fields after route removal without creating a reception and clears them on discard" time="0.008"/>
+    <testcase classname="tests/reception/purchase-sheet-guards.test.tsx" name="leaving the purchase before the first sack › leaves unchanged details without a discard prompt when history is false" time="0.002"/>
+    <testcase classname="tests/reception/purchase-sheet-guards.test.tsx" name="leaving the purchase before the first sack › leaves unchanged details without a discard prompt when history is true" time="0.002"/>
+    <testcase classname="tests/reception/purchase-sheet-guards.test.tsx" name="leaving the purchase before the first sack › preserves changed fields on cancellation and only leaves after explicit discard" time="0.009"/>
+    <testcase classname="tests/reception/purchase-sheet-guards.test.tsx" name="leaving the purchase before the first sack › continues the original intercepted navigation action only after discard" time="0.009"/>
+    <testcase classname="tests/reception/purchase-sheet-guards.test.tsx" name="leaving the purchase before the first sack › uses the opening date for a new purchase after midnight and preserves a date already entered" time="0.006"/>
+    <testcase classname="tests/reception/purchase-sheet-guards.test.tsx" name="recovery of an existing reception › rejects impossible dates and mismatched credit amounts before asking to save" time="0.013"/>
+    <testcase classname="tests/reception/purchase-sheet-guards.test.tsx" name="recovery of an existing reception › preserves edited settlement terms when cancelling navigation out of a closed reception" time="0.006"/>
+    <testcase classname="tests/reception/purchase-sheet-guards.test.tsx" name="recovery of an existing reception › requires confirmation before leaving an unsaved weight and preserves it when exit is cancelled" time="0.010"/>
+    <testcase classname="tests/reception/purchase-sheet-guards.test.tsx" name="recovery of an existing reception › restores current sacks and adds to the same identity and version without creating another reception" time="0.010"/>
+    <testcase classname="tests/reception/purchase-sheet-guards.test.tsx" name="recovery of an existing reception › retries failed recovery using reads only" time="0.004"/>
+    <testcase classname="tests/reception/purchase-sheet-guards.test.tsx" name="recovery of an existing reception › does not reopen a reception that changed to settled" time="0.002"/>
+    <testcase classname="tests/reception/purchase-sheet-guards.test.tsx" name="recovery of an existing reception › does not reopen a reception that changed to voided" time="0.001"/>
+    <testcase classname="tests/reception/purchase-sheet-guards.test.tsx" name="recovery of an existing reception › blocks editable recovery while a related operation remains unresolved" time="0.003"/>
+    <testcase classname="tests/reception/purchase-sheet-guards.test.tsx" name="recovery of an existing reception › waits for queue hydration and fails closed if its encrypted storage cannot be read" time="0.003"/>
+    <testcase classname="tests/reception/purchase-sheet-guards.test.tsx" name="recovery of an existing reception › continues a saved local weighing without loading catalogs or sending old operations" time="0.008"/>
+    <testcase classname="tests/reception/purchase-sheet-guards.test.tsx" name="characteristics of a sack › stores the selected quality and origin with the sack and keeps them for the next one" time="0.016"/>
+    <testcase classname="tests/reception/purchase-sheet-guards.test.tsx" name="storage and confirmation › keeps the sheet and does not send the settlement when its storage fails" time="0.020"/>
+    <testcase classname="tests/reception/purchase-sheet-guards.test.tsx" name="storage and confirmation › opens recovery for a saved pending settlement without announcing success" time="0.020"/>
+    <testcase classname="tests/reception/purchase-sheet-guards.test.tsx" name="storage and confirmation › keeps the purchase confirmed while retrying only its failed detail lookup" time="0.025"/>
+    <testcase classname="tests/reception/purchase-sheet-guards.test.tsx" name="storage and confirmation › keeps the typed data without sending when the first sack cannot be stored" time="0.010"/>
+    <testcase classname="tests/reception/purchase-sheet-guards.test.tsx" name="storage and confirmation › keeps an unsaved sack in the sheet and releases the busy state" time="0.020"/>
+    <testcase classname="tests/reception/purchase-sheet-guards.test.tsx" name="storage and confirmation › stores a sack correction with its original path and version before sending" time="0.040"/>
+    <testcase classname="tests/reception/purchase-sheet-guards.test.tsx" name="storage and confirmation › keeps closure and settlement queued behind an uncertain sack on a central reception" time="0.046"/>
+  </testsuite>
+  <testsuite name="tests/reception/purchase-detail-lots.test.tsx" tests="4" failures="0" errors="0" skipped="0" time="0.798">
+    <testcase classname="tests/reception/purchase-detail-lots.test.tsx" name="shows each lot of the settlement and who assumed the freight in the purchase detail" time="0.043"/>
+    <testcase classname="tests/reception/purchase-detail-lots.test.tsx" name="rounds sack weights on screen and captures corrections in whole kilograms" time="0.031"/>
+    <testcase classname="tests/reception/purchase-detail-lots.test.tsx" name="buttons of the purchase card (CL-ST30) › shares the ticket of the settlement and opens the void form straight from the trash can" time="0.024"/>
+    <testcase classname="tests/reception/purchase-detail-lots.test.tsx" name="buttons of the purchase card (CL-ST30) › opens «Abonar / Liquidar» on this screen instead of leaving for Deudas" time="0.027"/>
+  </testsuite>
+  <testsuite name="tests/sales/sale-sheet-guards.test.tsx" tests="9" failures="0" errors="0" skipped="0" time="0.778">
+    <testcase classname="tests/sales/sale-sheet-guards.test.tsx" name="reviews credit due dates and exact installment amounts without sending the sale" time="0.067"/>
+    <testcase classname="tests/sales/sale-sheet-guards.test.tsx" name="saves the complete sale before sending, loads the confirmed detail and shares its receipt" time="0.024"/>
+    <testcase classname="tests/sales/sale-sheet-guards.test.tsx" name="sends two lots of the same variety with different commercial characteristics" time="0.025"/>
+    <testcase classname="tests/sales/sale-sheet-guards.test.tsx" name="does not send or navigate away when durable storage fails" time="0.009"/>
+    <testcase classname="tests/sales/sale-sheet-guards.test.tsx" name="opens recovery when the saved sale is not centrally confirmed" time="0.010"/>
+    <testcase classname="tests/sales/sale-sheet-guards.test.tsx" name="retries only the detail lookup after a centrally confirmed sale" time="0.021"/>
+    <testcase classname="tests/sales/sale-sheet-guards.test.tsx" name="warns before leaving and keeps every edited field when the exit is cancelled" time="0.012"/>
+    <testcase classname="tests/sales/sale-sheet-guards.test.tsx" name="continues the exact intercepted navigation action only after discard approval" time="0.010"/>
+    <testcase classname="tests/sales/sale-sheet-guards.test.tsx" name="locks the sheet and prevents route changes while durable saving is in progress" time="0.015"/>
+  </testsuite>
+  <testsuite name="tests/reports/report-preview.test.tsx" tests="4" failures="0" errors="0" skipped="0" time="0.868">
+    <testcase classname="tests/reports/report-preview.test.tsx" name="opens the authenticated PDF in the existing viewer and releases it on close" time="0.132"/>
+    <testcase classname="tests/reports/report-preview.test.tsx" name="releases a late PDF without displaying it after a period or session unmount" time="0.022"/>
+    <testcase classname="tests/reports/report-preview.test.tsx" name="invalidates an expired session instead of opening a preview" time="0.032"/>
+    <testcase classname="tests/reports/report-preview.test.tsx" name="shows real report counts and all twelve original icon slots with descriptive actions" time="0.026"/>
+  </testsuite>
+  <testsuite name="tests/auth/offline-session.test.tsx" tests="24" failures="0" errors="0" skipped="0" time="0.710">
+    <testcase classname="tests/auth/offline-session.test.tsx" name="offers recovery and blocks new credentials while a local removal remains failed" time="0.006"/>
+    <testcase classname="tests/auth/offline-session.test.tsx" name="does not restore old offline credentials when revalidation retries a failed removal" time="0.003"/>
+    <testcase classname="tests/auth/offline-session.test.tsx" name="keeps access blocked while retrying local removal and clears the recovery state only on success" time="0.002"/>
+    <testcase classname="tests/auth/offline-session.test.tsx" name="exposes retry rather than rejecting bootstrap when a rejected central session cannot be removed" time="0.000"/>
+    <testcase classname="tests/auth/offline-session.test.tsx" name="restores a previously verified unexpired identity provisionally when the server cannot be reached" time="0.000"/>
+    <testcase classname="tests/auth/offline-session.test.tsx" name="blocks an expired cached session without making a server request" time="0.002"/>
+    <testcase classname="tests/auth/offline-session.test.tsx" name="does not treat a central 401 response as permission for offline restoration" time="0.003"/>
+    <testcase classname="tests/auth/offline-session.test.tsx" name="does not treat a central 403 response as permission for offline restoration" time="0.005"/>
+    <testcase classname="tests/auth/offline-session.test.tsx" name="does not treat a central 500 response as permission for offline restoration" time="0.003"/>
+    <testcase classname="tests/auth/offline-session.test.tsx" name="expires the offline session locally while preserving the pending-data storage" time="0.006"/>
+    <testcase classname="tests/auth/offline-session.test.tsx" name="revalidates the offline-restored identity without deleting pending data when connectivity returns" time="0.002"/>
+    <testcase classname="tests/auth/offline-session.test.tsx" name="keeps initial bootstrap separate from revalidation of an existing offline session" time="0.003"/>
+    <testcase classname="tests/auth/offline-session.test.tsx" name="does not restore or save a late session response after logout" time="0.002"/>
+    <testcase classname="tests/auth/offline-session.test.tsx" name="does not restore or save a late session response after invalidate" time="0.003"/>
+    <testcase classname="tests/auth/offline-session.test.tsx" name="rejects a late response after the local expiry timer has removed the identity" time="0.002"/>
+    <testcase classname="tests/auth/offline-session.test.tsx" name="clears credentials after an already-running write rather than allowing it to survive logout" time="0.006"/>
+    <testcase classname="tests/auth/offline-session.test.tsx" name="does not persist a login response received after the user has closed the session" time="0.001"/>
+    <testcase classname="tests/auth/offline-session.test.tsx" name="keeps a central revalidation rejection blocked instead of switching to offline permission" time="0.001"/>
+    <testcase classname="tests/auth/offline-session.test.tsx" name="rejects central identity changes for the same opaque token" time="0.003"/>
+    <testcase classname="tests/auth/offline-session.test.tsx" name="still revokes centrally if removing local credentials fails and exposes the failure" time="0.001"/>
+    <testcase classname="tests/auth/offline-session.test.tsx" name="cancels a late successful refresh after another API request reports unauthorized" time="0.005"/>
+    <testcase classname="tests/auth/offline-session.test.tsx" name="keeps a new session when the previous token receives a late unauthorized response" time="0.002"/>
+    <testcase classname="tests/auth/offline-session.test.tsx" name="rejects a stored session which expires while the initial central validation is pending" time="0.003"/>
+    <testcase classname="tests/auth/offline-session.test.tsx" name="does not admit an unexpected role from central revalidation" time="0.002"/>
+  </testsuite>
+  <testsuite name="tests/auth/recent-operators.test.tsx" tests="7" failures="0" errors="0" skipped="0" time="0.368">
+    <testcase classname="tests/auth/recent-operators.test.tsx" name="recent operators of this tablet › starts the list again when someone of another business signs in" time="0.000"/>
+    <testcase classname="tests/auth/recent-operators.test.tsx" name="recent operators of this tablet › puts the latest first, keeps each username once and at most four" time="0.000"/>
+    <testcase classname="tests/auth/recent-operators.test.tsx" name="recent operators of this tablet › ignores a damaged list and anything that is not a username with its role" time="0.001"/>
+    <testcase classname="tests/auth/recent-operators.test.tsx" name="recent operators of this tablet › stores only the username and the role on the device, and forgets the operator when the station is not kept" time="0.000"/>
+    <testcase classname="tests/auth/recent-operators.test.tsx" name="login with the quick operator selection › fills only the username when an operator is touched; the password is always typed" time="0.089"/>
+    <testcase classname="tests/auth/recent-operators.test.tsx" name="login with the quick operator selection › sends the choice of «Mantener estación activa» and hides the selection when nobody signed in yet" time="0.035"/>
+    <testcase classname="tests/auth/recent-operators.test.tsx" name="login with the quick operator selection › never draws the scale, the terminal id or another brand of the mockup" time="0.012"/>
+  </testsuite>
+  <testsuite name="tests/sales/sales-history-api.test.ts" tests="1" failures="0" errors="0" skipped="0" time="0.486">
+    <testcase classname="tests/sales/sales-history-api.test.ts" name="encodes participant text and page filters into a central history request" time="0.004"/>
+  </testsuite>
+  <testsuite name="tests/reports/sales-by-client.test.tsx" tests="2" failures="0" errors="0" skipped="0" time="0.742">
+    <testcase classname="tests/reports/sales-by-client.test.tsx" name="lists the sales newest first, filters by state, searches by client and opens the figures of a sale" time="0.393"/>
+    <testcase classname="tests/reports/sales-by-client.test.tsx" name="says so when there are no sales or none matches" time="0.005"/>
+  </testsuite>
+  <testsuite name="tests/auth/root-navigation.test.tsx" tests="8" failures="0" errors="0" skipped="0" time="0.590">
+    <testcase classname="tests/auth/root-navigation.test.tsx" name="preserves navigator state behind a blocking modal throughout session revalidation" time="0.007"/>
+    <testcase classname="tests/auth/root-navigation.test.tsx" name="keeps a rejected revalidation blocked without destroying the existing navigator" time="0.002"/>
+    <testcase classname="tests/auth/root-navigation.test.tsx" name="does not mount protected navigation during the initial bootstrap" time="0.001"/>
+    <testcase classname="tests/auth/root-navigation.test.tsx" name="clears the old editing copy when session lifecycle is logout" time="0.002"/>
+    <testcase classname="tests/auth/root-navigation.test.tsx" name="clears the old editing copy when session lifecycle is replace" time="0.002"/>
+    <testcase classname="tests/auth/root-navigation.test.tsx" name="retains the editing copy during revalidation of the same session" time="0.002"/>
+    <testcase classname="tests/auth/root-navigation.test.tsx" name="gives the Administrator only the merchants screen" time="0.001"/>
+    <testcase classname="tests/auth/root-navigation.test.tsx" name="blocks everything behind the forced password change" time="0.002"/>
+  </testsuite>
+  <testsuite name="tests/reception/receptions-history-api.test.ts" tests="1" failures="0" errors="0" skipped="0" time="0.284">
+    <testcase classname="tests/reception/receptions-history-api.test.ts" name="encodes the provider literally and sends the applied page and reception filters" time="0.003"/>
+  </testsuite>
+  <testsuite name="tests/history/account-payment.test.tsx" tests="5" failures="0" errors="0" skipped="0" time="0.479">
+    <testcase classname="tests/history/account-payment.test.tsx" name="prefills the whole balance and registers the payment as the account payment of Deudas" time="0.134"/>
+    <testcase classname="tests/history/account-payment.test.tsx" name="rejects an amount above the balance and goes to the queue when the server does not confirm" time="0.013"/>
+    <testcase classname="tests/history/account-payment.test.tsx" name="says so when the purchase has no open account" time="0.012"/>
+    <testcase classname="tests/history/account-payment.test.tsx" name="looks up the receivable by sale ID and prefills its balance" time="0.023"/>
+    <testcase classname="tests/history/account-payment.test.tsx" name="collects a sale on its receivable account with the same account payment" time="0.016"/>
+  </testsuite>
+  <testsuite name="tests/messaging/messaging-screen.test.tsx" tests="12" failures="0" errors="0" skipped="0" time="0.517">
+    <testcase classname="tests/messaging/messaging-screen.test.tsx" name="shows a share requested after UTC midnight on the previous Lima civil day" time="0.047"/>
+    <testcase classname="tests/messaging/messaging-screen.test.tsx" name="does not create an attempt when the file picker is cancelled" time="0.011"/>
+    <testcase classname="tests/messaging/messaging-screen.test.tsx" name="prevents double share and records only a requested share, never delivery" time="0.017"/>
+    <testcase classname="tests/messaging/messaging-screen.test.tsx" name="does not open the selector after the module closes during central preparation" time="0.016"/>
+    <testcase classname="tests/messaging/messaging-screen.test.tsx" name="keeps a browser download prepared rather than declaring an external share" time="0.021"/>
+    <testcase classname="tests/messaging/messaging-screen.test.tsx" name="does not read recipients or history without a wholesaler: null" time="0.011"/>
+    <testcase classname="tests/messaging/messaging-screen.test.tsx" name="does not read recipients or history without a wholesaler: {&quot;accessToken&quot;:&quot;assistant-token&quot;,&quot;user&quot;:{&quot;role&quot;:&quot;assistant&quot;}}" time="0.002"/>
+    <testcase classname="tests/messaging/messaging-screen.test.tsx" name="ignores an old credential rejection and clears its selected file on session change" time="0.021"/>
+    <testcase classname="tests/messaging/messaging-screen.test.tsx" name="releases a file selected after the screen closed without preparing or sharing it" time="0.008"/>
+    <testcase classname="tests/messaging/messaging-screen.test.tsx" name="keeps a selected file when a replacement picker is cancelled" time="0.015"/>
+    <testcase classname="tests/messaging/messaging-screen.test.tsx" name="retries a lost outcome with the same operation ID without opening the selector again" time="0.019"/>
+    <testcase classname="tests/messaging/messaging-screen.test.tsx" name="offers a browser copy after a failed share without resetting or recording the attempt again" time="0.020"/>
+  </testsuite>
+  <testsuite name="tests/reception/purchase-sheet-flow.test.tsx" tests="15" failures="0" errors="0" skipped="0" time="0.721">
+    <testcase classname="tests/reception/purchase-sheet-flow.test.tsx" name="shows one screen for the whole purchase and creates nothing until the first sack" time="0.033"/>
+    <testcase classname="tests/reception/purchase-sheet-flow.test.tsx" name="creates the reception with the data typed above when the first sack is added, then the sack" time="0.022"/>
+    <testcase classname="tests/reception/purchase-sheet-flow.test.tsx" name="rejects a bad weight or missing data before creating the reception" time="0.017"/>
+    <testcase classname="tests/reception/purchase-sheet-flow.test.tsx" name="closes the weighing and settles in that order when the purchase is saved" time="0.043"/>
+    <testcase classname="tests/reception/purchase-sheet-flow.test.tsx" name="does not settle when the weighing could not be closed" time="0.016"/>
+    <testcase classname="tests/reception/purchase-sheet-flow.test.tsx" name="keeps the whole purchase on the local identity when there is no connection" time="0.020"/>
+    <testcase classname="tests/reception/purchase-sheet-flow.test.tsx" name="opens a closed weighing with the detail locked and only settles it" time="0.006"/>
+    <testcase classname="tests/reception/purchase-sheet-flow.test.tsx" name="clears the form before the reception exists" time="0.012"/>
+    <testcase classname="tests/reception/purchase-sheet-flow.test.tsx" name="adds the lot from the lot window with its price and writes a new variety (CL-ST27)" time="0.008"/>
+    <testcase classname="tests/reception/purchase-sheet-flow.test.tsx" name="quick load registers ten sacks of 50 kg one after another (CL-ST27)" time="0.012"/>
+    <testcase classname="tests/reception/purchase-sheet-flow.test.tsx" name="purchase equal to the sale (CL-ST28) › registers a typed provider with the first sack and suggests the known ones" time="0.014"/>
+    <testcase classname="tests/reception/purchase-sheet-flow.test.tsx" name="purchase equal to the sale (CL-ST28) › voids a weighed sack with its reason instead of deleting it" time="0.036"/>
+    <testcase classname="tests/reception/purchase-sheet-flow.test.tsx" name="purchase equal to the sale (CL-ST28) › edits the lot from ✎ and treats a freight rate of 0 as no freight" time="0.019"/>
+    <testcase classname="tests/reception/purchase-sheet-flow.test.tsx" name="found in the purchase simulation (CL-ST29) › keeps the weight typed while the previous sack is saving and saves it right after" time="0.043"/>
+    <testcase classname="tests/reception/purchase-sheet-flow.test.tsx" name="found in the purchase simulation (CL-ST29) › labels the lots as the server does, before and after the reception exists" time="0.018"/>
+  </testsuite>
+  <testsuite name="tests/accounts/financial-collections.test.ts" tests="13" failures="0" errors="0" skipped="0" time="0.540">
+    <testcase classname="tests/accounts/financial-collections.test.ts" name="loads the record beyond 100 for /accounts without omitting authorization" time="0.005"/>
+    <testcase classname="tests/accounts/financial-collections.test.ts" name="loads the record beyond 100 for /accounts/cash/movements without omitting authorization" time="0.002"/>
+    <testcase classname="tests/accounts/financial-collections.test.ts" name="loads the record beyond 100 for /logistics/carriers without omitting authorization" time="0.001"/>
+    <testcase classname="tests/accounts/financial-collections.test.ts" name="loads the record beyond 100 for /logistics/vehicles without omitting authorization" time="0.001"/>
+    <testcase classname="tests/accounts/financial-collections.test.ts" name="loads the record beyond 100 for /freight/entries without omitting authorization" time="0.001"/>
+    <testcase classname="tests/accounts/financial-collections.test.ts" name="loads the record beyond 100 for /stowage/groups without omitting authorization" time="0.001"/>
+    <testcase classname="tests/accounts/financial-collections.test.ts" name="loads the record beyond 100 for /stowage/entries without omitting authorization" time="0.001"/>
+    <testcase classname="tests/accounts/financial-collections.test.ts" name="loads the record beyond 100 for /receptions without omitting authorization" time="0.001"/>
+    <testcase classname="tests/accounts/financial-collections.test.ts" name="loads the record beyond 100 for /sales without omitting authorization" time="0.001"/>
+    <testcase classname="tests/accounts/financial-collections.test.ts" name="propagates a failed second page instead of publishing partial financial history" time="0.001"/>
+    <testcase classname="tests/accounts/financial-collections.test.ts" name="rejects a changing central total instead of declaring the collection complete" time="0.009"/>
+    <testcase classname="tests/accounts/financial-collections.test.ts" name="rejects a repeated record which would conceal a missing financial entry" time="0.000"/>
+    <testcase classname="tests/accounts/financial-collections.test.ts" name="assembles an actual empty collection with no invented financial records" time="0.000"/>
+  </testsuite>
+  <testsuite name="tests/analytics/price-board.test.tsx" tests="5" failures="0" errors="0" skipped="0" time="0.567">
+    <testcase classname="tests/analytics/price-board.test.tsx" name="rounds the shown price half up to the cent with integers" time="0.001"/>
+    <testcase classname="tests/analytics/price-board.test.tsx" name="covers 8 weeks ending today" time="0.000"/>
+    <testcase classname="tests/analytics/price-board.test.tsx" name="shows per variety the latest agreed purchase and sale price, its weekly change and the sale bars" time="0.001"/>
+    <testcase classname="tests/analytics/price-board.test.tsx" name="reads the series once on opening and says when there are no prices, never inventing a suggested price" time="0.084"/>
+    <testcase classname="tests/analytics/price-board.test.tsx" name="computes the difference of agreed prices, the trend and the weekly volume with integers" time="0.002"/>
+  </testsuite>
+  <testsuite name="tests/sync/operation-id-conflict.test.tsx" tests="7" failures="0" errors="0" skipped="0" time="0.414">
+    <testcase classname="tests/sync/operation-id-conflict.test.tsx" name="keeps an identifier conflict in review with its code and an explanation" time="0.026"/>
+    <testcase classname="tests/sync/operation-id-conflict.test.tsx" name="neither resends nor recovers the conflicting identifier on retry or synchronization" time="0.003"/>
+    <testcase classname="tests/sync/operation-id-conflict.test.tsx" name="resends with a new identifier in path order and keeps the original as discarded evidence" time="0.004"/>
+    <testcase classname="tests/sync/operation-id-conflict.test.tsx" name="discards a conflict without looking up the central record under its identifier" time="0.003"/>
+    <testcase classname="tests/sync/operation-id-conflict.test.tsx" name="treats any other 409 as a review that can still be retried" time="0.033"/>
+    <testcase classname="tests/sync/operation-id-conflict.test.tsx" name="resendWithNewIdentity › points operations that waited on the original to the copy" time="0.000"/>
+    <testcase classname="tests/sync/operation-id-conflict.test.tsx" name="resendWithNewIdentity › refuses operations that are not in an identifier conflict" time="0.010"/>
+  </testsuite>
+  <testsuite name="tests/sync/sync-queue-conflict-screen.test.tsx" tests="2" failures="0" errors="0" skipped="0" time="0.411">
+    <testcase classname="tests/sync/sync-queue-conflict-screen.test.tsx" name="offers «Reenviar como nueva» instead of a retry and asks before sending" time="0.034"/>
+    <testcase classname="tests/sync/sync-queue-conflict-screen.test.tsx" name="lets the user cancel the resend" time="0.004"/>
+  </testsuite>
+  <testsuite name="tests/reports/report-rows-dialog.test.tsx" tests="3" failures="0" errors="0" skipped="0" time="0.470">
+    <testcase classname="tests/reports/report-rows-dialog.test.tsx" name="loads the following page without retaining previous rows and disables next at the end" time="0.150"/>
+    <testcase classname="tests/reports/report-rows-dialog.test.tsx" name="offers retry after failure and distinguishes an empty result" time="0.007"/>
+    <testcase classname="tests/reports/report-rows-dialog.test.tsx" name="does not invalidate a newer session for a late failure after closing" time="0.002"/>
+  </testsuite>
+  <testsuite name="tests/analytics/publication-history.test.tsx" tests="2" failures="0" errors="0" skipped="0" time="0.544">
+    <testcase classname="tests/analytics/publication-history.test.tsx" name="recovers a published version and its original evidence without reissuing a publication" time="0.152"/>
+    <testcase classname="tests/analytics/publication-history.test.tsx" name="distinguishes failed list from empty history and recovers after retry" time="0.006"/>
+  </testsuite>
+  <testsuite name="tests/sync/sync-provider.test.tsx" tests="32" failures="0" errors="0" skipped="0" time="0.555">
+    <testcase classname="tests/sync/sync-provider.test.tsx" name="stores reception display context locally and sends only the commercial API body" time="0.008"/>
+    <testcase classname="tests/sync/sync-provider.test.tsx" name="keeps a late result in the initiating identity when the session changes" time="0.004"/>
+    <testcase classname="tests/sync/sync-provider.test.tsx" name="preserves both pending operations when callers enqueue concurrently" time="0.003"/>
+    <testcase classname="tests/sync/sync-provider.test.tsx" name="does not publish a pending operation when encrypted storage rejects its write" time="0.022"/>
+    <testcase classname="tests/sync/sync-provider.test.tsx" name="prevents replacing an unreadable queue with new pending operations" time="0.035"/>
+    <testcase classname="tests/sync/sync-provider.test.tsx" name="recovers an unreadable queue through a read retry without deleting its contents" time="0.002"/>
+    <testcase classname="tests/sync/sync-provider.test.tsx" name="recovers sale.return without resubmitting its commercial request" time="0.002"/>
+    <testcase classname="tests/sync/sync-provider.test.tsx" name="recovers sale.void without resubmitting its commercial request" time="0.002"/>
+    <testcase classname="tests/sync/sync-provider.test.tsx" name="recovers purchase.void without resubmitting its commercial request" time="0.001"/>
+    <testcase classname="tests/sync/sync-provider.test.tsx" name="recovers reception.void without resubmitting its commercial request" time="0.002"/>
+    <testcase classname="tests/sync/sync-provider.test.tsx" name="recovers reception.sack-void without resubmitting its commercial request" time="0.001"/>
+    <testcase classname="tests/sync/sync-provider.test.tsx" name="confirms a centrally applied return instead of discarding it locally" time="0.002"/>
+    <testcase classname="tests/sync/sync-provider.test.tsx" name="preserves the pending return when central lookup fails with HTTP 401" time="0.010"/>
+    <testcase classname="tests/sync/sync-provider.test.tsx" name="preserves the pending return when central lookup fails with HTTP 403" time="0.002"/>
+    <testcase classname="tests/sync/sync-provider.test.tsx" name="preserves the pending return when central lookup fails with HTTP 500" time="0.002"/>
+    <testcase classname="tests/sync/sync-provider.test.tsx" name="sends the same operation identity only after central lookup reports absence" time="0.002"/>
+    <testcase classname="tests/sync/sync-provider.test.tsx" name="does not retry an operation already confirmed" time="0.001"/>
+    <testcase classname="tests/sync/sync-provider.test.tsx" name="does not retry an operation already discarded" time="0.001"/>
+    <testcase classname="tests/sync/sync-provider.test.tsx" name="waits for durable storage before sending and returns the backend return reference" time="0.002"/>
+    <testcase classname="tests/sync/sync-provider.test.tsx" name="refuses to send an operation that could not be stored" time="0.001"/>
+    <testcase classname="tests/sync/sync-provider.test.tsx" name="limits sends to five while still recovering a lost final response" time="0.004"/>
+    <testcase classname="tests/sync/sync-provider.test.tsx" name="restores a stored interrupted send and recovers its result after remount" time="0.004"/>
+    <testcase classname="tests/sync/sync-provider.test.tsx" name="keeps one local operation when two callers save the same identity concurrently" time="0.001"/>
+    <testcase classname="tests/sync/sync-provider.test.tsx" name="rejects changed content for a stored operation identity without replacing its evidence" time="0.002"/>
+    <testcase classname="tests/sync/sync-provider.test.tsx" name="synchronizes reception, sacks, closure and purchase in order with central references" time="0.002"/>
+    <testcase classname="tests/sync/sync-provider.test.tsx" name="blocks closure and purchase after a sack response HTTP 500 while unrelated sales continue" time="0.004"/>
+    <testcase classname="tests/sync/sync-provider.test.tsx" name="blocks closure and purchase after a sack response HTTP 409 while unrelated sales continue" time="0.003"/>
+    <testcase classname="tests/sync/sync-provider.test.tsx" name="keeps the retired sale.create contract for review after confirming central absence, without sending it" time="0.002"/>
+    <testcase classname="tests/sync/sync-provider.test.tsx" name="keeps the retired inventory.adjustment contract for review after confirming central absence, without sending it" time="0.002"/>
+    <testcase classname="tests/sync/sync-provider.test.tsx" name="recovers a previously applied historic sale before inspecting its retired payload" time="0.002"/>
+    <testcase classname="tests/sync/sync-provider.test.tsx" name="automatic synchronization › sends the pending operations when the app becomes active" time="0.014"/>
+    <testcase classname="tests/sync/sync-provider.test.tsx" name="automatic synchronization › stops at the first operation the network does not let through, without spending sends" time="0.015"/>
+  </testsuite>
+  <testsuite name="tests/receipts/receipts-screen.test.tsx" tests="4" failures="0" errors="0" skipped="0" time="0.574">
+    <testcase classname="tests/receipts/receipts-screen.test.tsx" name="distinguishes failed history and retries the original document action without reloading lists" time="0.086"/>
+    <testcase classname="tests/receipts/receipts-screen.test.tsx" name="does not open a late download in another session and releases its web resource" time="0.009"/>
+    <testcase classname="tests/receipts/receipts-screen.test.tsx" name="allows only one simultaneous download despite repeated presses" time="0.009"/>
+    <testcase classname="tests/receipts/receipts-screen.test.tsx" name="recovers documents past the first hundred rows while keeping purchase pagination independent" time="0.082"/>
+  </testsuite>
+  <testsuite name="tests/merchants/merchant-administration.test.tsx" tests="6" failures="0" errors="0" skipped="0" time="0.880">
+    <testcase classname="tests/merchants/merchant-administration.test.tsx" name="session and passwords › keeps an Administrator session and the forced password change" time="0.004"/>
+    <testcase classname="tests/merchants/merchant-administration.test.tsx" name="session and passwords › validates the new password against the temporary one" time="0.001"/>
+    <testcase classname="tests/merchants/merchant-administration.test.tsx" name="session and passwords › generates readable temporary passwords without look-alike characters" time="0.002"/>
+    <testcase classname="tests/merchants/merchant-administration.test.tsx" name="creates a merchant and shows the temporary password once to hand over" time="0.049"/>
+    <testcase classname="tests/merchants/merchant-administration.test.tsx" name="asks for a reason, confirms and reuses the operation id after a lost connection" time="0.042"/>
+    <testcase classname="tests/merchants/merchant-administration.test.tsx" name="renders nothing for a business user" time="0.001"/>
+  </testsuite>
+  <testsuite name="tests/receipts/pdfjs-loader.test.ts" tests="5" failures="0" errors="0" skipped="0" time="0.256">
+    <testcase classname="tests/receipts/pdfjs-loader.test.ts" name="fetches only the local versioned worker without credentials and releases its blob after destruction" time="0.046"/>
+    <testcase classname="tests/receipts/pdfjs-loader.test.ts" name="rejects remote document URLs before making any request" time="0.002"/>
+    <testcase classname="tests/receipts/pdfjs-loader.test.ts" name="rejects an incorrectly served worker without executing it" time="0.001"/>
+    <testcase classname="tests/receipts/pdfjs-loader.test.ts" name="releases the worker URL if document task creation fails" time="0.001"/>
+    <testcase classname="tests/receipts/pdfjs-loader.test.ts" name="releases the worker URL even if document destruction rejects" time="0.000"/>
+  </testsuite>
+  <testsuite name="tests/analytics/analytics-tabs.test.tsx" tests="1" failures="0" errors="0" skipped="0" time="0.306">
+    <testcase classname="tests/analytics/analytics-tabs.test.tsx" name="opens on the price board and moves between the three tabs, refreshing only the board" time="0.091"/>
+  </testsuite>
+  <testsuite name="tests/analytics/outcome-conservation.test.tsx" tests="2" failures="0" errors="0" skipped="0" time="0.300">
+    <testcase classname="tests/analytics/outcome-conservation.test.tsx" name="recovers a lost response using the same operation and creates another only on explicit request" time="0.050"/>
+    <testcase classname="tests/analytics/outcome-conservation.test.tsx" name="loads later history pages, opens original result, and preserves page when returning" time="0.024"/>
+  </testsuite>
+  <testsuite name="tests/auth/api-client.test.ts" tests="6" failures="0" errors="0" skipped="0" time="0.309">
+    <testcase classname="tests/auth/api-client.test.ts" name="identity API client › creates a session using the versioned contract without retaining credentials" time="0.046"/>
+    <testcase classname="tests/auth/api-client.test.ts" name="identity API client › does not expose a restorable session when central identity cannot be loaded" time="0.001"/>
+    <testcase classname="tests/auth/api-client.test.ts" name="identity API client › sends the opaque bearer token and preserves the server request id on errors" time="0.000"/>
+    <testcase classname="tests/auth/api-client.test.ts" name="identity API client › does not expire an existing session when login credentials are rejected" time="0.000"/>
+    <testcase classname="tests/auth/api-client.test.ts" name="API address and cancellation › accepts HTTP only in development or when a test build says so on purpose" time="0.000"/>
+    <testcase classname="tests/auth/api-client.test.ts" name="API address and cancellation › cancels the request when the caller aborts it" time="0.001"/>
+  </testsuite>
+  <testsuite name="tests/reception/initial-purchase-draft.test.ts" tests="3" failures="0" errors="0" skipped="0" time="0.174">
+    <testcase classname="tests/reception/initial-purchase-draft.test.ts" name="isolates session owners and refuses an empty owner" time="0.001"/>
+    <testcase classname="tests/reception/initial-purchase-draft.test.ts" name="copies both write and read values so callers cannot mutate the retained editing data" time="0.000"/>
+    <testcase classname="tests/reception/initial-purchase-draft.test.ts" name="clears the intended session without clearing another current owner" time="0.000"/>
+  </testsuite>
+  <testsuite name="tests/accounts/buyer-statement.test.tsx" tests="8" failures="0" errors="0" skipped="0" time="0.376">
+    <testcase classname="tests/accounts/buyer-statement.test.tsx" name="previews totals, sales and overdue installments from the server" time="0.021"/>
+    <testcase classname="tests/accounts/buyer-statement.test.tsx" name="sends the PDF through Mensajería: prepared, then sharing requested, with the buyer as recipient" time="0.006"/>
+    <testcase classname="tests/accounts/buyer-statement.test.tsx" name="records a failed attempt when the share sheet cannot open" time="0.004"/>
+    <testcase classname="tests/accounts/buyer-statement.test.tsx" name="disables the image with an explanation when it would not be readable" time="0.003"/>
+    <testcase classname="tests/accounts/buyer-statement.test.tsx" name="shows the no-debt state without sales" time="0.001"/>
+    <testcase classname="tests/accounts/buyer-statement.test.tsx" name="keeps a retry when the statement is offline" time="0.002"/>
+    <testcase classname="tests/accounts/buyer-statement.test.tsx" name="keeps a retry when the statement is inconsistent" time="0.002"/>
+    <testcase classname="tests/accounts/buyer-statement.test.tsx" name="explains each statement error the server returns" time="0.001"/>
+  </testsuite>
+  <testsuite name="tests/analytics/evaluation-history.test.tsx" tests="3" failures="0" errors="0" skipped="0" time="0.219">
+    <testcase classname="tests/analytics/evaluation-history.test.tsx" name="opens saved evidence from page two, retries only the detail and returns to the same page" time="0.050"/>
+    <testcase classname="tests/analytics/evaluation-history.test.tsx" name="distinguishes a failed list from a true empty history and retries" time="0.002"/>
+    <testcase classname="tests/analytics/evaluation-history.test.tsx" name="does not invalidate the new session when a previous detail request expires late" time="0.010"/>
+  </testsuite>
+  <testsuite name="tests/receipts/web-pdf-document.test.tsx" tests="6" failures="0" errors="0" skipped="0" time="0.321">
+    <testcase classname="tests/receipts/web-pdf-document.test.tsx" name="identifies reports in accessible page labels and render recovery messages" time="0.048"/>
+    <testcase classname="tests/receipts/web-pdf-document.test.tsx" name="renders and exposes page text, navigates, zooms and destroys the document on close" time="0.020"/>
+    <testcase classname="tests/receipts/web-pdf-document.test.tsx" name="offers a fresh document retry after loading failure" time="0.026"/>
+    <testcase classname="tests/receipts/web-pdf-document.test.tsx" name="destroys a loading task that arrives after the viewer was closed" time="0.003"/>
+    <testcase classname="tests/receipts/web-pdf-document.test.tsx" name="recovers from a failed page render by replacing the document task" time="0.011"/>
+    <testcase classname="tests/receipts/web-pdf-document.test.tsx" name="ignores a late render failure after replacing the preview with another document" time="0.015"/>
+  </testsuite>
+  <testsuite name="tests/sync/encrypted-queue-storage.test.ts" tests="11" failures="0" errors="0" skipped="0" time="0.263">
+    <testcase classname="tests/sync/encrypted-queue-storage.test.ts" name="does not generate a replacement key when stored pending data loses its key" time="0.014"/>
+    <testcase classname="tests/sync/encrypted-queue-storage.test.ts" name="rejects a decrypted object instead of treating it as an empty queue" time="0.005"/>
+    <testcase classname="tests/sync/encrypted-queue-storage.test.ts" name="refuses operations belonging to another identity without replacing stored data" time="0.002"/>
+    <testcase classname="tests/sync/encrypted-queue-storage.test.ts" name="rejects duplicated identities and impossible counters in recovered operations" time="0.001"/>
+    <testcase classname="tests/sync/encrypted-queue-storage.test.ts" name="reports unavailable browser storage instead of claiming a successful save" time="0.000"/>
+    <testcase classname="tests/sync/encrypted-queue-storage.test.ts" name="allows a fresh key and restores a valid scoped queue through the storage adapter" time="0.001"/>
+    <testcase classname="tests/sync/encrypted-queue-storage.test.ts" name="restores the optional display context from the encrypted payload" time="0.001"/>
+    <testcase classname="tests/sync/encrypted-queue-storage.test.ts" name="refuses malformed or misplaced recovery context without replacing the ciphertext" time="0.003"/>
+    <testcase classname="tests/sync/encrypted-queue-storage.test.ts" name="keeps catalog ciphertext and keys separate from existing pending operations" time="0.000"/>
+    <testcase classname="tests/sync/encrypted-queue-storage.test.ts" name="serializes first writes to the same catalog so concurrent requests do not replace their key" time="0.000"/>
+    <testcase classname="tests/sync/encrypted-queue-storage.test.ts" name="never reads another user catalog or silently recreates a lost catalog key" time="0.001"/>
+  </testsuite>
+  <testsuite name="tests/analytics/publication-outcome.test.tsx" tests="2" failures="0" errors="0" skipped="0" time="0.206">
+    <testcase classname="tests/analytics/publication-outcome.test.tsx" name="does not invent actual prices during an unfinished week" time="0.038"/>
+    <testcase classname="tests/analytics/publication-outcome.test.tsx" name="retries read failure and presents actual zero as a recorded value" time="0.004"/>
+  </testsuite>
+  <testsuite name="tests/administration/audit-screen.test.tsx" tests="7" failures="0" errors="0" skipped="0" time="0.448">
+    <testcase classname="tests/administration/audit-screen.test.tsx" name="pages through the applied filters and retries a failed page without showing old rows" time="0.077"/>
+    <testcase classname="tests/administration/audit-screen.test.tsx" name="ignores an older response after edited filters have produced a newer result" time="0.019"/>
+    <testcase classname="tests/administration/audit-screen.test.tsx" name="removes all old-session results and ignores its late failure" time="0.024"/>
+    <testcase classname="tests/administration/audit-screen.test.tsx" name="validates civil dates before requesting and sends Lima day filters instead of UTC days" time="0.025"/>
+    <testcase classname="tests/administration/audit-screen.test.tsx" name="does not restore results when a request finishes after the filters were edited" time="0.008"/>
+    <testcase classname="tests/administration/audit-screen.test.tsx" name="does not request events without an authorized Mayorista" time="0.001"/>
+    <testcase classname="tests/administration/audit-screen.test.tsx" name="does not request events without an authorized Mayorista" time="0.000"/>
+  </testsuite>
+  <testsuite name="tests/home/menu-facts.test.tsx" tests="4" failures="0" errors="0" skipped="0" time="0.234">
+    <testcase classname="tests/home/menu-facts.test.tsx" name="writes each live line from the server data and the local queue" time="0.002"/>
+    <testcase classname="tests/home/menu-facts.test.tsx" name="reads today counts without voided operations and the open balances of the modules shown" time="0.004"/>
+    <testcase classname="tests/home/menu-facts.test.tsx" name="hides only the line that could not be read and never asks for modules the profile does not show" time="0.002"/>
+    <testcase classname="tests/home/menu-facts.test.tsx" name="shows the order, the pill, the icon and the live line of a card, and tells them to the screen reader" time="0.028"/>
+  </testsuite>
+  <testsuite name="tests/analytics/publication-review.test.tsx" tests="3" failures="0" errors="0" skipped="0" time="0.344">
+    <testcase classname="tests/analytics/publication-review.test.tsx" name="requires preview and explicit review; cancellation has no publication effect" time="0.073"/>
+    <testcase classname="tests/analytics/publication-review.test.tsx" name="retries a lost publication response with the same UUID without displaying unconfirmed prices" time="0.006"/>
+    <testcase classname="tests/analytics/publication-review.test.tsx" name="blocks a failed evaluation and does not show a candidate after failed revalidation" time="0.001"/>
+  </testsuite>
+  <testsuite name="tests/analytics/point-sources.test.tsx" tests="3" failures="0" errors="0" skipped="0" time="0.256">
+    <testcase classname="tests/analytics/point-sources.test.tsx" name="reveals separate source references only when requested and keeps the central quantities intact" time="0.033"/>
+    <testcase classname="tests/analytics/point-sources.test.tsx" name="reaches the final operation beyond the first twenty and resets pagination when collapsed" time="0.015"/>
+    <testcase classname="tests/analytics/point-sources.test.tsx" name="does not expose old references or an empty out-of-range page when the result shrinks" time="0.011"/>
+  </testsuite>
+  <testsuite name="tests/sync/sync-queue-screen.test.tsx" tests="5" failures="0" errors="0" skipped="0" time="0.223">
+    <testcase classname="tests/sync/sync-queue-screen.test.tsx" name="offers central recovery after five sends instead of hiding all retry actions" time="0.029"/>
+    <testcase classname="tests/sync/sync-queue-screen.test.tsx" name="shows a recovery error and keeps the central check available" time="0.007"/>
+    <testcase classname="tests/sync/sync-queue-screen.test.tsx" name="revalidates an offline-restored identity after pending synchronization finishes" time="0.003"/>
+    <testcase classname="tests/sync/sync-queue-screen.test.tsx" name="keeps the offline identity unchanged when central recovery fails" time="0.004"/>
+    <testcase classname="tests/sync/sync-queue-screen.test.tsx" name="offers explicit session revalidation independently of queued operations" time="0.002"/>
+  </testsuite>
+  <testsuite name="tests/analytics/evaluation-panel.test.tsx" tests="2" failures="0" errors="0" skipped="0" time="0.295">
+    <testcase classname="tests/analytics/evaluation-panel.test.tsx" name="retries a lost response with the same UUID and displays evidence as historical, not published" time="0.043"/>
+    <testcase classname="tests/analytics/evaluation-panel.test.tsx" name="blocks duplicate presses and discards an old session response" time="0.002"/>
+  </testsuite>
+  <testsuite name="tests/catalogs/characteristic-fields.test.tsx" tests="4" failures="0" errors="0" skipped="0" time="0.328">
+    <testcase classname="tests/catalogs/characteristic-fields.test.tsx" name="shows unknown explicitly and chooses a real option without accepting text labels as authority" time="0.030"/>
+    <testcase classname="tests/catalogs/characteristic-fields.test.tsx" name="keeps the historical label visible after a catalog rename or deactivation" time="0.003"/>
+    <testcase classname="tests/catalogs/characteristic-fields.test.tsx" name="freezes labels on capture and accepts inactive originals only when correcting their own fact" time="0.020"/>
+    <testcase classname="tests/catalogs/characteristic-fields.test.tsx" name="separates known combinations and treats omitted references like explicit unknown" time="0.000"/>
+  </testsuite>
+  <testsuite name="tests/sync/native-queue-storage.test.ts" tests="9" failures="0" errors="0" skipped="0" time="0.391">
+    <testcase classname="tests/sync/native-queue-storage.test.ts" name="keeps the committed file intact when the staged write is interrupted" time="0.019"/>
+    <testcase classname="tests/sync/native-queue-storage.test.ts" name="keeps the committed file when its backup cannot be saved" time="0.001"/>
+    <testcase classname="tests/sync/native-queue-storage.test.ts" name="detects a silent incomplete staged write before touching the committed file" time="0.000"/>
+    <testcase classname="tests/sync/native-queue-storage.test.ts" name="does not report persistence success after an incomplete destination copy" time="0.001"/>
+    <testcase classname="tests/sync/native-queue-storage.test.ts" name="recovers the previous committed ciphertext if replacement loses the destination" time="0.001"/>
+    <testcase classname="tests/sync/native-queue-storage.test.ts" name="blocks an interrupted first save instead of returning an empty queue" time="0.001"/>
+    <testcase classname="tests/sync/native-queue-storage.test.ts" name="commits the verified ciphertext and preserves the previous copy" time="0.001"/>
+    <testcase classname="tests/sync/native-queue-storage.test.ts" name="does not silently fall back to older operations when the current ciphertext is corrupt" time="0.006"/>
+    <testcase classname="tests/sync/native-queue-storage.test.ts" name="writes native catalog ciphertext separately and leaves the legacy queue file intact" time="0.001"/>
+  </testsuite>
+  <testsuite name="tests/administration/replacement.test.tsx" tests="2" failures="0" errors="0" skipped="0" time="0.482">
+    <testcase classname="tests/administration/replacement.test.tsx" name="replacement window (spec 011, CL-FM17) › starts now and never exceeds 24 hours" time="0.013"/>
+    <testcase classname="tests/administration/replacement.test.tsx" name="authorises the selected Encargado for the chosen duration without typing dates" time="0.062"/>
+  </testsuite>
+  <testsuite name="tests/auth/permissions.test.ts" tests="3" failures="0" errors="0" skipped="0" time="0.299">
+    <testcase classname="tests/auth/permissions.test.ts" name="authorization rules › limits the assistant to purchases and sales" time="0.000"/>
+    <testcase classname="tests/auth/permissions.test.ts" name="authorization rules › allows the wholesaler to access every approved module" time="0.001"/>
+    <testcase classname="tests/auth/permissions.test.ts" name="denies unknown runtime roles even for capture modules" time="0.000"/>
+  </testsuite>
+  <testsuite name="tests/administration/audit-filters.test.ts" tests="6" failures="0" errors="0" skipped="0" time="0.323">
+    <testcase classname="tests/administration/audit-filters.test.ts" name="rejects invalid civil day 0000-01-01" time="0.014"/>
+    <testcase classname="tests/administration/audit-filters.test.ts" name="rejects invalid civil day 2026-02-30" time="0.001"/>
+    <testcase classname="tests/administration/audit-filters.test.ts" name="rejects invalid civil day 2026-1-02" time="0.001"/>
+    <testcase classname="tests/administration/audit-filters.test.ts" name="rejects invalid civil day not-a-date" time="0.009"/>
+    <testcase classname="tests/administration/audit-filters.test.ts" name="rejects reversed dates and oversized exact filters" time="0.001"/>
+    <testcase classname="tests/administration/audit-filters.test.ts" name="preserves civil days for the server timezone and supports open date limits" time="0.000"/>
+  </testsuite>
+  <testsuite name="tests/shared/browser-traversal.test.ts" tests="8" failures="0" errors="0" skipped="0" time="0.384">
+    <testcase classname="tests/shared/browser-traversal.test.ts" name="blocks traversal before the dialog and resumes only its original destination after approval" time="0.002"/>
+    <testcase classname="tests/shared/browser-traversal.test.ts" name="leaves unrelated or non-cancelable navigation to the existing platform guards: {&quot;navigationType&quot;:&quot;push&quot;}" time="0.001"/>
+    <testcase classname="tests/shared/browser-traversal.test.ts" name="leaves unrelated or non-cancelable navigation to the existing platform guards: {&quot;cancelable&quot;:false}" time="0.000"/>
+    <testcase classname="tests/shared/browser-traversal.test.ts" name="leaves unrelated or non-cancelable navigation to the existing platform guards: {&quot;hashChange&quot;:true}" time="0.001"/>
+    <testcase classname="tests/shared/browser-traversal.test.ts" name="leaves unrelated or non-cancelable navigation to the existing platform guards: {&quot;downloadRequest&quot;:&quot;receipt.pdf&quot;}" time="0.000"/>
+    <testcase classname="tests/shared/browser-traversal.test.ts" name="leaves unrelated or non-cancelable navigation to the existing platform guards: {&quot;destination&quot;:{&quot;key&quot;:&quot;&quot;}}" time="0.000"/>
+    <testcase classname="tests/shared/browser-traversal.test.ts" name="allows the approved replay and session retirement, and removes its own listener" time="0.001"/>
+    <testcase classname="tests/shared/browser-traversal.test.ts" name="reports a failed replay once while observing both rejected navigation promises" time="0.000"/>
+  </testsuite>
+  <testsuite name="tests/ui/contrast.test.ts" tests="23" failures="0" errors="0" skipped="0" time="0.315">
+    <testcase classname="tests/ui/contrast.test.ts" name="MAÑAY contrast › computes the WCAG ratio of known pairs" time="0.002"/>
+    <testcase classname="tests/ui/contrast.test.ts" name="MAÑAY contrast › keeps primary text on the canvas at AAA" time="0.001"/>
+    <testcase classname="tests/ui/contrast.test.ts" name="MAÑAY contrast › keeps primary text on cards at AAA" time="0.000"/>
+    <testcase classname="tests/ui/contrast.test.ts" name="MAÑAY contrast › keeps brand text on cards at AAA" time="0.000"/>
+    <testcase classname="tests/ui/contrast.test.ts" name="MAÑAY contrast › keeps text on the brand colour at AAA" time="0.000"/>
+    <testcase classname="tests/ui/contrast.test.ts" name="MAÑAY contrast › keeps light brand text on the brand colour at AAA" time="0.000"/>
+    <testcase classname="tests/ui/contrast.test.ts" name="MAÑAY contrast › keeps paid state at AAA" time="0.001"/>
+    <testcase classname="tests/ui/contrast.test.ts" name="MAÑAY contrast › keeps debt state at AAA" time="0.000"/>
+    <testcase classname="tests/ui/contrast.test.ts" name="MAÑAY contrast › keeps report values at AAA" time="0.000"/>
+    <testcase classname="tests/ui/contrast.test.ts" name="MAÑAY contrast › keeps secondary text on the canvas at AA" time="0.001"/>
+    <testcase classname="tests/ui/contrast.test.ts" name="MAÑAY contrast › keeps secondary text on cards at AA" time="0.000"/>
+    <testcase classname="tests/ui/contrast.test.ts" name="MAÑAY contrast › keeps brand text on its muted tint at AA" time="0.000"/>
+    <testcase classname="tests/ui/contrast.test.ts" name="MAÑAY contrast › keeps warning state at AA" time="0.001"/>
+    <testcase classname="tests/ui/contrast.test.ts" name="MAÑAY contrast › keeps report titles at AA" time="0.000"/>
+    <testcase classname="tests/ui/contrast.test.ts" name="MAÑAY contrast › keeps report details at AA" time="0.000"/>
+    <testcase classname="tests/ui/contrast.test.ts" name="MAÑAY contrast › keeps the emerald accent readable on its tint, its pill and white" time="0.001"/>
+    <testcase classname="tests/ui/contrast.test.ts" name="MAÑAY contrast › keeps the amber accent readable on its tint, its pill and white" time="0.000"/>
+    <testcase classname="tests/ui/contrast.test.ts" name="MAÑAY contrast › keeps the sky accent readable on its tint, its pill and white" time="0.001"/>
+    <testcase classname="tests/ui/contrast.test.ts" name="MAÑAY contrast › keeps the indigo accent readable on its tint, its pill and white" time="0.000"/>
+    <testcase classname="tests/ui/contrast.test.ts" name="MAÑAY contrast › keeps the rose accent readable on its tint, its pill and white" time="0.001"/>
+    <testcase classname="tests/ui/contrast.test.ts" name="MAÑAY contrast › keeps the teal accent readable on its tint, its pill and white" time="0.000"/>
+    <testcase classname="tests/ui/contrast.test.ts" name="MAÑAY contrast › keeps the purple accent readable on its tint, its pill and white" time="0.001"/>
+    <testcase classname="tests/ui/contrast.test.ts" name="MAÑAY contrast › keeps the slate accent readable on its tint, its pill and white" time="0.000"/>
+  </testsuite>
+  <testsuite name="tests/accounts/account-filters.test.ts" tests="2" failures="0" errors="0" skipped="0" time="0.384">
+    <testcase classname="tests/accounts/account-filters.test.ts" name="combines literal name/reference search with kind and state without changing input" time="0.001"/>
+    <testcase classname="tests/accounts/account-filters.test.ts" name="does not invent names for absent historical counterparties" time="0.000"/>
+  </testsuite>
+  <testsuite name="tests/sync/sync-banner.test.tsx" tests="1" failures="0" errors="0" skipped="0" time="0.514">
+    <testcase classname="tests/sync/sync-banner.test.tsx" name="announces a queue read failure instead of reporting synchronized data" time="0.005"/>
+  </testsuite>
+  <testsuite name="tests/accounts/payment-review.test.ts" tests="9" failures="0" errors="0" skipped="0" time="0.325">
+    <testcase classname="tests/accounts/payment-review.test.ts" name="reviews an exact partial payment and a complete settlement in cents" time="0.002"/>
+    <testcase classname="tests/accounts/payment-review.test.ts" name="rejects invalid or excessive input 0 before submission" time="0.000"/>
+    <testcase classname="tests/accounts/payment-review.test.ts" name="rejects invalid or excessive input -1 before submission" time="0.000"/>
+    <testcase classname="tests/accounts/payment-review.test.ts" name="rejects invalid or excessive input 10.001 before submission" time="0.000"/>
+    <testcase classname="tests/accounts/payment-review.test.ts" name="rejects invalid or excessive input invalid before submission" time="0.000"/>
+    <testcase classname="tests/accounts/payment-review.test.ts" name="rejects invalid or excessive input 80.01 before submission" time="0.000"/>
+    <testcase classname="tests/accounts/payment-review.test.ts" name="preserves a large central balance without Number conversion" time="0.000"/>
+    <testcase classname="tests/accounts/payment-review.test.ts" name="blocks closed accounts and balances which cannot be verified" time="0.000"/>
+    <testcase classname="tests/accounts/payment-review.test.ts" name="respects the existing central per-operation ceiling" time="0.000"/>
+  </testsuite>
+  <testsuite name="tests/sync/local-recovery-navigation.test.tsx" tests="3" failures="0" errors="0" skipped="0" time="0.477">
+    <testcase classname="tests/sync/local-recovery-navigation.test.tsx" name="offers continuation of a saved local reception without synchronizing it first" time="0.058"/>
+    <testcase classname="tests/sync/local-recovery-navigation.test.tsx" name="does not expose continuation after a stored settlement or rejected creation" time="0.002"/>
+    <testcase classname="tests/sync/local-recovery-navigation.test.tsx" name="offers a confirmed saved copy without claiming that its operations are still pending" time="0.002"/>
+  </testsuite>
+  <testsuite name="tests/catalogs/operation-catalog-cache.test.ts" tests="20" failures="0" errors="0" skipped="0" time="0.470">
+    <testcase classname="tests/catalogs/operation-catalog-cache.test.ts" name="migrates a version-one cache without inventing historical characteristics" time="0.002"/>
+    <testcase classname="tests/catalogs/operation-catalog-cache.test.ts" name="rejects missing characteristic lists in a version-two cache instead of treating corruption as legacy data" time="0.018"/>
+    <testcase classname="tests/catalogs/operation-catalog-cache.test.ts" name="saves only needed fields in a separate scoped encrypted namespace after a complete central fetch" time="0.001"/>
+    <testcase classname="tests/catalogs/operation-catalog-cache.test.ts" name="recovers a saved snapshot for the same identity only after connection failure" time="0.001"/>
+    <testcase classname="tests/catalogs/operation-catalog-cache.test.ts" name="never recovers local permissions or data instead of central rejection 401" time="0.016"/>
+    <testcase classname="tests/catalogs/operation-catalog-cache.test.ts" name="never recovers local permissions or data instead of central rejection 403" time="0.001"/>
+    <testcase classname="tests/catalogs/operation-catalog-cache.test.ts" name="never recovers local permissions or data instead of central rejection 422" time="0.001"/>
+    <testcase classname="tests/catalogs/operation-catalog-cache.test.ts" name="never recovers local permissions or data instead of central rejection 500" time="0.001"/>
+    <testcase classname="tests/catalogs/operation-catalog-cache.test.ts" name="preserves central usable results and reports a failed cache write" time="0.000"/>
+    <testcase classname="tests/catalogs/operation-catalog-cache.test.ts" name="rejects corrupted or foreign snapshots {&quot;businessId&quot;:&quot;55555555-5555-4555-8555-555555555555&quot;} without overwriting them" time="0.001"/>
+    <testcase classname="tests/catalogs/operation-catalog-cache.test.ts" name="rejects corrupted or foreign snapshots {&quot;userId&quot;:&quot;66666666-6666-4666-8666-666666666666&quot;} without overwriting them" time="0.000"/>
+    <testcase classname="tests/catalogs/operation-catalog-cache.test.ts" name="rejects corrupted or foreign snapshots {&quot;version&quot;:2} without overwriting them" time="0.001"/>
+    <testcase classname="tests/catalogs/operation-catalog-cache.test.ts" name="rejects corrupted or foreign snapshots {&quot;data&quot;:{&quot;buyers&quot;:[{&quot;id&quot;:&quot;44444444-4444-4444-8444-444444444444&quot;,&quot;name&quot;:&quot;Comprador QA&quot;,&quot;phone&quot;:null,&quot;destinationDepartment&quot;:&quot;Lima&quot;,&quot;creditLimitCents&quot;:null}],&quot;vehicles&quot;:[],&quot;varieties&quot;:[{&quot;id&quot;:&quot;33333333-3333-4333-8333-333333333333&quot;,&quot;name&quot;:&quot;Papa QA&quot;},{&quot;id&quot;:&quot;33333333-3333-4333-8333-333333333333&quot;,&quot;name&quot;:&quot;Papa QA&quot;}]}} without overwriting them" time="0.001"/>
+    <testcase classname="tests/catalogs/operation-catalog-cache.test.ts" name="distinguishes a legitimate empty snapshot from absence" time="0.001"/>
+    <testcase classname="tests/catalogs/operation-catalog-cache.test.ts" name="denies an expired session before reading, fetching or saving catalogs" time="0.000"/>
+    <testcase classname="tests/catalogs/operation-catalog-cache.test.ts" name="rechecks expiry after a failed connection before decrypting a saved snapshot" time="0.000"/>
+    <testcase classname="tests/catalogs/operation-catalog-cache.test.ts" name="does not permit an unknown role to recover a sale catalog" time="0.001"/>
+    <testcase classname="tests/catalogs/operation-catalog-cache.test.ts" name="reports damaged ciphertext without overwriting it or exposing internal details" time="0.000"/>
+    <testcase classname="tests/catalogs/operation-catalog-cache.test.ts" name="allows authorized assistant capture catalogs without changing privileged module access" time="0.001"/>
+    <testcase classname="tests/catalogs/operation-catalog-cache.test.ts" name="recovers only the assistant own snapshot while its verified identity remains valid" time="0.000"/>
+  </testsuite>
+  <testsuite name="tests/reports/report-filters.test.ts" tests="3" failures="0" errors="0" skipped="0" time="0.486">
+    <testcase classname="tests/reports/report-filters.test.ts" name="price history filters › sends the selected variety and counterparties to the central report" time="0.091"/>
+    <testcase classname="tests/reports/report-filters.test.ts" name="price history filters › requests financial alerts without a stock threshold" time="0.001"/>
+    <testcase classname="tests/reports/report-filters.test.ts" name="price history filters › keeps exact monetary strings and scopes the overview request to the selected operation" time="0.000"/>
+  </testsuite>
+  <testsuite name="tests/sync/serial-executor.test.ts" tests="2" failures="0" errors="0" skipped="0" time="0.270">
+    <testcase classname="tests/sync/serial-executor.test.ts" name="serializes concurrent writes against the latest state" time="0.000"/>
+    <testcase classname="tests/sync/serial-executor.test.ts" name="continues after a failed operation without hiding its error" time="0.005"/>
+  </testsuite>
+  <testsuite name="tests/sales/sale-domain.test.ts" tests="17" failures="0" errors="0" skipped="0" time="0.467">
+    <testcase classname="tests/sales/sale-domain.test.ts" name="sale operation quantities without inventory › accepts any valid operation quantity from an active catalogue variety" time="0.001"/>
+    <testcase classname="tests/sales/sale-domain.test.ts" name="sale operation quantities without inventory › requires a matching catalogue variety" time="0.000"/>
+    <testcase classname="tests/sales/sale-domain.test.ts" name="sale operation quantities without inventory › rejects invalid sack count 0" time="0.000"/>
+    <testcase classname="tests/sales/sale-domain.test.ts" name="sale operation quantities without inventory › rejects invalid sack count -1" time="0.001"/>
+    <testcase classname="tests/sales/sale-domain.test.ts" name="sale operation quantities without inventory › rejects invalid sack count 1.5" time="0.000"/>
+    <testcase classname="tests/sales/sale-domain.test.ts" name="sale operation quantities without inventory › rejects invalid sack count 2147483648" time="0.000"/>
+    <testcase classname="tests/sales/sale-domain.test.ts" name="sale operation quantities without inventory › rejects invalid weight 0" time="0.000"/>
+    <testcase classname="tests/sales/sale-domain.test.ts" name="sale operation quantities without inventory › rejects invalid weight 0.000" time="0.000"/>
+    <testcase classname="tests/sales/sale-domain.test.ts" name="sale operation quantities without inventory › rejects invalid weight -1" time="0.000"/>
+    <testcase classname="tests/sales/sale-domain.test.ts" name="sale operation quantities without inventory › rejects invalid weight 1.0001" time="0.000"/>
+    <testcase classname="tests/sales/sale-domain.test.ts" name="sale operation quantities without inventory › rejects invalid weight 100000000000" time="0.000"/>
+    <testcase classname="tests/sales/sale-domain.test.ts" name="sale operation quantities without inventory › rejects invalid weight " time="0.000"/>
+    <testcase classname="tests/sales/sale-domain.test.ts" name="sale operation quantities without inventory › accepts three decimals with a comma" time="0.000"/>
+    <testcase classname="tests/sales/sale-domain.test.ts" name="sale operation quantities without inventory › rejects invalid price 0" time="0.000"/>
+    <testcase classname="tests/sales/sale-domain.test.ts" name="sale operation quantities without inventory › rejects invalid price -1" time="0.000"/>
+    <testcase classname="tests/sales/sale-domain.test.ts" name="sale operation quantities without inventory › rejects invalid price 1.001" time="0.000"/>
+    <testcase classname="tests/sales/sale-domain.test.ts" name="sale operation quantities without inventory › rejects invalid price 90000000000.01" time="0.000"/>
+  </testsuite>
+  <testsuite name="tests/messaging/native-sharing.test.ts" tests="12" failures="0" errors="0" skipped="0" time="0.358">
+    <testcase classname="tests/messaging/native-sharing.test.ts" name="does not open another app after authorization context closes while availability is pending" time="0.004"/>
+    <testcase classname="tests/messaging/native-sharing.test.ts" name="does not remove an attachment already granted to an external selector when the screen closes" time="0.001"/>
+    <testcase classname="tests/messaging/native-sharing.test.ts" name="cleans unshared local copies and reports unsupported selectors honestly" time="0.014"/>
+    <testcase classname="tests/messaging/native-sharing.test.ts" name="never deletes a source outside the individual picker-cache file: file:///documents/a.pdf" time="0.001"/>
+    <testcase classname="tests/messaging/native-sharing.test.ts" name="never deletes a source outside the individual picker-cache file: content://provider/a.pdf" time="0.000"/>
+    <testcase classname="tests/messaging/native-sharing.test.ts" name="never deletes a source outside the individual picker-cache file: file:///cache/a.pdf" time="0.000"/>
+    <testcase classname="tests/messaging/native-sharing.test.ts" name="never deletes a source outside the individual picker-cache file: file:///cache/DocumentPicker/../receipts/a.pdf" time="0.000"/>
+    <testcase classname="tests/messaging/native-sharing.test.ts" name="never deletes a source outside the individual picker-cache file: file:///cache/DocumentPicker/%2e%2e/receipts/a.pdf" time="0.000"/>
+    <testcase classname="tests/messaging/native-sharing.test.ts" name="never deletes a source outside the individual picker-cache file: file:///cache/DocumentPicker/%2f..%2fa.pdf" time="0.000"/>
+    <testcase classname="tests/messaging/native-sharing.test.ts" name="never deletes a source outside the individual picker-cache file: file:///cache/DocumentPicker/subfolder/a.pdf" time="0.000"/>
+    <testcase classname="tests/messaging/native-sharing.test.ts" name="never deletes a source outside the individual picker-cache file: file:///cache/DocumentPicker/" time="0.001"/>
+    <testcase classname="tests/messaging/native-sharing.test.ts" name="never deletes a source outside the individual picker-cache file: file://remote/cache/DocumentPicker/a.pdf" time="0.000"/>
+  </testsuite>
+  <testsuite name="tests/reports/report-board.test.ts" tests="3" failures="0" errors="0" skipped="0" time="0.148">
+    <testcase classname="tests/reports/report-board.test.ts" name="shares the kilograms of each variety and averages the price with integers" time="0.001"/>
+    <testcase classname="tests/reports/report-board.test.ts" name="ranks providers by kilograms and marks the ones with a pending balance" time="0.000"/>
+    <testcase classname="tests/reports/report-board.test.ts" name="offers today and this week, starting on Monday" time="0.001"/>
+  </testsuite>
+  <testsuite name="tests/reception/reception-domain.test.ts" tests="4" failures="0" errors="0" skipped="0" time="0.174">
+    <testcase classname="tests/reception/reception-domain.test.ts" name="reception presentation domain › summarizes confirmed net weights without using gross weight" time="0.000"/>
+    <testcase classname="tests/reception/reception-domain.test.ts" name="reception presentation domain › converts decimal money input to integer cents" time="0.000"/>
+    <testcase classname="tests/reception/reception-domain.test.ts" name="reception presentation domain › creates UUID-shaped idempotency keys" time="0.000"/>
+    <testcase classname="tests/reception/reception-domain.test.ts" name="reception presentation domain › preserves every cent of large confirmed amounts and negative cash balances" time="0.012"/>
+  </testsuite>
+  <testsuite name="tests/sync/purchase-lots-queue.test.tsx" tests="2" failures="0" errors="0" skipped="0" time="0.316">
+    <testcase classname="tests/sync/purchase-lots-queue.test.tsx" name="stores the lots in the encrypted queue and resends the same identity and body" time="0.009"/>
+    <testcase classname="tests/sync/purchase-lots-queue.test.tsx" name="shows a 409 for review and does not retry it on its own" time="0.003"/>
+  </testsuite>
+  <testsuite name="tests/sync/sync-operation.test.ts" tests="9" failures="0" errors="0" skipped="0" time="0.324">
+    <testcase classname="tests/sync/sync-operation.test.ts" name="offline synchronization state machine › recovers a central confirmation after five attempts without counting another send" time="0.000"/>
+    <testcase classname="tests/sync/sync-operation.test.ts" name="offline synchronization state machine › prevents a sixth send and a recovery without central evidence" time="0.023"/>
+    <testcase classname="tests/sync/sync-operation.test.ts" name="offline synchronization state machine › increments attempts and returns a lost response to pending" time="0.000"/>
+    <testcase classname="tests/sync/sync-operation.test.ts" name="offline synchronization state machine › preserves the central reference after confirmation" time="0.000"/>
+    <testcase classname="tests/sync/sync-operation.test.ts" name="offline synchronization state machine › sends version conflicts to review instead of overwriting" time="0.000"/>
+    <testcase classname="tests/sync/sync-operation.test.ts" name="offline synchronization state machine › rejects invalid transitions" time="0.000"/>
+    <testcase classname="tests/sync/sync-operation.test.ts" name="offline synchronization state machine › closes a rejected operation after a reasoned local discard" time="0.001"/>
+    <testcase classname="tests/sync/sync-operation.test.ts" name="recovers an interrupted send without changing its identity, body or attempts" time="0.000"/>
+    <testcase classname="tests/sync/sync-operation.test.ts" name="preserves terminal and review states during restart recovery" time="0.001"/>
+  </testsuite>
+  <testsuite name="tests/sales/sale-preview.test.ts" tests="3" failures="0" errors="0" skipped="0" time="0.166">
+    <testcase classname="tests/sales/sale-preview.test.ts" name="matches central line rounding and keeps separately charged freight outside total" time="0.000"/>
+    <testcase classname="tests/sales/sale-preview.test.ts" name="includes freight only when explicitly agreed and sums rounded lines" time="0.001"/>
+    <testcase classname="tests/sales/sale-preview.test.ts" name="rejects excessive deductions and invalid amounts rather than showing misleading totals" time="0.000"/>
+  </testsuite>
+  <testsuite name="tests/messaging/web-sharing.test.ts" tests="5" failures="0" errors="0" skipped="0" time="0.312">
+    <testcase classname="tests/messaging/web-sharing.test.ts" name="keeps a permission refusal explicit and offers a download without silently retrying the selector" time="0.062"/>
+    <testcase classname="tests/messaging/web-sharing.test.ts" name="downloads an explicit copy without opening any sharing application" time="0.002"/>
+    <testcase classname="tests/messaging/web-sharing.test.ts" name="falls back to a download when file sharing is unavailable" time="0.001"/>
+    <testcase classname="tests/messaging/web-sharing.test.ts" name="treats cancellation as cancellation and never downloads automatically" time="0.002"/>
+    <testcase classname="tests/messaging/web-sharing.test.ts" name="rejects copies without a browser file before creating a download" time="0.014"/>
+  </testsuite>
+  <testsuite name="tests/accounts/installment-label.test.ts" tests="3" failures="0" errors="0" skipped="0" time="0.419">
+    <testcase classname="tests/accounts/installment-label.test.ts" name="installment labels (spec 004, cuotas anuladas) › reads voided installments as «Anulada», never paid or collected" time="0.002"/>
+    <testcase classname="tests/accounts/installment-label.test.ts" name="installment labels (spec 004, cuotas anuladas) › treats installments of accounts voided before migration 027 as voided" time="0.001"/>
+    <testcase classname="tests/accounts/installment-label.test.ts" name="installment labels (spec 004, cuotas anuladas) › keeps pending and settled installments with the wording of each kind" time="0.000"/>
+  </testsuite>
+  <testsuite name="tests/sales/sales-history-domain.test.ts" tests="6" failures="0" errors="0" skipped="0" time="0.267">
+    <testcase classname="tests/sales/sales-history-domain.test.ts" name="accepts open bounds and trims participant/date filters" time="0.002"/>
+    <testcase classname="tests/sales/sales-history-domain.test.ts" name="rejects invalid civil date 2026-02-30" time="0.000"/>
+    <testcase classname="tests/sales/sales-history-domain.test.ts" name="rejects invalid civil date 0000-01-01" time="0.000"/>
+    <testcase classname="tests/sales/sales-history-domain.test.ts" name="rejects invalid civil date 2026-10-07T12:00:00Z" time="0.000"/>
+    <testcase classname="tests/sales/sales-history-domain.test.ts" name="rejects a reversed date range before making a request" time="0.000"/>
+    <testcase classname="tests/sales/sales-history-domain.test.ts" name="shows the Lima commercial date on both sides of UTC midnight" time="0.001"/>
+  </testsuite>
+  <testsuite name="tests/catalogs/catalog-pages.test.ts" tests="3" failures="0" errors="0" skipped="0" time="0.276">
+    <testcase classname="tests/catalogs/catalog-pages.test.ts" name="loads beyond the first hundred and keeps literal identifiers once" time="0.002"/>
+    <testcase classname="tests/catalogs/catalog-pages.test.ts" name="rejects partial results instead of announcing a complete central catalog" time="0.001"/>
+    <testcase classname="tests/catalogs/catalog-pages.test.ts" name="rejects a missing page rather than looping forever" time="0.008"/>
+  </testsuite>
+  <testsuite name="tests/analytics/analytics-filter-pages.test.ts" tests="3" failures="0" errors="0" skipped="0" time="0.489">
+    <testcase classname="tests/analytics/analytics-filter-pages.test.ts" name="loads every historical page including inactive records beyond the first hundred" time="0.012"/>
+    <testcase classname="tests/analytics/analytics-filter-pages.test.ts" name="does not return a partial historical catalog when a later page fails" time="0.021"/>
+    <testcase classname="tests/analytics/analytics-filter-pages.test.ts" name="encodes independent descriptive characteristics and never forwards them to readiness" time="0.001"/>
+  </testsuite>
+  <testsuite name="tests/reception/purchase-preview.test.ts" tests="14" failures="0" errors="0" skipped="0" time="0.318">
+    <testcase classname="tests/reception/purchase-preview.test.ts" name="lots of the settlement › groups by variety and quality with the server letters: variety name, quality name, no quality last" time="0.002"/>
+    <testcase classname="tests/reception/purchase-preview.test.ts" name="lots of the settlement › keeps two varieties with the same name apart by id" time="0.000"/>
+    <testcase classname="tests/reception/purchase-preview.test.ts" name="lots of the settlement › rounds each lot on its own and then adds them up, as the server does" time="0.000"/>
+    <testcase classname="tests/reception/purchase-preview.test.ts" name="lots of the settlement › lets each lot choose its basis" time="0.001"/>
+    <testcase classname="tests/reception/purchase-preview.test.ts" name="lots of the settlement › asks for the price of every lot before calculating" time="0.000"/>
+    <testcase classname="tests/reception/purchase-preview.test.ts" name="lots of the settlement › builds the order with one lot per group and only the names typed" time="0.001"/>
+    <testcase classname="tests/reception/purchase-preview.test.ts" name="freight and deductions › deducts the freight from the provider by default and each deduction once" time="0.000"/>
+    <testcase classname="tests/reception/purchase-preview.test.ts" name="freight and deductions › shows the freight paid by the wholesaler without deducting it" time="0.001"/>
+    <testcase classname="tests/reception/purchase-preview.test.ts" name="excludes voided sacks and does not silently accept invalid conserved weights" time="0.000"/>
+    <testcase classname="tests/reception/purchase-preview.test.ts" name="preserves exact amounts beyond floating point precision" time="0.000"/>
+    <testcase classname="tests/reception/purchase-preview.test.ts" name="keeps missing prices pending and rejects over-limit or excessive deductions" time="0.001"/>
+    <testcase classname="tests/reception/purchase-preview.test.ts" name="requires a calendar-valid credit schedule that equals the exact liquid amount" time="0.000"/>
+    <testcase classname="tests/reception/purchase-preview.test.ts" name="waits for the freight rate after choosing a freight basis" time="0.001"/>
+    <testcase classname="tests/reception/purchase-preview.test.ts" name="gives each lot its own subtotal while another lot still has no price (CL-ST20)" time="0.001"/>
+  </testsuite>
+  <testsuite name="tests/shared/purchase-report.test.ts" tests="4" failures="0" errors="0" skipped="0" time="0.403">
+    <testcase classname="tests/shared/purchase-report.test.ts" name="totals the varieties and the average weighted by kilograms of the settled ones" time="0.002"/>
+    <testcase classname="tests/shared/purchase-report.test.ts" name="isolates one variety and labels its footer as a subtotal" time="0.001"/>
+    <testcase classname="tests/shared/purchase-report.test.ts" name="finds the variety paid at the highest price among the settled ones" time="0.000"/>
+    <testcase classname="tests/shared/purchase-report.test.ts" name="writes the badge of a touched day" time="0.000"/>
+  </testsuite>
+  <testsuite name="tests/shared/browser-traversal-guard.test.tsx" tests="3" failures="0" errors="0" skipped="0" time="0.300">
+    <testcase classname="tests/shared/browser-traversal-guard.test.tsx" name="registers only while needed and lets an approved replay continue" time="0.005"/>
+    <testcase classname="tests/shared/browser-traversal-guard.test.tsx" name="reports a replay failure after approval disables the guard while the screen remains mounted" time="0.005"/>
+    <testcase classname="tests/shared/browser-traversal-guard.test.tsx" name="does not display a deferred replay error in a removed screen" time="0.001"/>
+  </testsuite>
+  <testsuite name="tests/auth/login-validation.test.ts" tests="2" failures="0" errors="0" skipped="0" time="0.343">
+    <testcase classname="tests/auth/login-validation.test.ts" name="validateLoginInput › requires both credentials without exposing account rules" time="0.000"/>
+    <testcase classname="tests/auth/login-validation.test.ts" name="validateLoginInput › accepts a complete input and trims are handled by the caller" time="0.000"/>
+  </testsuite>
+  <testsuite name="tests/auth/session.test.ts" tests="2" failures="0" errors="0" skipped="0" time="0.269">
+    <testcase classname="tests/auth/session.test.ts" name="authenticated session › restores a complete stored session and rejects malformed values" time="0.001"/>
+    <testcase classname="tests/auth/session.test.ts" name="authenticated session › expires the session at the exact central expiration instant" time="0.001"/>
+  </testsuite>
+  <testsuite name="tests/catalogs/catalog-api.test.ts" tests="3" failures="0" errors="0" skipped="0" time="0.514">
+    <testcase classname="tests/catalogs/catalog-api.test.ts" name="loads quality and origin options beyond the first central page for master data administration" time="0.014"/>
+    <testcase classname="tests/catalogs/catalog-api.test.ts" name="makes items beyond the first hundred available in every shared catalog" time="0.006"/>
+    <testcase classname="tests/catalogs/catalog-api.test.ts" name="rejects the shared result if a later central page fails, preserving retry instead of partial filters" time="0.001"/>
+  </testsuite>
+  <testsuite name="tests/analytics/weekly-comparisons.test.ts" tests="4" failures="0" errors="0" skipped="0" time="0.421">
+    <testcase classname="tests/analytics/weekly-comparisons.test.ts" name="compares consecutive complete weeks exactly, sorting without changing the response" time="0.002"/>
+    <testcase classname="tests/analytics/weekly-comparisons.test.ts" name="does not bridge an empty week or compare different varieties and operation types" time="0.001"/>
+    <testcase classname="tests/analytics/weekly-comparisons.test.ts" name="keeps observations but suppresses percentages when either week is partial" time="0.001"/>
+    <testcase classname="tests/analytics/weekly-comparisons.test.ts" name="explains zero references and central exclusion reasons without inventing a price" time="0.001"/>
+  </testsuite>
+  <testsuite name="tests/administration/audit-api.test.ts" tests="1" failures="0" errors="0" skipped="0" time="0.444">
+    <testcase classname="tests/administration/audit-api.test.ts" name="requests a bounded page with exact filters and session credentials" time="0.004"/>
+  </testsuite>
+  <testsuite name="tests/reports/report-period-presets.test.ts" tests="2" failures="0" errors="0" skipped="0" time="0.258">
+    <testcase classname="tests/reports/report-period-presets.test.ts" name="selects the previous calendar month across year and leap-year boundaries" time="0.001"/>
+    <testcase classname="tests/reports/report-period-presets.test.ts" name="limits the current month to today rather than inventing a future cutoff" time="0.000"/>
+  </testsuite>
+  <testsuite name="tests/shared/sales-report.test.ts" tests="3" failures="0" errors="0" skipped="0" time="0.470">
+    <testcase classname="tests/shared/sales-report.test.ts" name="collects what is sold minus the open balance and never goes above 100%" time="0.002"/>
+    <testcase classname="tests/shared/sales-report.test.ts" name="averages the kilograms of a sack to one decimal" time="0.001"/>
+    <testcase classname="tests/shared/sales-report.test.ts" name="filters the sales by state and client, newest first, and totals what is shown" time="0.002"/>
+  </testsuite>
+  <testsuite name="tests/reports/report-rows-api.test.ts" tests="1" failures="0" errors="0" skipped="0" time="0.364">
+    <testcase classname="tests/reports/report-rows-api.test.ts" name="requests twenty rows from the selected operation and period with the current token" time="0.007"/>
+  </testsuite>
+  <testsuite name="tests/reception/local-reception-recovery.test.ts" tests="14" failures="0" errors="0" skipped="0" time="0.345">
+    <testcase classname="tests/reception/local-reception-recovery.test.ts" name="recovers the encrypted captured labels and keeps them through an older correction without characteristic fields" time="0.003"/>
+    <testcase classname="tests/reception/local-reception-recovery.test.ts" name="does not invent a label when stored references and capture metadata disagree or are missing" time="0.001"/>
+    <testcase classname="tests/reception/local-reception-recovery.test.ts" name="recovers captured data and names from durable operations without central confirmation" time="0.001"/>
+    <testcase classname="tests/reception/local-reception-recovery.test.ts" name="keeps chained corrections attached to one sack and restores closure at the correct version" time="0.000"/>
+    <testcase classname="tests/reception/local-reception-recovery.test.ts" name="resolves partially confirmed central references while keeping later edits provisional" time="0.001"/>
+    <testcase classname="tests/reception/local-reception-recovery.test.ts" name="routes a fully confirmed older queue to the central identity without requiring new metadata" time="0.000"/>
+    <testcase classname="tests/reception/local-reception-recovery.test.ts" name="can recover the last locally known confirmed capture provisionally when offline" time="0.001"/>
+    <testcase classname="tests/reception/local-reception-recovery.test.ts" name="refuses editable recovery with a rejected operation" time="0.000"/>
+    <testcase classname="tests/reception/local-reception-recovery.test.ts" name="refuses editable recovery with a review operation" time="0.000"/>
+    <testcase classname="tests/reception/local-reception-recovery.test.ts" name="refuses editable recovery with a syncing operation" time="0.001"/>
+    <testcase classname="tests/reception/local-reception-recovery.test.ts" name="refuses editable recovery with a discarded operation" time="0.000"/>
+    <testcase classname="tests/reception/local-reception-recovery.test.ts" name="does not offer another settlement when one is already stored for sending" time="0.000"/>
+    <testcase classname="tests/reception/local-reception-recovery.test.ts" name="fails closed for missing context, out-of-order versions and corrections without an original sack" time="0.001"/>
+    <testcase classname="tests/reception/local-reception-recovery.test.ts" name="isolates another reception and rejects edits after closure" time="0.000"/>
+  </testsuite>
+  <testsuite name="tests/accounts/account-dates.test.ts" tests="3" failures="0" errors="0" skipped="0" time="0.328">
+    <testcase classname="tests/accounts/account-dates.test.ts" name="keeps a civil due date unchanged across the Lima UTC boundary" time="0.001"/>
+    <testcase classname="tests/accounts/account-dates.test.ts" name="distinguishes confirmed absence from an unavailable projection" time="0.001"/>
+    <testcase classname="tests/accounts/account-dates.test.ts" name="shows a confirmed later financial change in Lima without inventing its kind" time="0.001"/>
+  </testsuite>
+  <testsuite name="tests/messaging/attachment.test.ts" tests="2" failures="0" errors="0" skipped="0" time="0.292">
+    <testcase classname="tests/messaging/attachment.test.ts" name="retains allowed attachment metadata while rejecting disguised, empty and oversized files" time="0.025"/>
+    <testcase classname="tests/messaging/attachment.test.ts" name="keeps the messaging module exclusive to Mayorista" time="0.002"/>
+  </testsuite>
+  <testsuite name="tests/logistics/settlement-review.test.ts" tests="9" failures="0" errors="0" skipped="0" time="0.501">
+    <testcase classname="tests/logistics/settlement-review.test.ts" name="reviews exact totals without modifying selections or converting to Number" time="0.003"/>
+    <testcase classname="tests/logistics/settlement-review.test.ts" name="rejects non-civil or invalid dates 0000-01-01" time="0.001"/>
+    <testcase classname="tests/logistics/settlement-review.test.ts" name="rejects non-civil or invalid dates 2026-02-29" time="0.001"/>
+    <testcase classname="tests/logistics/settlement-review.test.ts" name="rejects non-civil or invalid dates 2026-13-01" time="0.000"/>
+    <testcase classname="tests/logistics/settlement-review.test.ts" name="rejects non-civil or invalid dates 11/10/2026" time="0.000"/>
+    <testcase classname="tests/logistics/settlement-review.test.ts" name="rejects non-civil or invalid dates 2026-10-11T00:00:00Z" time="0.000"/>
+    <testcase classname="tests/logistics/settlement-review.test.ts" name="rejects non-civil or invalid dates " time="0.000"/>
+    <testcase classname="tests/logistics/settlement-review.test.ts" name="accepts leap days and a zero tariff already present in central data" time="0.001"/>
+    <testcase classname="tests/logistics/settlement-review.test.ts" name="rejects empty, duplicate, missing, settled and malformed selections" time="0.001"/>
+  </testsuite>
+  <testsuite name="tests/logistics/logistics-search.test.ts" tests="2" failures="0" errors="0" skipped="0" time="0.142">
+    <testcase classname="tests/logistics/logistics-search.test.ts" name="finds a carrier by accent-insensitive name or literal phone" time="0.001"/>
+    <testcase classname="tests/logistics/logistics-search.test.ts" name="finds vehicles by plate, description or associated carrier without inventing data" time="0.000"/>
+  </testsuite>
+  <testsuite name="tests/shared/installments.test.ts" tests="1" failures="0" errors="0" skipped="0" time="0.371">
+    <testcase classname="tests/shared/installments.test.ts" name="prefills the amount still missing for the installments to reach the net total" time="0.001"/>
+  </testsuite>
+  <testsuite name="tests/reports/report-sharing.test.ts" tests="5" failures="0" errors="0" skipped="0" time="0.271">
+    <testcase classname="tests/reports/report-sharing.test.ts" name="prepares a preview without opening sharing and leaves cleanup to its owner" time="0.005"/>
+    <testcase classname="tests/reports/report-sharing.test.ts" name="requests the selected report with authentication and shares the actual Excel format" time="0.001"/>
+    <testcase classname="tests/reports/report-sharing.test.ts" name="discards a completed response after the period or session changes" time="0.000"/>
+    <testcase classname="tests/reports/report-sharing.test.ts" name="does not share a mismatched format" time="0.007"/>
+    <testcase classname="tests/reports/report-sharing.test.ts" name="cleans the temporary file even when sharing fails" time="0.005"/>
+  </testsuite>
+  <testsuite name="tests/reception/whole-kilograms.test.ts" tests="4" failures="0" errors="0" skipped="0" time="0.165">
+    <testcase classname="tests/reception/whole-kilograms.test.ts" name="whole kilograms in the weighing (spec 011, T1121) › accepts 52 and rejects 52,5, 52.5 and other text" time="0.000"/>
+    <testcase classname="tests/reception/whole-kilograms.test.ts" name="whole kilograms in the weighing (spec 011, T1121) › sends whole kilograms with an empty tare as zero and requires gross above tare" time="0.001"/>
+    <testcase classname="tests/reception/whole-kilograms.test.ts" name="whole kilograms in the weighing (spec 011, T1121) › rounds older sacks with decimals only on screen" time="0.000"/>
+    <testcase classname="tests/reception/whole-kilograms.test.ts" name="whole kilograms in the weighing (spec 011, T1121) › adds the exact grams before rounding the totals" time="0.001"/>
+  </testsuite>
+  <testsuite name="tests/shared/date.test.ts" tests="3" failures="0" errors="0" skipped="0" time="0.269">
+    <testcase classname="tests/shared/date.test.ts" name="validates real civil dates including leap years without rolling into another month" time="0.001"/>
+    <testcase classname="tests/shared/date.test.ts" name="local operation dates › uses calendar fields from the device instead of the UTC date" time="0.000"/>
+    <testcase classname="tests/shared/date.test.ts" name="uses Lima across UTC midnight and fails clearly for invalid saved timestamps" time="0.001"/>
+  </testsuite>
+  <testsuite name="tests/shared/history-cards.test.ts" tests="5" failures="0" errors="0" skipped="0" time="0.189">
+    <testcase classname="tests/shared/history-cards.test.ts" name="history cards › names each payment state as the purchase or the sale says it" time="0.000"/>
+    <testcase classname="tests/shared/history-cards.test.ts" name="history cards › lists the chips in Stitch order with the server counts, or without counts when they are unknown" time="0.000"/>
+    <testcase classname="tests/shared/history-cards.test.ts" name="history cards › maps a purchase of the server history and writes its volume in whole kilograms" time="0.001"/>
+    <testcase classname="tests/shared/history-cards.test.ts" name="history cards › maps a sale and keeps a voided one without balance or payment" time="0.000"/>
+    <testcase classname="tests/shared/history-cards.test.ts" name="account totals › adds the open balance, the overdue balance and the payments of this month net of reversals" time="0.001"/>
+  </testsuite>
+  <testsuite name="tests/analytics/period.test.ts" tests="6" failures="0" errors="0" skipped="0" time="0.149">
+    <testcase classname="tests/analytics/period.test.ts" name="accepts an inclusive leap-year interval of 366 days but rejects 367" time="0.001"/>
+    <testcase classname="tests/analytics/period.test.ts" name="rejects invalid or reversed dates 2026-02-30 – 2026-03-01" time="0.000"/>
+    <testcase classname="tests/analytics/period.test.ts" name="rejects invalid or reversed dates 2026-10-01 – 2026-02-29" time="0.000"/>
+    <testcase classname="tests/analytics/period.test.ts" name="rejects invalid or reversed dates 0000-01-01 – 0000-01-02" time="0.000"/>
+    <testcase classname="tests/analytics/period.test.ts" name="rejects invalid or reversed dates  – 2026-10-28" time="0.000"/>
+    <testcase classname="tests/analytics/period.test.ts" name="rejects invalid or reversed dates 2026-10-28 – 2026-10-01" time="0.000"/>
+  </testsuite>
+  <testsuite name="tests/logistics/logistics-records.test.ts" tests="2" failures="0" errors="0" skipped="0" time="0.175">
+    <testcase classname="tests/logistics/logistics-records.test.ts" name="keeps all vehicles and unassigned carriers with original identifiers and no fabricated association" time="0.002"/>
+    <testcase classname="tests/logistics/logistics-records.test.ts" name="searches the complete records literally, including a retained phone, and clearing restores every record" time="0.001"/>
+  </testsuite>
+  <testsuite name="tests/accounts/reversal-review.test.ts" tests="8" failures="0" errors="0" skipped="0" time="0.175">
+    <testcase classname="tests/accounts/reversal-review.test.ts" name="restores the original amount, trims the reason and can reopen a paid account" time="0.000"/>
+    <testcase classname="tests/accounts/reversal-review.test.ts" name="uses exact addition beyond the safe integer limit" time="0.001"/>
+    <testcase classname="tests/accounts/reversal-review.test.ts" name="detects only compensations linked to this original and rejects a repeated reversal" time="0.000"/>
+    <testcase classname="tests/accounts/reversal-review.test.ts" name="rejects an empty or oversized reason" time="0.000"/>
+    <testcase classname="tests/accounts/reversal-review.test.ts" name="rejects an empty or oversized reason" time="0.000"/>
+    <testcase classname="tests/accounts/reversal-review.test.ts" name="rejects an empty or oversized reason" time="0.000"/>
+    <testcase classname="tests/accounts/reversal-review.test.ts" name="accepts the boundary of 240 characters after trimming" time="0.000"/>
+    <testcase classname="tests/accounts/reversal-review.test.ts" name="rejects a voided account, missing payment, reversal as original and malformed amounts" time="0.001"/>
+  </testsuite>
+  <testsuite name="tests/reception/reception-recovery.test.ts" tests="5" failures="0" errors="0" skipped="0" time="0.216">
+    <testcase classname="tests/reception/reception-recovery.test.ts" name="blocks pending writes using the central or resolved local identity" time="0.001"/>
+    <testcase classname="tests/reception/reception-recovery.test.ts" name="blocks syncing writes using the central or resolved local identity" time="0.002"/>
+    <testcase classname="tests/reception/reception-recovery.test.ts" name="blocks rejected writes using the central or resolved local identity" time="0.000"/>
+    <testcase classname="tests/reception/reception-recovery.test.ts" name="blocks review writes using the central or resolved local identity" time="0.000"/>
+    <testcase classname="tests/reception/reception-recovery.test.ts" name="does not block confirmed, discarded or unrelated operations" time="0.001"/>
+  </testsuite>
+  <testsuite name="tests/receipts/receipt-sharing-session.test.ts" tests="2" failures="0" errors="0" skipped="0" time="0.211">
+    <testcase classname="tests/receipts/receipt-sharing-session.test.ts" name="never opens sharing when a download completes after its session ended" time="0.003"/>
+    <testcase classname="tests/receipts/receipt-sharing-session.test.ts" name="rechecks session ownership after asynchronous sharing availability" time="0.000"/>
+  </testsuite>
+</testsuites>

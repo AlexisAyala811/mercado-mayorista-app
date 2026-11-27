@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="Backend · pruebas e2e en PostgreSQL" tests="76" failures="0" errors="0">
+  <testsuite name="test/purchase-lots.e2e-spec.ts" tests="11" failures="0" errors="0" skipped="0" time="6.269">
+    <testcase classname="test/purchase-lots.e2e-spec.ts" name="Purchase lots and freight choice (PostgreSQL) › offers the lots of the active sacks with the letters of the settlement" time="0.260"/>
+    <testcase classname="test/purchase-lots.e2e-spec.ts" name="Purchase lots and freight choice (PostgreSQL) › prices two lots with different bases and pays the gross in cash" time="0.221"/>
+    <testcase classname="test/purchase-lots.e2e-spec.ts" name="Purchase lots and freight choice (PostgreSQL) › leaves S/ 130.00 of freight to the carrier when the wholesaler bears it" time="0.241"/>
+    <testcase classname="test/purchase-lots.e2e-spec.ts" name="Purchase lots and freight choice (PostgreSQL) › leaves S/ 130.00 of freight to the carrier when the provider bears it" time="0.196"/>
+    <testcase classname="test/purchase-lots.e2e-spec.ts" name="Purchase lots and freight choice (PostgreSQL) › rejects lots that leave sacks out without saving anything" time="0.191"/>
+    <testcase classname="test/purchase-lots.e2e-spec.ts" name="Purchase lots and freight choice (PostgreSQL) › answers five simultaneous resends with one purchase and rejects the id with another price" time="0.248"/>
+    <testcase classname="test/purchase-lots.e2e-spec.ts" name="Purchase lots and freight choice (PostgreSQL) › keeps the single-price body of earlier app versions as one lot" time="0.206"/>
+    <testcase classname="test/purchase-lots.e2e-spec.ts" name="Purchase lots and freight choice (PostgreSQL) › feeds the receipt and the analytics with the price of each lot" time="0.232"/>
+    <testcase classname="test/purchase-lots.e2e-spec.ts" name="Purchase lots and freight choice (PostgreSQL) › refuses to roll back migration 029 once purchases have lots" time="0.218"/>
+    <testcase classname="test/purchase-lots.e2e-spec.ts" name="Purchase lots and freight choice (PostgreSQL) › refuses a body with both lots and a single price" time="0.212"/>
+    <testcase classname="test/purchase-lots.e2e-spec.ts" name="Purchase lots and freight choice (PostgreSQL) › voids a purchase with lots, reversing its cash and freight" time="0.254"/>
+  </testsuite>
+  <testsuite name="test/migrations.e2e-spec.ts" tests="23" failures="0" errors="0" skipped="0" time="4.516">
+    <testcase classname="test/migrations.e2e-spec.ts" name="PostgreSQL migrations (e2e) › applies every registered migration and creates the critical tables" time="0.003"/>
+    <testcase classname="test/migrations.e2e-spec.ts" name="PostgreSQL migrations (e2e) › allows the same UUID for distinct cash categories but rejects duplicate effects within one category" time="0.089"/>
+    <testcase classname="test/migrations.e2e-spec.ts" name="PostgreSQL migrations (e2e) › commits one payment, cash movement and audit event for simultaneous retries" time="0.085"/>
+    <testcase classname="test/migrations.e2e-spec.ts" name="PostgreSQL migrations (e2e) › rolls back payment, allocations and installment changes when dues do not cover the payment" time="0.068"/>
+    <testcase classname="test/migrations.e2e-spec.ts" name="PostgreSQL migrations (e2e) › restores balances with compensating cash and rejects another business" time="0.066"/>
+    <testcase classname="test/migrations.e2e-spec.ts" name="PostgreSQL migrations (e2e) › confirms an independent sale without any purchases, with one cash effect on concurrent retries" time="0.141"/>
+    <testcase classname="test/migrations.e2e-spec.ts" name="PostgreSQL migrations (e2e) › keeps purchase quantities and financial effect, then allows an independent larger sale" time="0.112"/>
+    <testcase classname="test/migrations.e2e-spec.ts" name="PostgreSQL migrations (e2e) › voids a cash sale once, preserving original lines and historical financial effects" time="0.059"/>
+    <testcase classname="test/migrations.e2e-spec.ts" name="PostgreSQL migrations (e2e) › creates receivable installments and refuses stale void versions" time="0.067"/>
+    <testcase classname="test/migrations.e2e-spec.ts" name="PostgreSQL migrations (e2e) › rejects another business variety before committing money or sales" time="0.105"/>
+    <testcase classname="test/migrations.e2e-spec.ts" name="PostgreSQL migrations (e2e) › returns commercial quantities without physical stock and bounds cumulative compensation" time="0.099"/>
+    <testcase classname="test/migrations.e2e-spec.ts" name="PostgreSQL migrations (e2e) › records purchase 100 and sale 30 without deriving any remaining merchandise balance" time="0.461"/>
+    <testcase classname="test/migrations.e2e-spec.ts" name="PostgreSQL migrations (e2e) › credits the receivable and latest due installments without cash or stock restoration" time="0.113"/>
+    <testcase classname="test/migrations.e2e-spec.ts" name="PostgreSQL migrations (e2e) › filters all history by Lima day and literal participant, including inactive buyers beyond the first hundred rows" time="0.171"/>
+    <testcase classname="test/migrations.e2e-spec.ts" name="PostgreSQL migrations (e2e) › filters all reception history by civil received date and inactive provider without multiplying varieties" time="0.161"/>
+    <testcase classname="test/migrations.e2e-spec.ts" name="PostgreSQL migrations (e2e) › HTTP authentication and authorization › authenticates and isolates catalog data between businesses" time="0.019"/>
+    <testcase classname="test/migrations.e2e-spec.ts" name="PostgreSQL migrations (e2e) › HTTP authentication and authorization › denies assistant mutations and records the denied authorization" time="0.006"/>
+    <testcase classname="test/migrations.e2e-spec.ts" name="PostgreSQL migrations (e2e) › HTTP authentication and authorization › restricts commercial reports to the wholesaler role" time="0.050"/>
+    <testcase classname="test/migrations.e2e-spec.ts" name="PostgreSQL migrations (e2e) › HTTP authentication and authorization › enforces append-only audit events inside PostgreSQL" time="0.011"/>
+    <testcase classname="test/migrations.e2e-spec.ts" name="PostgreSQL migrations (e2e) › HTTP authentication and authorization › publishes the versioned OpenAPI contract and uniform HTTP errors" time="0.039"/>
+    <testcase classname="test/migrations.e2e-spec.ts" name="PostgreSQL migrations (e2e) › HTTP authentication and authorization › revokes the session on logout" time="0.067"/>
+    <testcase classname="test/migrations.e2e-spec.ts" name="PostgreSQL migrations (e2e) › HTTP authentication and authorization › revalidates an assistant session after its delegation is revoked" time="0.006"/>
+    <testcase classname="test/migrations.e2e-spec.ts" name="PostgreSQL migrations (e2e) › HTTP authentication and authorization › rate limits repeated login attempts in the real HTTP pipeline" time="0.310"/>
+  </testsuite>
+  <testsuite name="test/merchant-administration.e2e-spec.ts" tests="8" failures="0" errors="0" skipped="0" time="3.824">
+    <testcase classname="test/merchant-administration.e2e-spec.ts" name="Merchant administration (PostgreSQL) › creates a merchant once per clientOperationId and rejects a reused id with other data" time="0.220"/>
+    <testcase classname="test/merchant-administration.e2e-spec.ts" name="Merchant administration (PostgreSQL) › forces the wholesaler to create a password before anything else" time="0.259"/>
+    <testcase classname="test/merchant-administration.e2e-spec.ts" name="Merchant administration (PostgreSQL) › lists and searches merchants, only for the Administrator" time="0.013"/>
+    <testcase classname="test/merchant-administration.e2e-spec.ts" name="Merchant administration (PostgreSQL) › shows support status: failed attempts, last login and open sessions" time="0.172"/>
+    <testcase classname="test/merchant-administration.e2e-spec.ts" name="Merchant administration (PostgreSQL) › suspends a merchant at once and reactivates it, with the reason audited in both businesses" time="0.147"/>
+    <testcase classname="test/merchant-administration.e2e-spec.ts" name="Merchant administration (PostgreSQL) › resets a forgotten password with a temporary one and closes the old sessions" time="0.167"/>
+    <testcase classname="test/merchant-administration.e2e-spec.ts" name="Merchant administration (PostgreSQL) › never treats the platform business as a merchant" time="0.015"/>
+    <testcase classname="test/merchant-administration.e2e-spec.ts" name="Merchant administration (PostgreSQL) › denies the Administrator every business route of the API" time="0.390"/>
+  </testsuite>
+  <testsuite name="test/stitch-history.e2e-spec.ts" tests="4" failures="0" errors="0" skipped="0" time="4.004">
+    <testcase classname="test/stitch-history.e2e-spec.ts" name="Stitch convergence history (PostgreSQL) › lists purchases with sacks, kilos, totals and the CL-MD05 state, counts them and filters in the server" time="0.286"/>
+    <testcase classname="test/stitch-history.e2e-spec.ts" name="Stitch convergence history (PostgreSQL) › adds varieties, sacks, kilos and payment state to sales, counts them and filters in the server" time="0.074"/>
+    <testcase classname="test/stitch-history.e2e-spec.ts" name="Stitch convergence history (PostgreSQL) › answers the list and the summary of 300 receptions quickly" time="0.945"/>
+    <testcase classname="test/stitch-history.e2e-spec.ts" name="Stitch convergence history (PostgreSQL) › groups the daily report by the day in Lima" time="0.203"/>
+  </testsuite>
+  <testsuite name="test/commerce-without-inventory.e2e-spec.ts" tests="11" failures="0" errors="0" skipped="0" time="2.867">
+    <testcase classname="test/commerce-without-inventory.e2e-spec.ts" name="Commerce without inventory (PostgreSQL) › confirms an independent sale without any purchases, with one cash effect on concurrent retries" time="0.165"/>
+    <testcase classname="test/commerce-without-inventory.e2e-spec.ts" name="Commerce without inventory (PostgreSQL) › keeps purchase quantities and financial effect, then allows an independent larger sale" time="0.112"/>
+    <testcase classname="test/commerce-without-inventory.e2e-spec.ts" name="Commerce without inventory (PostgreSQL) › voids a cash sale once, preserving original lines and historical financial effects" time="0.060"/>
+    <testcase classname="test/commerce-without-inventory.e2e-spec.ts" name="Commerce without inventory (PostgreSQL) › creates receivable installments and refuses stale void versions" time="0.067"/>
+    <testcase classname="test/commerce-without-inventory.e2e-spec.ts" name="Commerce without inventory (PostgreSQL) › rejects another business variety before committing money or sales" time="0.105"/>
+    <testcase classname="test/commerce-without-inventory.e2e-spec.ts" name="Commerce without inventory (PostgreSQL) › returns commercial quantities without physical stock and bounds cumulative compensation" time="0.093"/>
+    <testcase classname="test/commerce-without-inventory.e2e-spec.ts" name="Commerce without inventory (PostgreSQL) › records purchase 100 and sale 30 without deriving any remaining merchandise balance" time="0.448"/>
+    <testcase classname="test/commerce-without-inventory.e2e-spec.ts" name="Commerce without inventory (PostgreSQL) › credits the receivable and latest due installments without cash or stock restoration" time="0.105"/>
+    <testcase classname="test/commerce-without-inventory.e2e-spec.ts" name="Commerce without inventory (PostgreSQL) › filters all history by Lima day and literal participant, including inactive buyers beyond the first hundred rows" time="0.156"/>
+    <testcase classname="test/commerce-without-inventory.e2e-spec.ts" name="Commerce without inventory (PostgreSQL) › filters all reception history by civil received date and inactive provider without multiplying varieties" time="0.155"/>
+    <testcase classname="test/commerce-without-inventory.e2e-spec.ts" name="Commerce without inventory (PostgreSQL) › backfills historical varieties without changing lot references and refuses destructive reversal" time="0.029"/>
+  </testsuite>
+  <testsuite name="test/buyer-statement.e2e-spec.ts" tests="5" failures="0" errors="0" skipped="0" time="2.911">
+    <testcase classname="test/buyer-statement.e2e-spec.ts" name="Buyer account statement (PostgreSQL) › states the spec example with overdue and upcoming installments" time="0.020"/>
+    <testcase classname="test/buyer-statement.e2e-spec.ts" name="Buyer account statement (PostgreSQL) › keeps one PDF and one PNG per version and reuses them on the same day" time="0.209"/>
+    <testcase classname="test/buyer-statement.e2e-spec.ts" name="Buyer account statement (PostgreSQL) › answers 404 to another business and audits the attempt in that business" time="0.009"/>
+    <testcase classname="test/buyer-statement.e2e-spec.ts" name="Buyer account statement (PostgreSQL) › answers in under 3 seconds for a buyer with 50 open sales (AC01)" time="0.359"/>
+    <testcase classname="test/buyer-statement.e2e-spec.ts" name="Buyer account statement (PostgreSQL) › denies the Assistant" time="0.006"/>
+  </testsuite>
+  <testsuite name="test/purchase-payment-status.e2e-spec.ts" tests="2" failures="0" errors="0" skipped="0" time="2.715">
+    <testcase classname="test/purchase-payment-status.e2e-spec.ts" name="Purchase payment status (PostgreSQL) › reports paid, debt and voided per reception and leaves out the rest" time="0.299"/>
+    <testcase classname="test/purchase-payment-status.e2e-spec.ts" name="Purchase payment status (PostgreSQL) › rejects malformed or oversized requests and requires a session" time="0.011"/>
+  </testsuite>
+  <testsuite name="test/analytics.e2e-spec.ts" tests="5" failures="0" errors="0" skipped="0" time="2.414">
+    <testcase classname="test/analytics.e2e-spec.ts" name="Analytics (PostgreSQL) › aggregates confirmed sales net of returns, without voided sales, with their references" time="0.067"/>
+    <testcase classname="test/analytics.e2e-spec.ts" name="Analytics (PostgreSQL) › filters the series by buyer" time="0.008"/>
+    <testcase classname="test/analytics.e2e-spec.ts" name="Analytics (PostgreSQL) › shows nothing of this business to another business" time="0.037"/>
+    <testcase classname="test/analytics.e2e-spec.ts" name="Analytics (PostgreSQL) › denies the Assistant" time="0.010"/>
+    <testcase classname="test/analytics.e2e-spec.ts" name="Analytics (PostgreSQL) › publishes no estimate and keeps no evaluation while the history is insufficient" time="0.057"/>
+  </testsuite>
+  <testsuite name="test/weighing.e2e-spec.ts" tests="4" failures="0" errors="0" skipped="0" time="2.234">
+    <testcase classname="test/weighing.e2e-spec.ts" name="Sack weighing (PostgreSQL) › answers five simultaneous resends of one order with one sack and one audit event" time="0.231"/>
+    <testcase classname="test/weighing.e2e-spec.ts" name="Sack weighing (PostgreSQL) › rejects the order id with another weight and an outdated reception version" time="0.040"/>
+    <testcase classname="test/weighing.e2e-spec.ts" name="Sack weighing (PostgreSQL) › rolls back the sack and the reception version when the audit event fails" time="0.025"/>
+    <testcase classname="test/weighing.e2e-spec.ts" name="Sack weighing (PostgreSQL) › corrects, withdraws and closes over HTTP, closing once under five simultaneous resends" time="0.074"/>
+  </testsuite>
+  <testsuite name="test/voided-credit-and-isolation.e2e-spec.ts" tests="2" failures="0" errors="0" skipped="0" time="2.094">
+    <testcase classname="test/voided-credit-and-isolation.e2e-spec.ts" name="Voided credit sales and cross-business isolation (PostgreSQL) › voids a credit sale leaving its account and installments voided without cash" time="0.078"/>
+    <testcase classname="test/voided-credit-and-isolation.e2e-spec.ts" name="Voided credit sales and cross-business isolation (PostgreSQL) › answers 404 to another business for sale, account and receipt, and audits each attempt there" time="0.040"/>
+  </testsuite>
+  <testsuite name="test/health.e2e-spec.ts" tests="1" failures="0" errors="0" skipped="0" time="1.940">
+    <testcase classname="test/health.e2e-spec.ts" name="Health (e2e) › reports process and database readiness" time="0.021"/>
+  </testsuite>
+</testsuites>

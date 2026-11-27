@@ -26,6 +26,7 @@ Este índice conecta la línea base documental, el diseño de Figma y el trabajo
 | [020](020-jest-backend/spec.md) | Pruebas del backend con Jest | Sprint 2, actividad 7 | Implementada el 21 de noviembre de 2026 | Jest 30 en ESM con SWC; 365 unitarias y 68 e2e |
 | [021](021-modulos-backend/spec.md) | Carpetas del backend agrupadas por módulo | Componentes arquitectónicos | Implementada el 22 de noviembre de 2026 | modules/, shared/, platform/ y retired/; sin cambios de comportamiento |
 | [023](023-administrador-comerciantes/spec.md) | Administrador de comerciantes y soporte | Identidad y acceso | Implementada en `feat/023-administrador` el 26 de noviembre de 2026; faltan celular y despliegue | Alta, suspensión y soporte de cuentas sin ver operaciones |
+| [024](024-reporte-resultados-pruebas/spec.md) | Reporte de resultados de pruebas | Transversal: calidad | Aprobada e implementada en `feat/024-reporte-pruebas` el 26 de noviembre de 2026 | Resumen, JSON y JUnit por proyecto; artefacto en la CI; foto en [`test-results/`](../test-results/README.md) |
 
 ## Artefactos transversales
 

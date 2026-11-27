@@ -52,3 +52,6 @@ example
 
 # Sprint 2: informe de cobertura de Jest
 /coverage/
+
+# Spec 024: resultados de cada corrida (la foto por sprint va en /test-results)
+test-results/

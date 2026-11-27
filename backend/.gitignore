@@ -6,3 +6,6 @@ tmp/
 *.log
 .env
 .local/
+
+# Spec 024: resultados de cada corrida (la foto por sprint va en /test-results)
+test-results/

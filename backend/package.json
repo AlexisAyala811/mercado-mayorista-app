@@ -19,6 +19,8 @@
     "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
     "test:cov": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
     "test:debug": "node --experimental-vm-modules --inspect-brk node_modules/jest/bin/jest.js --runInBand",
+    "test:report": "node ../.github/scripts/test-report.mjs --suite backend-unit --out test-results/unit --coverage coverage/coverage-summary.json -- node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
+    "test:report:e2e": "node ../.github/scripts/test-report.mjs --suite backend-e2e --out test-results/e2e -- node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.config.e2e.mjs --runInBand",
     "test:e2e": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.config.e2e.mjs --runInBand",
     "check": "npm run typecheck && npm run lint && npm run test && npm run build",
     "migration:run": "npm run build && typeorm migration:run -d dist/platform/database/data-source.js",

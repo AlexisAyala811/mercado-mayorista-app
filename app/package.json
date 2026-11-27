@@ -65,7 +65,8 @@
     "check": "npm run typecheck && npm run lint && npm run test -- --runInBand",
     "postinstall": "node scripts/copy-pdfjs-assets.mjs",
     "test:e2e": "playwright test",
-    "test:cov": "jest --runInBand --coverage"
+    "test:cov": "jest --runInBand --coverage",
+    "test:report": "node ../.github/scripts/test-report.mjs --suite app --out test-results/unit --coverage coverage/coverage-summary.json -- node node_modules/jest/bin/jest.js --runInBand --coverage"
   },
   "jest": {
     "preset": "jest-expo",
