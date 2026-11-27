@@ -7,7 +7,7 @@ import {
 import { Reflector } from '@nestjs/core';
 
 import { AuditService } from '../../../shared/audit/audit.service.js';
-import type { UserRole } from '../entities/user.entity.js';
+import { UserRole } from '../entities/user.entity.js';
 import type { AuthenticatedRequest } from './authenticated-request.js';
 import { rolesMetadataKey } from './roles.decorator.js';
 
@@ -23,11 +23,12 @@ export class RolesGuard implements CanActivate {
       rolesMetadataKey,
       [context.getHandler(), context.getClass()],
     );
-    if (!roles?.length) return true;
-
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
     const identity = request.identity;
-    if (!identity || !roles.includes(identity.role)) {
+    // Spec 023: a route without roles is open to the business users, never to
+    // the Administrator, who only reaches the routes that name it.
+    if (!roles?.length && identity?.role !== UserRole.Admin) return true;
+    if (!identity || !roles?.includes(identity.role)) {
       if (identity) {
         await this.audit
           .recordDirect({
@@ -35,7 +36,7 @@ export class RolesGuard implements CanActivate {
             actorUserId: identity.userId,
             businessId: identity.businessId,
             details: {
-              allowedRoles: roles,
+              allowedRoles: roles ?? [],
               method: request.method,
               path: request.route?.path ?? request.path,
               role: identity.role,

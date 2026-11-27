@@ -180,6 +180,36 @@
         "summary": "Cierra y revoca la sesión actual"
       }
     },
+    "/api/v1/auth/password": {
+      "patch": {
+        "operationId": "IdentityController_changePassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "identity"
+        ],
+        "summary": "Cambia la contraseña propia (obligatorio tras una contraseña temporal)"
+      }
+    },
     "/api/v1/identity/assistants": {
       "get": {
         "operationId": "IdentityAdministrationController_assistants",
@@ -463,6 +493,313 @@
           "identity-administration"
         ],
         "summary": "Revoca un reemplazo"
+      }
+    },
+    "/api/v1/admin/merchants": {
+      "get": {
+        "operationId": "MerchantAdministrationController_list",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "offset",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "minimum": 0,
+              "default": 0,
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/Object"
+                }
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maxLength": 80,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "admin-merchants"
+        ],
+        "summary": "Lista y busca los comerciantes (Administrador)"
+      },
+      "post": {
+        "operationId": "MerchantAdministrationController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMerchantDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "admin-merchants"
+        ],
+        "summary": "Da de alta un comerciante y su Mayorista con contraseña temporal"
+      }
+    },
+    "/api/v1/admin/merchants/{id}/status": {
+      "get": {
+        "operationId": "MerchantAdministrationController_status",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "admin-merchants"
+        ],
+        "summary": "Estado de la cuenta de un comerciante para soporte"
+      }
+    },
+    "/api/v1/admin/merchants/{id}/suspend": {
+      "post": {
+        "operationId": "MerchantAdministrationController_suspend",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MerchantActionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "admin-merchants"
+        ],
+        "summary": "Suspende un comerciante y cierra sus sesiones"
+      }
+    },
+    "/api/v1/admin/merchants/{id}/reactivate": {
+      "post": {
+        "operationId": "MerchantAdministrationController_reactivate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MerchantActionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "admin-merchants"
+        ],
+        "summary": "Reactiva un comerciante suspendido"
+      }
+    },
+    "/api/v1/admin/merchants/{id}/password-reset": {
+      "post": {
+        "operationId": "MerchantAdministrationController_resetPassword",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetMerchantPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "admin-merchants"
+        ],
+        "summary": "Restablece la contraseña del Mayorista con una temporal"
+      }
+    },
+    "/api/v1/admin/merchants/{id}/sessions/revoke": {
+      "post": {
+        "operationId": "MerchantAdministrationController_revokeSessions",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MerchantActionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "session": []
+          }
+        ],
+        "tags": [
+          "admin-merchants"
+        ],
+        "summary": "Cierra todas las sesiones de un comerciante"
       }
     },
     "/api/v1/health/live": {
@@ -5701,6 +6038,25 @@
           "password"
         ]
       },
+      "ChangePasswordDto": {
+        "type": "object",
+        "properties": {
+          "currentPassword": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "newPassword": {
+            "type": "string",
+            "minLength": 12,
+            "maxLength": 256
+          }
+        },
+        "required": [
+          "currentPassword",
+          "newPassword"
+        ]
+      },
       "CreateAssistantDto": {
         "type": "object",
         "properties": {
@@ -5799,6 +6155,78 @@
           "reason",
           "revokedAt",
           "createdAt"
+        ]
+      },
+      "CreateMerchantDto": {
+        "type": "object",
+        "properties": {
+          "clientOperationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "businessName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "username": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "temporaryPassword": {
+            "type": "string",
+            "minLength": 12,
+            "maxLength": 256
+          }
+        },
+        "required": [
+          "clientOperationId",
+          "businessName",
+          "username",
+          "temporaryPassword"
+        ]
+      },
+      "MerchantActionDto": {
+        "type": "object",
+        "properties": {
+          "clientOperationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 240
+          }
+        },
+        "required": [
+          "clientOperationId",
+          "reason"
+        ]
+      },
+      "ResetMerchantPasswordDto": {
+        "type": "object",
+        "properties": {
+          "clientOperationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 240
+          },
+          "temporaryPassword": {
+            "type": "string",
+            "minLength": 12,
+            "maxLength": 256
+          }
+        },
+        "required": [
+          "clientOperationId",
+          "reason",
+          "temporaryPassword"
         ]
       },
       "CreateBuyerDto": {

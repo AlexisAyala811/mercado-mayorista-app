@@ -36,6 +36,7 @@ describe('VerifyCredentialsUseCase', () => {
       useCase.execute('  mayorista  ', 'correct-password'),
     ).resolves.toEqual({
       businessId: 'business-1',
+      mustChangePassword: false,
       role: UserRole.Wholesaler,
       userId: 'user-1',
       username: 'Mayorista',

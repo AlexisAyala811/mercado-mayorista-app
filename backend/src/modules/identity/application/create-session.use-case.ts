@@ -9,7 +9,7 @@ import {
 } from './verify-credentials.use-case.js';
 import { SessionEntity } from '../entities/session.entity.js';
 import { DelegationEntity } from '../entities/delegation.entity.js';
-import { UserRole } from '../entities/user.entity.js';
+import { UserEntity, UserRole } from '../entities/user.entity.js';
 import { IsNull, LessThanOrEqual, MoreThan } from 'typeorm';
 import { SessionTokenService } from '../security/session-token.service.js';
 
@@ -60,6 +60,13 @@ export class CreateSessionUseCase {
           Math.min(expiresAt.getTime(), delegation.expiresAt.getTime()),
         );
       }
+      // Spec 023: last login and a clean failure count, for account support.
+      await manager
+        .getRepository(UserEntity)
+        .update(
+          { id: identity.userId },
+          { failedLoginAttempts: 0, lastLoginAt: new Date() },
+        );
       const sessions = manager.getRepository(SessionEntity);
       const session = await sessions.save(
         sessions.create({

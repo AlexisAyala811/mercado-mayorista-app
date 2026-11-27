@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Patch,
   Post,
   UnauthorizedException,
   UseGuards,
@@ -12,11 +13,13 @@ import {
 import { minutes, Throttle } from '@nestjs/throttler';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+import { ChangePasswordUseCase } from '../application/change-password.use-case.js';
 import { CreateSessionUseCase } from '../application/create-session.use-case.js';
 import type { SessionIdentity } from '../application/ports/session-identity-reader.js';
 import { RevokeSessionUseCase } from '../application/revoke-session.use-case.js';
 import { CurrentIdentity } from './current-identity.decorator.js';
-import { LoginDto } from './login.dto.js';
+import { ChangePasswordDto, LoginDto } from './login.dto.js';
+import { AllowWhilePasswordChange } from './password-change.decorator.js';
 import { SessionAuthGuard } from './session-auth.guard.js';
 
 @Controller('auth')
@@ -25,6 +28,7 @@ export class IdentityController {
   constructor(
     private readonly createSession: CreateSessionUseCase,
     private readonly revokeSession: RevokeSessionUseCase,
+    private readonly changePasswordUseCase: ChangePasswordUseCase,
   ) {}
 
   @Post('sessions')
@@ -47,6 +51,7 @@ export class IdentityController {
   @Get('session')
   @ApiBearerAuth('session')
   @UseGuards(SessionAuthGuard)
+  @AllowWhilePasswordChange()
   current(@CurrentIdentity() identity: SessionIdentity) {
     return identity;
   }
@@ -54,8 +59,26 @@ export class IdentityController {
   @Delete('session')
   @ApiBearerAuth('session')
   @UseGuards(SessionAuthGuard)
+  @AllowWhilePasswordChange()
   @HttpCode(HttpStatus.NO_CONTENT)
   async logout(@CurrentIdentity() identity: SessionIdentity) {
     await this.revokeSession.execute(identity);
+  }
+
+  @Patch('password')
+  @ApiBearerAuth('session')
+  @UseGuards(SessionAuthGuard)
+  @AllowWhilePasswordChange()
+  @Throttle({ default: { limit: 5, ttl: minutes(1) } })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async changePassword(
+    @CurrentIdentity() identity: SessionIdentity,
+    @Body() input: ChangePasswordDto,
+  ) {
+    await this.changePasswordUseCase.execute(
+      identity,
+      input.currentPassword,
+      input.newPassword,
+    );
   }
 }

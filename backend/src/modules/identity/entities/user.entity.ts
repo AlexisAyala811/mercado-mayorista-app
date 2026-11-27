@@ -16,6 +16,8 @@ import { SessionEntity } from './session.entity.js';
 export enum UserRole {
   Assistant = 'assistant',
   Wholesaler = 'wholesaler',
+  // Spec 023: manages merchants' accounts; never sees their operations.
+  Admin = 'admin',
 }
 
 @Entity({ name: 'users' })
@@ -42,6 +44,19 @@ export class UserEntity {
 
   @Column({ default: true, name: 'is_active', type: 'boolean' })
   isActive!: boolean;
+
+  // Spec 023: after a temporary password the session only allows changing it.
+  @Column({ default: false, name: 'must_change_password', type: 'boolean' })
+  mustChangePassword!: boolean;
+
+  @Column({ name: 'last_login_at', nullable: true, type: 'timestamptz' })
+  lastLoginAt!: Date | null;
+
+  @Column({ default: 0, name: 'failed_login_attempts', type: 'integer' })
+  failedLoginAttempts!: number;
+
+  @Column({ name: 'last_failed_login_at', nullable: true, type: 'timestamptz' })
+  lastFailedLoginAt!: Date | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;

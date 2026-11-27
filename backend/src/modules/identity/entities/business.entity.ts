@@ -10,6 +10,13 @@ import type { Relation } from 'typeorm';
 
 import { UserEntity } from './user.entity.js';
 
+// Spec 023: a merchant is a client business; the single platform business only
+// holds the Administrator and never receives operations.
+export enum BusinessKind {
+  Merchant = 'merchant',
+  Platform = 'platform',
+}
+
 @Entity({ name: 'businesses' })
 export class BusinessEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -20,6 +27,14 @@ export class BusinessEntity {
 
   @Column({ default: true, name: 'is_active', type: 'boolean' })
   isActive!: boolean;
+
+  @Column({
+    default: BusinessKind.Merchant,
+    enum: BusinessKind,
+    enumName: 'business_kind',
+    type: 'enum',
+  })
+  kind!: BusinessKind;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;

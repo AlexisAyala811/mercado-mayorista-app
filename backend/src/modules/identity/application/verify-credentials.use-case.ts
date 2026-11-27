@@ -6,6 +6,8 @@ import { PasswordHasher } from '../security/password-hasher.js';
 
 export type VerifiedIdentity = {
   businessId: string;
+  /** Spec 023: the session can only change the password until it is false. */
+  mustChangePassword: boolean;
   role: UserRole;
   userId: string;
   username: string;
@@ -35,10 +37,14 @@ export class VerifyCredentialsUseCase {
       password,
       user.passwordHash,
     );
-    if (!isValid) return undefined;
+    if (!isValid) {
+      await this.users.recordFailedLogin(user.id);
+      return undefined;
+    }
 
     return {
       businessId: user.businessId,
+      mustChangePassword: user.mustChangePassword ?? false,
       role: user.role,
       userId: user.id,
       username: user.username,
