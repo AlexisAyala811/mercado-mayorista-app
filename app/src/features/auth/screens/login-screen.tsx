@@ -306,7 +306,7 @@ export function LoginScreen({
               />
               {forgotOpen ? (
                 <Text accessibilityLiveRegion="polite" style={styles.forgotHelp}>
-                  Pide al Mayorista que restablezca tu clave en Usuarios y reemplazos.
+                  Si eres Encargado, pide al Mayorista que la restablezca en Usuarios y reemplazos. Si eres Mayorista, comunícate con el soporte de MAÑAY: te dará una clave temporal.
                 </Text>
               ) : null}
               <Pressable

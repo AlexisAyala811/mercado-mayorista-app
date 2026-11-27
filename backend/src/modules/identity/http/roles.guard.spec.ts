@@ -52,4 +52,20 @@ describe('RolesGuard', () => {
       }),
     );
   });
+
+  // Spec 023: the Administrator only reaches routes that name its role.
+  it('denies the Administrator a route without declared roles', async () => {
+    const getAllAndOverride = jest.fn().mockReturnValue(undefined);
+    const guard = new RolesGuard(
+      { getAllAndOverride } as unknown as Reflector,
+      audit,
+    );
+
+    await expect(
+      guard.canActivate(contextFor(UserRole.Wholesaler)),
+    ).resolves.toBe(true);
+    await expect(
+      guard.canActivate(contextFor(UserRole.Admin)),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+  });
 });

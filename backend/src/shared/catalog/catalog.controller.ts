@@ -35,6 +35,8 @@ import {
 @ApiTags('catalog')
 @ApiBearerAuth('session')
 @UseGuards(SessionAuthGuard, RolesGuard)
+// Reads are for both business roles; writes narrow it to the Wholesaler.
+@Roles(UserRole.Wholesaler, UserRole.Assistant)
 export class CatalogController {
   constructor(private readonly catalog: CatalogService) {}
 

@@ -16,6 +16,7 @@ describe('CreateSessionUseCase', () => {
   afterEach(() => jest.useRealTimers());
   const identity: VerifiedIdentity = {
     businessId: 'business-1',
+    mustChangePassword: false,
     role: UserRole.Wholesaler,
     userId: 'user-1',
     username: 'Mayorista',
@@ -43,6 +44,7 @@ describe('CreateSessionUseCase', () => {
       };
       const sessions = {
         create: jest.fn((value) => value),
+        update: jest.fn(),
         save: jest.fn().mockResolvedValue({ id: 'session-1' }),
       };
       const manager = {
@@ -101,6 +103,7 @@ describe('CreateSessionUseCase', () => {
     const sessions = {
       create,
       save,
+      update: jest.fn(),
     } as unknown as Repository<SessionEntity>;
     const manager = {
       getRepository: jest.fn().mockReturnValue(sessions),

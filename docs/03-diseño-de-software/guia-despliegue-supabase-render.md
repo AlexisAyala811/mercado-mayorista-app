@@ -72,6 +72,24 @@ npm run bootstrap:wholesaler
 
 Las contraseñas se escriben ocultas y no quedan en el historial. Debe terminar con `Initial business and wholesaler created.` Si ya existe un usuario, el comando se niega y no cambia nada. Cierra la ventana de PowerShell al terminar para borrar las variables.
 
+## 4b. Primer Administrador (spec 023)
+
+El Administrador da de alta a los comerciantes y atiende sus cuentas sin ver sus operaciones ([ADR-07](../01-analisis-de-sistema/07-decisiones-arquitectonicas.md)). Se crea una sola vez, después de que Render haya aplicado la migración 031. En Windows PowerShell, desde la carpeta `backend`, con las mismas variables de conexión del paso 4:
+
+```powershell
+$env:DATABASE_HOST = "aws-1-us-east-1.pooler.supabase.com"
+$env:DATABASE_USER = "postgres.tu-referencia"
+$env:DATABASE_NAME = "postgres"
+$env:DATABASE_SSL = "true"
+$env:DATABASE_SSL_CA = Get-Content -Raw "$HOME\Downloads\prod-ca-2021.crt"
+$env:DATABASE_PASSWORD = [Runtime.InteropServices.Marshal]::PtrToStringBSTR([Runtime.InteropServices.Marshal]::SecureStringToBSTR((Read-Host -AsSecureString "Contraseña de Supabase")))
+$env:BOOTSTRAP_ADMIN_USERNAME = "soporte"
+$env:BOOTSTRAP_ADMIN_PASSWORD = [Runtime.InteropServices.Marshal]::PtrToStringBSTR([Runtime.InteropServices.Marshal]::SecureStringToBSTR((Read-Host -AsSecureString "Contraseña del Administrador (12+ caracteres)")))
+npm run bootstrap:admin
+```
+
+Debe terminar con `Platform business and administrator created.` Si ya existe un Administrador, el comando se niega y no cambia nada. Los comerciantes y Mayoristas que ya existen siguen funcionando igual. Cierra la ventana de PowerShell al terminar para borrar las variables. En la app, inicia sesión con ese usuario: entra directo a «Comerciantes».
+
 ## 5. Comprobación
 
 1. Abre `https://manay-api-xxxx.onrender.com/api/v1/health/ready` en el navegador: debe responder `200`. La primera vez tras un rato de inactividad tarda cerca de un minuto (el plan gratuito duerme el servicio).

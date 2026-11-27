@@ -88,6 +88,11 @@ export async function getCurrentSession(token: string) {
   return apiRequest<SessionIdentity>('/auth/session', { token });
 }
 
+// Spec 023: the user's own password; required after a temporary one.
+export async function changePassword(token: string, currentPassword: string, newPassword: string) {
+  await apiRequest<void>('/auth/password', { body: { currentPassword, newPassword }, method: 'PATCH', token });
+}
+
 export async function revokeSession(token: string) {
   await apiRequest<void>('/auth/session', { method: 'DELETE', token });
 }

@@ -8,7 +8,7 @@ Este documento es la referencia única de los módulos del sistema (ADR-04). Las
 
 | # | Módulo | Responsabilidad | Historias | Requisitos | Carpetas en `backend/src` |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Identidad y acceso | Sesión, Encargados y reemplazos | HU07, HU12 | RF01, RF02 | `identity` |
+| 1 | Identidad y acceso | Sesión, Encargados y reemplazos; administración de comerciantes y soporte (spec 023, ADR-07) | HU07, HU12 | RF01, RF02, RF28 | `identity` |
 | 2 | Recepción y compras | Pesaje saco por saco, cierre y liquidación al proveedor | HU01, HU02 | RF05–RF07, RF06A, RF06B, RF14 | `reception`, `purchase` |
 | 3 | Ventas y despachos | Venta, despacho, anulación y devoluciones comerciales | HU03 | RF10, RF11, RF13 | `sales` |
 | 4 | Cuentas y caja | Cuotas, abonos, pagos, cobros, caja y avisos de vencimiento | HU04, HU08, HU14 | RF13–RF16 | `accounts` |

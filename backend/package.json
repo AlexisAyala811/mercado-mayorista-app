@@ -25,6 +25,7 @@
     "migration:run:prod": "typeorm migration:run -d dist/platform/database/data-source.js",
     "migration:show": "npm run build && typeorm migration:show -d dist/platform/database/data-source.js",
     "migration:revert": "npm run build && typeorm migration:revert -d dist/platform/database/data-source.js",
+    "bootstrap:admin": "npm run build && node dist/platform/database/bootstrap-admin.js",
     "bootstrap:wholesaler": "npm run build && node dist/platform/database/bootstrap-wholesaler.js"
   },
   "dependencies": {

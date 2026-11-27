@@ -4,6 +4,7 @@ import { InstallmentVoidedState1793232000027 } from './migrations/202610290027-i
 import { ReceiptDocumentsPng1793318400028 } from './migrations/202610300028-receipt-documents-png.js';
 import { PurchaseSettlementLots1793750400029 } from './migrations/202611040029-purchase-settlement-lots.js';
 import { PurchaseSettlementsTimeIndex1794873600030 } from './migrations/202611170030-purchase-settlements-time-index.js';
+import { MerchantAdministration1795651200031 } from './migrations/202611260031-merchant-administration.js';
 import { ShareAttemptEntity } from '../../modules/messaging/share-attempt.entity.js';
 
 import { DataSource } from 'typeorm';
@@ -67,6 +68,7 @@ import { BusinessEntity } from '../../modules/identity/entities/business.entity.
 import { SessionEntity } from '../../modules/identity/entities/session.entity.js';
 import { UserEntity } from '../../modules/identity/entities/user.entity.js';
 import { DelegationEntity } from '../../modules/identity/entities/delegation.entity.js';
+import { AdminOperationEntity } from '../../modules/identity/entities/admin-operation.entity.js';
 import { createPostgresOptions } from './postgres-options.js';
 
 export default new DataSource({
@@ -91,6 +93,7 @@ export default new DataSource({
     BusinessEntity,
     UserEntity,
     DelegationEntity,
+    AdminOperationEntity,
     SessionEntity,
     ProviderEntity,
     BuyerEntity,
@@ -154,6 +157,7 @@ export default new DataSource({
     ReceiptDocumentsPng1793318400028,
     PurchaseSettlementLots1793750400029,
     PurchaseSettlementsTimeIndex1794873600030,
+    MerchantAdministration1795651200031,
   ],
 });
 

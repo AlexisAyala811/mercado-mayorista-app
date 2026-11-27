@@ -73,6 +73,7 @@ export class TypeOrmSessionIdentityReader implements SessionIdentityReader {
       businessId: session.user.businessId,
       businessName: session.user.business.displayName,
       expiresAt,
+      mustChangePassword: session.user.mustChangePassword,
       role: session.user.role,
       sessionId: session.id,
       userId: session.user.id,

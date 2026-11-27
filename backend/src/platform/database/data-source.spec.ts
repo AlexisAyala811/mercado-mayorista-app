@@ -44,6 +44,7 @@ describe('database data source', () => {
       'ReceiptDocumentsPng1793318400028',
       'PurchaseSettlementLots1793750400029',
       'PurchaseSettlementsTimeIndex1794873600030',
+      'MerchantAdministration1795651200031',
     ]);
     expect(new Set(migrations).size).toBe(migrations.length);
   });

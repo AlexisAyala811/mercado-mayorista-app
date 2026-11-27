@@ -17,6 +17,7 @@ import {
 import {
   ApiError,
   ApiUnavailableError,
+  changePassword as requestPasswordChange,
   createSession,
   getCurrentSession,
   revokeSession,
@@ -44,6 +45,8 @@ type SessionContextValue = {
   login: (credentials: { password: string; username: string }, options?: { keepStation?: boolean }) => Promise<void>;
   loginError: string | null;
   logout: () => Promise<void>;
+  /** Spec 023: changes the user's password and clears the forced change. */
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   invalidateSession: () => Promise<void>;
   retryBootstrap: () => void;
   session: AuthenticatedSession | null;
@@ -239,7 +242,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
           setIsOfflineSession(false);
           commitSession(created);
           if (options.keepStation !== undefined)
-            void recordOperatorSignIn({ role: created.user.role, username: created.user.username }, options.keepStation);
+            void recordOperatorSignIn({ businessId: created.user.businessId, role: created.user.role, username: created.user.username }, options.keepStation);
         }
       } catch (error) {
         if (request === generation.current)
@@ -266,6 +269,18 @@ export function SessionProvider({ children }: PropsWithChildren) {
       }
     }
   }, [removeSession]);
+  const changePassword = useCallback(
+    async (currentPassword: string, newPassword: string) => {
+      const current = currentSession.current;
+      if (!current) throw new ApiError('Sesión no válida.', 401);
+      await requestPasswordChange(current.accessToken, currentPassword, newPassword);
+      if (currentSession.current?.accessToken !== current.accessToken) return;
+      const updated = { ...current, user: { ...current.user, mustChangePassword: false } };
+      await storage.current(() => writeStoredSession(updated));
+      commitSession(updated);
+    },
+    [commitSession],
+  );
   const invalidateSession = useCallback(async () => {
     try {
       await removeSession();
@@ -291,6 +306,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
       hasPendingSessionRemoval,
       retrySessionRemoval,
       login,
+      changePassword,
       invalidateSession,
       loginError,
       logout,
@@ -307,6 +323,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
       hasPendingSessionRemoval,
       retrySessionRemoval,
       login,
+      changePassword,
       invalidateSession,
       loginError,
       logout,
